@@ -12,7 +12,7 @@ This repository contains comprehensive lecture materials and slides for the Ulin
   - Gradient descent optimization for parameter updates
   - Practical examples with step-by-step mathematical derivations
 - **Format**: Beamer presentation with visual diagrams and mathematical notation
-- **Files**: [`presentation.tex`](L2-ComputationalGraph-BackPropagation-GradientDescent/presentation.tex), [`presentation.pdf`](L2-ComputationalGraph-BackPropagation-GradientDescent/presentation.pdf)
+- **Files**: [`presentation.tex`](L2-ComputationalGraph-BackPropagation-GradientDescent/presentation.tex), [`presentation.pdf`](dist/L2-ComputationalGraph-BackPropagation-GradientDescent/presentation.pdf)
 
 ### L4: MNIST Digit Recognition - From Fully Connected Networks to CNN
 - **Topic**: Comparative analysis of neural network architectures for image classification
@@ -25,7 +25,7 @@ This repository contains comprehensive lecture materials and slides for the Ulin
   - Performance comparison and architectural insights
   - Neural network scaling laws and modern developments
 - **Format**: Comprehensive article with mathematical derivations, code examples, and visualizations
-- **Files**: [`mnist.tex`](L4-MNIST/mnist.tex), [`mnist.pdf`](L4-MNIST/mnist.pdf)
+- **Files**: [`mnist.tex`](L4-MNIST/mnist.tex), [`mnist.pdf`](dist/L4-MNIST/mnist.pdf)
 
 ## 👥 Target Audience
 
