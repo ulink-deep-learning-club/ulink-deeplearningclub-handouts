@@ -4,7 +4,7 @@ This repository contains comprehensive lecture materials and slides for the Ulin
 
 ## 📚 Lecture Series
 
-### L2: Computational Graphs, Backpropagation, and Gradient Descent
+### Lesson 2: Computational Graphs, Backpropagation, and Gradient Descent
 - **Topic**: Introduction to the fundamental concepts behind neural network training
 - **Content**:
   - Computational graphs as a framework for representing mathematical operations
@@ -14,7 +14,7 @@ This repository contains comprehensive lecture materials and slides for the Ulin
 - **Format**: Beamer presentation with visual diagrams and mathematical notation
 - **Files**: [`presentation.tex`](L2-ComputationalGraph-BackPropagation-GradientDescent/presentation.tex), [`presentation.pdf`](dist/L2-ComputationalGraph-BackPropagation-GradientDescent/presentation.pdf)
 
-### L4: MNIST Digit Recognition - From Fully Connected Networks to CNN
+### Lesson 4: MNIST Digit Recognition - From Fully Connected Networks to CNN
 - **Topic**: Comparative analysis of neural network architectures for image classification
 - **Content**:
   - Introduction to MNIST dataset and its historical significance
