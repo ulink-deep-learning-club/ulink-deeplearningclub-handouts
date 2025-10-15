@@ -1,13 +1,228 @@
-#!/usr/bin/env python3
+#! /usr/bin/env python3
+
+# TODO: assemble different headers for tex files for different purposes
+
 import argparse
 import os
 import subprocess
 from pathlib import Path
 import shutil
 import sys
+import re
 
 LATEX_COMPILE_MAX_ERROR_OFFSET = 256
 VERBOSE_MODE = False
+
+def find_deepest_common_ancestor(paths: list[Path]) -> Path:
+    """
+    Find the deepest common ancestor directory of a list of paths.
+    """
+    if not paths:
+        return Path.cwd()
+    
+    # Convert all paths to absolute paths and split into parts
+    absolute_paths = [path.resolve().parts for path in paths]
+    
+    # Find the minimum length of path parts
+    min_length = min(len(parts) for parts in absolute_paths)
+    
+    common_parts = []
+    for i in range(min_length):
+        # Check if all paths have the same part at position i
+        current_part = absolute_paths[0][i]
+        if all(parts[i] == current_part for parts in absolute_paths):
+            common_parts.append(current_part)
+        else:
+            break
+    
+    return Path(*common_parts) if common_parts else Path('/')
+
+
+def recursively_find_dependencies(tex_path: Path) -> set[Path]:
+    """
+    Recursively find all .tex files and media files included in the .tex files
+    Searches `input`, `include`, and `includegraphics` commands in the .tex files
+    """
+    dependencies = set()
+    visited = set()
+    stack = [tex_path.resolve()]
+    
+    while stack:
+        current_path = stack.pop()
+        if current_path in visited:
+            continue
+        visited.add(current_path)
+        
+        try:
+            content = current_path.read_text(encoding='utf-8')
+        except (OSError, UnicodeDecodeError):
+            continue
+            
+        # Find \input and \include commands
+        input_include_pattern = r'\\(?:input|include)\{([^}]+)\}'
+        for match in re.finditer(input_include_pattern, content):
+            included_file = match.group(1)
+            included_path = current_path.parent / included_file
+            
+            # Try different extensions for .tex files
+            if not included_path.suffix:
+                included_path = included_path.with_suffix('.tex')
+                
+            if included_path.exists() and included_path not in visited:
+                stack.append(included_path.resolve())
+                dependencies.add(included_path.resolve())
+                
+        # Find \includegraphics commands
+        graphics_pattern = r'\\includegraphics(?:\[[^\]]*\])?\{([^}]+)\}'
+        for match in re.finditer(graphics_pattern, content):
+            graphics_file = match.group(1)
+            graphics_path = current_path.parent / graphics_file
+            
+            if graphics_path.exists():
+                dependencies.add(graphics_path.resolve())
+                
+    return dependencies
+
+
+def call_lwarpmk(cwd: Path, subcommands: list[str]):
+    try:
+        lwarpmk_html_cmd = [
+            'lwarpmk',
+            *subcommands
+        ]
+        
+        result = subprocess.run(
+            lwarpmk_html_cmd,
+            cwd=str(cwd),  # Changed to temp project root
+            capture_output=True,
+            text=True
+        )
+
+        error_msg = ""
+        if result.returncode != 0:
+            error_msg = "\n".join(
+                "===".join(
+                    result.stdout.split("===")[1:-1]
+                ).strip().splitlines()[:-1]
+            )
+
+        return result.returncode == 0, error_msg
+    except Exception as e:
+        return False, f"Python error: {str(e)}"
+
+def compile_tex_to_html(project_root: Path, target_root: Path, temp_path: Path, clean_temp: bool = True):
+    """
+    Compile a TeX file to HTML using lwarpmk.
+    
+    Parameters:
+    - project_root: Path to the project root directory
+    - temp_path: Path for temporary files during compilation
+
+    Returns:
+    - tuple: (success: bool, parent_path: Path or None, error: str)
+    """
+    try:
+        # Find the main .tex file in the project root
+        tex_files = list(project_root.glob('*.tex'))
+        if not tex_files:
+            return False, "No .tex file found in project root"
+        
+        file_index = 0
+        if len(tex_files) > 1:  # If there are multiple .tex files, ask the user which one to compile
+            file_index = -1
+            print("Multiple .tex files found in project root. Which one to compile?")
+            for i, tex_file in enumerate(tex_files):
+                print(f"{i + 1}. {tex_file}")
+            while file_index < 0 or file_index >= len(tex_files):
+                file_index = int(input("Enter the number of the file to compile: ")) - 1
+                if file_index < 0 or file_index >= len(tex_files):
+                    print("Invalid input. Please enter a valid number.")
+        
+        main_tex = tex_files[file_index]
+        
+        # Find all dependencies
+        dependencies = recursively_find_dependencies(main_tex)
+        dependencies.add(main_tex)
+        
+        # Find the deepest common ancestor to maintain relative paths
+        common_ancestor = find_deepest_common_ancestor(list(dependencies))
+        
+        # Create temp directory structure
+        temp_path.mkdir(parents=True, exist_ok=True)
+        target_root.mkdir(parents=True, exist_ok=True)
+        
+        # Copy all dependencies to temp directory maintaining relative structure
+        for dep in dependencies:
+            # Calculate relative path from common ancestor
+            relative_path = dep.relative_to(common_ancestor)
+            temp_file_path = temp_path / relative_path
+            
+            # Create parent directories if needed
+            temp_file_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Copy file
+            shutil.copy2(dep, temp_file_path)
+            if VERBOSE_MODE:
+                print(f"Copied: {dep} -> {temp_file_path}")
+        
+        # Get the main tex file in temp directory
+        temp_main_tex = temp_path / main_tex.relative_to(common_ancestor)
+        
+        # Change to the temp directory (project root in temp)
+        temp_project_root = (temp_path / project_root.relative_to(common_ancestor)).resolve()
+        
+        # Step 1: Compile with XeLaTeX once
+        if VERBOSE_MODE:
+            print("Step 1: Compiling with XeLaTeX...")
+        
+        success, error = call_xelatex(temp_main_tex, temp_project_root)
+        if not success:
+            return False, f"XeLaTeX compilation failed: {error}"
+        
+        # Step 2: Call lwarpmk html from the copied project directory
+        if VERBOSE_MODE:
+            print("Step 2: Running lwarpmk html...")
+        
+        success, error = call_lwarpmk(temp_project_root, ['html'])
+        if not success:
+            return False, f"lwarpmk html failed: {error}"
+        
+        # Step 3: Call lwarpmk limages from the copied project directory
+        if VERBOSE_MODE:
+            print("Step 3: Running lwarpmk limages...")
+        
+        success, error = call_lwarpmk(temp_project_root, ['limages'])
+        if not success:
+            return False, f"lwarpmk limages failed: {error}"
+        
+        
+        for file in temp_project_root.iterdir():  # iterate through the top level dictionary, copy html, css files.
+            if (file.is_file()):
+                file = file.resolve()
+                if (
+                    (file.suffix == '.html' and file.stem.endswith("html")) # check if the file is called *html.html
+                    or (file.suffix == '.css')
+                ): 
+                    shutil.copy2(file, target_root)
+                    if VERBOSE_MODE:
+                        print(f"Copied: {file} -> {target_root}")
+            elif (file.is_dir()):  # move the children directories
+                shutil.copytree(file, target_root / file.name)
+        html_files = list(target_root.glob('*.html'))
+        if not html_files:
+            return False, "No .html file found in target root"
+        if (len(html_files) == 1):
+            shutil.move(html_files[0], target_root / "index.html")
+
+        # Clean up temp directory if needed
+        if clean_temp:
+            shutil.rmtree(temp_path)
+
+        # Return the parent path of the temp directory (where output files are)
+        return True, ""
+        
+    except Exception as e:
+        return False, f"Error in call_lwarpmk: {str(e)}"
 
 def call_xelatex(file_path: Path, temp_path: Path):
     """
@@ -116,7 +331,7 @@ def main():
     parser.add_argument('--source-path', help='Path to the original document')
     parser.add_argument('--target-path', nargs='?', default=None, 
                         help='Target path (optional, default: ./dist/<name of the tex doc>)')
-    parser.add_argument('--clean', action='store_true', help='Clean temporary files after compilation')
+    parser.add_argument('--clean', action='store_true', help='Clean temporary files after compilation', default=True)
     parser.add_argument('--hyperref', action='store_true', help='Support hyperref package (only for pdf)')
     parser.add_argument('--verbose', action='store_true', help='Print debugging information')
 
@@ -126,6 +341,10 @@ def main():
     if args.hyperref and args.target != 'pdf':
         print("hyperref is only supported for pdf target")
         sys.exit(1)
+
+    if args.verbose:
+        global VERBOSE_MODE
+        VERBOSE_MODE = True
     
     if args.target_path is None:
         # Create default path if not provided
@@ -139,15 +358,24 @@ def main():
         print(f"Original path: {args.source_path}")
         print(f"Target path: {args.target_path}")
 
-    success, error_msg = compile_tex_to_pdf(
-        args.source_path, 
-        args.target_path, 
-        "./temp", 
-        clean_temp=args.clean,
-        hyperref=args.hyperref
-    )
-    if not success:
-        print(f"Error compiling document: \n\n{error_msg}\n\n")
+    if args.target == 'pdf':
+        success, error_msg = compile_tex_to_pdf(
+            args.source_path, 
+            args.target_path, 
+            "./temp", 
+            clean_temp=args.clean,
+            hyperref=args.hyperref
+        )
+        if not success:
+            print(f"Error compiling document: \n\n{error_msg}\n\n")
+    elif args.target == 'html':
+        success, error_msg = compile_tex_to_html(
+            Path(args.source_path), 
+            Path(args.target_path),
+            Path("./temp")
+        )
+        if not success:
+            print(f"Error compiling document: \n\n{error_msg}\n\n")
 
 
 if __name__ == '__main__':
