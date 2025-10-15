@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-# TODO: assemble different headers for tex files for different purposes
+# TODO: assemble different headers for tex files for different purposes (pdf, html)
 
 import argparse
 import os
@@ -12,6 +12,7 @@ import re
 
 LATEX_COMPILE_MAX_ERROR_OFFSET = 256
 VERBOSE_MODE = False
+NON_INTERACTIVE_MODE = False
 
 def find_deepest_common_ancestor(paths: list[Path]) -> Path:
     """
@@ -128,7 +129,7 @@ def compile_tex_to_html(project_root: Path, target_root: Path, temp_path: Path, 
             return False, "No .tex file found in project root"
         
         file_index = 0
-        if len(tex_files) > 1:  # If there are multiple .tex files, ask the user which one to compile
+        if len(tex_files) > 1 and (not NON_INTERACTIVE_MODE):  # If there are multiple .tex files, ask the user which one to compile
             file_index = -1
             print("Multiple .tex files found in project root. Which one to compile?")
             for i, tex_file in enumerate(tex_files):
@@ -327,16 +328,21 @@ def compile_tex_to_pdf(tex_file_path: str, pdf_file_path: str, temp_file_path: s
 
 def main():
     parser = argparse.ArgumentParser(description='Compile document to PDF or HTML')
-    parser.add_argument('--target', choices=['pdf', 'html'], help='Target format: pdf or html')
+    parser.add_argument('--target', choices=['pdf', 'html'], help='Target format: pdf or html', default='pdf')
     parser.add_argument('--source-path', help='Path to the original document')
     parser.add_argument('--target-path', nargs='?', default=None, 
                         help='Target path (optional, default: ./dist/<name of the tex doc>)')
     parser.add_argument('--clean', action='store_true', help='Clean temporary files after compilation', default=True)
     parser.add_argument('--hyperref', action='store_true', help='Support hyperref package (only for pdf)')
     parser.add_argument('--verbose', action='store_true', help='Print debugging information')
+    parser.add_argument('--non-interactive', action='store_true', help='Run in non-interactive mode')
 
-    
+
     args = parser.parse_args()
+
+    if args.non_interactive:
+        global NON_INTERACTIVE_MODE
+        NON_INTERACTIVE_MODE = True
 
     if args.hyperref and args.target != 'pdf':
         print("hyperref is only supported for pdf target")

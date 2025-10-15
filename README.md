@@ -5,6 +5,7 @@ This repository contains comprehensive lecture materials and slides for the Ulin
 ## 📚 Lecture Series
 
 ### Lesson 2: Computational Graphs, Backpropagation, and Gradient Descent
+
 - **Topic**: Introduction to the fundamental concepts behind neural network training
 - **Content**:
   - Computational graphs as a framework for representing mathematical operations
@@ -15,6 +16,7 @@ This repository contains comprehensive lecture materials and slides for the Ulin
 - **Files**: [`presentation.tex`](L2-ComputationalGraph-BackPropagation-GradientDescent/presentation.tex), [`presentation.pdf`](dist/L2-ComputationalGraph-BackPropagation-GradientDescent/presentation.pdf)
 
 ### Lesson 4: MNIST Digit Recognition - From Fully Connected Networks to CNN
+
 - **Topic**: Comparative analysis of neural network architectures for image classification
 - **Content**:
   - Introduction to MNIST dataset and its historical significance
@@ -52,33 +54,66 @@ Our materials follow these guidelines:
 - **Clarity**: Complex concepts explained with intuitive examples and visualizations
 - **Illustrative**: Rich diagrams, code examples, and mathematical derivations
 - **Readable**: Well-structured content with clear learning progression
-- **Supported by reasons**:
+- **Reasonable**:
   - Mathematical derivations where applicable
   - Comparative analysis of different approaches
   - Discussion of practical implications and trade-offs
 
 ## 🛠 Technical Details
 
-- **Compilation**: Each lecture includes a `compile.sh` script for PDF generation
+- **Compilation**: Advanced Python-based build system (`compile.py`) supporting both PDF and HTML output formats
 - **Dependencies**: LaTeX with XeLaTeX compiler, TikZ for diagrams, and standard mathematical packages
 - **Language**: Materials are primarily in Chinese with English technical terminology
 - **Code Examples**: PyTorch implementations with detailed explanations
+- **Modular Headers**: Common LaTeX headers extracted into reusable modules for consistency
+
+## 🚀 Build System Usage
+
+### PDF Compilation
+
+```bash
+# Compile with hyperref support
+python3 compile.py --source-path L4-MNIST/mnist.tex --target-path dist/L4-MNIST/ --hyperref
+```
+
+### HTML Compilation
+
+```bash
+# Compile to HTML
+python3 compile.py --source-path L4-MNIST/ --target-path dist/L4-MNIST/html/ --target html
+```
+
+## 🧩 Modular File Headers
+
+The new build system introduces modular LaTeX headers for better maintainability and consistency:
+
+- **`DocumentBaseFormat.tex`**: Base document class, paper size, and font encoding setup
+- **`HeaderPackages.tex`**: Common packages (geometry, amsmath, graphicx, tikz, etc.) and custom environments
+- **`WebpageHeader.tex`**: HTML-specific headers for web compilation with lwarp
+
+These modules are included in documents using `\input{../Common/...}` commands, allowing centralized management of LaTeX configurations across all lecture materials.
 
 ## 📁 Repository Structure
 
-```
+```plaintext
 deep-learning-club-lecture-material/
 ├── README.md                                    # This file
+├── compile.py                                   # Advanced Python build system supporting PDF/HTML
+├── Common/                                      # Modular LaTeX headers for consistency
+│   ├── DocumentBaseFormat.tex                 # Base document class and font setup
+│   ├── HeaderPackages.tex                     # Common packages and custom environments
+│   └── WebpageHeader.tex                      # HTML compilation support headers
 ├── L2-ComputationalGraph-BackPropagation-GradientDescent/
 │   ├── presentation.tex                        # Beamer presentation source
 │   ├── presentation.pdf                        # Compiled presentation
-│   ├── compile.sh                              # Compilation script
 │   └── images/                                 # Supporting images
-└── L4-MNIST/
-    ├── mnist.tex                               # Article source
-    ├── mnist.pdf                               # Compiled article
-    ├── compile.sh                              # Compilation script
-    └── figures/                                # Supporting figures
+├── L4-MNIST/
+│   ├── mnist.tex                               # Article source with modular headers
+│   ├── mnist.pdf                               # Compiled article
+│   └── figures/                                # Supporting figures
+└── dist/                                       # Distribution directory for compiled materials
+    ├── L2-ComputationalGraph-BackPropagation-GradientDescent/
+    └── L4-MNIST/
 ```
 
 ## 🤝 Acknowledgments
@@ -87,4 +122,4 @@ These materials were developed with the cooperation of AI and incorporate insigh
 
 ---
 
-**Last updated**: 2025-10-12
+**Last updated**: 2025-10-15
