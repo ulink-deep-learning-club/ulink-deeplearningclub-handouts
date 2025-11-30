@@ -29,6 +29,35 @@ This repository contains comprehensive lecture materials and slides for the Ulin
 - **Format**: Comprehensive article with mathematical derivations, code examples, and visualizations
 - **Files**: [`mnist.tex`](L4-MNIST/mnist.tex), [`mnist.pdf`](dist/L4-MNIST/mnist.pdf)
 
+### Lesson 6: Attention Mechanisms in Convolutional Neural Networks: From SE-Net to CBAM
+
+- **Topic**: Comprehensive exploration of attention mechanisms in CNN architectures
+- **Content**:
+  - Introduction to attention mechanisms and their biological inspiration
+  - Channel attention: Squeeze-and-Excitation Networks (SE-Net) with detailed mathematical analysis
+  - Spatial attention: Focus on important spatial locations
+  - Hybrid attention: Convolutional Block Attention Module (CBAM) combining channel and spatial attention
+  - Theoretical analysis from mathematical, linear algebra, and information theory perspectives
+  - Performance comparison and practical implementation guidelines
+  - Complete PyTorch implementations with parameter complexity analysis
+- **Format**: Comprehensive article with mathematical derivations, code examples, and visualizations
+- **Files**: [`document.tex`](L6-AttentionMechanisms/document.tex), [`document.pdf`](dist/L6-AttentionMechanisms/document.pdf)
+
+### Lesson 7: PyTorch Basics Tutorial: From NumPy to Deep Learning
+
+- **Topic**: Comprehensive PyTorch tutorial for beginners with Python background
+- **Content**:
+  - Transition from NumPy to PyTorch: understanding the necessity of deep learning frameworks
+  - Tensors: Core data structure with detailed operations and broadcasting
+  - Autograd: Automatic differentiation and computational graphs
+  - Neural Network Modules (nn.Module): Building blocks for deep learning models
+  - Optimizers: From manual updates to automated optimization algorithms
+  - Complete training workflow: Data loading, model definition, training loop, and evaluation
+  - Debugging techniques and visualization tools
+  - Practical examples with MNIST digit classification
+- **Format**: Beginner-friendly tutorial with step-by-step explanations and code examples
+- **Files**: [`document.tex`](L7-PyTorch-Basics/document.tex), [`document.pdf`](dist/L7-PyTorch-Basics/document.pdf)
+
 ## 👥 Target Audience
 
 These materials are designed for:
@@ -45,6 +74,9 @@ After studying these materials, students will be able to:
 - Analyze and compare different neural network architectures
 - Apply appropriate regularization techniques to prevent overfitting
 - Understand the trade-offs between model complexity and performance
+- Implement attention mechanisms in CNN architectures
+- Master PyTorch framework for deep learning development
+- Build complete training pipelines from data loading to model evaluation
 
 ## 📖 Pedagogical Approach
 
@@ -102,7 +134,8 @@ deep-learning-club-lecture-material/
 ├── Common/                                      # Modular LaTeX headers for consistency
 │   ├── DocumentBaseFormat.tex                 # Base document class and font setup
 │   ├── HeaderPackages.tex                     # Common packages and custom environments
-│   └── WebpageHeader.tex                      # HTML compilation support headers
+│   ├── WebpageHeader.tex                      # HTML compilation support headers
+│   └── DocumentTheme.tex                      # Document theme and styling
 ├── L2-ComputationalGraph-BackPropagation-GradientDescent/
 │   ├── presentation.tex                        # Beamer presentation source
 │   ├── presentation.pdf                        # Compiled presentation
@@ -111,9 +144,23 @@ deep-learning-club-lecture-material/
 │   ├── mnist.tex                               # Article source with modular headers
 │   ├── mnist.pdf                               # Compiled article
 │   └── figures/                                # Supporting figures
+├── L6-AttentionMechanisms/
+│   ├── document.tex                            # Attention mechanisms article source
+│   ├── document.pdf                            # Compiled attention mechanisms article
+│   └── figures/                                # Attention mechanism diagrams
+├── L7-PyTorch-Basics/
+│   ├── document.tex                            # PyTorch tutorial source
+│   ├── document.pdf                            # Compiled PyTorch tutorial
+│   └── Assets/                                 # PyTorch tutorial assets
+├── Viewer/                                      # Web viewer application
+│   ├── src/                                    # Vue.js source code
+│   ├── package.json                            # Node.js dependencies
+│   └── index.html                              # Main HTML file
 └── dist/                                       # Distribution directory for compiled materials
     ├── L2-ComputationalGraph-BackPropagation-GradientDescent/
-    └── L4-MNIST/
+    ├── L4-MNIST/
+    ├── L6-AttentionMechanisms/
+    └── L7-PyTorch-Basics/
 ```
 
 ## 🤝 Acknowledgments
@@ -122,4 +169,4 @@ These materials were developed with the cooperation of AI and incorporate insigh
 
 ---
 
-**Last updated**: 2025-10-15
+**Last updated**: 2025-11-30
