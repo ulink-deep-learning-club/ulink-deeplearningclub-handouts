@@ -1,0 +1,6014 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="generator" content="LaTeX Lwarp package" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MNIST 数字识别：从全连接网络到卷积神经网络 </title>
+<link rel="stylesheet" type="text/css" href="lwarp.css" />
+
+<script>
+// Lwarp MathJax emulation code
+//
+// Based on code by Davide P. Cervone.
+// Equation numbering: https://github.com/mathjax/MathJax/issues/2427
+// Starred and ifnextchar macros: https://github.com/mathjax/MathJax/issues/2428
+// \left, \right delimiters: https://github.com/mathjax/MathJax/issues/2535
+//
+// Modified by Brian Dunn to adjust equation numbering and add subequations.
+//
+// LaTeX can use \seteqnumber{subequations?}{section}{number} before each equation.
+// subequations? is 0 usually, 1 if inside subequations.
+// section is a string printed as-is, or empty.
+// number is auto-incremented by MathJax between equations.
+//
+MathJax = {
+    subequations: "0",
+    section: "",
+    loader: {
+        load: ['[tex]/tagformat', '[tex]/textmacros'],
+    },
+    startup: {
+        ready() {
+            //       These would be replaced by import commands if you wanted to make
+            //       a proper extension.
+            const Configuration = MathJax._.input.tex.Configuration.Configuration;
+            const CommandMap = MathJax._.input.tex.SymbolMap.CommandMap;
+            const Macro = MathJax._.input.tex.Symbol.Macro;
+            const TexError = MathJax._.input.tex.TexError.default;
+            const ParseUtil = MathJax._.input.tex.ParseUtil.default;
+            const expandable = MathJax._.util.Options.expandable;
+
+
+            //       Insert the replacement string into the TeX string, and check
+            //       that there haven't been too many maxro substitutions (prevents
+            //       infinite loops).
+            const useArgument = (parser, text) => {
+                parser.string = ParseUtil.addArgs(parser, text, parser.string.slice(parser.i));
+                parser.i = 0;
+                if (++parser.macroCount > parser.configuration.options.maxMacros) {
+                     throw new TexError('MaxMacroSub1',
+                     'MathJax maximum macro substitution count exceeded; ' +
+                     'is there a recursive macro call?');
+                }
+            }
+
+
+            //       Create the command map for:
+            //           \ifstar, \ifnextchar, \ifblank, \ifstrequal, \gsub, \seteqnumber
+            new CommandMap('Lwarp-macros', {
+                ifstar: 'IfstarFunction',
+                ifnextchar: 'IfnextcharFunction',
+                ifblank: 'IfblankFunction',
+                ifstrequal: 'IfstrequalFunction',
+                gsubstitute: 'GsubstituteFunction',
+                seteqnumber: 'SeteqnumberFunction'
+            }, {
+                //       This function implements an ifstar macro.
+                IfstarFunction(parser, name) {
+                     const resultstar = parser.GetArgument(name);
+                     const resultnostar = parser.GetArgument(name);
+                     const star = parser.GetStar();                      // true if there is a *
+                     useArgument(parser, star ? resultstar : resultnostar);
+                },
+
+
+                //       This function implements an ifnextchar macro.
+                IfnextcharFunction(parser, name) {
+                     let whichchar = parser.GetArgument(name);
+                     if (whichchar.match(/^(?:0x[0-9A-F]+|[0-9]+)$/i)) {
+                         // $ syntax highlighting
+                         whichchar = String.fromCodePoint(parseInt(whichchar));
+                     }
+                     const resultnextchar = parser.GetArgument(name);
+                     const resultnotnextchar = parser.GetArgument(name);
+                     const gotchar = (parser.GetNext() === whichchar);
+                     useArgument(parser, gotchar ? resultnextchar : resultnotnextchar);
+                },
+
+
+                // This function implements an ifblank macro.
+                IfblankFunction(parser, name) {
+                     const blankarg = parser.GetArgument(name);
+                     const resultblank = parser.GetArgument(name);
+                     const resultnotblank = parser.GetArgument(name);
+                     const isblank = (blankarg.trim() == "");
+                     useArgument(parser, isblank ? resultblank : resultnotblank);
+                },
+
+
+                // This function implements an ifstrequal macro.
+                IfstrequalFunction(parser, name) {
+                     const strequalfirst = parser.GetArgument(name);
+                     const strequalsecond = parser.GetArgument(name);
+                     const resultequal = parser.GetArgument(name);
+                     const resultnotequal = parser.GetArgument(name);
+                     const isequal = (strequalfirst == strequalsecond);
+                     useArgument(parser, isequal ? resultequal : resultnotequal);
+                },
+
+
+                // This function implements a gsub macro.
+                GsubstituteFunction(parser, name) {
+                     const gsubfirst = parser.GetArgument(name);
+                     const gsubsecond = parser.GetArgument(name);
+                     const gsubthird = parser.GetArgument(name);
+                     let gsubresult=gsubfirst.replace(gsubsecond, gsubthird);
+                     useArgument(parser, gsubresult);
+                },
+
+
+                //       This function modifies the equation numbers.
+                SeteqnumberFunction(parser, name) {
+                         // Get the macro parameters
+                         const star = parser.GetStar();                    // true if there is a *
+                         const optBrackets = parser.GetBrackets(name);     // contents of optional brackets
+                         const newsubequations = parser.GetArgument(name);    // the subequations argument
+                         const neweqsection = parser.GetArgument(name);    // the eq section argument
+                         const neweqnumber = parser.GetArgument(name);     // the eq number argument
+                         MathJax.config.subequations=newsubequations ;     // a string with boolean meaning
+                         MathJax.config.section=neweqsection ;             // a string with numeric meaning
+                         parser.tags.counter = parser.tags.allCounter = neweqnumber ;
+                }
+
+
+            });
+
+
+            //       Create the Lwarp-macros package
+            Configuration.create('Lwarp-macros', {
+                handler: {macro: ['Lwarp-macros']}
+            });
+
+
+            MathJax.startup.defaultReady();
+
+
+            // For forward references:
+            MathJax.startup.input[0].preFilters.add(({math}) => {
+                if (math.inputData.recompile){
+                         MathJax.config.subequations = math.inputData.recompile.subequations;
+                         MathJax.config.section = math.inputData.recompile.section;
+                }
+            });
+            MathJax.startup.input[0].postFilters.add(({math}) => {
+                if (math.inputData.recompile){
+                         math.inputData.recompile.subequations = MathJax.config.subequations;
+                         math.inputData.recompile.section = MathJax.config.section;
+                }
+            });
+
+
+                // For \left, \right with unicode-math:
+                const {DelimiterMap} = MathJax._.input.tex.SymbolMap;
+                const {Symbol} = MathJax._.input.tex.Symbol;
+                const {MapHandler} = MathJax._.input.tex.MapHandler;
+                const delimiter = MapHandler.getMap('delimiter');
+                delimiter.add('\\lBrack', new Symbol('\\lBrack', '\u27E6'));
+                delimiter.add('\\rBrack', new Symbol('\\rBrack', '\u27E7'));
+                delimiter.add('\\lAngle', new Symbol('\\lAngle', '\u27EA'));
+                delimiter.add('\\rAngle', new Symbol('\\rAngle', '\u27EB'));
+                delimiter.add('\\lbrbrak', new Symbol('\\lbrbrak', '\u2772'));
+                delimiter.add('\\rbrbrak', new Symbol('\\rbrbrak', '\u2773'));
+                delimiter.add('\\lbag', new Symbol('\\lbag', '\u27C5'));
+                delimiter.add('\\rbag', new Symbol('\\rbag', '\u27C6'));
+                delimiter.add('\\llparenthesis', new Symbol('\\llparenthesis', '\u2987'));
+                delimiter.add('\\rrparenthesis', new Symbol('\\rrparenthesis', '\u2988'));
+                delimiter.add('\\llangle', new Symbol('\\llangle', '\u2989'));
+                delimiter.add('\\rrangle', new Symbol('\\rrangle', '\u298A'));
+                delimiter.add('\\Lbrbrak', new Symbol('\\Lbrbrak', '\u27EC'));
+                delimiter.add('\\Rbrbrak', new Symbol('\\Rbrbrak', '\u27ED'));
+                delimiter.add('\\lBrace', new Symbol('\\lBrace', '\u2983'));
+                delimiter.add('\\rBrace', new Symbol('\\rBrace', '\u2984'));
+                delimiter.add('\\lParen', new Symbol('\\lParen', '\u2985'));
+                delimiter.add('\\rParen', new Symbol('\\rParen', '\u2986'));
+                delimiter.add('\\lbrackubar', new Symbol('\\lbrackubar', '\u298B'));
+                delimiter.add('\\rbrackubar', new Symbol('\\rbrackubar', '\u298C'));
+                delimiter.add('\\lbrackultick', new Symbol('\\lbrackultick', '\u298D'));
+                delimiter.add('\\rbracklrtick', new Symbol('\\rbracklrtick', '\u298E'));
+                delimiter.add('\\lbracklltick', new Symbol('\\lbracklltick', '\u298F'));
+                delimiter.add('\\rbrackurtick', new Symbol('\\rbrackurtick', '\u2990'));
+                delimiter.add('\\langledot', new Symbol('\\langledot', '\u2991'));
+                delimiter.add('\\rangledot', new Symbol('\\rangledot', '\u2992'));
+                delimiter.add('\\lparenless', new Symbol('\\lparenless', '\u2993'));
+                delimiter.add('\\rparengtr', new Symbol('\\rparengtr', '\u2994'));
+                delimiter.add('\\Lparengtr', new Symbol('\\Lparengtr', '\u2995'));
+                delimiter.add('\\Rparenless', new Symbol('\\Rparenless', '\u2996'));
+                delimiter.add('\\lblkbrbrak', new Symbol('\\lblkbrbrak', '\u2997'));
+                delimiter.add('\\rblkbrbrak', new Symbol('\\rblkbrbrak', '\u2998'));
+                delimiter.add('\\lvzigzag', new Symbol('\\lvzigzag', '\u29D8'));
+                delimiter.add('\\rvzigzag', new Symbol('\\rvzigzag', '\u29D9'));
+                delimiter.add('\\Lvzigzag', new Symbol('\\Lvzigzag', '\u29DA'));
+                delimiter.add('\\Rvzigzag', new Symbol('\\Rvzigzag', '\u29DB'));
+                delimiter.add('\\lcurvyangle', new Symbol('\\lcurvyangle', '\u29FC'));
+                delimiter.add('\\rcurvyangle', new Symbol('\\rcurvyangle', '\u29FD'));
+                delimiter.add('\\Vvert', new Symbol('\\Vvert', '\u2980'));
+        }        // ready
+    },           // startup
+
+
+    tex: {
+        packages: {'[+]': ['tagformat', 'Lwarp-macros', 'textmacros']},
+        tags: "ams",
+                tagformat: {
+                         number: function (n) {
+                              if(MathJax.config.subequations==0)
+                                 return(MathJax.config.section + n);
+                              else
+                                 return(MathJax.config.section + String.fromCharCode(96+n));
+                         },
+                },
+    }
+}
+</script>
+
+
+<script
+        id="MathJax-script"
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
+></script>
+
+
+</head>
+<body>
+<!--|Using lwarp|mnist.html|-->
+
+
+
+<div class="bodywithoutsidetoc">
+
+
+
+<main class="bodycontainer">
+
+
+
+<section class="textbody">
+
+<a id="mnist-autofile-0"></a>
+
+<!--MathJax customizations:-->
+<div data-nosnippet
+         style="display:none"
+>
+
+\(\newcommand{\footnotename}{footnote}\)
+
+\(\def \LWRfootnote {1}\)
+
+\(\newcommand {\footnote }[2][\LWRfootnote ]{{}^{\mathrm {#1}}}\)
+
+\(\newcommand {\footnotemark }[1][\LWRfootnote ]{{}^{\mathrm {#1}}}\)
+
+\(\let \LWRorighspace \hspace \)
+
+\(\renewcommand {\hspace }{\ifstar \LWRorighspace \LWRorighspace }\)
+
+\(\newcommand {\TextOrMath }[2]{#2}\)
+
+\(\newcommand {\mathnormal }[1]{{#1}}\)
+
+\(\newcommand \ensuremath [1]{#1}\)
+
+\(\newcommand {\LWRframebox }[2][]{\fbox {#2}} \newcommand {\framebox }[1][]{\LWRframebox } \)
+
+\(\newcommand {\setlength }[2]{}\)
+
+\(\newcommand {\addtolength }[2]{}\)
+
+\(\newcommand {\setcounter }[2]{}\)
+
+\(\newcommand {\addtocounter }[2]{}\)
+
+\(\newcommand {\arabic }[1]{}\)
+
+\(\newcommand {\number }[1]{}\)
+
+\(\newcommand {\noalign }[1]{\text {#1}\notag \\}\)
+
+\(\newcommand {\cline }[1]{}\)
+
+\(\newcommand {\directlua }[1]{\text {(directlua)}}\)
+
+\(\newcommand {\luatexdirectlua }[1]{\text {(directlua)}}\)
+
+\(\newcommand {\protect }{}\)
+
+\(\def \LWRabsorbnumber #1 {}\)
+
+\(\def \LWRabsorbquotenumber &quot;#1 {}\)
+
+\(\newcommand {\LWRabsorboption }[1][]{}\)
+
+\(\newcommand {\LWRabsorbtwooptions }[1][]{\LWRabsorboption }\)
+
+\(\def \mathchar {\ifnextchar &quot;\LWRabsorbquotenumber \LWRabsorbnumber }\)
+
+\(\def \mathcode #1={\mathchar }\)
+
+\(\let \delcode \mathcode \)
+
+\(\let \delimiter \mathchar \)
+
+\(\def \oe {\unicode {x0153}}\)
+
+\(\def \OE {\unicode {x0152}}\)
+
+\(\def \ae {\unicode {x00E6}}\)
+
+\(\def \AE {\unicode {x00C6}}\)
+
+\(\def \aa {\unicode {x00E5}}\)
+
+\(\def \AA {\unicode {x00C5}}\)
+
+\(\def \o {\unicode {x00F8}}\)
+
+\(\def \O {\unicode {x00D8}}\)
+
+\(\def \l {\unicode {x0142}}\)
+
+\(\def \L {\unicode {x0141}}\)
+
+\(\def \ss {\unicode {x00DF}}\)
+
+\(\def \SS {\unicode {x1E9E}}\)
+
+\(\def \dag {\unicode {x2020}}\)
+
+\(\def \ddag {\unicode {x2021}}\)
+
+\(\def \P {\unicode {x00B6}}\)
+
+\(\def \copyright {\unicode {x00A9}}\)
+
+\(\def \pounds {\unicode {x00A3}}\)
+
+\(\let \LWRref \ref \)
+
+\(\renewcommand {\ref }{\ifstar \LWRref \LWRref }\)
+
+\( \newcommand {\multicolumn }[3]{#3}\)
+
+\(\require {textcomp}\)
+
+\(\newcommand {\intertext }[1]{\text {#1}\notag \\}\)
+
+\(\let \Hat \hat \)
+
+\(\let \Check \check \)
+
+\(\let \Tilde \tilde \)
+
+\(\let \Acute \acute \)
+
+\(\let \Grave \grave \)
+
+\(\let \Dot \dot \)
+
+\(\let \Ddot \ddot \)
+
+\(\let \Breve \breve \)
+
+\(\let \Bar \bar \)
+
+\(\let \Vec \vec \)
+
+\(\newcommand {\toprule }[1][]{\hline }\)
+
+\(\let \midrule \toprule \)
+
+\(\let \bottomrule \toprule \)
+
+\(\def \LWRbooktabscmidruleparen (#1)#2{}\)
+
+\(\newcommand {\LWRbooktabscmidrulenoparen }[1]{}\)
+
+\(\newcommand {\cmidrule }[1][]{\ifnextchar (\LWRbooktabscmidruleparen \LWRbooktabscmidrulenoparen }\)
+
+\(\newcommand {\morecmidrules }{}\)
+
+\(\newcommand {\specialrule }[3]{\hline }\)
+
+\(\newcommand {\addlinespace }[1][]{}\)
+
+\(\newcommand {\tcbset }[1]{}\)
+
+\(\newcommand {\tcbsetforeverylayer }[1]{}\)
+
+\(\newcommand {\tcbox }[2][]{\boxed {\text {#2}}}\)
+
+\(\newcommand {\tcboxfit }[2][]{\boxed {#2}}\)
+
+\(\newcommand {\tcblower }{}\)
+
+\(\newcommand {\tcbline }{}\)
+
+\(\newcommand {\tcbtitle }{}\)
+
+\(\newcommand {\tcbsubtitle [2][]{\mathrm {#2}}}\)
+
+\(\newcommand {\tcboxmath }[2][]{\boxed {#2}}\)
+
+\(\newcommand {\tcbhighmath }[2][]{\boxed {#2}}\)
+
+</div>
+
+<a id="mnist-autopage-1"></a>
+<div class="titlepage">
+
+<h1><b>MNIST 数字识别：从全连接网络到卷积神经网络 </b></h1>
+
+
+
+<div class="author">
+
+
+
+<div class="oneauthor">
+
+<p>
+Anson, 深度学习社 &#x2003;Cooperated with <kbd>Kimi K2 0905</kbd>
+</p>
+</div>
+
+</div>
+
+
+
+<div class="titledate">
+
+<p>
+2025 年 12 月 3 日
+</p>
+</div>
+
+</div>
+<div class="abstract">
+
+
+
+<div class="abstracttitle"> 摘要 </div>
+
+<p>
+本文深入探讨了 MNIST 手写数字识别任务中的两种主要神经网络架构：经典全连接神经网络（Fully Connected Networks）和卷积神经网络（Convolutional Neural Networks, CNN）
+                                                                                                                。文章首先系统介绍了神经网络训练的基础
+概念和术语，包括损失函数、优化算法、过拟合与正则化技术等核心内容。通过详细分析 LeNet 架构，我们展示了如何将卷积层用于特征提取，以及如何将全连接层用于分类。文章包含完整的数学推导、PyTorch 实现代码，并深入
+对比了两种架构的优缺点。此外，我们还探讨了神经网络中的缩放定律，为理解现代深度学习的发展提供了理论基础。
+</p>
+</div>
+<!--
+...... section 目录......
+-->
+<h4 id="autosec-4">目录</h4>
+<a id="mnist-autopage-4"></a>
+
+
+
+
+<nav class="toc">
+
+</nav>
+<!--
+...... section 引言......
+-->
+<h4 id="autosec-5"><span class="sectionnumber">1&#x2003;</span>引言</h4>
+<a id="mnist-autopage-5"></a>
+<!--
+...... subsection MNIST 数据集简介......
+-->
+<h5 id="autosec-6"><span class="sectionnumber">1.1&#x2003;</span>MNIST 数据集简介</h5>
+<a id="mnist-autopage-6"></a>
+
+
+
+<p>
+MNIST（Modified National Institute of Standards and Technology）数据集是机器学习领域最经典的数据集之一，由 Yann LeCun 等人创建。该数据集包含：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 训练集：60,000 张手写数字图像
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 测试集：10,000 张手写数字图像
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 图像尺寸：28×28 像素，灰度图像
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 类别：0‑9 共 10 个数字类别
+</p>
+</li>
+</ul>
+
+<figure id="autoid-1" class="figure ">
+<div class="center">
+
+<p>
+
+
+<a href="figures/mnist.png" target="_blank" ><img
+      src="figures/mnist.png"
+      style="
+      width:347pt;
+      "
+      class="inlineimage"
+      alt="(image)"
+></a>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;1: MNIST 图像数据集
+
+</div>
+
+</div>
+
+</figure>
+
+<p>
+MNIST 数据集之所以成为“Hello World”级别的基准测试，是因为：
+</p>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 规模适中 </b>：足够大以展示机器学习的效果，又足够小以便快速实验
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 预处理完善 </b>：图像已经过标准化处理，可直接用于训练
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 评估标准明确 </b>：分类准确率的计算简单直观
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 历史意义 </b>：见证了从传统机器学习到深度学习的发展历程
+</p>
+</li>
+</ul>
+<!--
+...... subsection LeNet 的历史意义......
+-->
+<h5 id="autosec-8"><span class="sectionnumber">1.2&#x2003;</span>LeNet 的历史意义</h5>
+<a id="mnist-autopage-8"></a>
+
+
+
+<p>
+LeNet 由 Yann LeCun 在 1989 年提出&nbsp;[?]，是最早的卷积神经网络之一。其历史意义在于：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 开创性 </b>：首次将卷积操作引入神经网络
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 实用性 </b>：成功应用于银行支票的手写数字识别
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 理论基础 </b>：奠定了现代 CNN 架构的基础
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 持久影响 </b>：其设计思想至今仍在使用
+</p>
+</li>
+</ul>
+<!--
+...... section 神经网络训练基础......
+-->
+<h4 id="autosec-9"><span class="sectionnumber">2&#x2003;</span>神经网络训练基础</h4>
+<a id="mnist-autopage-9"></a>
+<!--
+...... subsection 基本训练术语......
+-->
+<h5 id="autosec-10"><span class="sectionnumber">2.1&#x2003;</span>基本训练术语</h5>
+<a id="mnist-autopage-10"></a>
+
+
+
+<p>
+在深入探讨神经网络架构之前，我们需要明确一些基本的训练概念和术语：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 核心训练术语 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b>Epoch（轮次）</b>：完整遍历整个训练数据集一次的过程
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>Batch（批次）</b>：一次训练迭代中使用的样本集合
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>Batch Size（批大小）</b>：每个批次中的样本数量，影响训练稳定性和内存使用
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>Iteration（迭代）</b>：完成一个批次的训练步骤
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>Learning Rate（学习率）</b>：控制模型参数更新步长的超参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>Loss Function（损失函数）</b>：衡量模型预测与真实标签差异的函数
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 损失函数的选择......
+-->
+<h5 id="autosec-11"><span class="sectionnumber">2.2&#x2003;</span>损失函数的选择</h5>
+<a id="mnist-autopage-11"></a>
+
+
+
+<p>
+损失函数是神经网络训练的核心，不同的任务需要不同的损失函数：
+</p>
+
+<figure id="autoid-2" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 任务类型 </b></td>
+<td class="tdl"><b> 损失函数 </b></td>
+<td class="tdl"><b> 数学表达式 </b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl"> 回归任务 </td>
+<td class="tdl"> 均方误差（MSE）
+                         </td>
+<td class="tdl">\(\displaystyle \frac {1}{n}\sum _{i=1}^n (y_i - \hat {y}_i)^2\)</td>
+</tr>
+
+
+<tr>
+<td class="tdl"></td>
+<td class="tdl"></td>
+<td class="tdl"></td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 分类任务 </td>
+<td class="tdl"> 交叉熵损失 </td>
+<td class="tdl">\(\displaystyle -\sum _{i=1}^n y_i \log (\hat {y}_i)\)</td>
+</tr>
+
+
+<tr>
+<td class="tdl"></td>
+<td class="tdl"></td>
+<td class="tdl"></td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 二分类任务 </td>
+<td class="tdl"> 二元交叉熵 </td>
+<td class="tdl">\(\displaystyle -\frac {1}{n}\sum _{i=1}^n [y_i \log (\hat {y}_i) + (1-y_i)\log (1-\hat {y}_i)]\)</td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdl"></td>
+<td class="tdl"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;1: 常见损失函数对比
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b>MNIST 分类的损失函数 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+对于 MNIST 手写数字识别这样的 10 类分类任务，我们使用 <b> 分类交叉熵损失函数 </b>：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{0}\)</span>
+
+<!--
+
+
+                                                                                                   ∑
+                                                                                                   10
+                                                                                             L=−         yc log(pc )     (1)
+                                                                                                   c=1
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+\mathcal {L} = -\sum _{c=1}^{10} y_c \log (p_c)
+\end{equation}
+
+
+</p>
+
+<p>
+其中：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> \(y_c\)：真实标签的 one‑hot 编码（0 或 1）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(p_c\)：模型预测属于类别\(c\) 的概率
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 求和遍历所有 10 个数字类别
+</p>
+</li>
+</ul>
+
+<p>
+<b> 为什么选择交叉熵而不是 MSE？</b> 交叉熵对概率分布的差异更敏感，且在分类任务中梯度更稳定。
+</p>
+</div>
+
+</div>
+<!--
+...... subsection 训练过程与验证......
+-->
+<h5 id="autosec-14"><span class="sectionnumber">2.3&#x2003;</span>训练过程与验证</h5>
+<a id="mnist-autopage-14"></a>
+<!--
+...... subsubsection 训练集与测试集的划分......
+-->
+<h6 id="autosec-15"><span class="sectionnumber">2.3.1&#x2003;</span>训练集与测试集的划分</h6>
+<a id="mnist-autopage-15"></a>
+
+
+
+<p>
+在机器学习中，我们将数据划分为不同的集合：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 训练集（Training Set）</b>：用于模型参数的学习
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 验证集（Validation Set）</b>：用于超参数调优和模型选择
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 测试集（Test Set）</b>：用于最终模型性能评估
+</p>
+</li>
+</ul>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 数据划分的重要性 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 避免过拟合：确保模型在未见过的数据上表现良好
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 公平评估：测试集只能在最终评估时使用一次
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 模型选择：验证集帮助我们选择最佳超参数
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsubsection 训练过程的监控......
+-->
+<h6 id="autosec-16"><span class="sectionnumber">2.3.2&#x2003;</span>训练过程的监控</h6>
+<a id="mnist-autopage-16"></a>
+
+
+
+<p>
+有效的训练需要监控多个指标：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 关键监控指标 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 训练损失 </b>：模型在训练集上的表现，应该逐渐下降
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 验证损失 </b>：模型在验证集上的表现，反映泛化能力
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 训练准确率 </b>：模型在训练集上的分类正确率
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 验证准确率 </b>：模型在验证集上的分类正确率
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 过拟合与欠拟合......
+-->
+<h5 id="autosec-17"><span class="sectionnumber">2.4&#x2003;</span>过拟合与欠拟合</h5>
+<a id="mnist-autopage-17"></a>
+<!--
+...... subsubsection 欠拟合（Underfitting）......
+-->
+<h6 id="autosec-18"><span class="sectionnumber">2.4.1&#x2003;</span>欠拟合（Underfitting）</h6>
+<a id="mnist-autopage-18"></a>
+
+
+
+<p>
+当模型过于简单，无法捕捉数据中的基本模式时发生：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 训练损失和验证损失都很高
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 模型在训练集上表现不佳
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 解决方法：增加模型复杂度、减少正则化、训练更长时间
+</p>
+</li>
+</ul>
+<!--
+...... subsubsection 过拟合（Overfitting）......
+-->
+<h6 id="autosec-19"><span class="sectionnumber">2.4.2&#x2003;</span>过拟合（Overfitting）</h6>
+<a id="mnist-autopage-19"></a>
+
+
+
+<p>
+想象你在学习一门新课程：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 正常学习 </b>：理解基本概念，能够解决类似问题
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 死记硬背 </b>：记住所有例题，但遇到新题型就不会
+</p>
+</li>
+</ul>
+
+<p>
+当模型过于复杂，记忆了训练数据中的噪声而非真实模式时发生：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 训练损失很低，但验证损失很高
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 模型在训练集上表现很好，但在新数据上表现差
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 解决方法：增加训练数据、使用正则化、早停法、降低模型复杂度
+</p>
+</li>
+</ul>
+
+<figure id="autoid-3" class="figure ">
+<div class="center">
+
+<p>
+<span
+      id="lateximage-mnist-1"
+      class="lateximagesource"
+><!--
+损失
+
+
+      训练损失
+                  验证损失
+
+
+
+
+                         模型复杂度
+     欠拟合   良好拟合   过拟合
+--><img
+      src="./Assets//image-1.svg"
+      alt="(-tikz-&nbsp;diagram)"
+      style=""
+      class="lateximage"
+></span>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;2: 模型复杂度与损失的关系
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 有点牵强的总结：</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+学而不思则过拟合，思而不学则欠拟合。
+</p>
+</div>
+
+</div>
+<!--
+...... subsection 正则化技术：防止过拟合的实用方法......
+-->
+<h5 id="autosec-23"><span class="sectionnumber">2.5&#x2003;</span>正则化技术：防止过拟合的实用方法</h5>
+<a id="mnist-autopage-23"></a>
+<!--
+...... subsubsection 什么是正则化？......
+-->
+<h6 id="autosec-24"><span class="sectionnumber">2.5.1&#x2003;</span>什么是正则化？</h6>
+<a id="mnist-autopage-24"></a>
+
+
+
+<p>
+在神经网络中，正则化就是帮助我们训练出“聪明”而不是“死记硬背”的模型的技术。
+</p>
+
+<figure id="autoid-4" class="figure ">
+<div class="center">
+
+<p>
+<span
+      id="lateximage-mnist-2"
+      class="lateximagesource"
+><!--
+学生学习   正则化   神经网络训练
+
+理解概念         学习通用特征
+举一反三         泛化到新数据
+--><img
+   src="./Assets//image-2.svg"
+   alt="(-tikz-&nbsp;diagram)"
+   style=""
+   class="lateximage"
+></span>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;3: 正则化的直观理解
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... subsubsection L1 和 L2 正则化：最简单的正则化方法......
+-->
+<h6 id="autosec-28"><span class="sectionnumber">2.5.2&#x2003;</span>L1 和 L2 正则化：最简单的正则化方法</h6>
+<a id="mnist-autopage-28"></a>
+
+
+
+<p>
+<b> 核心思想：</b> 让模型的权重不要变得太大
+</p>
+
+<p>
+正则化通过在原始损失函数中添加参数惩罚项来实现：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b>L1 正则化（Lasso 回归）</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<span class="hidden"> \(\seteqnumber{0}{}{1}\)</span>
+
+<!--
+
+
+                                                                                                                  ∑
+                                                                                                                  n
+                                                                                         Ltotal = Loriginal + λ         |wi |   (2)
+                                                                                                                  i=1
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+\mathcal {L}_{\text {total}} = \mathcal {L}_{\text {original}} + \lambda \sum _{i=1}^{n} |w_i|
+\end{equation}
+
+
+</p>
+
+<p>
+<b> 特点：</b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 产生稀疏解，许多参数会变为 0
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 具有特征选择功能，自动选择重要特征
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 对异常值相对鲁棒
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 不可导，需要特殊优化方法
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b>L2 正则化（Ridge 回归）</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<span class="hidden"> \(\seteqnumber{0}{}{2}\)</span>
+
+<!--
+
+
+                                                                                                                 λ∑ 2
+                                                                                                                   n
+                                                                                          Ltotal = Loriginal +        w         (3)
+                                                                                                                 2 i=1 i
+
+-->
+
+<p>
+
+
+\begin{equation}
+\mathcal {L}_{\text {total}} = \mathcal {L}_{\text {original}} + \frac {\lambda }{2} \sum _{i=1}^{n} w_i^2
+\end{equation}
+
+
+</p>
+
+<p>
+<b> 特点：</b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 参数趋向于小而非零的值
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 数学处理更简单，可导
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 对异常值敏感
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 是最常用的正则化形式
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 类比 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+想象你在调音：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b>L1 正则化 </b>：直接告诉某些旋钮“完全不要动”（变成 0）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>L2 正则化 </b>：告诉所有旋钮“不要调得太大”（保持小值）
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 为什么有效？</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 权重太大 → 模型过于敏感 → 容易记住训练数据
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 权重较小 → 模型更加平滑 → 能够泛化到新数据
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 就像用粗笔画画，不会画出过于复杂的细节
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b>PyTorch 中的 L2 正则化 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+在 PyTorch 中，L2 正则化被称为“权重衰减”（weight decay）：
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1     optimizer = torch . optim.Adam(
+2           model.parameters () ,
+3           lr =0.001,
+4           weight_decay =0.0001    # 正则化L2
+5     )
+</pre>
+
+
+          <div class="figurecaption">
+</div>
+
+<p>
+<b> 实践建议：</b> 从 0.0001 开始尝试，根据验证效果调整
+</p>
+</div>
+
+</div>
+<!--
+...... subsubsection Dropout：随机“失忆”技术......
+-->
+<h6 id="autosec-30"><span class="sectionnumber">2.5.3&#x2003;</span>Dropout：随机“失忆”技术</h6>
+<a id="mnist-autopage-30"></a>
+
+
+
+<p>
+<b> 核心思想：</b> 训练时随机让一些神经元“罢工”，迫使网络学习冗余的特征
+</p>
+
+<figure id="autoid-5" class="figure ">
+<div class="center">
+
+<p>
+<span
+      id="lateximage-mnist-3"
+      class="lateximagesource"
+><!--
+Dropout：随机让部分神经元“罢工”
+--><img
+      src="./Assets//image-3.svg"
+      alt="(-tikz-&nbsp;diagram)"
+      style=""
+      class="lateximage"
+></span>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;4: Dropout 机制示意图
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 直观的理解 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+<b> 训练阶段：</b> “同学们，今天随机抽一半同学回答问题，其他人休息”
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 每个人都要准备好，因为不知道会不会被抽到
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 不能依赖某个“学霸”同学，必须自己理解
+</p>
+</li>
+</ul>
+
+<p>
+<b> 测试阶段：</b> “现在全班一起回答问题，把大家的答案平均一下”
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 相当于多个“子班级”的集体智慧
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 结果更加稳定可靠
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b>Dropout 的 PyTorch 实现 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1     class SimpleNet(nn.Module):
+2        def __init__ ( self ) :
+3            super(SimpleNet , self ) . __init__ ()
+4             self . fc1 = nn. Linear (784, 256)
+5             self . dropout = nn.Dropout (0.5)    # 的50&percnt;率dropout
+6             self . fc2 = nn. Linear (256, 10)
+7
+8        def forward ( self , x) :
+9            x = F. relu ( self . fc1 (x) )
+10             x = self . dropout (x)    # 只在训练时随机“丢弃”
+11             x = self . fc2 (x)
+12             return x
+</pre>
+
+
+               <div class="figurecaption">
+</div>
+
+<p>
+<b> 参数选择：</b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 输入层：通常不用 dropout（0&percnt;）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 隐藏层：0.3‑0.5（30&percnt;‑50&percnt;）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 输出层：不用 dropout
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsubsection 早停法：聪明的“刹车”技术......
+-->
+<h6 id="autosec-35"><span class="sectionnumber">2.5.4&#x2003;</span>早停法：聪明的“刹车”技术</h6>
+<a id="mnist-autopage-35"></a>
+
+
+
+<p>
+<b> 核心思想：</b> 看到验证效果开始变差时就停止训练
+</p>
+
+<figure id="autoid-6" class="figure ">
+<div class="center">
+
+<p>
+<span
+      id="lateximage-mnist-4"
+      class="lateximagesource"
+><!--
+准确率
+
+
+      训练准确率      验证准确率
+
+                         开始过拟合
+                         验证效果下降
+
+
+                           训练时间
+              最佳停止点
+--><img
+      src="./Assets//image-4.svg"
+      alt="(-tikz-&nbsp;diagram)"
+      style=""
+      class="lateximage"
+></span>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;5: 早停法示意图
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 什么时候该停止？</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 验证损失连续几个 epoch 没有改善
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 验证准确率开始下降
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 训练损失还在下降，但验证损失开始上升
+</p>
+</li>
+</ul>
+
+<p>
+<b> 就像考试前：</b> 发现模拟考试成绩开始下降，就应该停止“熬夜突击”，保持当前水平
+</p>
+</div>
+
+</div>
+<!--
+...... subsubsection 数据增强：免费的“新数据”......
+-->
+<h6 id="autosec-39"><span class="sectionnumber">2.5.5&#x2003;</span>数据增强：免费的“新数据”</h6>
+<a id="mnist-autopage-39"></a>
+
+
+
+<p>
+<b> 核心思想：</b> 通过对现有数据进行合理变换，创造“新”的训练样本
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b>MNIST 数据增强实例 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+原始图像：手写数字“3”
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 轻微旋转：</b> 顺时针转 5 度，还是“3”
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 平移：</b> 向左移动 2 像素，还是“3”
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 轻微缩放：</b> 放大到 1.1 倍，还是“3”
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 加噪声：</b> 加一点“雪花点”，还是“3”
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 数据增强的注意事项 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 保持类别不变：</b> 增强后的数据应该还是同一个数字
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 避免过度增强：</b> 不要把“6”转得看起来像“9”
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 任务相关：</b> 手写数字识别不需要颜色变换
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 渐进式：</b> 从轻微变换开始，逐步增加强度
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b>PyTorch 中的 MNIST 数据增强 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    from torchvision import transforms
+2
+3    # 定义数据增强变换
+4     train_transform = transforms . Compose([
+5            transforms . RandomRotation(10) ,         # 随机旋转度±10
+6            transforms . RandomAffine(0, translate =(0.1,       0.1) ) ,   # 随机平移10&percnt;
+7            transforms . ToTensor () ,
+8            transforms . Normalize ((0.1307,) ,   (0.3081,) )   # 数据的标准化MNIST
+9     ])
+10
+11    # 应用到训练数据
+12         train_dataset   = MNIST(root= &apos; ./ data &apos; , train =True,
+13                                 transform= train_transform , download=True)
+</pre>
+
+
+                                   <div class="figurecaption">
+</div>
+
+</div>
+
+</div>
+<!--
+...... subsubsection 如何选择正则化方法？......
+-->
+<h6 id="autosec-41"><span class="sectionnumber">2.5.6&#x2003;</span>如何选择正则化方法？</h6>
+<a id="mnist-autopage-41"></a>
+
+
+
+<figure id="autoid-7" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 方法 </b></td>
+<td class="tdl"><b> 什么时候用 </b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl">L2 正则化 </td>
+<td class="tdl"> 几乎所有情况 </td>
+</tr>
+
+
+<tr>
+<td class="tdl">Dropout</td>
+<td class="tdl"> 深层网络，参数量大 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 早停法 </td>
+<td class="tdl"> 总是使用 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 数据增强 </td>
+<td class="tdl"> 图像、语音等数据 </td>
+</tr>
+
+
+<tr>
+<td class="tdl">L1 正则化 </td>
+<td class="tdl"> 需要特征选择时 </td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdl"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;2: 正则化方法选择指南
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 初学者建议（从简单到复杂）</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 第一步：</b> 只用早停法（最简单，零成本）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 第二步：</b> 加上 L2 正则化（weight_decay=0.0001）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 第三步：</b> 在隐藏层加 Dropout（0.3‑0.5）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 第四步：</b> 尝试数据增强（如果适用）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b> 高级：</b> 组合多种方法，交叉验证调参
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 批量大小与学习率调度......
+-->
+<h5 id="autosec-44"><span class="sectionnumber">2.6&#x2003;</span>批量大小与学习率调度</h5>
+<a id="mnist-autopage-44"></a>
+<!--
+...... subsubsection 批量大小的影响......
+-->
+<h6 id="autosec-45"><span class="sectionnumber">2.6.1&#x2003;</span>批量大小的影响</h6>
+<a id="mnist-autopage-45"></a>
+
+
+
+<p>
+不同的批量大小对训练有不同影响：
+</p>
+
+<figure id="autoid-8" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 批量大小 </b></td>
+<td class="tdl"><b> 优点 </b></td>
+<td class="tdl"><b> 缺点 </b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl"> 小批量（如 32）
+                         </td>
+<td class="tdl"> 泛化性好，内存需求低 </td>
+<td class="tdl"> 训练不稳定，梯度噪声大 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 大批量（如 256）
+                          </td>
+<td class="tdl"> 训练稳定，并行度高 </td>
+<td class="tdl"> 内存需求大，可能陷入局部最优 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 全批量（所有数据）
+                         </td>
+<td class="tdl"> 梯度准确，收敛稳定 </td>
+<td class="tdl"> 内存需求极大，不适合大数据集 </td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdl"></td>
+<td class="tdl"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;3: 不同批量大小的对比
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... subsubsection 学习率调度......
+-->
+<h6 id="autosec-48"><span class="sectionnumber">2.6.2&#x2003;</span>学习率调度</h6>
+<a id="mnist-autopage-48"></a>
+
+
+
+<p>
+学习率不必固定不变，可以采用不同的调度策略：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 常见学习率调度策略 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 步长衰减 </b>：每隔一定轮次将学习率乘以固定因子
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 指数衰减 </b>：学习率按指数函数逐渐减小
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 余弦退火 </b>：学习率按余弦函数周期性变化
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 自适应方法 </b>：根据训练进展自动调整学习率
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 评价指标......
+-->
+<h5 id="autosec-49"><span class="sectionnumber">2.7&#x2003;</span>评价指标</h5>
+<a id="mnist-autopage-49"></a>
+
+
+
+<p>
+对于分类任务，我们需要多个评价指标来全面评估模型性能：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 分类任务的核心指标 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 准确率（Accuracy）</b>：正确预测的样本比例
+</p>
+<p>
+\[\text {Accuracy} = \frac {\text {正确预测数}}{\text {总预测数}}\]
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 精确率（Precision）</b>：预测为正类中真正为正类的比例
+</p>
+<p>
+\[\text {Precision} = \frac {TP}{TP + FP}\]
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 召回率（Recall）</b>：真正为正类中被正确预测的比例
+</p>
+<p>
+\[\text {Recall} = \frac {TP}{TP + FN}\]
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>F1 分数 </b>：精确率和召回率的调和平均
+</p>
+<p>
+\[\text {F1} = 2 \times \frac {\text {Precision} \times \text {Recall}}{\text {Precision} + \text {Recall}}\]
+</p>
+<p>
+
+
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b>MNIST 评价指标选择 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+对于 MNIST 这样的平衡多分类任务，<b> 准确率 </b> 是最直观和常用的指标，因为：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 10 个类别的样本数量大致相等
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 每个类别的重要性相同
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 易于理解和解释
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... section 经典神经网络：全连接层......
+-->
+<h4 id="autosec-50"><span class="sectionnumber">3&#x2003;</span>经典神经网络：全连接层</h4>
+<a id="mnist-autopage-50"></a>
+<!--
+...... subsection 全连接层的基本原理......
+-->
+<h5 id="autosec-51"><span class="sectionnumber">3.1&#x2003;</span>全连接层的基本原理</h5>
+<a id="mnist-autopage-51"></a>
+
+
+
+<p>
+全连接层（Fully Connected Layer），也称为线性层或密集层，是神经网络中最基本的构建块。其核心思想是每个输入节点都与每个输出节点相连接。
+</p>
+
+<figure id="autoid-9" class="figure ">
+<div class="center">
+
+<p>
+<span
+      id="lateximage-mnist-5"
+      class="lateximagesource"
+><!--
+输入层 (5 个神经元)   输出层 (3 个神经元)
+     每个输入都连接到每个输出
+--><img
+      src="./Assets//image-5.svg"
+      alt="(-tikz-&nbsp;diagram)"
+      style=""
+      class="lateximage"
+></span>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;6: 全连接层结构示意图
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 全连接层的数学表达 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+对于输入向量 \(\mathbf {x} \in \mathbb {R}^n\) 和输出向量 \(\mathbf {y} \in \mathbb {R}^m\)，全连接层的变换为：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{3}\)</span>
+
+<!--
+
+
+
+                                                                                                y = Wx + b              (4)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+\mathbf {y} = \mathbf {W}\mathbf {x} + \mathbf {b}
+\end{equation}
+
+
+</p>
+
+<p>
+其中 \(\mathbf {W} \in \mathbb {R}^{m \times n}\) 是权重矩阵，\(\mathbf {b} \in \mathbb {R}^m\) 是偏置向量。
+</p>
+</div>
+
+</div>
+<!--
+...... subsection 参数数量分析......
+-->
+<h5 id="autosec-55"><span class="sectionnumber">3.2&#x2003;</span>参数数量分析</h5>
+<a id="mnist-autopage-55"></a>
+
+
+
+<p>
+对于从 \(n\) 维到 \(m\) 维的全连接层，参数总数为：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{4}\)</span>
+
+<!--
+
+
+
+                                                                                Parameters = m × n + m = m(n + 1)   (5)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+\text {Parameters} = m \times n + m = m(n + 1)
+\end{equation}
+
+
+</p>
+
+<p>
+以 MNIST 为例，如果将 28×28=784 像素的图像直接输入到全连接层：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 第一层：假设有 256 个神经元，参数数量为 \(256 \times 784 + 256 = 200,960\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 第二层：从 256 到 128 个神经元，参数数量为 \(128 \times 256 + 128 = 32,896\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 输出层：从 128 到 10 个类别，参数数量为 \(10 \times 128 + 10 = 1,290\)
+</p>
+</li>
+</ul>
+
+<p>
+<b> 总参数数量：</b> 235,146 个参数
+</p>
+<!--
+...... subsection PyTorch 实现......
+-->
+<h5 id="autosec-56"><span class="sectionnumber">3.3&#x2003;</span>PyTorch 实现</h5>
+<a id="mnist-autopage-56"></a>
+<div class="figurecaption">
+
+<a id="autoid-10" ></a >
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import torch
+2    import torch . nn as nn
+3    import torch . nn. functional as F
+4
+5     class FullyConnectedNet ( nn.Module):
+6         def __init__ ( self , input_size =784, hidden_size =256, num_classes =10) :
+7             super( FullyConnectedNet , self ) . __init__ ()
+8             # 将28图像展平为维向量x28784
+9              self . flatten = nn. Flatten ()
+10
+11             # 全连接层堆叠
+12              self . fc1 = nn. Linear ( input_size , hidden_size )
+13              self . fc2 = nn. Linear ( hidden_size , hidden_size // 2)
+14              self . fc3 = nn. Linear ( hidden_size // 2, num_classes )
+15
+16             # 层用于防止过拟合Dropout
+17              self . dropout = nn.Dropout (0.5)
+18
+19         def forward ( self , x) :
+20             # 展平输入
+21             x = self . flatten (x)
+22
+23             # 第一层：784 − &gt; 256
+24             x = self . fc1 (x)
+25             x = F. relu (x)
+26             x = self . dropout (x)
+27
+28             # 第二层：256 − &gt; 128
+29             x = self . fc2 (x)
+30             x = F. relu (x)
+31             x = self . dropout (x)
+32
+33             # 输出层：128 − &gt; 10
+34             x = self . fc3 (x)
+35
+36             return x
+37
+38    # 模型实例化
+39    model = FullyConnectedNet ()
+40    print (“模型总参数数量f : {sum(p.numel() for p in model.parameters () )” :,})
+</pre>
+
+
+       <div class="figurecaption">
+
+
+Listing&nbsp;1: 全连接神经网络 PyTorch 实现
+</div>
+<!--
+...... subsection 全连接层的优缺点......
+-->
+<h5 id="autosec-58"><span class="sectionnumber">3.4&#x2003;</span>全连接层的优缺点</h5>
+<a id="mnist-autopage-58"></a>
+
+
+
+<figure id="autoid-11" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 优点 </b></td>
+<td class="tdl"><b> 缺点 </b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl"> 实现简单直观 </td>
+<td class="tdl"> 忽略空间结构信息 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 理论成熟完善 </td>
+<td class="tdl"> 参数数量巨大 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 易于理解和调试 </td>
+<td class="tdl"> 容易过拟合 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 计算效率高（小模型）
+                          </td>
+<td class="tdl"> 对平移不具备鲁棒性 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 适用于非结构化数据 </td>
+<td class="tdl"> 需要大量训练数据 </td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdl"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;4: 全连接层优缺点对比
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... section 卷积神经网络：CNN ......
+-->
+<h4 id="autosec-61"><span class="sectionnumber">4&#x2003;</span>卷积神经网络：CNN</h4>
+<a id="mnist-autopage-61"></a>
+<!--
+...... subsection 卷积操作的基本原理......
+-->
+<h5 id="autosec-62"><span class="sectionnumber">4.1&#x2003;</span>卷积操作的基本原理</h5>
+<a id="mnist-autopage-62"></a>
+
+
+
+<p>
+卷积操作是 CNN 的核心，它通过滑动窗口的方式在输入图像上应用（通过点积）滤波器（卷积核）来提取特征。这种思想最早由 LeCun 等人&nbsp;[?] 在 1989 年提出，并在后续的 LeNet‑5&nbsp;[?] 工作中得到完善。
+</p>
+
+<figure id="autoid-12" class="figure ">
+<div class="center">
+
+<p>
+
+
+<a href="figures/conv-process.png" target="_blank" ><img
+      src="figures/conv-process.png"
+      style="
+      width:173pt;
+      "
+      class="inlineimage"
+      alt="(image)"
+></a>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;7: 卷积操作示意图
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 卷积操作的数学定义 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<span class="hidden"> \(\seteqnumber{0}{}{5}\)</span>
+
+<!--
+
+
+                                                                                                    ∞
+                                                                                                    ∑        ∞
+                                                                                                             ∑
+                                                                                 (f ∗ g)[m, n] =                  f [i, j] · g[m − i, n − j]   (6)
+                                                                                                   i=−∞ j=−∞
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+(f * g)[m,n] = \sum _{i=-\infty }^{\infty }\sum _{j=-\infty }^{\infty } f[i,j] \cdot g[m-i, n-j]
+\end{equation}
+
+
+</p>
+
+<p>
+在离散图像处理中，卷积操作可以表示为：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{6}\)</span>
+
+<!--
+
+
+                                                                                                ∑ k−1
+                                                                                                k−1 ∑
+                                                                                   Y [i, j] =             X[i + u, j + v] · K[u, v] + b        (7)
+                                                                                                u=0 v=0
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+Y[i,j] = \sum _{u=0}^{k-1}\sum _{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
+\end{equation}
+
+
+</p>
+
+<p>
+其中：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> \(X\)：输入特征图
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(K\)：卷积核（滤波器）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(b\)：偏置项
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(k\)：卷积核大小
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<p>
+简单来说，卷积操作通过将卷积核在输入特征图上滑动，计算局部区域的加权和，即该区域与卷积核的相似程度，来生成输出特征图。
+</p>
+<!--
+...... subsection 特征图尺寸计算......
+-->
+<h5 id="autosec-64"><span class="sectionnumber">4.2&#x2003;</span>特征图尺寸计算</h5>
+<a id="mnist-autopage-64"></a>
+
+
+
+<p>
+对于输入尺寸为 \(W \times H\)，卷积核大小为 \(K \times K\)，步长为 \(S\)，填充为 \(P\) 的情况，输出特征图的尺寸为：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{7}\)</span>
+
+<!--
+
+                                                                                                   ⌊                ⌋
+                                                                                                       W − K + 2P
+                                                                                         Wout =                         +1   (8)
+                                                                                                           S
+
+-->
+
+<p>
+
+
+\begin{equation}
+W_{out} = \left \lfloor \frac {W - K + 2P}{S} \right \rfloor + 1
+\end{equation}
+
+
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{8}\)</span>
+
+<!--
+
+                                                                                                   ⌊                ⌋
+                                                                                                       H − K + 2P
+                                                                                          Hout =                        +1   (9)
+                                                                                                           S
+
+-->
+
+<p>
+
+
+\begin{equation}
+H_{out} = \left \lfloor \frac {H - K + 2P}{S} \right \rfloor + 1
+\end{equation}
+
+
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b>MNIST 实例计算 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+对于 28×28 的 MNIST 图像，使用 3×3 卷积核，步长 S=1，填充 P=1：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 输出宽度：\(W_{out} = \lfloor \frac {28 - 3 + 2 \times 1}{1} \rfloor + 1 = 28\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 输出高度：\(H_{out} = \lfloor \frac {28 - 3 + 2 \times 1}{1} \rfloor + 1 = 28\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 结论：输出特征图尺寸保持 28×28 不变
+</p>
+</li>
+</ul>
+
+<p>
+如果使用 2×2 池化，步长 S=2，无填充 P=0：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 输出尺寸：\(W_{out} = \lfloor \frac {28 - 2 + 0}{2} \rfloor + 1 = 14\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 结论：池化将特征图尺寸减半
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 参数共享机制......
+-->
+<h5 id="autosec-65"><span class="sectionnumber">4.3&#x2003;</span>参数共享机制</h5>
+<a id="mnist-autopage-65"></a>
+
+
+
+<p>
+卷积层的一个重要特性是参数共享。同一个卷积核在图像的不同位置重复使用，这大大减少了参数数量。
+</p>
+
+<figure id="autoid-13" class="figure ">
+<div class="center">
+
+<p>
+
+
+<a href="figures/conv-param-share.png" target="_blank" ><img
+      src="figures/conv-param-share.png"
+      style="
+      width:304pt;
+      "
+      class="inlineimage"
+      alt="(image)"
+></a>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;8: 参数共享机制示意图
+
+</div>
+
+</div>
+
+</figure>
+
+<p>
+对于 \(C_{\text {out}}\) 个输出通道，每个通道使用独立的卷积核：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{9}\)</span>
+
+<!--
+
+
+
+                                                                                    Parameters = Cout × (K × K × Cin + 1)           (10)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+\text {Parameters} = C_{\text {out}} \times (K \times K \times C_{in} + 1)
+\end{equation}
+
+
+</p>
+
+<p>
+其中 \(C_{in}\) 是输入通道数。
+</p>
+
+<p>
+以 MNIST 为例（单通道输入，32 个 3×3 卷积核）：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{10}\)</span>
+
+<!--
+
+
+
+                                                                                Parameters = 32 × (3 × 3 × 1 + 1) = 32 × 10 = 320   (11)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+\text {Parameters} = 32 \times (3 \times 3 \times 1 + 1) = 32 \times 10 = 320
+\end{equation}
+
+
+</p>
+
+<p>
+相比全连接层的数万参数，卷积层的参数数量显著减少了 99&percnt; 以上。
+</p>
+<!--
+...... subsection 池化层......
+-->
+<h5 id="autosec-67"><span class="sectionnumber">4.4&#x2003;</span>池化层</h5>
+<a id="mnist-autopage-67"></a>
+
+
+
+<p>
+池化层用于降采样，减少特征图的空间尺寸：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 最大池化（Max Pooling）</b>：取局部区域的最大值
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 平均池化（Average Pooling）</b>：取局部区域的平均值
+</p>
+</li>
+</ul>
+
+<p>
+池化操作不提供可学习参数，但能有效减少计算量和过拟合风险。
+</p>
+<!--
+...... subsection PyTorch 实现 CNN ......
+-->
+<h5 id="autosec-68"><span class="sectionnumber">4.5&#x2003;</span>PyTorch 实现 CNN</h5>
+<a id="mnist-autopage-68"></a>
+<div class="figurecaption">
+
+<a id="autoid-14" ></a >
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import torch
+2    import torch . nn as nn
+3    import torch . nn. functional as F
+4
+5     class SimpleCNN(nn.Module):
+6        def __init__ ( self , num_classes =10) :
+7            super(SimpleCNN, self ) . __init__ ()
+8
+9            # 第一个卷积块：1 − &gt; 通道32
+10             self . conv1 = nn.Conv2d(1, 32,      kernel_size =3, padding=1)
+11             self . bn1 = nn.BatchNorm2d(32)
+12
+13            # 第二个卷积块：32 − &gt; 通道64
+14             self . conv2 = nn.Conv2d(32, 64,      kernel_size =3, padding=1)
+15             self . bn2 = nn.BatchNorm2d(64)
+16
+17            # 池化层
+18             self . pool = nn.MaxPool2d(2, 2)
+19
+20            # 全连接层
+21             self . fc1 = nn. Linear (64 * 7 * 7, 128)
+22             self . fc2 = nn. Linear (128, num_classes )
+23
+24             self . dropout = nn.Dropout (0.5)
+25
+26        def forward ( self , x) :
+27            # 第一个卷积块：28x28 − &gt; 14x14
+28            x = self . conv1(x)
+29            x = self . bn1(x)
+30            x = F. relu (x)
+31            x = self . pool (x)
+32
+33            # 第二个卷积块：14x14 − &gt; 7x7
+34            x = self . conv2(x)
+35            x = self . bn2(x)
+36            x = F. relu (x)
+37            x = self . pool (x)
+38
+39            # 展平
+40            x = x . view(x . size (0) , −1)
+41
+42            # 全连接层
+43            x = self . fc1 (x)
+44            x = F. relu (x)
+45            x = self . dropout (x)
+46            x = self . fc2 (x)
+47
+48            return x
+49
+50    # 模型实例化
+51    model = SimpleCNN()
+52    print (“模型总参数数量fCNN: {sum(p.numel() for p in model.parameters () )” :,})
+</pre>
+
+
+      <div class="figurecaption">
+
+
+Listing&nbsp;2: 基础 CNN PyTorch 实现
+</div>
+<!--
+...... subsection CNN 的优缺点......
+-->
+<h5 id="autosec-70"><span class="sectionnumber">4.6&#x2003;</span>CNN 的优缺点</h5>
+<a id="mnist-autopage-70"></a>
+
+
+
+<figure id="autoid-15" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 优点 </b></td>
+<td class="tdl"><b> 缺点 </b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl"> 保留空间结构信息 </td>
+<td class="tdl"> 实现相对复杂 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 参数数量少 </td>
+<td class="tdl"> 超参数选择敏感 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 平移不变性 </td>
+<td class="tdl"> 计算复杂度高 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 局部连接 </td>
+<td class="tdl"> 需要更多内存 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 分层特征提取 </td>
+<td class="tdl"> 训练时间较长 </td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdl"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;5: 卷积神经网络优缺点对比
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... section LeNet 架构详解......
+-->
+<h4 id="autosec-73"><span class="sectionnumber">5&#x2003;</span>LeNet 架构详解</h4>
+<a id="mnist-autopage-73"></a>
+<!--
+...... subsection LeNet-5 架构概述......
+-->
+<h5 id="autosec-74"><span class="sectionnumber">5.1&#x2003;</span>LeNet‑5 架构概述</h5>
+<a id="mnist-autopage-74"></a>
+
+
+
+<p>
+LeNet‑5 由 Yann LeCun 等人于 1998 年提出&nbsp;[?]，是卷积神经网络发展史上的里程碑工作。
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b>LeNet‑5 架构 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<span class="hidden"> \(\seteqnumber{0}{}{11}\)</span>
+
+<!--
+
+
+
+                                                                     INPUT → CONV → POOL → CONV → POOL → FC → FC → OUTPUT                                                                    (12)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+\text {INPUT} \rightarrow \text {CONV} \rightarrow \text {POOL} \rightarrow \text {CONV} \rightarrow \text {POOL} \rightarrow \text {FC} \rightarrow \text {FC} \rightarrow \text {OUTPUT}
+\end{equation}
+
+
+</p>
+
+</div>
+
+</div>
+
+<p>
+具体参数配置：
+</p>
+
+<figure id="autoid-16" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 层类型 </b></td>
+<td class="tdl"><b> 输出尺寸 </b></td>
+<td class="tdl"><b> 核大小/参数 </b></td>
+<td class="tdl"><b> 激活函数 </b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl"> 输入层 </td>
+<td class="tdl">32×32×1</td>
+<td class="tdl">‑</td>
+<td class="tdl">‑</td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 卷积层 C1</td>
+<td class="tdl">28×28×6</td>
+<td class="tdl">5×5, 6 个滤波器 </td>
+<td class="tdl">Tanh</td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 池化层 S2</td>
+<td class="tdl">14×14×6</td>
+<td class="tdl">2×2, 平均池化 </td>
+<td class="tdl">‑</td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 卷积层 C3</td>
+<td class="tdl">10×10×16</td>
+<td class="tdl">5×5, 16 个滤波器 </td>
+<td class="tdl">Tanh</td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 池化层 S4</td>
+<td class="tdl">5×5×16</td>
+<td class="tdl">2×2, 平均池化 </td>
+<td class="tdl">‑</td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 全连接层 C5</td>
+<td class="tdl">120</td>
+<td class="tdl">5×5×16 → 120</td>
+<td class="tdl">Tanh</td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 全连接层 F6</td>
+<td class="tdl">84</td>
+<td class="tdl">120 → 84</td>
+<td class="tdl">Tanh</td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 输出层 </td>
+<td class="tdl">10</td>
+<td class="tdl">84 → 10</td>
+<td class="tdl">Softmax</td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdl"></td>
+<td class="tdl"></td>
+<td class="tdl"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;6: LeNet‑5 架构详细配置
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... subsection LeNet 的 PyTorch 实现......
+-->
+<h5 id="autosec-77"><span class="sectionnumber">5.2&#x2003;</span>LeNet 的 PyTorch 实现</h5>
+<a id="mnist-autopage-77"></a>
+<div class="figurecaption">
+
+<a id="autoid-17" ></a >
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import torch
+2    import torch . nn as nn
+3    import torch . nn. functional as F
+4
+5     class LeNet5(nn.Module):
+6        def __init__ ( self , num_classes =10) :
+7            super(LeNet5, self ) . __init__ ()
+8
+9            # 第一个卷积块：C1 + S2
+10             self . conv1 = nn.Conv2d(1, 6,       kernel_size =5, padding=0)
+11             self . pool1 = nn.AvgPool2d( kernel_size =2, stride =2)
+12
+13            # 第二个卷积块：C3 + S4
+14             self . conv2 = nn.Conv2d(6, 16,       kernel_size =5, padding=0)
+15             self . pool2 = nn.AvgPool2d( kernel_size =2, stride =2)
+16
+17            # 全连接层
+18             self . fc1 = nn. Linear (16 * 5 * 5, 120)
+19             self . fc2 = nn. Linear (120, 84)
+20             self . fc3 = nn. Linear (84, num_classes )
+21
+22        def forward ( self , x) :
+23            # 输入：1x28x28
+24
+25            # ：卷积层，C11x28x28 − &gt; 6x24x24
+26            x = self . conv1(x)
+27            x = torch . tanh (x)
+28
+29            # ：平均池化，S26x24x24 − &gt; 6x12x12
+30            x = self . pool1 (x)
+31
+32            # ：卷积层，C36x12x12 − &gt; 16x8x8
+33            x = self . conv2(x)
+34            x = torch . tanh (x)
+35
+36            # ：平均池化，S416x8x8 − &gt; 16x4x4
+37            # 注意：这里需要调整以适应的输入MNIST28x28
+38            # 实际实现中，我们通常将输入填充到32x32
+39            x = self . pool2 (x)
+40
+41            # 展平
+42            x = x . view(x . size (0) , −1)
+43
+44            # 全连接层
+45            x = self . fc1 (x)
+46            x = torch . tanh (x)
+47
+48            x = self . fc2 (x)
+49            x = torch . tanh (x)
+50
+51            x = self . fc3 (x)
+52
+53            return x
+54
+55    # 适配的实现MNISTLeNet
+56     class LeNetMNIST(nn.Module):
+57        def __init__ ( self , num_classes =10) :
+58            super(LeNetMNIST, self ) . __init__ ()
+59
+60            # 为适配28输入，我们使用x28padding将输入变为=232x32
+61             self . conv1 = nn.Conv2d(1, 6,       kernel_size =5, padding=2)
+62             self . pool1 = nn.AvgPool2d( kernel_size =2, stride =2)
+63
+64             self . conv2 = nn.Conv2d(6, 16,       kernel_size =5, padding=0)
+65             self . pool2 = nn.AvgPool2d( kernel_size =2, stride =2)
+66
+67             self . fc1 = nn. Linear (16 * 5 * 5, 120)
+68             self . fc2 = nn. Linear (120, 84)
+69             self . fc3 = nn. Linear (84, num_classes )
+70
+71        def forward ( self , x) :
+72            # ：C11x28x28 − &gt; 6x28x28 ( with padding)
+73            x = self . conv1(x)
+74            x = torch . tanh (x)
+75
+76            # ：S26x28x28 − &gt; 6x14x14
+77            x = self . pool1 (x)
+78
+79            # ：C36x14x14 − &gt; 16x10x10
+80            x = self . conv2(x)
+81            x = torch . tanh (x)
+82
+83            # ：S416x10x10 − &gt; 16x5x5
+84            x = self . pool2 (x)
+85
+86            # 展平
+87            x = x . view(x . size (0) , −1)
+88
+89            # 全连接层
+90            x = torch . tanh ( self . fc1 (x) )
+91            x = torch . tanh ( self . fc2 (x) )
+92            x = self . fc3 (x)
+93
+94            return x
+95
+96    # 模型实例化
+97    model = LeNetMNIST()
+98    print (“模型总参数数量fLeNet : {sum(p.numel() for p in model.parameters () )” :,})
+</pre>
+
+
+      <div class="figurecaption">
+
+
+Listing&nbsp;3: LeNet-5 完整 PyTorch 实现
+</div>
+<!--
+...... subsection LeNet 的参数分析......
+-->
+<h5 id="autosec-79"><span class="sectionnumber">5.3&#x2003;</span>LeNet 的参数分析</h5>
+<a id="mnist-autopage-79"></a>
+
+
+
+<p>
+LeNet 的参数分布：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 卷积层 C1：</b> \(6 \times (5 \times 5 \times 1 + 1) = 156\) 参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 卷积层 C3：</b> \(16 \times (5 \times 5 \times 6 + 1) = 2,416\) 参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 全连接层 C5：</b> \(120 \times (16 \times 5 \times 5 + 1) = 48,120\) 参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 全连接层 F6：</b> \(84 \times (120 + 1) = 10,164\) 参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 输出层：</b> \(10 \times (84 + 1) = 850\) 参数
+</p>
+</li>
+</ul>
+
+<p>
+<b> 总参数数量：</b> 61,706 个参数
+</p>
+
+<p>
+相比全连接网络，LeNet 的参数数量显著减少，但性能却大幅提升。
+</p>
+<!--
+...... subsection 特征图的语义演化：从低层到高层......
+-->
+<h5 id="autosec-80"><span class="sectionnumber">5.4&#x2003;</span>特征图的语义演化：从低层到高层</h5>
+<a id="mnist-autopage-80"></a>
+
+
+
+<p>
+卷积神经网络的一个关键特性是特征图随着网络深度的增加而变得越来越具有语义意义。让我们详细分析 LeNet 中各层特征图的语义内容：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 低层特征（C1 层）：边缘和纹理检测 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+在第一个卷积层（C1），6 个特征图主要检测图像中的基本视觉元素：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 边缘检测：</b> 识别数字的轮廓和边界
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 纹理特征：</b> 捕捉笔画的方向和粗细
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 对比度变化：</b> 检测明暗交替区域
+</p>
+</li>
+</ul>
+
+<p>
+这些特征具有高度的局部性，每个特征图只关注图像的很小一部分区域（5×5 感受野）。
+</p>
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 中层特征（C3 层）：形状和部件组合 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+在第二个卷积层（C3），16 个特征图开始组合低层特征，形成更复杂的形状：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 角点检测：</b> 识别数字的拐角和交叉点
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 曲线特征：</b> 检测数字的弯曲部分（如数字“3”的曲线）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 直线组合：</b> 识别数字的直线段及其组合
+</p>
+</li>
+</ul>
+
+<p>
+这一层的感受野扩大到了 14×14，能够捕捉数字的局部结构模式。
+</p>
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 高层特征（全连接层）：语义概念 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+全连接层（C5 和 F6）将中层特征进一步抽象为高级语义概念：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 数字部件组合：</b> 识别完整的数字形状特征
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 类别特异性：</b> 区分不同数字的独特特征
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 不变性表示：</b> 对位置、大小、旋转具有一定的不变性
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 语义演化的数学解释 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+特征图的语义演化可以通过特征复杂度来量化：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{12}\)</span>
+
+<!--
+
+
+                                                                                              高层特征响应
+                                                                                 特征复杂度 =             × 空间不变性程度          (13)
+                                                                                              低层特征响应
+
+-->
+
+<p>
+
+
+\begin{equation}
+\text {特征复杂度} = \frac {\text {高层特征响应}}{\text {低层特征响应}} \times \text {空间不变性程度}
+\end{equation}
+
+
+</p>
+
+<p>
+随着网络深度增加：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 低层：高空间分辨率，低语义复杂度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 中层：中等空间分辨率，中等语义复杂度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 高层：低空间分辨率，高语义复杂度
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 为什么这种分层特征提取有效？</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+这种从低层到高层的语义演化之所以有效，是因为：
+</p>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 层次化组合：</b> 复杂特征可以由简单特征层次化组合而成
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 参数效率：</b> 共享的低层特征可以被重复使用
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 泛化能力：</b> 学习通用特征而不是记忆特定样本
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 生物学启发：</b> 类似于人类视觉系统的信息处理机制，先局部后整体
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<figure id="autoid-18" class="figure ">
+<div class="center">
+
+<p>
+<span
+      id="lateximage-mnist-6"
+      class="lateximagesource"
+><!--
+         C1: 边缘特征   C3: 形状特征   FC: 语义特征
+
+
+
+
+输入图像
+
+
+         6 个特征图     16 个特征图    120 → 84 → 10
+
+ 像素级      边缘纹理       形状部件        语义概念
+高空间分辨率   中等分辨率      较低分辨率       最低分辨率
+--><img
+      src="./Assets//image-6.svg"
+      alt="(-tikz-&nbsp;diagram)"
+      style=""
+      class="lateximage"
+></span>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;9: LeNet 中特征图的语义演化过程
+
+</div>
+
+</div>
+
+</figure>
+
+<p>
+这种从具体到抽象、从局部到整体的特征演化过程，使得卷积神经网络能够有效地理解图像内容，并在 MNIST 等视觉任务上取得优异的性能。
+</p>
+<!--
+...... section 架构对比分析：理论与实践......
+-->
+<h4 id="autosec-84"><span class="sectionnumber">6&#x2003;</span>架构对比分析：理论与实践</h4>
+<a id="mnist-autopage-84"></a>
+<!--
+...... subsection 为什么需要对比分析？......
+-->
+<h5 id="autosec-85"><span class="sectionnumber">6.1&#x2003;</span>为什么需要对比分析？</h5>
+<a id="mnist-autopage-85"></a>
+
+
+
+<p>
+在深度学习的发展历程中，理解不同架构的优劣对于选择合适的模型至关重要。MNIST 数据集为我们提供了一个理想的实验平台，因为它足够简单，可以让我们清晰地看到不同架构的本质差异。
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 核心问题 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 为什么 CNN 在图像任务上表现更好？
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 全连接网络的局限性在哪里？
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 参数数量与性能之间的关系是什么？
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 如何根据任务需求选择合适的架构？
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 信息处理方式的对比......
+-->
+<h5 id="autosec-86"><span class="sectionnumber">6.2&#x2003;</span>信息处理方式的对比</h5>
+<a id="mnist-autopage-86"></a>
+<!--
+...... subsubsection 全连接网络的信息处理......
+-->
+<h6 id="autosec-87"><span class="sectionnumber">6.2.1&#x2003;</span>全连接网络的信息处理</h6>
+<a id="mnist-autopage-87"></a>
+
+
+
+<p>
+全连接网络将图像视为一个长向量，完全忽略了像素之间的空间关系：
+</p>
+
+<figure id="autoid-19" class="figure ">
+<div class="center">
+
+<p>
+<span
+      id="lateximage-mnist-7"
+      class="lateximagesource"
+><!--
+           Flatten
+                     784 维向量
+
+28×28 图像
+
+
+问题：
+空间结构信息完全丢失
+相邻像素关系被破坏
+需要从头学习所有模式
+--><img
+   src="./Assets//image-7.svg"
+   alt="(-tikz-&nbsp;diagram)"
+   style=""
+   class="lateximage"
+></span>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;10: 全连接网络的信息处理方式
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... subsubsection CNN 的信息处理......
+-->
+<h6 id="autosec-91"><span class="sectionnumber">6.2.2&#x2003;</span>CNN 的信息处理</h6>
+<a id="mnist-autopage-91"></a>
+
+
+
+<p>
+CNN 通过局部感受野和参数共享，保留了图像的空间结构：
+</p>
+
+<figure id="autoid-20" class="figure ">
+<div class="center">
+
+<p>
+<span
+      id="lateximage-mnist-8"
+      class="lateximagesource"
+><!--
+       Conv1     Conv2   Conv3
+
+
+
+
+                     形状特征   高级特征
+          边缘特征
+原始图像
+
+优势：
+分层特征提取
+空间结构保留
+参数共享
+--><img
+   src="./Assets//image-8.svg"
+   alt="(-tikz-&nbsp;diagram)"
+   style=""
+   class="lateximage"
+></span>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;11: CNN 的分层特征提取
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... subsection 参数效率的数学分析......
+-->
+<h5 id="autosec-95"><span class="sectionnumber">6.3&#x2003;</span>参数效率的数学分析</h5>
+<a id="mnist-autopage-95"></a>
+
+
+
+<p>
+让我们通过一个具体的例子来比较两种架构的参数效率：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 参数数量对比实例 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+假设我们要处理 28×28 的 MNIST 图像，目标输出为 10 个类别：
+</p>
+
+<p>
+<b> 全连接网络方案：</b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 输入层：784 个神经元（28×28）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 隐藏层 1：256 个神经元
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 隐藏层 2：128 个神经元
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 输出层：10 个神经元
+</p>
+</li>
+</ul>
+
+<p>
+<b> 参数计算：</b>
+</p>
+<span class="hidden"> \(\seteqnumber{0}{}{13}\)</span>
+
+
+
+<!--
+
+
+
+
+                                                                                      Layer 1 : 784 × 256 + 256 = 200, 960                                                                            (14)
+                                                                                      Layer 2 : 256 × 128 + 128 = 32, 896                                                                             (15)
+                                                                                      Layer 3 : 128 × 10 + 10 = 1, 290                                                                                (16)
+                                                                                        Total : 235, 146 参数                                                                                           (17)
+
+
+
+
+-->
+
+
+
+<p>
+
+
+\begin{align}
+\text {Layer 1} &amp;: 784 \times 256 + 256 = 200,960 \\ \text {Layer 2} &amp;: 256 \times 128 + 128 = 32,896 \\ \text {Layer 3} &amp;: 128 \times 10 + 10 = 1,290 \\ \text {Total} &amp;: 235,146 \text {
+参数}
+\end{align}
+
+
+</p>
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b>LeNet 方案：</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> C1：6 个 5×5 卷积核 → 156 参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> C3：16 个 5×5 卷积核 → 2,416 参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> FC1：16×5×5 → 120 → 48,120 参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> FC2：120 → 84 → 10,164 参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> FC3：84 → 10 → 850 参数
+</p>
+</li>
+</ul>
+
+<p>
+<b> 总参数：</b> 61,706 参数
+</p>
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 关键发现 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+LeNet 的参数数量仅为全连接网络的 <b>26&percnt;</b>，但在准确率上表现出色。这证明了：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 参数共享的有效性
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 归纳偏置的价值
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 架构设计的重要性
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 什么是归纳偏置？......
+-->
+<h5 id="autosec-96"><span class="sectionnumber">6.4&#x2003;</span>什么是归纳偏置？</h5>
+<a id="mnist-autopage-96"></a>
+
+
+
+<p>
+在深入比较两种架构的归纳偏置之前，我们需要先理解什么是归纳偏置以及为什么它如此重要。
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 归纳偏置的定义 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+归纳偏置（Inductive Bias）是指学习算法对可能解空间所做的假设集合。换句话说，它是模型在没有任何数据之前，对学习问题所做的先验假设。
+</p>
+
+<p>
+<b> 关键特征：</b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 先验性：</b> 在学习开始之前就存在的假设
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 限制性：</b> 限制了模型可以考虑的解空间
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 引导性：</b> 帮助模型从有限数据中推广到未见情况
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 权衡性：</b> 更强的偏置意味着需要更少的数据，但可能错过真实解
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 直观的类比 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+想象你在学习识别动物：
+</p>
+
+<p>
+<b> 没有归纳偏置的情况：</b> 你需要看到所有可能的狗的照片才能识别狗，包括各种角度、光照、品种等。
+</p>
+
+<p>
+<b> 有归纳偏置的情况：</b> 你假设“有四条腿、有尾巴、有特定面部特征的动物可能是狗”。这个假设帮助你从少量例子中学习识别狗。
+</p>
+
+<p>
+神经网络的归纳偏置就是类似的假设，只是它们体现在网络结构和连接方式中。
+</p>
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 为什么归纳偏置至关重要？</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 解决欠定问题：</b> 从有限数据中学习需要额外的约束
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 提高泛化能力：</b> 帮助模型在未见数据上表现良好
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 减少样本复杂度：</b> 需要更少的训练数据
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 加速收敛：</b> 让学习过程更加高效
+</p>
+</li>
+</ul>
+
+<p>
+<b> 没有归纳偏置的机器学习方法往往：</b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 需要海量数据才能学习
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 容易过拟合训练数据
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 泛化能力差
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 训练时间长
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<figure id="autoid-21" class="figure ">
+<div class="center">
+
+<p>
+<span
+      id="lateximage-mnist-9"
+      class="lateximagesource"
+><!--
+ 所有可能的函数空间
+
+
+归纳偏置假设的解空间
+      训练数据
+
+
+
+
+归纳偏置通过限制解空间，
+帮助模型找到更好的泛化解
+--><img
+   src="./Assets//image-9.svg"
+   alt="(-tikz-&nbsp;diagram)"
+   style=""
+   class="lateximage"
+></span>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;12: 归纳偏置的作用机理
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... subsection 归纳偏置的深层分析......
+-->
+<h5 id="autosec-100"><span class="sectionnumber">6.5&#x2003;</span>归纳偏置的深层分析</h5>
+<a id="mnist-autopage-100"></a>
+<!--
+...... subsubsection 全连接网络的归纳偏置......
+-->
+<h6 id="autosec-101"><span class="sectionnumber">6.5.1&#x2003;</span>全连接网络的归纳偏置</h6>
+<a id="mnist-autopage-101"></a>
+
+
+
+<p>
+全连接网络的基本假设是：所有输入特征都是同等重要的，且可以任意组合。这种假设：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 优点：</b> 通用性强，不依赖于特定的数据结构
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 缺点：</b> 对于图像等具有空间结构的数据，需要从零开始学习所有空间关系
+</p>
+</li>
+</ul>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 数学表达 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+对于图像分类任务，全连接网络需要学习映射：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{17}\)</span>
+
+<!--
+
+
+
+                                                                                               f : R784 → R10           (18)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+f: \mathbb {R}^{784} \rightarrow \mathbb {R}^{10}
+\end{equation}
+
+
+</p>
+
+<p>
+其中所有 784 个像素都被视为独立的特征，没有利用像素间的空间相关性。
+</p>
+</div>
+
+</div>
+<!--
+...... subsubsection CNN 的归纳偏置......
+-->
+<h6 id="autosec-102"><span class="sectionnumber">6.5.2&#x2003;</span>CNN 的归纳偏置</h6>
+<a id="mnist-autopage-102"></a>
+
+
+
+<p>
+CNN 引入了三个关键的归纳偏置：
+</p>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 局部性（Locality）：</b> 附近的像素更可能相关
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 平移不变性（Translation Invariance）：</b> 相同的特征可以在不同位置出现
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 组合性（Compositionality）：</b> 复杂特征可以由简单特征组合而成
+</p>
+</li>
+</ul>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 数学表达 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+CNN 通过卷积操作实现这些偏置：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{18}\)</span>
+
+<!--
+
+
+                                                                                               ∑
+                                                                                               k ∑
+                                                                                                 k
+                                                                                  Y [i, j] =               X[i + u, j + v] · K[u, v] + b   (19)
+                                                                                               u=−k v=−k
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+Y[i,j] = \sum _{u=-k}^{k}\sum _{v=-k}^{k} X[i+u, j+v] \cdot K[u,v] + b
+\end{equation}
+
+
+</p>
+
+<p>
+其中\(k\) 定义了局部感受野的大小，相同的核\(K\) 在整个图像上共享。
+</p>
+</div>
+
+</div>
+<!--
+...... subsection 实际性能对比实验......
+-->
+<h5 id="autosec-103"><span class="sectionnumber">6.6&#x2003;</span>实际性能对比实验</h5>
+<a id="mnist-autopage-103"></a>
+
+
+
+<p>
+让我们通过一个具体的实验来对比两种架构的性能。这种对比分析方法受到了现代深度学习研究&nbsp;[?, ?, ?] 的启发：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 实验设置 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 训练轮数：10 epochs
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 优化器：AdamW，学习率 0.001
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 批大小：64
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 硬件：单个 GPU （CPU 也行）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 数据增强：无
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 何时选择哪种架构？......
+-->
+<h5 id="autosec-104"><span class="sectionnumber">6.7&#x2003;</span>何时选择哪种架构？</h5>
+<a id="mnist-autopage-104"></a>
+
+
+
+<p>
+基于我们的分析，选择架构时应考虑：
+</p>
+
+<figure id="autoid-22" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 选择全连接网络 </b></td>
+<td class="tdl"><b> 选择 CNN</b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl"> 数据量较小 </td>
+<td class="tdl"> 数据量充足 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 特征间无明显空间关系 </td>
+<td class="tdl"> 数据具有空间结构 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 需要快速原型开发 </td>
+<td class="tdl"> 追求最高性能 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 计算资源极其有限 </td>
+<td class="tdl"> 可以接受更长的训练时间 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 简单的分类任务 </td>
+<td class="tdl"> 复杂的视觉任务 </td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdl"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;7: 架构选择指南
+
+</div>
+
+</div>
+
+</figure>
+
+<p>
+这些原则不仅适用于计算机视觉，也适用于其他深度学习领域。
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 归纳偏置总结 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+<b> 全连接网络的归纳偏置：</b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 所有像素同等重要
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 不考虑空间局部性
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 需要从头学习所有关系
+</p>
+</li>
+</ul>
+
+<p>
+<b> 卷积网络的归纳偏置：</b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 局部连接：附近的像素相关性强
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 平移不变性：特征位置不重要
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 参数共享：相同特征可在不同位置复用
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... section 神经网络的缩放定律......
+-->
+<h4 id="autosec-107"><span class="sectionnumber">7&#x2003;</span>神经网络的缩放定律</h4>
+<a id="mnist-autopage-107"></a>
+<!--
+...... subsection 缩放定律的基本概念......
+-->
+<h5 id="autosec-108"><span class="sectionnumber">7.1&#x2003;</span>缩放定律的基本概念</h5>
+<a id="mnist-autopage-108"></a>
+
+
+
+<p>
+缩放定律（Scaling Laws）描述了神经网络性能如何随着模型规模、数据集规模和计算资源的增加而变化。Kaplan 等人&nbsp;[?] 的研究表明，这些关系通常遵循幂律分布：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{19}\)</span>
+
+<!--
+
+
+
+                                                                              L(N, D, C) ∝ N −α · D−β · C −γ   (20)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+L(N, D, C) \propto N^{-\alpha } \cdot D^{-\beta } \cdot C^{-\gamma }
+\end{equation}
+
+
+</p>
+
+<p>
+其中：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> \(L\)：损失函数值
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(N\)：模型参数数量
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(D\)：数据集大小
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(C\)：计算资源（FLOPs）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\alpha , \beta , \gamma \)：缩放指数
+</p>
+</li>
+</ul>
+<!--
+...... subsection 模型规模缩放......
+-->
+<h5 id="autosec-109"><span class="sectionnumber">7.2&#x2003;</span>模型规模缩放</h5>
+<a id="mnist-autopage-109"></a>
+
+
+
+<p>
+对于固定数据集，模型性能与参数数量的关系：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{20}\)</span>
+
+<!--
+
+
+
+                                                                                 L(N ) = L∞ + A · N −α   (21)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+L(N) = L_{\infty } + A \cdot N^{-\alpha }
+\end{equation}
+
+
+</p>
+
+<p>
+其中 \(L_{\infty }\) 是理论最优损失，\(A\) 是幅度系数，\(\alpha \approx 0.076\)（对于语言模型）。
+</p>
+<!--
+...... subsection 数据集规模缩放......
+-->
+<h5 id="autosec-110"><span class="sectionnumber">7.3&#x2003;</span>数据集规模缩放</h5>
+<a id="mnist-autopage-110"></a>
+
+
+
+<p>
+类似地，数据集规模的影响：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{21}\)</span>
+
+<!--
+
+
+
+                                                                                  L(D) = L∞ + B · D−β   (22)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+L(D) = L_{\infty } + B \cdot D^{-\beta }
+\end{equation}
+
+
+</p>
+
+<p>
+其中 \(\beta \approx 0.095\)（对于语言模型）。
+</p>
+<!--
+...... subsection 计算最优缩放......
+-->
+<h5 id="autosec-111"><span class="sectionnumber">7.4&#x2003;</span>计算最优缩放</h5>
+<a id="mnist-autopage-111"></a>
+
+
+
+<p>
+在实际应用中，我们需要在模型规模、数据集规模和计算资源之间找到最优平衡。研究表明：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{22}\)</span>
+
+<!--
+
+
+                                                                                                  α                β
+                                                                                        Nopt ∝ C α+β ,   Dopt ∝ C α+β   (23)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+N_{opt} \propto C^{\frac {\alpha }{\alpha + \beta }}, \quad D_{opt} \propto C^{\frac {\beta }{\alpha + \beta }}
+\end{equation}
+
+
+</p>
+
+<p>
+这意味着随着计算资源的增加，模型规模和数据集规模应该按照特定比例同步增长。
+</p>
+<!--
+...... subsection MNIST 与 LeNet 的缩放分析......
+-->
+<h5 id="autosec-112"><span class="sectionnumber">7.5&#x2003;</span>MNIST 与 LeNet 的缩放分析</h5>
+<a id="mnist-autopage-112"></a>
+
+
+
+<p>
+对于 MNIST 这样的简单任务，缩放定律表现出一些特殊性质：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 饱和效应：</b> 当模型达到一定规模后，性能提升趋于饱和
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 数据限制：</b> MNIST 数据集相对较小，限制了大规模模型的效果
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 任务复杂度：</b> 对于简单的 10 类分类任务，过大的模型反而容易过拟合
+</p>
+</li>
+</ul>
+
+<figure id="autoid-23" class="figure ">
+<div class="center">
+
+<p>
+<span
+      id="lateximage-mnist-10"
+      class="lateximagesource"
+><!--
+测试准确率
+
+           性能饱和区
+                     大模型:
+           适中模型:     性能饱和，容易过拟合
+           计算效率平衡
+  小模型:
+  快速训练，参数效率高
+
+
+                    模型规模（参数数量）
+--><img
+      src="./Assets//image-10.svg"
+      alt="(-tikz-&nbsp;diagram)"
+      style=""
+      class="lateximage"
+></span>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;13: MNIST 任务上的性能饱和现象
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 重要启示 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+MNIST 任务告诉我们&nbsp;[?]：
+</p>
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> 对于简单任务，过大的模型并不能带来性能提升
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> 数据集的复杂度限制了模型的有效规模
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> 需要在模型复杂度和任务需求之间找到平衡
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> LeNet 的 61K 参数已经足以达到 99&percnt;+ 的准确率，好的归纳偏置，比暴力堆参更有效
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... section 现代发展与应用......
+-->
+<h4 id="autosec-116"><span class="sectionnumber">8&#x2003;</span>现代发展与应用</h4>
+<a id="mnist-autopage-116"></a>
+<!--
+...... subsection 深度学习的现代发展......
+-->
+<h5 id="autosec-117"><span class="sectionnumber">8.1&#x2003;</span>深度学习的现代发展</h5>
+<a id="mnist-autopage-117"></a>
+
+
+
+<p>
+自 LeNet 以来，深度学习领域取得了显著进展。Krizhevsky 等人&nbsp;[?] 在 2012 年提出了 AlexNet，在 ImageNet 竞赛中取得了突破性成果，重新点燃了人们对卷积神经网络的兴趣。随后，Simonyan 和 Zisserman&nbsp;[?]
+提出了 VGG 网络，通过使用更小的卷积核和更深的网络结构进一步提升了性能。He 等人&nbsp;[?] 提出的 ResNet 通过引入残差连接，解决了深层网络的训练问题，使得网络可以达到前所未有的深度。
+</p>
+<!--
+...... subsection 在实际应用中的选择......
+-->
+<h5 id="autosec-118"><span class="sectionnumber">8.2&#x2003;</span>在实际应用中的选择</h5>
+<a id="mnist-autopage-118"></a>
+
+
+
+<p>
+在选择神经网络架构时，应考虑：
+</p>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 任务复杂度：</b> 简单任务可用小模型，复杂任务需要大模型
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 数据规模：</b> 小数据集适合简单模型，防止过拟合
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 计算资源：</b> 考虑训练和推理的计算成本
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 实时性要求：</b> 移动端应用需要轻量级模型
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b> 准确率要求：</b> 医疗等关键应用需要最高准确率
+</p>
+</li>
+</ul>
+<!--
+...... section 结论......
+-->
+<h4 id="autosec-119"><span class="sectionnumber">9&#x2003;</span>结论</h4>
+<a id="mnist-autopage-119"></a>
+
+
+
+<p>
+本文通过 MNIST 手写数字识别任务，深入比较了全连接神经网络和卷积神经网络的原理、实现和性能。正如 LeCun 等人在其开创性工作&nbsp;[?, ?] 中所展示的，以及后续研究者&nbsp;[?, ?, ?] 所发展的，主要结论如下：
+</p>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 架构选择的重要性：</b> 合适的架构能显著提升性能并减少参数数量
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 归纳偏置的价值：</b> CNN 的空间归纳偏置使其在图像任务上具有天然优势
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 参数效率：</b> LeNet 通过参数共享实现了更高的参数效率
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 缩放定律：</b> 理解模型规模、数据规模和性能之间的关系对实际应用至关重要
+</p>
+</li>
+</ul>
+
+<p>
+我们看到了从简单的全连接网络到复杂的 CNN 架构的演进。然而，基本的原理和思想——如参数共享、分层特征提取和适当的归纳偏置——至今仍然适用。理解这些基础概念，对于设计和应用现代神经网络具有重要意义。
+</p>
+<!--
+...... section 参考文献......
+-->
+<h4 id="autosec-120">参考文献</h4>
+<a id="mnist-autopage-120"></a>
+
+
+
+<ul class="list" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">[1]&#x2003;</span> Y. LeCun, L. Bottou, Y. Bengio, and P. Haffner, “Gradient‑based learning applied to document recognition,” <i>Proceedings of the IEEE</i>, vol. 86, no. 11, pp.
+2278–2324, Nov. 1998.
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">[2]&#x2003;</span> Y. LeCun, B. Boser, J. S. Denker, D. Henderson, R. E. Howard, W. Hubbard, and L. D. Jackel, “Backpropagation applied to handwritten zip code recognition,”
+<i>Neural Computation</i>, vol. 1, no. 4, pp. 541–551, Winter 1989.
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">[3]&#x2003;</span> A. Krizhevsky, I. Sutskever, and G. E. Hinton, “ImageNet classification with deep convolutional neural networks,” in <i>Advances in Neural Information
+Processing Systems 25</i>, F. Pereira, C. J. C. Burges, L. Bottou, and K. Q. Weinberger, Eds. Curran Associates, Inc., 2012, pp. 1097–1105.
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">[4]&#x2003;</span> K. Simonyan and A. Zisserman, “Very deep convolutional networks for large‑scale image recognition,” <i>arXiv preprint arXiv:1409.1556</i>, Sep. 2014.
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">[5]&#x2003;</span> K. He, X. Zhang, S. Ren, and J. Sun, “Deep residual learning for image recognition,” in <i>Proceedings of the IEEE Conference on Computer Vision and Pattern
+Recognition (CVPR)</i>, Las Vegas, NV, USA, Jun. 2016, pp. 770–778.
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">[6]&#x2003;</span> J. Kaplan, S. McCandlish, T. Henighan, T. B. Brown, B. Chess, R. Child, S. Gray, A. Radford, J. Wu, and D. Amodei, “Scaling laws for neural language models,”
+<i>arXiv preprint arXiv:2001.08361</i>, Jan. 2020.
+</p>
+<p>
+
+
+</p>
+</li>
+</ul>
+
+<a id="mnist-autofile-last"></a>
+</section>
+
+</main>
+
+</div>
+
+</body>
+</html>

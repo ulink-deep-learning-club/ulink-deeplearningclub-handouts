@@ -1,0 +1,6214 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="generator" content="LaTeX Lwarp package" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PyTorch 入门教程：从 NumPy 到深度学习 </title>
+<link rel="stylesheet" type="text/css" href="lwarp.css" />
+
+<script>
+// Lwarp MathJax emulation code
+//
+// Based on code by Davide P. Cervone.
+// Equation numbering: https://github.com/mathjax/MathJax/issues/2427
+// Starred and ifnextchar macros: https://github.com/mathjax/MathJax/issues/2428
+// \left, \right delimiters: https://github.com/mathjax/MathJax/issues/2535
+//
+// Modified by Brian Dunn to adjust equation numbering and add subequations.
+//
+// LaTeX can use \seteqnumber{subequations?}{section}{number} before each equation.
+// subequations? is 0 usually, 1 if inside subequations.
+// section is a string printed as-is, or empty.
+// number is auto-incremented by MathJax between equations.
+//
+MathJax = {
+    subequations: "0",
+    section: "",
+    loader: {
+        load: ['[tex]/tagformat', '[tex]/textmacros'],
+    },
+    startup: {
+        ready() {
+            //       These would be replaced by import commands if you wanted to make
+            //       a proper extension.
+            const Configuration = MathJax._.input.tex.Configuration.Configuration;
+            const CommandMap = MathJax._.input.tex.SymbolMap.CommandMap;
+            const Macro = MathJax._.input.tex.Symbol.Macro;
+            const TexError = MathJax._.input.tex.TexError.default;
+            const ParseUtil = MathJax._.input.tex.ParseUtil.default;
+            const expandable = MathJax._.util.Options.expandable;
+
+
+            //       Insert the replacement string into the TeX string, and check
+            //       that there haven't been too many maxro substitutions (prevents
+            //       infinite loops).
+            const useArgument = (parser, text) => {
+                parser.string = ParseUtil.addArgs(parser, text, parser.string.slice(parser.i));
+                parser.i = 0;
+                if (++parser.macroCount > parser.configuration.options.maxMacros) {
+                     throw new TexError('MaxMacroSub1',
+                     'MathJax maximum macro substitution count exceeded; ' +
+                     'is there a recursive macro call?');
+                }
+            }
+
+
+            //       Create the command map for:
+            //           \ifstar, \ifnextchar, \ifblank, \ifstrequal, \gsub, \seteqnumber
+            new CommandMap('Lwarp-macros', {
+                ifstar: 'IfstarFunction',
+                ifnextchar: 'IfnextcharFunction',
+                ifblank: 'IfblankFunction',
+                ifstrequal: 'IfstrequalFunction',
+                gsubstitute: 'GsubstituteFunction',
+                seteqnumber: 'SeteqnumberFunction'
+            }, {
+                //       This function implements an ifstar macro.
+                IfstarFunction(parser, name) {
+                     const resultstar = parser.GetArgument(name);
+                     const resultnostar = parser.GetArgument(name);
+                     const star = parser.GetStar();                      // true if there is a *
+                     useArgument(parser, star ? resultstar : resultnostar);
+                },
+
+
+                //       This function implements an ifnextchar macro.
+                IfnextcharFunction(parser, name) {
+                     let whichchar = parser.GetArgument(name);
+                     if (whichchar.match(/^(?:0x[0-9A-F]+|[0-9]+)$/i)) {
+                         // $ syntax highlighting
+                         whichchar = String.fromCodePoint(parseInt(whichchar));
+                     }
+                     const resultnextchar = parser.GetArgument(name);
+                     const resultnotnextchar = parser.GetArgument(name);
+                     const gotchar = (parser.GetNext() === whichchar);
+                     useArgument(parser, gotchar ? resultnextchar : resultnotnextchar);
+                },
+
+
+                // This function implements an ifblank macro.
+                IfblankFunction(parser, name) {
+                     const blankarg = parser.GetArgument(name);
+                     const resultblank = parser.GetArgument(name);
+                     const resultnotblank = parser.GetArgument(name);
+                     const isblank = (blankarg.trim() == "");
+                     useArgument(parser, isblank ? resultblank : resultnotblank);
+                },
+
+
+                // This function implements an ifstrequal macro.
+                IfstrequalFunction(parser, name) {
+                     const strequalfirst = parser.GetArgument(name);
+                     const strequalsecond = parser.GetArgument(name);
+                     const resultequal = parser.GetArgument(name);
+                     const resultnotequal = parser.GetArgument(name);
+                     const isequal = (strequalfirst == strequalsecond);
+                     useArgument(parser, isequal ? resultequal : resultnotequal);
+                },
+
+
+                // This function implements a gsub macro.
+                GsubstituteFunction(parser, name) {
+                     const gsubfirst = parser.GetArgument(name);
+                     const gsubsecond = parser.GetArgument(name);
+                     const gsubthird = parser.GetArgument(name);
+                     let gsubresult=gsubfirst.replace(gsubsecond, gsubthird);
+                     useArgument(parser, gsubresult);
+                },
+
+
+                //       This function modifies the equation numbers.
+                SeteqnumberFunction(parser, name) {
+                         // Get the macro parameters
+                         const star = parser.GetStar();                    // true if there is a *
+                         const optBrackets = parser.GetBrackets(name);     // contents of optional brackets
+                         const newsubequations = parser.GetArgument(name);    // the subequations argument
+                         const neweqsection = parser.GetArgument(name);    // the eq section argument
+                         const neweqnumber = parser.GetArgument(name);     // the eq number argument
+                         MathJax.config.subequations=newsubequations ;     // a string with boolean meaning
+                         MathJax.config.section=neweqsection ;             // a string with numeric meaning
+                         parser.tags.counter = parser.tags.allCounter = neweqnumber ;
+                }
+
+
+            });
+
+
+            //       Create the Lwarp-macros package
+            Configuration.create('Lwarp-macros', {
+                handler: {macro: ['Lwarp-macros']}
+            });
+
+
+            MathJax.startup.defaultReady();
+
+
+            // For forward references:
+            MathJax.startup.input[0].preFilters.add(({math}) => {
+                if (math.inputData.recompile){
+                         MathJax.config.subequations = math.inputData.recompile.subequations;
+                         MathJax.config.section = math.inputData.recompile.section;
+                }
+            });
+            MathJax.startup.input[0].postFilters.add(({math}) => {
+                if (math.inputData.recompile){
+                         math.inputData.recompile.subequations = MathJax.config.subequations;
+                         math.inputData.recompile.section = MathJax.config.section;
+                }
+            });
+
+
+                // For \left, \right with unicode-math:
+                const {DelimiterMap} = MathJax._.input.tex.SymbolMap;
+                const {Symbol} = MathJax._.input.tex.Symbol;
+                const {MapHandler} = MathJax._.input.tex.MapHandler;
+                const delimiter = MapHandler.getMap('delimiter');
+                delimiter.add('\\lBrack', new Symbol('\\lBrack', '\u27E6'));
+                delimiter.add('\\rBrack', new Symbol('\\rBrack', '\u27E7'));
+                delimiter.add('\\lAngle', new Symbol('\\lAngle', '\u27EA'));
+                delimiter.add('\\rAngle', new Symbol('\\rAngle', '\u27EB'));
+                delimiter.add('\\lbrbrak', new Symbol('\\lbrbrak', '\u2772'));
+                delimiter.add('\\rbrbrak', new Symbol('\\rbrbrak', '\u2773'));
+                delimiter.add('\\lbag', new Symbol('\\lbag', '\u27C5'));
+                delimiter.add('\\rbag', new Symbol('\\rbag', '\u27C6'));
+                delimiter.add('\\llparenthesis', new Symbol('\\llparenthesis', '\u2987'));
+                delimiter.add('\\rrparenthesis', new Symbol('\\rrparenthesis', '\u2988'));
+                delimiter.add('\\llangle', new Symbol('\\llangle', '\u2989'));
+                delimiter.add('\\rrangle', new Symbol('\\rrangle', '\u298A'));
+                delimiter.add('\\Lbrbrak', new Symbol('\\Lbrbrak', '\u27EC'));
+                delimiter.add('\\Rbrbrak', new Symbol('\\Rbrbrak', '\u27ED'));
+                delimiter.add('\\lBrace', new Symbol('\\lBrace', '\u2983'));
+                delimiter.add('\\rBrace', new Symbol('\\rBrace', '\u2984'));
+                delimiter.add('\\lParen', new Symbol('\\lParen', '\u2985'));
+                delimiter.add('\\rParen', new Symbol('\\rParen', '\u2986'));
+                delimiter.add('\\lbrackubar', new Symbol('\\lbrackubar', '\u298B'));
+                delimiter.add('\\rbrackubar', new Symbol('\\rbrackubar', '\u298C'));
+                delimiter.add('\\lbrackultick', new Symbol('\\lbrackultick', '\u298D'));
+                delimiter.add('\\rbracklrtick', new Symbol('\\rbracklrtick', '\u298E'));
+                delimiter.add('\\lbracklltick', new Symbol('\\lbracklltick', '\u298F'));
+                delimiter.add('\\rbrackurtick', new Symbol('\\rbrackurtick', '\u2990'));
+                delimiter.add('\\langledot', new Symbol('\\langledot', '\u2991'));
+                delimiter.add('\\rangledot', new Symbol('\\rangledot', '\u2992'));
+                delimiter.add('\\lparenless', new Symbol('\\lparenless', '\u2993'));
+                delimiter.add('\\rparengtr', new Symbol('\\rparengtr', '\u2994'));
+                delimiter.add('\\Lparengtr', new Symbol('\\Lparengtr', '\u2995'));
+                delimiter.add('\\Rparenless', new Symbol('\\Rparenless', '\u2996'));
+                delimiter.add('\\lblkbrbrak', new Symbol('\\lblkbrbrak', '\u2997'));
+                delimiter.add('\\rblkbrbrak', new Symbol('\\rblkbrbrak', '\u2998'));
+                delimiter.add('\\lvzigzag', new Symbol('\\lvzigzag', '\u29D8'));
+                delimiter.add('\\rvzigzag', new Symbol('\\rvzigzag', '\u29D9'));
+                delimiter.add('\\Lvzigzag', new Symbol('\\Lvzigzag', '\u29DA'));
+                delimiter.add('\\Rvzigzag', new Symbol('\\Rvzigzag', '\u29DB'));
+                delimiter.add('\\lcurvyangle', new Symbol('\\lcurvyangle', '\u29FC'));
+                delimiter.add('\\rcurvyangle', new Symbol('\\rcurvyangle', '\u29FD'));
+                delimiter.add('\\Vvert', new Symbol('\\Vvert', '\u2980'));
+        }        // ready
+    },           // startup
+
+
+    tex: {
+        packages: {'[+]': ['tagformat', 'Lwarp-macros', 'textmacros']},
+        tags: "ams",
+                tagformat: {
+                         number: function (n) {
+                              if(MathJax.config.subequations==0)
+                                 return(MathJax.config.section + n);
+                              else
+                                 return(MathJax.config.section + String.fromCharCode(96+n));
+                         },
+                },
+    }
+}
+</script>
+
+
+<script
+        id="MathJax-script"
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
+></script>
+
+
+</head>
+<body>
+<!--|Using lwarp|document.html|-->
+
+
+
+<div class="bodywithoutsidetoc">
+
+
+
+<main class="bodycontainer">
+
+
+
+<section class="textbody">
+
+<a id="document-autofile-0"></a>
+
+<!--MathJax customizations:-->
+<div data-nosnippet
+         style="display:none"
+>
+
+\(\newcommand{\footnotename}{footnote}\)
+
+\(\def \LWRfootnote {1}\)
+
+\(\newcommand {\footnote }[2][\LWRfootnote ]{{}^{\mathrm {#1}}}\)
+
+\(\newcommand {\footnotemark }[1][\LWRfootnote ]{{}^{\mathrm {#1}}}\)
+
+\(\let \LWRorighspace \hspace \)
+
+\(\renewcommand {\hspace }{\ifstar \LWRorighspace \LWRorighspace }\)
+
+\(\newcommand {\TextOrMath }[2]{#2}\)
+
+\(\newcommand {\mathnormal }[1]{{#1}}\)
+
+\(\newcommand \ensuremath [1]{#1}\)
+
+\(\newcommand {\LWRframebox }[2][]{\fbox {#2}} \newcommand {\framebox }[1][]{\LWRframebox } \)
+
+\(\newcommand {\setlength }[2]{}\)
+
+\(\newcommand {\addtolength }[2]{}\)
+
+\(\newcommand {\setcounter }[2]{}\)
+
+\(\newcommand {\addtocounter }[2]{}\)
+
+\(\newcommand {\arabic }[1]{}\)
+
+\(\newcommand {\number }[1]{}\)
+
+\(\newcommand {\noalign }[1]{\text {#1}\notag \\}\)
+
+\(\newcommand {\cline }[1]{}\)
+
+\(\newcommand {\directlua }[1]{\text {(directlua)}}\)
+
+\(\newcommand {\luatexdirectlua }[1]{\text {(directlua)}}\)
+
+\(\newcommand {\protect }{}\)
+
+\(\def \LWRabsorbnumber #1 {}\)
+
+\(\def \LWRabsorbquotenumber &quot;#1 {}\)
+
+\(\newcommand {\LWRabsorboption }[1][]{}\)
+
+\(\newcommand {\LWRabsorbtwooptions }[1][]{\LWRabsorboption }\)
+
+\(\def \mathchar {\ifnextchar &quot;\LWRabsorbquotenumber \LWRabsorbnumber }\)
+
+\(\def \mathcode #1={\mathchar }\)
+
+\(\let \delcode \mathcode \)
+
+\(\let \delimiter \mathchar \)
+
+\(\def \oe {\unicode {x0153}}\)
+
+\(\def \OE {\unicode {x0152}}\)
+
+\(\def \ae {\unicode {x00E6}}\)
+
+\(\def \AE {\unicode {x00C6}}\)
+
+\(\def \aa {\unicode {x00E5}}\)
+
+\(\def \AA {\unicode {x00C5}}\)
+
+\(\def \o {\unicode {x00F8}}\)
+
+\(\def \O {\unicode {x00D8}}\)
+
+\(\def \l {\unicode {x0142}}\)
+
+\(\def \L {\unicode {x0141}}\)
+
+\(\def \ss {\unicode {x00DF}}\)
+
+\(\def \SS {\unicode {x1E9E}}\)
+
+\(\def \dag {\unicode {x2020}}\)
+
+\(\def \ddag {\unicode {x2021}}\)
+
+\(\def \P {\unicode {x00B6}}\)
+
+\(\def \copyright {\unicode {x00A9}}\)
+
+\(\def \pounds {\unicode {x00A3}}\)
+
+\(\let \LWRref \ref \)
+
+\(\renewcommand {\ref }{\ifstar \LWRref \LWRref }\)
+
+\( \newcommand {\multicolumn }[3]{#3}\)
+
+\(\require {textcomp}\)
+
+\(\newcommand {\intertext }[1]{\text {#1}\notag \\}\)
+
+\(\let \Hat \hat \)
+
+\(\let \Check \check \)
+
+\(\let \Tilde \tilde \)
+
+\(\let \Acute \acute \)
+
+\(\let \Grave \grave \)
+
+\(\let \Dot \dot \)
+
+\(\let \Ddot \ddot \)
+
+\(\let \Breve \breve \)
+
+\(\let \Bar \bar \)
+
+\(\let \Vec \vec \)
+
+\(\newcommand {\toprule }[1][]{\hline }\)
+
+\(\let \midrule \toprule \)
+
+\(\let \bottomrule \toprule \)
+
+\(\def \LWRbooktabscmidruleparen (#1)#2{}\)
+
+\(\newcommand {\LWRbooktabscmidrulenoparen }[1]{}\)
+
+\(\newcommand {\cmidrule }[1][]{\ifnextchar (\LWRbooktabscmidruleparen \LWRbooktabscmidrulenoparen }\)
+
+\(\newcommand {\morecmidrules }{}\)
+
+\(\newcommand {\specialrule }[3]{\hline }\)
+
+\(\newcommand {\addlinespace }[1][]{}\)
+
+\(\newcommand {\tcbset }[1]{}\)
+
+\(\newcommand {\tcbsetforeverylayer }[1]{}\)
+
+\(\newcommand {\tcbox }[2][]{\boxed {\text {#2}}}\)
+
+\(\newcommand {\tcboxfit }[2][]{\boxed {#2}}\)
+
+\(\newcommand {\tcblower }{}\)
+
+\(\newcommand {\tcbline }{}\)
+
+\(\newcommand {\tcbtitle }{}\)
+
+\(\newcommand {\tcbsubtitle [2][]{\mathrm {#2}}}\)
+
+\(\newcommand {\tcboxmath }[2][]{\boxed {#2}}\)
+
+\(\newcommand {\tcbhighmath }[2][]{\boxed {#2}}\)
+
+</div>
+
+<a id="document-autopage-1"></a>
+<div class="titlepage">
+
+<h1><b>PyTorch 入门教程：从 NumPy 到深度学习 </b></h1>
+
+
+
+<div class="author">
+
+
+
+<div class="oneauthor">
+
+<p>
+Anson, 深度学习社 &#x2003;Cooperated with <kbd>MiniMax M2</kbd> &amp; <kbd>DeepSeek V3.2 Exp</kbd>
+</p>
+</div>
+
+</div>
+
+
+
+<div class="titledate">
+
+<p>
+2025 年 12 月 3 日
+</p>
+</div>
+
+</div>
+<div class="abstract">
+
+
+
+<div class="abstracttitle"> 摘要 </div>
+
+<p>
+本文是 PyTorch 深度学习框架入门教程。即使你只熟悉 Python 基础，也能轻松理解！我们将通过详细的步骤解释和大量的代码对比，帮助你从零开始掌握 PyTorch。文章从 NumPy 出发，逐步介绍为什么需要深度学习框架；然
+后详细讲解张量（Tensors）、自动求导（Autograd）、神经网络模块（nn.Module）等核心概念；最后通过构建一个手写数字识别器来展示完整的工作流程。每个概念都配有实际代码和运行结果，让你边学边练！
+</p>
+</div>
+<!--
+...... section 目录......
+-->
+<h4 id="autosec-4">目录</h4>
+<a id="document-autopage-4"></a>
+
+
+
+
+<nav class="toc">
+
+</nav>
+<!--
+...... section 引言：为什么选择 PyTorch？......
+-->
+<h4 id="autosec-5"><span class="sectionnumber">1&#x2003;</span>引言：为什么选择 PyTorch？</h4>
+<a id="document-autopage-5"></a>
+<!--
+...... subsection 从 NumPy 到 PyTorch：一场必然的进化......
+-->
+<h5 id="autosec-6"><span class="sectionnumber">1.1&#x2003;</span>从 NumPy 到 PyTorch：一场必然的进化</h5>
+<a id="document-autopage-6"></a>
+
+
+
+<p>
+如果你已经熟悉 Python 和 NumPy，那么恭喜你！你已经掌握了深度学习的重要基础。NumPy 是 Python 中进行科学计算的强大工具，让我们能够高效地处理多维数组。但当你尝试用 NumPy 构建深度神经网络时，会遇到一些
+挑战：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b>NumPy 训练神经网络的挑战 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 手动实现反向传播：</b> 每当你修改网络结构，都需要重新推导和实现梯度计算
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 缺乏自动优化：</b> 你需要手动实现 SGD、Adam 等优化算法
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 无法利用 GPU：</b> NumPy 的运算默认在 CPU 上，无法利用 GPU 的并行计算能力
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 缺少神经网络层：</b> 从零实现卷积层、循环层等工作量巨大
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 核心问题 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+每次调整网络结构（比如加一层），都需要重新推导数学公式和计算梯度。对于复杂的网络（比如识别猫的图片），手动计算梯度几乎是不可能的！
+</p>
+</div>
+
+</div>
+
+<p>
+PyTorch 就是来解决这些问题的！它就像 NumPy 的” 智能升级版”，专为深度学习设计，但保留了 NumPy 的直观性。
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 特别说明 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+如果你对 NumPy 还不熟悉，别担心！我们会在教程中详细对比 NumPy 和 PyTorch，让你同时学习两个工具。记住：PyTorch 的语法和 NumPy 非常相似，学会一个，另一个就很容易理解！
+</p>
+</div>
+
+</div>
+<!--
+...... subsection PyTorch 是什么？......
+-->
+<h5 id="autosec-7"><span class="sectionnumber">1.2&#x2003;</span>PyTorch 是什么？</h5>
+<a id="document-autopage-7"></a>
+
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b>PyTorch 的定义 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+PyTorch 是一个开源的深度学习框架，由 Facebook（现 Meta）的研究团队开发。它提供了一种灵活、高效的方式来构建、训练和部署神经网络。
+</p>
+
+<p>
+<b> 核心特点：</b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 语法简单：</b> 就像 NumPy 的” 升级版”，学习起来很自然
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 调试方便：</b> 可以像普通 Python 代码一样调试，哪里出错改哪里
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>GPU 加速：</b> 一行代码就能用显卡加速计算，速度提升 10‑100 倍！
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 社区活跃：</b> 遇到问题随时可以找到解决方案
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 研究首选：</b> 大多数 AI 论文都用 PyTorch 实现
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b>PyTorch vs NumPy 对比 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b>NumPy：</b> 提供基础的数组操作、数学函数和计算功能。你可以实现任何算法，但需要手动处理梯度计算和优化
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>PyTorch：</b> 提供智能的深度学习工具——自动求导、预定义网络层、预训练模型。它保留了 NumPy 的所有功能，但让深度学习变得更简单、更可靠
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 好消息！</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 不需要高深数学：</b> PyTorch 会自动计算所有复杂的导数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 不需要硬件知识：</b> 一行代码就能用 GPU 加速
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 不需要从头开始：</b> 有很多预训练模型可以直接使用
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 学习曲线平缓：</b> 从简单项目开始，逐步深入
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection PyTorch vs TensorFlow：两大框架的对决......
+-->
+<h5 id="autosec-8"><span class="sectionnumber">1.3&#x2003;</span>PyTorch vs TensorFlow：两大框架的对决</h5>
+<a id="document-autopage-8"></a>
+
+
+
+<p>
+很多初学者会问：应该学 PyTorch 还是 TensorFlow？让我们用简单的方式来对比：
+</p>
+
+<figure id="autoid-1" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="hline">
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+<b> 对比维度 </b>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<b>PyTorch</b>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<b>TensorFlow</b>
+</p>
+</td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+学习难度
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<b> 简单 </b>，像写 Python 代码
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+初期较复杂，需要理解概念
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+调试方式
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<b> 容易 </b>，像普通 Python 调试
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+调试较困难，需要特殊工具
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+代码风格
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<b> 直观自然 </b>，所见即所得
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+需要先定义再执行
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+研究使用度
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<b> 学术界首选 </b>（论文多）
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+工业界应用广泛
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+GPU 使用
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<b> 一行代码 </b> 切换 CPU/GPU
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+需要复杂设置
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+适合人群
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<b> 初学者、研究人员 </b>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+工程师、部署专家
+</p>
+</td>
+</tr>
+
+
+<tr class="hline" aria-hidden="true">
+<td class="tdp">
+
+</td>
+<td class="tdp">
+
+</td>
+<td class="tdp">
+
+</td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;1: PyTorch vs TensorFlow 对比
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 如何选择？</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 选择 PyTorch 如果你是：</b>
+</p>
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 深度学习初学者 </b>，想快速上手
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 喜欢动手实验 </b>，需要灵活调试
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 想读 AI 论文 </b>，大多数论文用 PyTorch 实现
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 参加竞赛 </b>，需要快速迭代模型
+</p>
+</li>
+</ul>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 选择 TensorFlow 如果你是：</b>
+</p>
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 想开发手机 App</b>，需要移动端部署
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 团队项目 </b>，已有 TensorFlow 基础设施
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 喜欢可视化 </b>，想看训练过程动画
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 生产环境 </b>，需要稳定部署
+</p>
+</li>
+</ul>
+</li>
+</ul>
+
+<p>
+<b> 建议：</b> <b> 从 PyTorch 开始！</b> 理由：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 学习更简单：</b> 语法直观，调试方便
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 资源更丰富：</b> 大多数教程和论文都用 PyTorch
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 未来更广阔：</b> 学术界和工业界都在转向 PyTorch
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 转换更容易：</b> 学会 PyTorch 后，TensorFlow 也不难
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 重要提醒 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+不要纠结于选择哪个框架！<b> 掌握深度学习概念比掌握特定框架更重要 </b>。PyTorch 只是帮助你实现想法的工具，就像画笔对于画家一样。
+</p>
+</div>
+
+</div>
+<!--
+...... section 张量（Tensors）：PyTorch 的核心数据结构......
+-->
+<h4 id="autosec-11"><span class="sectionnumber">2&#x2003;</span>张量（Tensors）：PyTorch 的核心数据结构</h4>
+<a id="document-autopage-11"></a>
+<!--
+...... subsection 什么是张量？......
+-->
+<h5 id="autosec-12"><span class="sectionnumber">2.1&#x2003;</span>什么是张量？</h5>
+<a id="document-autopage-12"></a>
+
+
+
+<p>
+张量听起来很复杂，但其实很简单！在深度学习中，我们处理的数据可能是：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 一个数字 </b>（标量，0 维张量）‑ 比如温度：25℃
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 一个向量 </b>（1 维张量）‑ 比如学生成绩：[85, 92, 78]
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 一个矩阵 </b>（2 维张量）‑ 比如班级成绩表
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 更高维度 </b>（如图像：3 维，批量图像：4 维）
+</p>
+</li>
+</ul>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 张量的定义 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+张量（Tensor）就是 PyTorch 中的” 多维数组”。它就像 NumPy 的 ndarray，但有两个超能力：
+</p>
+
+<p>
+<b> 超能力 1：</b> 自动计算梯度（后面会详细讲）<b> 超能力 2：</b> 可以用 GPU 加速计算
+</p>
+
+<p>
+<b> 维度对应（实际例子）：</b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b>0 维张量：</b> 一个数字，比如考试成绩：95
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>1 维张量：</b> 一行数字，比如一周温度：[20, 22, 19, 21, 23]
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>2 维张量：</b> 一个表格，比如班级成绩表
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>3 维张量：</b> 一张彩色图片（高度 × 宽度 × 颜色通道）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>4 维张量：</b> 一批图片（图片数量 × 高度 × 宽度 × 颜色通道）
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 记住这个类比！</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 标量（0 维）：</b> 一个点
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 向量（1 维）：</b> 一条线
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 矩阵（2 维）：</b> 一个平面
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 张量（3 维 +）：</b> 一个立体空间
+</p>
+</li>
+</ul>
+
+<p>
+就像从点到线，再到面，最后到立体空间一样自然！
+</p>
+</div>
+
+</div>
+
+<figure id="autoid-2" class="figure ">
+<div class="center">
+
+<p>
+
+
+<a href="Assets/scalar-to-tensor.png" target="_blank" ><img
+      src="Assets/scalar-to-tensor.png"
+      style="
+      width:260pt;
+      "
+      class="inlineimage"
+      alt="(image)"
+></a>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;1: 不同维度的张量可视化 [?]
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... subsection NumPy vs PyTorch：相同的操作，不同的能力......
+-->
+<h5 id="autosec-14"><span class="sectionnumber">2.2&#x2003;</span>NumPy vs PyTorch：相同的操作，不同的能力</h5>
+<a id="document-autopage-14"></a>
+
+
+
+<p>
+让我们通过实际代码对比来理解 PyTorch 张量。你会发现它们非常相似！
+</p>
+
+<p>
+<b>NumPy 代码（你可能已经熟悉）：</b>
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import numpy as np
+2
+3    # 创建数组
+4    a = np. array ([1,      2, 3])   # 向量 [1, 2, 3]
+5    b = np. zeros ((3,      3) )     # 3的零矩阵x3
+6    c = np.random.rand(2, 2)         # 2的随机矩阵x2
+7
+8    # 运算
+9    d = a + 1                        # 每个元素加1
+10    e = np.dot ( a , a )            # 点积
+</pre>
+
+
+      <div class="figurecaption">
+</div>
+
+<p>
+<b>PyTorch 代码（新的，但很相似）：</b>
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import torch
+2
+3    # 创建张量
+4    a = torch . tensor ([1,      2, 3])   # 向量 [1, 2, 3]
+5    b = torch . zeros (3, 3)              # 3的零矩阵x3
+6    c = torch . rand (2, 2)               # 2的随机矩阵x2
+7
+8    # 运算
+9    d = a + 1                             # 每个元素加1
+10    e = torch . dot ( a , a )              # 点积
+11
+12    # 的超能力！PyTorch
+13    device = torch . device ( &apos; cuda &apos; )   # 使用GPU
+14    c_gpu = c . to ( device )              # 把张量移到GPU
+</pre>
+
+
+      <div class="figurecaption">
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 重要发现：语法几乎一样！</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 创建数组：</b> <kbd>np.array()</kbd> → <kbd>torch.tensor()</kbd>
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 零矩阵：</b> <kbd>np.zeros()</kbd> → <kbd>torch.zeros()</kbd>
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 随机矩阵：</b> <kbd>np.random.rand()</kbd> → <kbd>torch.rand()</kbd>
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 数学运算：</b> 完全一样的语法！
+</p>
+</li>
+</ul>
+
+<p>
+<b> 最大的区别：</b> PyTorch 支持 GPU 计算和自动求导，这是 NumPy 没有的超能力！
+</p>
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 练习建议 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 打开 Python 环境 </b>（Jupyter Notebook 或 Python 终端）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 先运行 NumPy 代码 </b>，确保理解每行代码的作用
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 再运行 PyTorch 代码 </b>，对比输出结果
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 尝试修改：</b> 改变数字、矩阵大小，观察变化
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b> 挑战：</b> 创建一个 3x3 的矩阵，计算它的转置
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 张量操作详解......
+-->
+<h5 id="autosec-17"><span class="sectionnumber">2.3&#x2003;</span>张量操作详解</h5>
+<a id="document-autopage-17"></a>
+
+
+
+<p>
+让我们逐一探索常用的张量操作。这些操作在 NumPy 和 PyTorch 中非常相似！
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 基础操作对比（边学边练）</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+<b>1. 查看形状和维度 </b>
+</p>
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="hline">
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+<b>NumPy</b>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<b>PyTorch</b>
+</p>
+</td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+<kbd>a.shape</kbd>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<kbd>a.shape</kbd>
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+<kbd>a.ndim</kbd>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<kbd>a.dim()</kbd>
+</p>
+</td>
+</tr>
+
+
+<tr class="hline" aria-hidden="true">
+<td class="tdp">
+
+</td>
+<td class="tdp">
+
+</td>
+</tr>
+</table>
+
+</div>
+
+<p>
+<b> 实际例子：</b>
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1   # NumPy
+2   a = np. array ([[1,       2],   [3,   4]])
+3     print ( a . shape)    # 输出 : (2, 2)
+4     print ( a . ndim)     # 输出 : 2
+5
+6   # PyTorch
+7   a = torch . tensor ([[1,        2],   [3,    4]])
+8     print ( a . shape)    # 输出 : torch . Size ([2,    2])
+9     print ( a . dim() )   # 输出 : 2
+</pre>
+
+
+       <div class="figurecaption">
+</div>
+
+<p>
+<b>2. 数学运算（完全一样！）</b>
+</p>
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="hline">
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+<b>NumPy</b>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<b>PyTorch</b>
+</p>
+</td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+<kbd>np.sum(a)</kbd>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<kbd>torch.sum(a)</kbd>
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+<kbd>np.mean(a)</kbd>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<kbd>torch.mean(a)</kbd>
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+<kbd>np.max(a)</kbd>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<kbd>torch.max(a)</kbd>
+</p>
+</td>
+</tr>
+
+
+<tr class="hline" aria-hidden="true">
+<td class="tdp">
+
+</td>
+<td class="tdp">
+
+</td>
+</tr>
+</table>
+
+</div>
+
+<p>
+<b>3. 矩阵运算（几乎一样）</b>
+</p>
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="hline">
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+<b>NumPy</b>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<b>PyTorch</b>
+</p>
+</td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+<kbd>a @ b</kbd> 或 <kbd>np.dot(a, b)</kbd>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<kbd>torch.matmul(a, b)</kbd>
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+<kbd>a.T</kbd>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<kbd>a.T</kbd> 或 <kbd>a.t()</kbd>
+</p>
+</td>
+</tr>
+
+
+<tr class="hline" aria-hidden="true">
+<td class="tdp">
+
+</td>
+<td class="tdp">
+
+</td>
+</tr>
+</table>
+
+</div>
+
+</div>
+
+</div>
+<!--
+...... subsection 广播（Broadcasting）
+                                 ：让不同形状的张量一起运算......
+-->
+<h5 id="autosec-25"><span class="sectionnumber">2.4&#x2003;</span>广播（Broadcasting）：让不同形状的张量一起运算</h5>
+<a id="document-autopage-25"></a>
+
+
+
+<p>
+广播是 PyTorch 和 NumPy 中的一个重要概念，它允许我们对不同形状的张量进行数学运算。这就像数学中的” 自动扩展” 功能！
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 什么是广播？</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+广播是一种机制，允许 PyTorch 自动扩展较小张量的形状，使其与较大张量的形状兼容，从而进行逐元素运算。
+</p>
+
+<p>
+<b> 广播规则：</b>
+</p>
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 从尾部对齐：</b> 从最后一个维度开始比较
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 维度为 1：</b> 维度为 1 的轴会被扩展以匹配其他张量
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 缺失维度：</b> 缺失的维度被视为 1
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 其他情况：</b> 如果维度不匹配且都不是 1，则报错
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 广播的实际例子 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import torch
+2
+3    # 例子：标量与向量相加1
+4    a = torch . tensor ([1,     2, 3])      # 形状 :      (3,)
+5    b = 10                                   # 形状 : 标量
+6    c = a + b                               # 广播：10 → [10, 10, 10]
+7     print ( c )   # 输出 : tensor ([11,       12, 13])
+8
+9    # 例子：向量与矩阵相加2
+10     matrix = torch . tensor ([[1,        2, 3],
+11                                  [4, 5,        6]])   # 形状 : (2, 3)
+12     vector = torch . tensor ([10,        20, 30])      # 形状 :   (3,)
+13     result = matrix + vector                          # 广播： vector →       [[10,20,30],[10,20,30]]
+14     print ( result )
+15     # 输出 : tensor ([[11,      22, 33],
+16     #                   [14, 25,       36]])
+17
+18     # 例子：不同形状的矩阵运算3
+19     A = torch . ones (3, 1, 4)      # 形状 : (3, 1, 4)
+20     B = torch . ones (2, 4)         # 形状 : (2, 4)
+21     C = A + B                      # 广播：A → (3, 2, 4) , B → (3, 2, 4)
+22     print (C.shape)                # 输出 : torch . Size ([3,       2, 4])
+</pre>
+
+
+       <div class="figurecaption">
+</div>
+
+</div>
+
+</div>
+
+
+
+<div
+       class="tcolorbox"
+       style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+       class="tcolorboxtitle"
+       style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 广播的应用场景 </b>
+</p>
+</div>
+
+
+
+<div
+       class="tcolorboxupper"
+       style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 归一化：</b> 从每个元素减去均值，除以标准差
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 批量运算：</b> 对批量数据应用相同的操作
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 权重更新：</b> 用标量学习率更新所有参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 特征缩放：</b> 对特征进行统一的缩放处理
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 张量重塑（Reshaping）：改变形状但不改变数据......
+-->
+<h5 id="autosec-27"><span class="sectionnumber">2.5&#x2003;</span>张量重塑（Reshaping）：改变形状但不改变数据</h5>
+<a id="document-autopage-27"></a>
+
+
+
+<p>
+在深度学习中，我们经常需要改变张量的形状。PyTorch 提供了多种方法来重塑张量：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 常用的重塑方法 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <kbd>view()：</kbd> 返回相同数据的新视图（不复制数据）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <kbd>reshape()：</kbd> 返回重塑后的张量（可能复制数据）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <kbd>permute()：</kbd> 重新排列维度顺序
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <kbd>transpose()：</kbd> 交换两个维度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <kbd>squeeze()：</kbd> 移除长度为 1 的维度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <kbd>unsqueeze()：</kbd> 添加长度为 1 的维度
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 张量重塑的实际例子 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import torch
+2
+3    # 创建一个2的张量x3x4
+4     original = torch . randn (2, 3, 4)
+5     print ( f”原始形状: { original . shape}”) # torch . Size ([2,     3, 4])
+6
+7    # 使用改变形状（不复制数据）view
+8     flattened = original . view (2, −1)    # 表示自动计算该维度大小−1
+9     print ( f”展平后: { flattened . shape}”) # torch . Size ([2,     12])
+10
+11    # 使用改变形状reshape
+12    reshaped = original . reshape (6, 4)
+13     print ( f”重塑后: { reshaped . shape}”) # torch . Size ([6,     4])
+14
+15    # 交换维度
+16     transposed = original . transpose (0, 1)    # 交换第维和第维01
+17     print ( f”转置后: { transposed . shape}”) # torch . Size ([3,     2, 4])
+18
+19    # 重新排列维度顺序
+20    permuted = original . permute(2, 0, 1)       # 新顺序：原第维 → 第维，原第维 → 第维，原第维 → 第维200112
+21     print ( f”重排后: {permuted.shape}”) # torch . Size ([4,      2, 3])
+22
+23    # 添加和移除维度
+24     tensor_1d = torch . tensor ([1,   2, 3])
+25     tensor_2d = tensor_1d . unsqueeze (0)      # 在第维添加维度0
+26     print ( f”添加维度后: { tensor_2d . shape}”) # torch . Size ([1,         3])
+27
+28     tensor_1d_again = tensor_2d . squeeze (0)    # 移除第维0
+29     print ( f”移除维度后: { tensor_1d_again . shape}”) # torch . Size ([3])
+</pre>
+
+
+       <div class="figurecaption">
+</div>
+
+</div>
+
+</div>
+
+
+
+<div
+       class="tcolorbox"
+       style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+       class="tcolorboxtitle"
+       style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b>view() vs reshape() 区别 </b>
+</p>
+</div>
+
+
+
+<div
+       class="tcolorboxupper"
+       style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <kbd>view()：</kbd> 要求张量在内存中是连续的，不复制数据，更快
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <kbd>reshape()：</kbd> 总是返回所需形状，必要时会复制数据，更安全
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 建议：</b> 优先使用 <kbd>reshape()</kbd>，除非确定张量是连续的
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 索引和切片（Indexing and Slicing）：访问张量的特定部分......
+-->
+<h5 id="autosec-29"><span class="sectionnumber">2.6&#x2003;</span>索引和切片（Indexing and Slicing）
+                                                                                            ：访问张量的特定部分</h5>
+<a id="document-autopage-29"></a>
+
+
+
+<p>
+索引和切片是访问和修改张量特定元素的重要操作。PyTorch 的索引语法与 NumPy 非常相似！
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 基本的索引操作 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 整数索引：</b> 访问特定位置的元素
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 切片索引：</b> 访问一个范围内的元素
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 布尔索引：</b> 使用布尔条件选择元素
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 高级索引：</b> 使用整数数组索引
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<p>
+<b> 索引和切片的实际例子:</b>
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import torch
+2
+3    # 创建一个3的矩阵x4
+4    matrix = torch . tensor ([[1,      2, 3, 4],
+5                                   [5, 6, 7, 8],
+6                                   [9, 10, 11,     12]])
+7     print ( f”原始矩阵:\n{ matrix }”)
+8
+9    # 整数索引
+10     first_row = matrix [0]                  # 第行0
+11     first_element = matrix [0, 0]           # 第行第列00
+12     print ( f”第行0: { first_row }”)           # tensor ([1,    2, 3, 4])
+13     print ( f”第行第列00: { first_element }”) # tensor (1)
+14
+15    # 切片索引
+16     first_two_rows = matrix [:2]            # 前行2
+17    middle_columns = matrix [:,           1:3] # 所有行的第列1−2
+18     print ( f”前行2:\n{ first_two_rows }”)
+19     print ( f”中间列:\n{middle_columns}”)
+20
+21    # 布尔索引
+22    mask = matrix &gt; 5                          # 创建布尔掩码
+23     selected = matrix [ mask]               # 选择大于的元素5
+24     print ( f”大于的元素5: { selected }”) # tensor ([6,             7, 8, 9, 10, 11, 12])
+25
+26    # 高级索引
+27    rows = torch . tensor ([0,      2])      # 选择第行和第行02
+28     cols = torch . tensor ([1,     3])      # 选择第列和第列13
+29     selected_elements = matrix [ rows, cols ]
+30     print ( f”选择的行列: { selected_elements }”) # tensor ([2,                12])
+31
+32    # 修改元素
+33    matrix [0, 0] = 100                      # 修改单个元素
+34    matrix [1] = torch . tensor ([50,       60, 70, 80])      # 修改整行
+35     print ( f”修改后的矩阵:\n{ matrix }”)
+</pre>
+
+
+       <div class="figurecaption">
+</div>
+
+
+
+<div
+       class="tcolorbox"
+       style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+       class="tcolorboxtitle"
+       style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 索引注意事项 </b>
+</p>
+</div>
+
+
+
+<div
+       class="tcolorboxupper"
+       style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 视图 vs 副本：</b> 大多数索引操作返回视图（不复制数据）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 原地修改：</b> 使用索引修改会原地改变原始张量
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 梯度跟踪：</b> 索引操作会保持梯度跟踪
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 性能：</b> 避免在循环中使用复杂索引
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+       class="tcolorbox"
+       style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+       class="tcolorboxtitle"
+       style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 张量的高级功能（PyTorch 的超能力！）</b>
+</p>
+</div>
+
+
+
+<div
+       class="tcolorboxupper"
+       style=" color: #000000; "
+>
+
+<p>
+除了 NumPy 的所有功能，PyTorch 张量还提供：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 自动求导：</b> 设置 <kbd>requires_grad=True</kbd> 自动跟踪梯度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>GPU 加速：</b> 使用 <kbd>.to(device)</kbd> 在 CPU/GPU 间切换
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 梯度累积：</b> 自动计算梯度并更新参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 内存共享：</b> 与 NumPy 共享内存（CPU 张量）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 广播机制：</b> 自动处理不同形状张量的运算
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 灵活重塑：</b> 多种方法改变张量形状
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 强大索引：</b> 灵活的索引和切片操作
+</p>
+</li>
+</ul>
+
+<p>
+<b> 实际例子：</b>
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1   # 自动求导示例
+2   x = torch . tensor (3.0,    requires_grad =True)
+3   y = x**2 + 2*x + 1
+4   y . backward()
+5     print (x . grad )   # 自动计算导数：2*x + 2 = 8.0
+</pre>
+
+
+       <div class="figurecaption">
+</div>
+
+</div>
+
+</div>
+
+
+
+<div
+       class="tcolorbox"
+       style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+       class="tcolorboxtitle"
+       style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 学习提示 </b>
+</p>
+</div>
+
+
+
+<div
+       class="tcolorboxupper"
+       style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 不要死记硬背：</b> 大多数操作和 NumPy 一样，用的时候查文档就行
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 多动手实验：</b> 在 Python 环境中尝试不同的操作
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 理解概念：</b> 重点是理解张量是什么，而不是记住所有函数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 循序渐进：</b> 先掌握基础操作，再学习高级功能
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+       class="tcolorbox"
+       style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+       class="tcolorboxtitle"
+       style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 实战：NumPy vs PyTorch 图像处理 </b>
+</p>
+</div>
+
+
+
+<div
+       class="tcolorboxupper"
+       style=" color: #000000; "
+>
+
+<p>
+假设我们有一张 28×28 的灰度图像（MNIST 数字）：
+</p>
+
+<p>
+<b>NumPy 实现：</b>
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import numpy as np
+2
+3    # 加载图像 (28 x28 )
+4    image = np. load ( &apos; digit . npy &apos; )
+5
+6    # 展平为向量
+7     pixels = image. flatten ()    # 维784
+8
+9    # 标准化
+10    normalized = ( pixels − 128) / 128
+11
+12    # 添加批次维度
+13    batch = normalized . reshape (1, −1)
+</pre>
+
+
+      <div class="figurecaption">
+</div>
+
+<p>
+<b>PyTorch 实现：</b>
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import torch
+2    import torchvision . transforms
+3
+4    # 加载图像 (28 x28 )
+5    image = torch . load ( &apos; digit . pt &apos; )
+6
+7    # 展平为向量
+8     pixels = image. flatten ()      # 维784
+9
+10    # 标准化
+11    normalized = ( pixels − 0.1307) / 0.3081
+12
+13    # 添加批次维度
+14    batch = normalized . view (1, −1)
+15
+16    # 轻松切换到！GPU
+17    device = torch . device ( &apos; cuda &apos; )
+18    batch = batch . to ( device )
+</pre>
+
+
+      <div class="figurecaption">
+</div>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b>PyTorch vs NumPy 核心优势 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+虽然 NumPy 和 PyTorch 语法相似，但 PyTorch 提供了深度学习的关键功能：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 自动求导：</b> 一行代码 <kbd>loss.backward()</kbd> 自动计算所有梯度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>GPU 加速：</b> GPU 上 PyTorch 比 CPU NumPy 快 10‑100 倍
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 神经网络模块：</b> 预定义层、损失函数、优化器
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 动态计算图：</b> 支持 Python 控制流，调试方便
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 动手练习：你的第一个 PyTorch 程序......
+-->
+<h5 id="autosec-34"><span class="sectionnumber">2.7&#x2003;</span>动手练习：你的第一个 PyTorch 程序</h5>
+<a id="document-autopage-34"></a>
+
+
+
+<p>
+现在让我们通过一个完整的练习来巩固所学知识！
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 练习：计算二次函数的导数 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+<b> 任务：</b> 计算函数 \(f(x) = x^2 + 3x + 2\) 在 \(x=2\) 处的导数
+</p>
+
+<p>
+<b> 步骤：</b>
+</p>
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> 创建需要梯度的张量
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> 计算函数值
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> 自动求导
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> 查看结果
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<p>
+<b> 完整代码：</b>
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import torch
+2
+3    # 1. 创建需要梯度的张量
+4    x = torch . tensor (2.0,   requires_grad =True)
+5
+6    # 2. 计算函数值
+7    y = x**2 + 3*x + 2
+8
+9    # 3. 自动求导
+10    y . backward()
+11
+12    # 4. 查看结果
+13    print ( f”x = {x . item () }”)
+14    print ( f”y = {y . item () }”)
+15    print ( f”导数 dy/dx = {x . grad . item () }”)
+16
+17    # 手动验证：导数应该是 2*x + 3 = 2*2 + 3 = 7
+18    print ( f”手动验证：2*x + 3 = {2* x . item () + 3} ”)
+</pre>
+
+
+      <div class="figurecaption">
+</div>
+
+<p>
+<b> 预期输出：</b>
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1   x = 2.0
+2   y = 12.0 导数
+3     dy/dx = 7.0 手动验证：
+4   2*x + 3 = 7.0
+</pre>
+
+
+      <div class="figurecaption">
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 扩展练习 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+尝试修改代码完成以下任务：
+</p>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 简单：</b> 计算 \(f(x) = x^3\) 在 \(x=3\) 处的导数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 中等：</b> 计算 \(f(x) = \sin (x)\) 在 \(x=\pi /4\) 处的导数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 高级：</b> 计算 \(f(x, y) = x^2 + y^2\) 在 \((x=2, y=3)\) 处的偏导数
+</p>
+</li>
+</ul>
+
+<p>
+<b> 提示：</b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 多个变量需要设置多个张量的 <kbd>requires_grad=True</kbd>
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 使用 <kbd>torch.sin()</kbd> 计算正弦函数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 使用 <kbd>torch.pi</kbd> 获取 \(\pi \) 的值
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 学习建议 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 不要只看不练：</b> 一定要在电脑上运行这些代码
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 遇到错误别怕：</b> 错误是最好的学习机会
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 多尝试修改：</b> 改变数字、函数，观察变化
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 记录结果：</b> 把运行结果和理解记下来
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... section 自动求导（Autograd）：让梯度计算自动化......
+-->
+<h4 id="autosec-37"><span class="sectionnumber">3&#x2003;</span>自动求导（Autograd）：让梯度计算自动化</h4>
+<a id="document-autopage-37"></a>
+<!--
+...... subsection 为什么需要自动求导？......
+-->
+<h5 id="autosec-38"><span class="sectionnumber">3.1&#x2003;</span>为什么需要自动求导？</h5>
+<a id="document-autopage-38"></a>
+
+
+
+<p>
+在深度学习中，我们通过梯度下降法更新网络参数。手动计算梯度不仅容易出错，而且非常耗时。想象一下：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 手动计算梯度的挑战 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+对于一个简单的 3 层网络：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{0}\)</span>
+
+<!--
+
+
+
+                                                                                       y = W3 (W2 (W1 x + b1 ) + b2 ) + b3   (1)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+y = W_3(W_2(W_1x + b_1) + b_2) + b_3
+\end{equation}
+
+
+</p>
+
+<p>
+要计算 \(\frac {\partial y}{\partial W_1}\)，你需要：
+</p>
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> 使用链式法则展开
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> 计算每个中间变量的导数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> 手动实现每个步骤
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> 每次修改网络结构都要重新推导！
+</p>
+</li>
+</ul>
+
+<p>
+对于 ResNet、Transformer 等复杂网络，这几乎是不可能的！
+</p>
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 自动求导的价值 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+PyTorch 的 Autograd 自动计算所有梯度。你只需要写前向传播代码，反向传播交给 Autograd 处理！
+</p>
+</div>
+
+</div>
+<!--
+...... subsection Autograd 工作原理......
+-->
+<h5 id="autosec-39"><span class="sectionnumber">3.2&#x2003;</span>Autograd 工作原理</h5>
+<a id="document-autopage-39"></a>
+
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 计算图（Computational Graph）</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+Autograd 通过构建计算图来跟踪操作序列。计算图是一个有向无环图（DAG），记录了数据如何通过操作流动。
+</p>
+
+<p>
+<b> 节点：</b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 叶子节点：张量（通常是输入和参数）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 中间节点：操作（如加法、乘法、矩阵乘法）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 根节点：最终结果
+</p>
+</li>
+</ul>
+
+<p>
+<b> 边：</b> 表示数据流向
+</p>
+</div>
+
+</div>
+
+<figure id="autoid-3" class="figure ">
+<div class="center">
+
+<p>
+<span
+      id="lateximage-document-1"
+      class="lateximagesource"
+><!--
+x
+      ×
+w          +    ×   y
+
+
+b
+    实线：前向传播
+    虚线：反向传播（梯度流动）
+--><img
+   src="./Assets//image-1.svg"
+   alt="(-tikz-&nbsp;diagram)"
+   style=""
+   class="lateximage"
+></span>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;2: 计算图示意图
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... subsection Autograd 的使用方法......
+-->
+<h5 id="autosec-43"><span class="sectionnumber">3.3&#x2003;</span>Autograd 的使用方法</h5>
+<a id="document-autopage-43"></a>
+
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 最简单的例子：\(y = x^2\)</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+让我们从一个简单例子开始：
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import torch
+2
+3    # 创建需要梯度的张量
+4    x = torch . tensor (2.0,   requires_grad =True)
+5
+6    # 前向计算
+7    y = x ** 2
+8
+9    # 反向传播
+10    y . backward()
+11
+12    # 查看梯度
+13    print ( f”x = {x . item () }”)
+14    print ( f”y = {y . item () }”)
+15    print ( f”dy/dx = {x . grad . item () }”) # 应该是 2*x = 4.0
+</pre>
+
+
+      <div class="figurecaption">
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 关键函数 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <kbd>requires_grad=True</kbd>：告诉 PyTorch 需要计算这个张量的梯度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <kbd>.backward()</kbd>：从当前张量开始反向传播，计算所有依赖张量的梯度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <kbd>.grad</kbd>：存储计算得到的梯度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <kbd>torch.no_grad()</kbd>：上下文管理器，在此范围内的操作不会被跟踪（用于参数更新）
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+<!--
+...... subsection 链式法则：Autograd 的数学基础......
+-->
+<h5 id="autosec-45"><span class="sectionnumber">3.4&#x2003;</span>链式法则：Autograd 的数学基础</h5>
+<a id="document-autopage-45"></a>
+
+
+
+<p>
+PyTorch 使用链式法则自动计算梯度。让我们手动推导一个例子：
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    # 链式法则示例：z = (x + y )^2
+2    x = torch . tensor (1.0,   requires_grad =True)
+3    y = torch . tensor (2.0,   requires_grad =True)
+4
+5    # 中间变量
+6    u = x + y         # u = 3.0
+7    z = u ** 2        # z = 9.0
+8
+9    # 反向传播
+10    z . backward()
+11
+12    # 手动验证链式法则：
+13    # dz / dx = dz / du * du/dx = 2u * 1 = 2*3 = 6.0
+14    # dz / dy = dz / du * du/dy = 2u * 1 = 2*3 = 6.0
+15
+16    print ( f”dz/dx = {x . grad . item () }”) # 应该是 6.0
+17    print ( f”dz/dy = {y . grad . item () }”) # 应该是 6.0
+</pre>
+
+
+      <div class="figurecaption">
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b>Autograd 优势 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 自动化：</b> 无需手动推导梯度公式
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 准确性：</b> 计算机计算，避免笔误
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 灵活性：</b> 任何可以用 Python 表达的计算图都能自动求导
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 高效性：</b> 使用高效的 C++ 后端计算
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 可组合：</b> 复杂的网络可以组合简单的操作
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 控制流：动态计算图的神奇之处......
+-->
+<h5 id="autosec-47"><span class="sectionnumber">3.5&#x2003;</span>控制流：动态计算图的神奇之处</h5>
+<a id="document-autopage-47"></a>
+
+
+
+<p>
+PyTorch 的动态计算图允许我们使用 Python 的控制流（if、for、while）：
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    # 动态控制流示例
+2    x = torch . tensor (1.0,    requires_grad =True)
+3
+4    # 根据条件选择不同的计算路径
+5     if x &gt; 0:
+6         y = x ** 2
+7     else :
+8         y = x ** 3
+9
+10    y . backward()
+11     print ( f”x = {x . item () }, y = {y . item () }, dy/dx = {x . grad . item () }”)
+</pre>
+
+
+       <div class="figurecaption">
+</div>
+
+
+
+<div
+       class="tcolorbox"
+       style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+       class="tcolorboxtitle"
+       style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 静态图 vs 动态图 </b>
+</p>
+</div>
+
+
+
+<div
+       class="tcolorboxupper"
+       style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 静态图（TensorFlow 1.x）：</b> 先定义整个计算图，再执行
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">–</span> 优点：可能更高效
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">–</span> 缺点：调试困难，不支持动态控制流
+</p>
+</li>
+</ul>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 动态图（PyTorch）：</b> 运行时构建计算图
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">–</span> 优点：灵活、易调试、支持 Python 控制流
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">–</span> 缺点：某些优化较困难
+</p>
+</li>
+</ul>
+</li>
+</ul>
+
+<p>
+最新版本的 TensorFlow（2.x）也支持动态图了！
+</p>
+</div>
+
+</div>
+<!--
+...... section 神经网络模块（nn.Module）：构建网络的利器......
+-->
+<h4 id="autosec-49"><span class="sectionnumber">4&#x2003;</span>神经网络模块（nn.Module）：构建网络的利器</h4>
+<a id="document-autopage-49"></a>
+<!--
+...... subsection 从零实现到高级 API ......
+-->
+<h5 id="autosec-50"><span class="sectionnumber">4.1&#x2003;</span>从零实现到高级 API</h5>
+<a id="document-autopage-50"></a>
+
+
+
+<p>
+到目前为止，我们都是直接操作张量和自动求导。但构建复杂神经网络时，这样做会很繁琐。PyTorch 提供了高级 API 来简化工作。
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    # 手动实现 vs nn.Module
+2
+3    # 手动实现（繁琐）
+4     class ManualNet:
+5        def __init__ ( self , input_size , hidden_size , output_size ) :
+6             self . w1 = torch . randn( input_size , hidden_size , requires_grad =True)
+7             self . b1 = torch . randn( hidden_size , requires_grad =True)
+8             self . w2 = torch . randn( hidden_size , output_size , requires_grad =True)
+9             self . b2 = torch . randn( output_size , requires_grad =True)
+10
+11        def forward ( self , x) :
+12            h = torch . relu (x @ self . w1 + self . b1)
+13            return h @ self . w2 + self . b2
+14
+15    # 使用nn.（简洁）Module
+16    import torch . nn as nn
+17
+18     class SimpleNet(nn.Module):
+19        def __init__ ( self , input_size , hidden_size , output_size ) :
+20            super () . __init__ ()
+21             self . fc1 = nn. Linear ( input_size , hidden_size )
+22             self . fc2 = nn. Linear ( hidden_size , output_size )
+23
+24        def forward ( self , x) :
+25            x = torch . relu ( self . fc1 (x) )
+26            return self . fc2 (x)
+</pre>
+
+
+               <div class="figurecaption">
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 使用 nn.Module 的优势 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 参数管理：</b> 自动管理权重和偏置
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 设备管理：</b> 自动处理 CPU/GPU 切换
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 状态保存：</b> 一键保存/加载模型
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 多种层：</b> 预定义卷积层、池化层、RNN 等
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 简洁代码：</b> 少写很多样板代码
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 构建你的第一个神经网络......
+-->
+<h5 id="autosec-52"><span class="sectionnumber">4.2&#x2003;</span>构建你的第一个神经网络</h5>
+<a id="document-autopage-52"></a>
+
+
+
+<p>
+让我们用 nn.Module 构建一个简单的全连接网络：
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import torch . nn as nn
+2    import torch . nn. functional as F
+3
+4     class SimpleNet(nn.Module):
+5        def __init__ ( self , input_size =784, hidden_size =128, output_size =10) :
+6            super () . __init__ ()
+7             self . fc1 = nn. Linear ( input_size , hidden_size )
+8             self . fc2 = nn. Linear ( hidden_size , output_size )
+9             self . dropout = nn.Dropout (0.2)
+10
+11        def forward ( self , x) :
+12            # 展平输入 ( batch , 784)
+13            x = x . view(x . size (0) , −1)
+14
+15            # 第一层 + ReLU + Dropout
+16            x = F. relu ( self . fc1 (x) )
+17            x = self . dropout (x)
+18
+19            # 输出层不需要 (，会处理 softmaxCrossEntropyLoss )
+20            x = self . fc2 (x)
+21            return x
+22
+23    # 使用模型
+24    model = SimpleNet ()
+25    print ( f”模型参数数量: {sum(p.numel() for p in model.parameters () ) }”)
+</pre>
+
+
+      <div class="figurecaption">
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b>nn.Module 关键方法 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <kbd>__init__(self, ...)</kbd>：初始化层和参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <kbd>forward(self, x)</kbd>：定义前向传播
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <kbd>parameters()</kbd>: 返回所有可学习参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <kbd>to(device)</kbd>: 将模型移动到 GPU/CPU
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <kbd>state_dict()</kbd>: 获取参数字典（用于保存）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <kbd>load_state_dict(state_dict)</kbd>: 加载参数
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 常见的网络层类型......
+-->
+<h5 id="autosec-54"><span class="sectionnumber">4.3&#x2003;</span>常见的网络层类型</h5>
+<a id="document-autopage-54"></a>
+
+
+
+<p>
+PyTorch 提供了丰富的预定义层：
+</p>
+
+<figure id="autoid-4" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="hline">
+<td class="tdp">
+
+<p>
+<b> 层类型 </b>
+</p>
+</td>
+<td class="tdp">
+
+<p>
+<b> 代码示例 </b>
+</p>
+</td>
+<td class="tdp">
+
+<p>
+<b> 用途 </b>
+</p>
+</td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdp">
+
+<p>
+全连接层
+</p>
+</td>
+<td class="tdp">
+
+<p>
+<kbd>nn.Linear(784, 256)</kbd>
+</p>
+</td>
+<td class="tdp">
+
+<p>
+图像分类、特征学习
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp">
+
+<p>
+卷积层
+</p>
+</td>
+<td class="tdp">
+
+<p>
+<kbd>nn.Conv2d(1, 32, 3)</kbd>
+</p>
+</td>
+<td class="tdp">
+
+<p>
+图像处理、特征提取
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp">
+
+<p>
+池化层
+</p>
+</td>
+<td class="tdp">
+
+<p>
+<kbd>nn.MaxPool2d(2)</kbd>
+</p>
+</td>
+<td class="tdp">
+
+<p>
+降采样、减少计算
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp">
+
+<p>
+Dropout
+</p>
+</td>
+<td class="tdp">
+
+<p>
+<kbd>nn.Dropout(0.5)</kbd>
+</p>
+</td>
+<td class="tdp">
+
+<p>
+正则化、防止过拟合
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp">
+
+<p>
+批归一化
+</p>
+</td>
+<td class="tdp">
+
+<p>
+<kbd>nn.BatchNorm2d(32)</kbd>
+</p>
+</td>
+<td class="tdp">
+
+<p>
+加速训练、稳定梯度
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp">
+
+<p>
+循环层
+</p>
+</td>
+<td class="tdp">
+
+<p>
+<kbd>nn.LSTM(100, 64)</kbd>
+</p>
+</td>
+<td class="tdp">
+
+<p>
+序列数据、自然语言
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp">
+
+<p>
+嵌入层
+</p>
+</td>
+<td class="tdp">
+
+<p>
+<kbd>nn.Embedding(1000, 50)</kbd>
+</p>
+</td>
+<td class="tdp">
+
+<p>
+词向量、离散特征
+</p>
+</td>
+</tr>
+
+
+<tr class="hline" aria-hidden="true">
+<td class="tdp">
+
+</td>
+<td class="tdp">
+
+</td>
+<td class="tdp">
+
+</td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;2: 常见的 PyTorch 网络层
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 形状变化规律 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+理解张量形状变化是掌握 CNN 的关键：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 输入：<kbd>(batch, 1, 28, 28)</kbd> ‑ 28×28 灰度图，批量 2
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 卷积：<kbd>Conv2d(1, 32, 3, padding=1)</kbd> → <kbd>(batch, 32, 28, 28)</kbd>
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 池化：<kbd>MaxPool2d(2)</kbd> → <kbd>(batch, 32, 14, 14)</kbd>
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 展平：<kbd>view(-1)</kbd> → <kbd>(batch, 6272)</kbd>
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 全连接：<kbd>Linear(6272, 128)</kbd> → <kbd>(batch, 128)</kbd>
+</p>
+</li>
+</ul>
+
+<p>
+卷积层保持空间维度，池化层减半空间维度！
+</p>
+</div>
+
+</div>
+<!--
+...... section 优化器：让网络自己学习......
+-->
+<h4 id="autosec-57"><span class="sectionnumber">5&#x2003;</span>优化器：让网络自己学习</h4>
+<a id="document-autopage-57"></a>
+<!--
+...... subsection 从手工更新到自动优化......
+-->
+<h5 id="autosec-58"><span class="sectionnumber">5.1&#x2003;</span>从手工更新到自动优化</h5>
+<a id="document-autopage-58"></a>
+
+
+
+<p>
+之前我们手动更新参数：
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1   with torch . no_grad () :
+2        w −= learning_rate     * w.grad
+3        b −= learning_rate     * b. grad
+</pre>
+
+
+          <div class="figurecaption">
+</div>
+
+<p>
+但深度网络有数十万参数，手动更新不现实！优化器（Optimizer）来帮忙！
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 优化器职责 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 存储所有参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 计算梯度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 根据优化算法更新参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 记录优化历史（动量、Adam 的历史梯度等）
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 梯度清零的重要性 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+PyTorch 会累积梯度。如果不清零，梯度会不断累加！
+</p>
+
+<p>
+<b> 错误示范:</b>
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1     for data , target in loader :
+2         output = model(data )
+3         loss = criterion ( output , target )
+4         loss . backward()
+5         optimizer . step ()
+6         # 错误：每次都累积梯度！
+</pre>
+
+
+           <div class="figurecaption">
+</div>
+
+<p>
+<b> 正确做法:</b>
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1     for data , target in loader :
+2         optimizer . zero_grad ()    # 清零！
+3         output = model(data )
+4         loss = criterion ( output , target )
+5         loss . backward()
+6         optimizer . step ()
+</pre>
+
+
+           <div class="figurecaption">
+</div>
+
+</div>
+
+</div>
+<!--
+...... subsection 常见优化算法对比......
+-->
+<h5 id="autosec-62"><span class="sectionnumber">5.2&#x2003;</span>常见优化算法对比</h5>
+<a id="document-autopage-62"></a>
+
+
+
+<figure id="autoid-5" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="hline">
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+<b> 算法 </b>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<b> 代码 </b>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<b> 特点 </b>
+</p>
+</td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+SGD
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<kbd>SGD(model.parameters(), lr=0.1)</kbd>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+简单但震荡，可能陷入局部最优
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+SGD + 动量
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<kbd>SGD(model.parameters(), lr=0.1, momentum=0.9)</kbd>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+减少震荡，加速收敛
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+Adam
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<kbd>Adam(model.parameters(), lr=0.001)</kbd>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+最常用，自适应学习率
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+RMSprop
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<kbd>RMSprop(model.parameters())</kbd>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+适合 RNN、非平稳目标
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+AdaGrad
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<kbd>Adagrad(model.parameters())</kbd>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+稀疏数据效果好
+</p>
+</td>
+</tr>
+
+
+<tr class="hline" aria-hidden="true">
+<td class="tdp">
+
+</td>
+<td class="tdp">
+
+</td>
+<td class="tdp">
+
+</td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;3: 常见优化算法对比
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 现代实践：AdamW</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+AdamW 是 Adam 的改进版，解决了权重衰减的问题：
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1   # AdamW = Adam + 改进的权重衰减
+2     optimizer = optim.AdamW(
+3           model.parameters () ,
+4           lr =0.001,
+5           weight_decay =0.01,     # 更合理的权重衰减
+6           betas =(0.9,   0.999)
+7     )
+</pre>
+
+
+          <div class="figurecaption">
+</div>
+
+</div>
+
+</div>
+<!--
+...... section 完整训练流程：从数据到模型......
+-->
+<h4 id="autosec-66"><span class="sectionnumber">6&#x2003;</span>完整训练流程：从数据到模型</h4>
+<a id="document-autopage-66"></a>
+
+
+
+<p>
+现在让我们把 everything together，训练一个完整的 MNIST 分类器：
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import torch
+2    import torch . nn as nn
+3    import torch . optim as optim
+4    from torch . utils . data import DataLoader
+5    import torchvision . datasets as datasets
+6    import torchvision . transforms as transforms
+7
+8    # 1. 设置设备
+9     device = torch . device ( &apos; cuda &apos; if torch . cuda. is_available () else &apos; cpu &apos; )
+10
+11    # 2. 数据加载
+12     transform = transforms . Compose([
+13          transforms . ToTensor () ,
+14          transforms . Normalize ((0.1307,) ,      (0.3081,) )
+15     ])
+16
+17     train_dataset     = datasets . MNIST(root= &apos; ./ data &apos; , train =True,
+18                                           download=True, transform=transform )
+19     train_loader = DataLoader( train_dataset , batch_size =64, shuffle =True)
+20
+21    # 3. 定义模型
+22    model = SimpleNet () . to ( device )
+23
+24    # 4. 选择损失函数和优化器
+25     criterion = nn. CrossEntropyLoss ()
+26     optimizer = optim.Adam(model.parameters() , lr =0.001)
+27
+28    # 5. 训练循环
+29     for epoch in range (5) :
+30          model. train ()
+31          for batch_idx , ( data , target ) in enumerate( train_loader ) :
+32              data , target = data . to ( device ) , target . to ( device )
+33
+34              # 前向传播
+35              output = model(data )
+36               loss = criterion ( output , target )
+37
+38              # 反向传播
+39               optimizer . zero_grad ()
+40               loss . backward()
+41               optimizer . step ()
+42
+43               if batch_idx &percnt; 100 == 0:
+44                     print ( f &apos; Epoch: {epoch }, Batch : { batch_idx }, Loss : { loss . item () :.4 f } &apos; )
+</pre>
+
+
+                       <div class="figurecaption">
+</div>
+
+
+
+<div
+       class="tcolorbox"
+       style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+       class="tcolorboxtitle"
+       style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 训练流程关键步骤 </b>
+</p>
+</div>
+
+
+
+<div
+       class="tcolorboxupper"
+       style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 设置设备：</b> 确定使用 GPU 还是 CPU
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 数据加载：</b> 使用 DataLoader 批量加载数据
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 定义模型：</b> 使用 nn.Module 构建网络
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 选择损失函数：</b> CrossEntropyLoss 适合分类任务
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b> 选择优化器：</b> Adam 是最安全的选择
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">6.</span> <b> 训练循环：</b> 前向 → 清零梯度 → 反向 → 更新
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">7.</span> <b> 评估模型：</b> 在测试集上验证性能
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+       class="tcolorbox"
+       style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+       class="tcolorboxtitle"
+       style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 训练技巧 </b>
+</p>
+</div>
+
+
+
+<div
+       class="tcolorboxupper"
+       style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 数据增强：</b> <kbd>transforms.RandomRotation, transforms.RandomAffine</kbd>
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 学习率调度：</b> <kbd>torch.optim.lr_scheduler</kbd>
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 早停：</b> 验证损失不再下降时停止训练
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 梯度裁剪：</b> 防止梯度爆炸
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 混合精度训练：</b> 使用 float16 加速训练
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 梯度累积：</b> 模拟大批量训练
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... section 调试与可视化：让训练过程透明化......
+-->
+<h4 id="autosec-68"><span class="sectionnumber">7&#x2003;</span>调试与可视化：让训练过程透明化</h4>
+<a id="document-autopage-68"></a>
+<!--
+...... subsection 常见错误及解决方案......
+-->
+<h5 id="autosec-69"><span class="sectionnumber">7.1&#x2003;</span>常见错误及解决方案</h5>
+<a id="document-autopage-69"></a>
+
+
+
+<p>
+作为初学者，你可能会遇到一些常见错误。别担心，这些都很正常！
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 错误 1：忘记导入 PyTorch</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+<b> 错误信息：</b> <kbd>NameError: name 'torch' is not defined</kbd>
+</p>
+
+<p>
+<b> 解决方案：</b>
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1   # 忘记导入！
+2   x = torch . tensor ([1,   2, 3])   # 错误！
+3
+4   # 正确做法：
+5   import torch
+6   x = torch . tensor ([1,   2, 3])   # 正确！
+</pre>
+
+
+      <div class="figurecaption">
+</div>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 错误 2：忘记清零梯度 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+<b> 错误现象：</b> 梯度越来越大，训练不稳定
+</p>
+
+<p>
+<b> 解决方案：</b>
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    # 错误示范
+2     for data , target in loader :
+3         output = model(data )
+4         loss = criterion ( output , target )
+5         loss . backward()
+6         optimizer . step ()    # 梯度累积！
+7
+8    # 正确做法
+9     for data , target in loader :
+10         optimizer . zero_grad ()   # 清零梯度！
+11         output = model(data )
+12         loss = criterion ( output , target )
+13         loss . backward()
+14         optimizer . step ()
+</pre>
+
+
+           <div class="figurecaption">
+</div>
+
+</div>
+
+</div>
+
+
+
+<div
+       class="tcolorbox"
+       style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+       class="tcolorboxtitle"
+       style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 错误 3：张量形状不匹配 </b>
+</p>
+</div>
+
+
+
+<div
+       class="tcolorboxupper"
+       style=" color: #000000; "
+>
+
+<p>
+<b> 错误信息：</b> <kbd>RuntimeError: The size of tensor a must match the size of tensor b</kbd>
+</p>
+
+<p>
+<b> 解决方案：</b>
+</p>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1   # 检查张量形状
+2     print ( f”张量形状1: { tensor1 . shape}”)
+3     print ( f”张量形状2: { tensor2 . shape}”)
+4
+5   # 常见形状问题：
+6   # − 矩阵乘法：A.shape = (3,4) , B.shape = (4,5) 形状匹配 !
+7   # − 矩阵乘法：A.shape = (3,4) , B.shape = (3,5) 形状不匹配 !
+</pre>
+
+
+       <div class="figurecaption">
+</div>
+
+</div>
+
+</div>
+<!--
+...... subsection 调试工具和技巧......
+-->
+<h5 id="autosec-73"><span class="sectionnumber">7.2&#x2003;</span>调试工具和技巧</h5>
+<a id="document-autopage-73"></a>
+
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 调试技巧 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 打印张量形状：</b> <kbd>print(tensor.shape)</kbd>
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 检查数据类型：</b> <kbd>print(tensor.dtype)</kbd>
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 查看梯度：</b> <kbd>print(tensor.grad)</kbd>
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 检查设备：</b> <kbd>print(tensor.device)</kbd>
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 使用断言：</b> <kbd>assert tensor.shape == expected_shape</kbd>
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 调试示例 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+<div class="figurecaption">
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import torch
+2
+3    # 创建张量
+4    x = torch . randn (2, 3)
+5    y = torch . randn (3, 4)
+6
+7    # 调试信息
+8     print ( f”形状x: {x . shape}”) # torch . Size ([2,     3])
+9     print ( f”形状y: {y . shape}”) # torch . Size ([3,     4])
+10     print ( f”设备x: {x . device }”) # cpu
+11     print ( f”数据类型x: {x . dtype }”) # torch . float32
+12
+13    # 矩阵乘法
+14    z = torch . matmul(x, y )
+15     print ( f”形状z: { z . shape}”) # torch . Size ([2,    4])
+</pre>
+
+
+       <div class="figurecaption">
+</div>
+
+</div>
+
+</div>
+
+
+
+<div
+       class="tcolorbox"
+       style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+       class="tcolorboxtitle"
+       style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 模型保存最佳实践 </b>
+</p>
+</div>
+
+
+
+<div
+       class="tcolorboxupper"
+       style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 生产环境：</b> 只保存 <kbd>state_dict</kbd>，避免版本兼容问题
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 研究环境：</b> 保存完整检查点，方便恢复训练
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 模型部署：</b> 使用 <kbd>torch.jit.script</kbd> 转换为 TorchScript
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 云端部署：</b> 考虑 ONNX 格式（跨框架兼容）
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+       class="tcolorbox"
+       style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+       class="tcolorboxtitle"
+       style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 调试建议 </b>
+</p>
+</div>
+
+
+
+<div
+       class="tcolorboxupper"
+       style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 从简单开始：</b> 先运行小例子，确保基础正确
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 逐步构建：</b> 每加一行代码就测试一次
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 善用打印：</b> 多用 <kbd>print()</kbd> 查看中间结果
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 理解错误：</b> 不要只看错误信息，要理解为什么出错
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 寻求帮助：</b> 遇到问题先搜索，再问老师或同学
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... section PyTorch 生态系统：超越框架本身......
+-->
+<h4 id="autosec-75"><span class="sectionnumber">8&#x2003;</span>PyTorch 生态系统：超越框架本身</h4>
+<a id="document-autopage-75"></a>
+
+
+
+<p>
+PyTorch 不仅仅是一个框架，它是一个完整的生态系统：
+</p>
+<!--
+...... subsection 核心组件......
+-->
+<h5 id="autosec-76"><span class="sectionnumber">8.1&#x2003;</span>核心组件</h5>
+<a id="document-autopage-76"></a>
+
+
+
+<figure id="autoid-6" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="hline">
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+<b> 组件 </b>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<b> 作用 </b>
+</p>
+</td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+TorchVision
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+计算机视觉模型和工具
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+TorchText
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+自然语言处理
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+TorchAudio
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+音频处理
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+TorchServe
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+模型部署服务
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+PyTorch Lightning
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+简化训练代码
+</p>
+</td>
+</tr>
+
+
+<tr>
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+Accelerate
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+多 GPU/分布式训练
+</p>
+</td>
+</tr>
+
+
+<tr class="hline" aria-hidden="true">
+<td class="tdp">
+
+</td>
+<td class="tdp">
+
+</td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;4: PyTorch 生态系统核心组件
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 学习 PyTorch 的价值 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 学术研究：</b> PyTorch 是顶会论文的首选框架，跟上最新研究
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 工业应用：</b> Meta、OpenAI、特斯拉等公司都在使用
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 学习曲线：</b> 语法直观，快速上手深度学习
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 调试友好：</b> 动态图让调试像 Python 一样自然
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 社区支持：</b> 活跃的开发者社区，丰富的教程和工具
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 未来发展：</b> PyTorch 2.0 进一步提升性能和易用性
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 学习路径建议 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+建议的学习路径：
+</p>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 基础阶段：</b> 熟悉 NumPy，学习张量操作
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 核心概念：</b> 理解自动求导，完成练习
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 网络构建：</b> 使用 nn.Module 构建网络
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 完整项目：</b> 完成 MNIST 分类项目
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b> 进阶学习：</b> 学习卷积神经网络，完成图像分类
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">6.</span> <b> 序列处理：</b> 学习循环神经网络，处理序列数据
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">7.</span> <b> 迁移学习：</b> 尝试迁移学习，使用预训练模型
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">8.</span> <b> 深入研究：</b> 参与开源项目，阅读论文
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... section 结论：PyTorch 开启深度学习之旅......
+-->
+<h4 id="autosec-79"><span class="sectionnumber">9&#x2003;</span>结论：PyTorch 开启深度学习之旅</h4>
+<a id="document-autopage-79"></a>
+
+
+
+<p>
+恭喜你！你已经完成了 PyTorch 的入门学习。从 NumPy 出发，我们一步步探索了 PyTorch 的核心概念和实际应用。现在你已经掌握了：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 张量（Tensors）：</b> PyTorch 的核心数据结构，就像 NumPy 数组但有超能力
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 自动求导（Autograd）：</b> 让计算机自动计算梯度，省去手动推导的麻烦
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 神经网络模块（nn.Module）：</b> 构建深度学习模型的利器
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 优化器（Optimizer）：</b> 让网络自己学习参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 完整训练流程：</b> 从数据加载到模型训练的全过程
+</p>
+</li>
+</ul>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 学习原则总结 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 循序渐进：</b> 从 NumPy 思维到 PyTorch 思维，一步步来
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 对比学习：</b> 通过与 NumPy、TensorFlow 对比理解差异
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 实践导向：</b> 每个概念都配合实际代码示例，边学边练
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 问题驱动：</b> 解答” 为什么要这样做” 的疑问，理解原理
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 生态思维：</b> 理解 PyTorch 在整个深度学习工作流中的作用
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 下一步行动建议 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+建议立即开始实践：
+</p>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 复制代码：</b> 运行本文所有代码，确保能跑通
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 修改参数：</b> 尝试不同的 batch_size、学习率，观察变化
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 扩展模型：</b> 在 SimpleNet 基础上加一层，观察效果
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 尝试 CNN：</b> 用卷积层替换全连接层，体验图像处理
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b> 实际项目：</b> 选择感兴趣的数据集进行分类
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">6.</span> <b> 阅读源码：</b> 查看 PyTorch 官方文档和示例
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">7.</span> <b> 参与社区：</b> 在 GitHub、Stack Overflow 提问和回答
+</p>
+</li>
+</ul>
+
+<p>
+<b> 深度学习是实践的学科！</b> 读 10 遍不如动手做 1 遍。犯错是学习的一部分，不要害怕尝试！
+</p>
+</div>
+
+</div>
+
+<p>
+开始你的 PyTorch 之旅吧！
+</p>
+<!--
+...... section 参考文献......
+-->
+<h4 id="autosec-80">参考文献</h4>
+<a id="document-autopage-80"></a>
+
+
+
+<ul class="list" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">[1]&#x2003;</span> X. Chen, “Intuitive Understanding of Tensors in Machine Learning,” <em>[Online]</em>. Available: <a
+href="https://medium.com/@xinyu.chen/intuitive-understanding-of-tensors-in-machine-learning-33635c64b596" target="_blank"
+>https://medium.com/@xinyu.chen/intuitive‑understanding‑of‑tensors‑in‑machine‑learning‑33635c64b596</a>. [Accessed: Nov. 30, 2025].
+</p>
+</li>
+</ul>
+
+<a id="document-autofile-last"></a>
+</section>
+
+</main>
+
+</div>
+
+</body>
+</html>

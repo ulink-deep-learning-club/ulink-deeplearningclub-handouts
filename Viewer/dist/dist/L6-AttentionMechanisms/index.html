@@ -1,0 +1,7644 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="generator" content="LaTeX Lwarp package" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title> 注意力机制在卷积神经网络中的应用：从 SE‑Net 到 CBAM</title>
+<link rel="stylesheet" type="text/css" href="lwarp.css" />
+
+<script>
+// Lwarp MathJax emulation code
+//
+// Based on code by Davide P. Cervone.
+// Equation numbering: https://github.com/mathjax/MathJax/issues/2427
+// Starred and ifnextchar macros: https://github.com/mathjax/MathJax/issues/2428
+// \left, \right delimiters: https://github.com/mathjax/MathJax/issues/2535
+//
+// Modified by Brian Dunn to adjust equation numbering and add subequations.
+//
+// LaTeX can use \seteqnumber{subequations?}{section}{number} before each equation.
+// subequations? is 0 usually, 1 if inside subequations.
+// section is a string printed as-is, or empty.
+// number is auto-incremented by MathJax between equations.
+//
+MathJax = {
+    subequations: "0",
+    section: "",
+    loader: {
+        load: ['[tex]/tagformat', '[tex]/textmacros'],
+    },
+    startup: {
+        ready() {
+            //       These would be replaced by import commands if you wanted to make
+            //       a proper extension.
+            const Configuration = MathJax._.input.tex.Configuration.Configuration;
+            const CommandMap = MathJax._.input.tex.SymbolMap.CommandMap;
+            const Macro = MathJax._.input.tex.Symbol.Macro;
+            const TexError = MathJax._.input.tex.TexError.default;
+            const ParseUtil = MathJax._.input.tex.ParseUtil.default;
+            const expandable = MathJax._.util.Options.expandable;
+
+
+            //       Insert the replacement string into the TeX string, and check
+            //       that there haven't been too many maxro substitutions (prevents
+            //       infinite loops).
+            const useArgument = (parser, text) => {
+                parser.string = ParseUtil.addArgs(parser, text, parser.string.slice(parser.i));
+                parser.i = 0;
+                if (++parser.macroCount > parser.configuration.options.maxMacros) {
+                     throw new TexError('MaxMacroSub1',
+                     'MathJax maximum macro substitution count exceeded; ' +
+                     'is there a recursive macro call?');
+                }
+            }
+
+
+            //       Create the command map for:
+            //           \ifstar, \ifnextchar, \ifblank, \ifstrequal, \gsub, \seteqnumber
+            new CommandMap('Lwarp-macros', {
+                ifstar: 'IfstarFunction',
+                ifnextchar: 'IfnextcharFunction',
+                ifblank: 'IfblankFunction',
+                ifstrequal: 'IfstrequalFunction',
+                gsubstitute: 'GsubstituteFunction',
+                seteqnumber: 'SeteqnumberFunction'
+            }, {
+                //       This function implements an ifstar macro.
+                IfstarFunction(parser, name) {
+                     const resultstar = parser.GetArgument(name);
+                     const resultnostar = parser.GetArgument(name);
+                     const star = parser.GetStar();                      // true if there is a *
+                     useArgument(parser, star ? resultstar : resultnostar);
+                },
+
+
+                //       This function implements an ifnextchar macro.
+                IfnextcharFunction(parser, name) {
+                     let whichchar = parser.GetArgument(name);
+                     if (whichchar.match(/^(?:0x[0-9A-F]+|[0-9]+)$/i)) {
+                         // $ syntax highlighting
+                         whichchar = String.fromCodePoint(parseInt(whichchar));
+                     }
+                     const resultnextchar = parser.GetArgument(name);
+                     const resultnotnextchar = parser.GetArgument(name);
+                     const gotchar = (parser.GetNext() === whichchar);
+                     useArgument(parser, gotchar ? resultnextchar : resultnotnextchar);
+                },
+
+
+                // This function implements an ifblank macro.
+                IfblankFunction(parser, name) {
+                     const blankarg = parser.GetArgument(name);
+                     const resultblank = parser.GetArgument(name);
+                     const resultnotblank = parser.GetArgument(name);
+                     const isblank = (blankarg.trim() == "");
+                     useArgument(parser, isblank ? resultblank : resultnotblank);
+                },
+
+
+                // This function implements an ifstrequal macro.
+                IfstrequalFunction(parser, name) {
+                     const strequalfirst = parser.GetArgument(name);
+                     const strequalsecond = parser.GetArgument(name);
+                     const resultequal = parser.GetArgument(name);
+                     const resultnotequal = parser.GetArgument(name);
+                     const isequal = (strequalfirst == strequalsecond);
+                     useArgument(parser, isequal ? resultequal : resultnotequal);
+                },
+
+
+                // This function implements a gsub macro.
+                GsubstituteFunction(parser, name) {
+                     const gsubfirst = parser.GetArgument(name);
+                     const gsubsecond = parser.GetArgument(name);
+                     const gsubthird = parser.GetArgument(name);
+                     let gsubresult=gsubfirst.replace(gsubsecond, gsubthird);
+                     useArgument(parser, gsubresult);
+                },
+
+
+                //       This function modifies the equation numbers.
+                SeteqnumberFunction(parser, name) {
+                         // Get the macro parameters
+                         const star = parser.GetStar();                    // true if there is a *
+                         const optBrackets = parser.GetBrackets(name);     // contents of optional brackets
+                         const newsubequations = parser.GetArgument(name);    // the subequations argument
+                         const neweqsection = parser.GetArgument(name);    // the eq section argument
+                         const neweqnumber = parser.GetArgument(name);     // the eq number argument
+                         MathJax.config.subequations=newsubequations ;     // a string with boolean meaning
+                         MathJax.config.section=neweqsection ;             // a string with numeric meaning
+                         parser.tags.counter = parser.tags.allCounter = neweqnumber ;
+                }
+
+
+            });
+
+
+            //       Create the Lwarp-macros package
+            Configuration.create('Lwarp-macros', {
+                handler: {macro: ['Lwarp-macros']}
+            });
+
+
+            MathJax.startup.defaultReady();
+
+
+            // For forward references:
+            MathJax.startup.input[0].preFilters.add(({math}) => {
+                if (math.inputData.recompile){
+                         MathJax.config.subequations = math.inputData.recompile.subequations;
+                         MathJax.config.section = math.inputData.recompile.section;
+                }
+            });
+            MathJax.startup.input[0].postFilters.add(({math}) => {
+                if (math.inputData.recompile){
+                         math.inputData.recompile.subequations = MathJax.config.subequations;
+                         math.inputData.recompile.section = MathJax.config.section;
+                }
+            });
+
+
+                // For \left, \right with unicode-math:
+                const {DelimiterMap} = MathJax._.input.tex.SymbolMap;
+                const {Symbol} = MathJax._.input.tex.Symbol;
+                const {MapHandler} = MathJax._.input.tex.MapHandler;
+                const delimiter = MapHandler.getMap('delimiter');
+                delimiter.add('\\lBrack', new Symbol('\\lBrack', '\u27E6'));
+                delimiter.add('\\rBrack', new Symbol('\\rBrack', '\u27E7'));
+                delimiter.add('\\lAngle', new Symbol('\\lAngle', '\u27EA'));
+                delimiter.add('\\rAngle', new Symbol('\\rAngle', '\u27EB'));
+                delimiter.add('\\lbrbrak', new Symbol('\\lbrbrak', '\u2772'));
+                delimiter.add('\\rbrbrak', new Symbol('\\rbrbrak', '\u2773'));
+                delimiter.add('\\lbag', new Symbol('\\lbag', '\u27C5'));
+                delimiter.add('\\rbag', new Symbol('\\rbag', '\u27C6'));
+                delimiter.add('\\llparenthesis', new Symbol('\\llparenthesis', '\u2987'));
+                delimiter.add('\\rrparenthesis', new Symbol('\\rrparenthesis', '\u2988'));
+                delimiter.add('\\llangle', new Symbol('\\llangle', '\u2989'));
+                delimiter.add('\\rrangle', new Symbol('\\rrangle', '\u298A'));
+                delimiter.add('\\Lbrbrak', new Symbol('\\Lbrbrak', '\u27EC'));
+                delimiter.add('\\Rbrbrak', new Symbol('\\Rbrbrak', '\u27ED'));
+                delimiter.add('\\lBrace', new Symbol('\\lBrace', '\u2983'));
+                delimiter.add('\\rBrace', new Symbol('\\rBrace', '\u2984'));
+                delimiter.add('\\lParen', new Symbol('\\lParen', '\u2985'));
+                delimiter.add('\\rParen', new Symbol('\\rParen', '\u2986'));
+                delimiter.add('\\lbrackubar', new Symbol('\\lbrackubar', '\u298B'));
+                delimiter.add('\\rbrackubar', new Symbol('\\rbrackubar', '\u298C'));
+                delimiter.add('\\lbrackultick', new Symbol('\\lbrackultick', '\u298D'));
+                delimiter.add('\\rbracklrtick', new Symbol('\\rbracklrtick', '\u298E'));
+                delimiter.add('\\lbracklltick', new Symbol('\\lbracklltick', '\u298F'));
+                delimiter.add('\\rbrackurtick', new Symbol('\\rbrackurtick', '\u2990'));
+                delimiter.add('\\langledot', new Symbol('\\langledot', '\u2991'));
+                delimiter.add('\\rangledot', new Symbol('\\rangledot', '\u2992'));
+                delimiter.add('\\lparenless', new Symbol('\\lparenless', '\u2993'));
+                delimiter.add('\\rparengtr', new Symbol('\\rparengtr', '\u2994'));
+                delimiter.add('\\Lparengtr', new Symbol('\\Lparengtr', '\u2995'));
+                delimiter.add('\\Rparenless', new Symbol('\\Rparenless', '\u2996'));
+                delimiter.add('\\lblkbrbrak', new Symbol('\\lblkbrbrak', '\u2997'));
+                delimiter.add('\\rblkbrbrak', new Symbol('\\rblkbrbrak', '\u2998'));
+                delimiter.add('\\lvzigzag', new Symbol('\\lvzigzag', '\u29D8'));
+                delimiter.add('\\rvzigzag', new Symbol('\\rvzigzag', '\u29D9'));
+                delimiter.add('\\Lvzigzag', new Symbol('\\Lvzigzag', '\u29DA'));
+                delimiter.add('\\Rvzigzag', new Symbol('\\Rvzigzag', '\u29DB'));
+                delimiter.add('\\lcurvyangle', new Symbol('\\lcurvyangle', '\u29FC'));
+                delimiter.add('\\rcurvyangle', new Symbol('\\rcurvyangle', '\u29FD'));
+                delimiter.add('\\Vvert', new Symbol('\\Vvert', '\u2980'));
+        }        // ready
+    },           // startup
+
+
+    tex: {
+        packages: {'[+]': ['tagformat', 'Lwarp-macros', 'textmacros']},
+        tags: "ams",
+                tagformat: {
+                         number: function (n) {
+                              if(MathJax.config.subequations==0)
+                                 return(MathJax.config.section + n);
+                              else
+                                 return(MathJax.config.section + String.fromCharCode(96+n));
+                         },
+                },
+    }
+}
+</script>
+
+
+<script
+        id="MathJax-script"
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
+></script>
+
+
+</head>
+<body>
+<!--|Using lwarp|document.html|-->
+
+
+
+<div class="bodywithoutsidetoc">
+
+
+
+<main class="bodycontainer">
+
+
+
+<section class="textbody">
+
+<a id="document-autofile-0"></a>
+
+<!--MathJax customizations:-->
+<div data-nosnippet
+         style="display:none"
+>
+
+\(\newcommand{\footnotename}{footnote}\)
+
+\(\def \LWRfootnote {1}\)
+
+\(\newcommand {\footnote }[2][\LWRfootnote ]{{}^{\mathrm {#1}}}\)
+
+\(\newcommand {\footnotemark }[1][\LWRfootnote ]{{}^{\mathrm {#1}}}\)
+
+\(\let \LWRorighspace \hspace \)
+
+\(\renewcommand {\hspace }{\ifstar \LWRorighspace \LWRorighspace }\)
+
+\(\newcommand {\TextOrMath }[2]{#2}\)
+
+\(\newcommand {\mathnormal }[1]{{#1}}\)
+
+\(\newcommand \ensuremath [1]{#1}\)
+
+\(\newcommand {\LWRframebox }[2][]{\fbox {#2}} \newcommand {\framebox }[1][]{\LWRframebox } \)
+
+\(\newcommand {\setlength }[2]{}\)
+
+\(\newcommand {\addtolength }[2]{}\)
+
+\(\newcommand {\setcounter }[2]{}\)
+
+\(\newcommand {\addtocounter }[2]{}\)
+
+\(\newcommand {\arabic }[1]{}\)
+
+\(\newcommand {\number }[1]{}\)
+
+\(\newcommand {\noalign }[1]{\text {#1}\notag \\}\)
+
+\(\newcommand {\cline }[1]{}\)
+
+\(\newcommand {\directlua }[1]{\text {(directlua)}}\)
+
+\(\newcommand {\luatexdirectlua }[1]{\text {(directlua)}}\)
+
+\(\newcommand {\protect }{}\)
+
+\(\def \LWRabsorbnumber #1 {}\)
+
+\(\def \LWRabsorbquotenumber &quot;#1 {}\)
+
+\(\newcommand {\LWRabsorboption }[1][]{}\)
+
+\(\newcommand {\LWRabsorbtwooptions }[1][]{\LWRabsorboption }\)
+
+\(\def \mathchar {\ifnextchar &quot;\LWRabsorbquotenumber \LWRabsorbnumber }\)
+
+\(\def \mathcode #1={\mathchar }\)
+
+\(\let \delcode \mathcode \)
+
+\(\let \delimiter \mathchar \)
+
+\(\def \oe {\unicode {x0153}}\)
+
+\(\def \OE {\unicode {x0152}}\)
+
+\(\def \ae {\unicode {x00E6}}\)
+
+\(\def \AE {\unicode {x00C6}}\)
+
+\(\def \aa {\unicode {x00E5}}\)
+
+\(\def \AA {\unicode {x00C5}}\)
+
+\(\def \o {\unicode {x00F8}}\)
+
+\(\def \O {\unicode {x00D8}}\)
+
+\(\def \l {\unicode {x0142}}\)
+
+\(\def \L {\unicode {x0141}}\)
+
+\(\def \ss {\unicode {x00DF}}\)
+
+\(\def \SS {\unicode {x1E9E}}\)
+
+\(\def \dag {\unicode {x2020}}\)
+
+\(\def \ddag {\unicode {x2021}}\)
+
+\(\def \P {\unicode {x00B6}}\)
+
+\(\def \copyright {\unicode {x00A9}}\)
+
+\(\def \pounds {\unicode {x00A3}}\)
+
+\(\let \LWRref \ref \)
+
+\(\renewcommand {\ref }{\ifstar \LWRref \LWRref }\)
+
+\( \newcommand {\multicolumn }[3]{#3}\)
+
+\(\require {textcomp}\)
+
+\(\newcommand {\intertext }[1]{\text {#1}\notag \\}\)
+
+\(\let \Hat \hat \)
+
+\(\let \Check \check \)
+
+\(\let \Tilde \tilde \)
+
+\(\let \Acute \acute \)
+
+\(\let \Grave \grave \)
+
+\(\let \Dot \dot \)
+
+\(\let \Ddot \ddot \)
+
+\(\let \Breve \breve \)
+
+\(\let \Bar \bar \)
+
+\(\let \Vec \vec \)
+
+\(\newcommand {\toprule }[1][]{\hline }\)
+
+\(\let \midrule \toprule \)
+
+\(\let \bottomrule \toprule \)
+
+\(\def \LWRbooktabscmidruleparen (#1)#2{}\)
+
+\(\newcommand {\LWRbooktabscmidrulenoparen }[1]{}\)
+
+\(\newcommand {\cmidrule }[1][]{\ifnextchar (\LWRbooktabscmidruleparen \LWRbooktabscmidrulenoparen }\)
+
+\(\newcommand {\morecmidrules }{}\)
+
+\(\newcommand {\specialrule }[3]{\hline }\)
+
+\(\newcommand {\addlinespace }[1][]{}\)
+
+\(\newcommand {\tcbset }[1]{}\)
+
+\(\newcommand {\tcbsetforeverylayer }[1]{}\)
+
+\(\newcommand {\tcbox }[2][]{\boxed {\text {#2}}}\)
+
+\(\newcommand {\tcboxfit }[2][]{\boxed {#2}}\)
+
+\(\newcommand {\tcblower }{}\)
+
+\(\newcommand {\tcbline }{}\)
+
+\(\newcommand {\tcbtitle }{}\)
+
+\(\newcommand {\tcbsubtitle [2][]{\mathrm {#2}}}\)
+
+\(\newcommand {\tcboxmath }[2][]{\boxed {#2}}\)
+
+\(\newcommand {\tcbhighmath }[2][]{\boxed {#2}}\)
+
+</div>
+
+<a id="document-autopage-1"></a>
+<div class="titlepage">
+
+<h1><b> 注意力机制在卷积神经网络中的应用：从 SE‑Net 到 CBAM</b></h1>
+
+
+
+<div class="author">
+
+
+
+<div class="oneauthor">
+
+<p>
+深度学习社 <br />
+Cooperated with <kbd>MiniMax M2</kbd> &amp; <kbd>DeepSeek V3.2 Exp</kbd>
+</p>
+</div>
+
+</div>
+
+
+
+<div class="titledate">
+
+<p>
+2025 年 12 月 3 日
+</p>
+</div>
+
+</div>
+<div class="abstract">
+
+
+
+<div class="abstracttitle"> 摘要 </div>
+
+<p>
+本文深入探讨了注意力机制在卷积神经网络（CNN）中的应用。首先解释了什么是” 注意力” 以及为什么需要在 CNN 中引入注意力机制。随后详细介绍了三类主要的注意力机制：通道注意力（以 Squeeze‑and‑Excitation
+Networks 为代表）、空间注意力，以及结合两者的 Convolutional Block Attention Module（CBAM）
+                                                                     。文章包含完整的数学推导、PyTorch 实现代码，并深入分析了各种注意力机制的优势、局限性和适用场景。通过对比不同方
+法的参数效率和计算复杂度，我们揭示了注意力机制如何帮助神经网络更好地聚焦于重要特征，从而提升模型性能。
+</p>
+</div>
+<!--
+...... section 目录......
+-->
+<h4 id="autosec-4">目录</h4>
+<a id="document-autopage-4"></a>
+
+
+
+
+<nav class="toc">
+
+</nav>
+<!--
+...... section 引言：什么是注意力？......
+-->
+<h4 id="autosec-5"><span class="sectionnumber">1&#x2003;</span>引言：什么是注意力？</h4>
+<a id="document-autopage-5"></a>
+<!--
+...... subsection 人类视觉系统中的注意力......
+-->
+<h5 id="autosec-6"><span class="sectionnumber">1.1&#x2003;</span>人类视觉系统中的注意力</h5>
+<a id="document-autopage-6"></a>
+
+
+
+<p>
+想象你在一个拥挤的咖啡厅里寻找朋友：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 日常生活中的注意力 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 扫视整个场景 </b>：你的眼睛会快速浏览整个房间
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 聚焦关键区域 </b>：当看到熟悉的面孔或颜色时，你会自动聚焦
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 过滤无关信息 </b>：你会忽略背景中的其他人，将注意力集中在目标上
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<p>
+这就是人类视觉系统中的注意力机制——我们不会平等地处理视野中的所有信息，而是有选择地关注最重要的部分。
+</p>
+<!--
+...... subsection 关键术语定义......
+-->
+<h5 id="autosec-7"><span class="sectionnumber">1.2&#x2003;</span>关键术语定义</h5>
+<a id="document-autopage-7"></a>
+
+
+
+<p>
+在深入讨论注意力机制之前，我们先定义一些核心概念：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 重要术语解释 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 特征图（Feature Map）</b>：卷积神经网络中经过卷积操作输出的多维数组，包含空间位置和通道维度的信息
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 通道（Channel）</b>：特征图的深度维度，每个通道通常对应某种特定的视觉模式或特征
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 空间维度（Spatial Dimension）</b>：特征图的高度和宽度维度，对应输入图像的空间位置
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 注意力权重（Attention Weight）</b>：表示不同特征重要性的数值，通常通过归一化处理（如 Softmax）得到
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 全局池化（Global Pooling）</b>：将整个特征图的空间维度压缩为 1×1 的操作，用于获取全局统计信息
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 为什么 CNN 需要注意力？......
+-->
+<h5 id="autosec-8"><span class="sectionnumber">1.3&#x2003;</span>为什么 CNN 需要注意力？</h5>
+<a id="document-autopage-8"></a>
+
+
+
+<p>
+传统的 CNN 平等对待所有特征，但并非所有特征都同样重要。考虑一个图像分类任务：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b>CNN 的局限性 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 特征平等性 </b>：CNN 对所有通道和空间位置应用相同的处理
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 噪声敏感性 </b>：无关特征可能会干扰分类决策
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 资源浪费 </b>：计算资源平均分配给所有特征，包括不重要的
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 图像分类实例 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+当识别一只猫时：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 重要特征 </b>：猫的脸、耳朵、眼睛
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 次要特征 </b>：背景、阴影、纹理
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 干扰特征 </b>：其他物体、部分遮挡
+</p>
+</li>
+</ul>
+
+<p>
+如果没有注意力机制，CNN 会同等处理所有这些特征，这显然是低效的。
+</p>
+</div>
+
+</div>
+<!--
+...... subsection 注意力机制的核心思想......
+-->
+<h5 id="autosec-9"><span class="sectionnumber">1.4&#x2003;</span>注意力机制的核心思想</h5>
+<a id="document-autopage-9"></a>
+
+
+
+<p>
+注意力机制的灵感来自于人类的认知过程，其核心目标是：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 注意力机制的核心思想 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+让神经网络能够 <b> 自适应地 </b> 决定：
+</p>
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 关注什么 </b>：哪些特征/区域最重要
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 忽略什么 </b>：哪些特征可以抑制
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 动态调整 </b>：根据输入内容动态调整关注度
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<p>
+数学上，注意力机制通过学习一组 <b> 权重 </b> 来实现这个目标，这些权重决定了每个特征的重要性。
+</p>
+<!--
+...... subsection 注意力机制的类型......
+-->
+<h5 id="autosec-10"><span class="sectionnumber">1.5&#x2003;</span>注意力机制的类型</h5>
+<a id="document-autopage-10"></a>
+
+
+
+<p>
+在 CNN 中，注意力机制主要分为三类：
+</p>
+
+<figure id="autoid-1" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 类型 </b></td>
+<td class="tdl"><b> 关注维度 </b></td>
+<td class="tdl"><b> 代表方法 </b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl"> 通道注意力 </td>
+<td class="tdl"> 特征通道的重要性 </td>
+<td class="tdl">SE‑Net</td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 空间注意力 </td>
+<td class="tdl"> 空间位置的重要性 </td>
+<td class="tdl">Spatial Attention</td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 混合注意力 </td>
+<td class="tdl"> 通道 + 空间 </td>
+<td class="tdl">CBAM</td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdl"></td>
+<td class="tdl"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;1: 注意力机制的分类
+
+</div>
+
+</div>
+
+</figure>
+
+<p>
+接下来的章节，我们将逐一深入探讨这些注意力机制。
+</p>
+<!--
+...... section 通道注意力：Squeeze-and-Excitation Networks (SE-Net) ......
+-->
+<h4 id="autosec-13"><span class="sectionnumber">2&#x2003;</span>通道注意力：Squeeze‑and‑Excitation Networks (SE‑Net)</h4>
+<a id="document-autopage-13"></a>
+<!--
+...... subsection SE-Net 的动机......
+-->
+<h5 id="autosec-14"><span class="sectionnumber">2.1&#x2003;</span>SE‑Net 的动机</h5>
+<a id="document-autopage-14"></a>
+
+
+
+<p>
+在卷积神经网络中，特征图的每个通道（channel）通常代表某种特定的视觉模式（如边缘、纹理、特定对象部分等）。SE‑Net 的核心思想是：<b> 不是所有通道都同等重要 </b>。
+</p>
+<!--
+...... subsection SE 块的结构......
+-->
+<h5 id="autosec-15"><span class="sectionnumber">2.2&#x2003;</span>SE 块的结构</h5>
+<a id="document-autopage-15"></a>
+
+
+
+<figure id="autoid-2" class="figure ">
+<div class="center">
+
+<p>
+
+
+<a href="figures/se-block.png" target="_blank" ><img
+      src="figures/se-block.png"
+      style="
+      width:434pt;
+      "
+      class="inlineimage"
+      alt="(image)"
+></a>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;1: SE 块的结构
+
+</div>
+
+<a id="fig:se_block"></a>
+
+</div>
+
+</figure>
+
+<p>
+SE 块&nbsp;[?] 由两个关键操作组成：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b>Squeeze 操作（压缩）</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+<b> 目的 </b>：将空间维度\(H \times W\) 压缩为\(1 \times 1\)，获得全局信息
+</p>
+
+<p>
+使用 <b> 全局平均池化 </b>：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{0}\)</span>
+
+<!--
+
+
+                                                                                                          1   XH X W
+                                                                                     zc = Fsq (uc ) =                 uc (i, j)                                                             (1)
+                                                                                                        H × W i=1 j=1
+
+-->
+
+<p>
+
+
+\begin{equation}
+z_c = F_{sq}(u_c) = \frac {1}{H \times W} \sum _{i=1}^{H} \sum _{j=1}^{W} u_c(i,j)
+\end{equation}
+
+
+</p>
+
+<p>
+其中：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> \(u_c \in \mathbb {R}^{H \times W}\)：第\(c\) 个通道的特征图
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(z_c\)：第\(c\) 个通道的全局描述符
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(F_{sq}\)：压缩函数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(H, W\)：特征图的高度和宽度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\mathbb {R}\)：实数空间，表示特征图包含实数值
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 为什么选择全局平均池化？</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+全局平均池化具有以下优势：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 全局信息捕获 </b>：整合整个特征图的空间信息
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 平移不变性 </b>：对输入图像的平移具有鲁棒性
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 防止过拟合 </b>：相比全连接层，参数更少
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 计算高效 </b>：只需简单的平均操作
+</p>
+</li>
+</ul>
+
+<p>
+数学上，全局平均池化可以看作是对特征图进行 <b> 空间维度的期望估计 </b>：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{1}\)</span>
+
+<!--
+
+
+
+                                                                                           zc = E(i,j)∼Uniform [uc (i, j)]                                                                  (2)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+z_c = \mathbb {E}_{(i,j) \sim \text {Uniform}}[u_c(i,j)]
+\end{equation}
+
+
+</p>
+
+<p>
+其中\(\mathbb {E}\) 表示数学期望，\(\text {Uniform}\) 表示均匀分布。这为每个通道提供了一个全局的统计描述。
+</p>
+
+<p>
+<b> 术语解释 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 平移不变性（Translation Invariance）</b>：模型对输入图像中目标位置的平移不敏感
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 过拟合（Overfitting）</b>：模型在训练数据上表现很好，但在新数据上表现差的现象
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 全连接层（Fully Connected Layer）</b>：神经网络中每个神经元都与前一层所有神经元相连的层
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b>Excitation 操作（激励）</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+<b> 目的 </b>：学习通道间的非线性关系，生成通道权重
+</p>
+
+<p>
+使用两层的全连接网络：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{2}\)</span>
+
+<!--
+
+
+
+                                                                                        s = Fex (z, W) = σ(W2 δ(W1 z))                                                                      (3)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+\mathbf {s} = F_{ex}(\mathbf {z}, \mathbf {W}) = \sigma (\mathbf {W}_2 \delta (\mathbf {W}_1 \mathbf {z}))
+\end{equation}
+
+
+</p>
+
+<p>
+其中：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> \(\mathbf {z} \in \mathbb {R}^C\)：压缩后的特征向量
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\mathbf {W}_1 \in \mathbb {R}^{\frac {C}{r} \times C}\)：第一层权重（降维）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\mathbf {W}_2 \in \mathbb {R}^{C \times \frac {C}{r}}\)：第二层权重（升维）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\delta \)：ReLU 激活函数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\sigma \)：Sigmoid 激活函数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(r\)：降维比率（reduction ratio，通常取 16）
+</p>
+</li>
+</ul>
+
+<p>
+<b> 降维比率\(r\) 的数学定义 </b>：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{3}\)</span>
+
+<!--
+
+
+                                                                                                          C
+                                                                                                 r=                                                                                         (4)
+                                                                                                        隐藏层维度
+
+-->
+
+<p>
+
+
+\begin{equation}
+r = \frac {C}{\text {隐藏层维度}}
+\end{equation}
+
+
+</p>
+
+<p>
+其中\(r\) 控制着信息压缩的程度，\(r\) 越大表示压缩程度越高。
+</p>
+
+<p>
+最终输出：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{4}\)</span>
+
+<!--
+
+
+
+                                                                                          ũc = Fscale (uc , sc ) = sc · uc                                                                 (5)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+\tilde {u}_c = F_{scale}(u_c, s_c) = s_c \cdot u_c
+\end{equation}
+
+
+</p>
+
+<p>
+其中\(s_c\) 是第\(c\) 个通道的注意力权重，取值范围为\((0,1)\)。
+</p>
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 为什么使用两层全连接网络？</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+这种设计具有重要的数学意义：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 降维‑升维结构 </b>：\(\mathbf {W}_1\) 将\(C\) 维特征压缩到\(\frac {C}{r}\) 维，\(\mathbf {W}_2\) 再恢复到\(C\) 维
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 非线性建模 </b>：ReLU 引入非线性，学习通道间的复杂关系
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 参数效率 </b>：相比直接使用\(C \times C\) 的全连接层，参数数量从\(C^2\) 减少到\(\frac {2C^2}{r}\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 信息瓶颈 </b>：降维操作迫使网络学习最重要的通道关系
+</p>
+</li>
+</ul>
+
+<p>
+数学上，这个过程可以看作是一个 <b> 自编码器 </b> 结构，学习如何重新加权通道的重要性。
+</p>
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 降维比率\(r\) 的数学意义 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+\(r\) 控制了模型的复杂度和性能权衡，其数学影响如下：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 参数数量分析 </b>：
+</p>
+<p>
+\[ \begin {aligned} \text {参数数量} &amp;= \underbrace {C \times \frac {C}{r}}_{\text {第一层}} + \underbrace {\frac {C}{r} \times C}_{\text {第二层}} \\ &amp;= \frac {2C^2}{r} \end {aligned} \]
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 计算复杂度 </b>：\(r\) 越大，计算量越小，但表达能力可能受限
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 信息压缩比 </b>：\(r\) 决定了信息压缩的程度，\(r=16\) 意味着将通道信息压缩到原来的\(\frac {1}{16}\)
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 经验选择 </b>：通常选择\(r=16\) 作为平衡点，因为：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">–</span> \(r=4\)：参数过多，容易过拟合
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">–</span> \(r=32\)：信息损失过多，性能下降
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">–</span> \(r=16\)：在性能和效率之间取得良好平衡
+</p>
+</li>
+</ul>
+</li>
+</ul>
+
+<p>
+在实际应用中，可以根据具体任务和计算资源调整\(r\) 值。
+</p>
+</div>
+
+</div>
+<!--
+...... subsection SE 块的 PyTorch 实现......
+-->
+<h5 id="autosec-17"><span class="sectionnumber">2.3&#x2003;</span>SE 块的 PyTorch 实现</h5>
+<a id="document-autopage-17"></a>
+
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b>SE 块的核心实现 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+SE 块的核心结构包括两个步骤：Squeeze（压缩）和 Excitation（激励）。
+</p>
+
+<p>
+<b> 关键代码结构：</b>
+</p>
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> 全局平均池化：将\(H \times W\) 的特征图压缩为\(1 \times 1\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> 两层全连接网络：学习通道间的非线性关系
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> Sigmoid 激活：生成通道注意力权重（0‑1 之间）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> 特征重标定：用注意力权重缩放输入特征
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection SE-ResNet 架构......
+-->
+<h5 id="autosec-18"><span class="sectionnumber">2.4&#x2003;</span>SE‑ResNet 架构</h5>
+<a id="document-autopage-18"></a>
+
+
+
+<p>
+SE 块可以插入到现有 CNN 架构中，形成 SENet&nbsp;[?]：
+</p>
+
+<figure id="autoid-3" class="figure ">
+<div class="center">
+
+<p>
+
+
+<a href="figures/se-resnet.png" target="_blank" ><img
+      src="figures/se-resnet.png"
+      style="
+      width:260pt;
+      "
+      class="inlineimage"
+      alt="(image)"
+></a>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;2: SE 块集成到残差网络中
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... subsection 参数复杂度分析......
+-->
+<h5 id="autosec-20"><span class="sectionnumber">2.5&#x2003;</span>参数复杂度分析</h5>
+<a id="document-autopage-20"></a>
+
+
+
+<p>
+SE 块引入的额外参数主要来自两个全连接层：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 额外参数计算 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+对于有\(C\) 个通道的特征图：
+</p>
+<span class="hidden"> \(\seteqnumber{0}{}{5}\)</span>
+
+
+
+<!--
+
+
+
+                                                                                                     C C
+                                                                                         参数数量 = C × + × C                                                     (6)
+                                                                                                | {z r} |r {z }
+                                                                                                     第一层       第二层
+                                                                                                           2
+                                                                                                        C
+                                                                                                  =2×                                                         (7)
+                                                                                                         r
+
+
+
+-->
+
+
+
+<p>
+
+
+\begin{align}
+\text {参数数量} &amp;= \underbrace {C \times \frac {C}{r}}_{\text {第一层}} + \underbrace {\frac {C}{r} \times C}_{\text {第二层}} \\ &amp;= 2 \times \frac {C^2}{r}
+\end{align}
+
+
+</p>
+
+<p>
+以 ResNet‑50 为例：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 总参数：\(\approx 25.6\) 百万
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> SE 块引入：\(\approx 2.5\) 百万（增加约 10&percnt;）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 计算量增加：\(\approx 0.26\%\)
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 为什么 SE 块如此高效？</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+尽管引入了额外参数，但 SE 块的性能提升非常显著：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> SE‑ResNet‑50 的性能接近 ResNet‑101
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 计算量几乎不变
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 只在最后几个阶段引入 SE 块，可进一步减少参数
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 实验结果......
+-->
+<h5 id="autosec-21"><span class="sectionnumber">2.6&#x2003;</span>实验结果</h5>
+<a id="document-autopage-21"></a>
+
+
+
+<p>
+SE‑Net 在 ImageNet 上取得了突破性成果&nbsp;[?]：
+</p>
+
+<figure id="autoid-4" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 模型 </b></td>
+<td class="tdc"><b>Top‑1 错误率 </b></td>
+<td class="tdc"><b>Top‑5 错误率 </b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl">ResNet‑50</td>
+<td class="tdc">24.80&percnt;</td>
+<td class="tdc">7.48&percnt;</td>
+</tr>
+
+
+<tr>
+<td class="tdl">SE‑ResNet‑50</td>
+<td class="tdc"><b>23.29&percnt;</b></td>
+<td class="tdc"><b>6.62&percnt;</b></td>
+</tr>
+
+
+<tr>
+<td class="tdl">ResNet‑101</td>
+<td class="tdc">23.17&percnt;</td>
+<td class="tdc">6.52&percnt;</td>
+</tr>
+
+
+<tr>
+<td class="tdl">SE‑ResNet‑101</td>
+<td class="tdc"><b>22.38&percnt;</b></td>
+<td class="tdc"><b>6.07&percnt;</b></td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;2: SE‑Net 在 ImageNet 上的性能
+
+</div>
+
+</div>
+
+</figure>
+
+<p>
+SENet 最终以 25&percnt; 的相对改进赢得了 ILSVRC 2017 分类竞赛&nbsp;[?]。
+</p>
+<!--
+...... section 空间注意力：聚焦于重要位置......
+-->
+<h4 id="autosec-24"><span class="sectionnumber">3&#x2003;</span>空间注意力：聚焦于重要位置</h4>
+<a id="document-autopage-24"></a>
+<!--
+...... subsection 空间注意力的动机......
+-->
+<h5 id="autosec-25"><span class="sectionnumber">3.1&#x2003;</span>空间注意力的动机</h5>
+<a id="document-autopage-25"></a>
+
+
+
+<p>
+通道注意力关注” 什么特征重要”，而空间注意力关注” 哪里重要”。对于图像中的关键对象，其位置往往比背景更重要。
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 目标检测实例 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+在检测行人时：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 关注区域 </b>：行人的身体、头部、四肢
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 忽略区域 </b>：路面、天空、其他车辆
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 空间权重 </b>：不同位置有不同的重要性权重
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 空间注意力的计算......
+-->
+<h5 id="autosec-26"><span class="sectionnumber">3.2&#x2003;</span>空间注意力的计算</h5>
+<a id="document-autopage-26"></a>
+
+
+
+<p>
+空间注意力通常通过以下步骤计算：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 空间注意力的一般形式 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+对于输入特征图\(F \in \mathbb {R}^{C \times H \times W}\)，空间注意力图\(M_s \in \mathbb {R}^{H \times W}\) 的计算：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{7}\)</span>
+
+<!--
+
+
+
+                                                                                  Ms = σ(f 7×7 ([AvgPool(F ); MaxPool(F )]))                (8)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+M_s = \sigma (f^{7 \times 7}([\mathrm {AvgPool}(F); \mathrm {MaxPool}(F)]))
+\end{equation}
+
+
+</p>
+
+<p>
+其中：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> \(\mathrm {AvgPool}(F)\)：沿通道维度的平均池化，输出\(\mathbb {R}^{1 \times H \times W}\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\mathrm {MaxPool}(F)\)：沿通道维度的最大池化，输出\(\mathbb {R}^{1 \times H \times W}\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \([\mathrm {AvgPool}(F); \mathrm {MaxPool}(F)]\)：concatenation，输出\(\mathbb {R}^{2 \times H \times W}\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(f^{7 \times 7}\)：\(7 \times 7\) 卷积层
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\sigma \)：Sigmoid 激活函数
+</p>
+</li>
+</ul>
+
+<p>
+最终输出：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{8}\)</span>
+
+<!--
+
+
+
+                                                                                                  F ′ = Ms ⊙ F                              (9)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+F&apos; = M_s \odot F
+\end{equation}
+
+
+</p>
+
+<p>
+其中\(\odot \) 表示逐元素相乘。
+</p>
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 为什么使用\(7 \times 7\) 卷积核？</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+\(7 \times 7\) 卷积核的选择具有重要考虑：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 感受野大小 </b>：\(7 \times 7\) 提供足够大的感受野来捕获局部上下文
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 计算效率 </b>：相比更大的卷积核，计算量适中
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 经验验证 </b>：实验表明\(7 \times 7\) 在性能和效率之间取得最佳平衡
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 空间平滑性 </b>：较大的卷积核产生更平滑的注意力分布
+</p>
+</li>
+</ul>
+
+<p>
+在深层网络中，可以使用\(3 \times 3\) 卷积核来减少计算量。
+</p>
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 为什么同时使用平均池化和最大池化？</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+这种设计的数学和直觉解释：
+</p>
+
+<p>
+<b> 平均池化的作用 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 全局统计信息 </b>：捕捉每个空间位置在所有通道上的平均响应
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 稳定性 </b>：对噪声和异常值具有鲁棒性
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 平滑性 </b>：提供平滑的空间注意力分布
+</p>
+</li>
+</ul>
+
+<p>
+<b> 最大池化的作用 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 突出特征 </b>：捕捉每个空间位置最显著的特征响应
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 边界敏感 </b>：对物体边界和细节更敏感
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 稀疏性 </b>：倾向于产生更稀疏的注意力分布
+</p>
+</li>
+</ul>
+
+<p>
+<b> 结合使用的优势 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 互补信息 </b>：平均池化提供全局上下文，最大池化突出局部细节
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 鲁棒性增强 </b>：减少单一池化方法可能带来的偏差
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 信息完整性 </b>：同时考虑平均响应和峰值响应
+</p>
+</li>
+</ul>
+
+<p>
+数学上，这相当于：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{9}\)</span>
+
+<!--
+
+
+                                                                                               h                          i
+                                                                                    Ms = σ f 7×7 Ec [Fc,:,: ]; max[Fc,:,: ]                (10)
+                                                                                                                 c
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+M_s = \sigma \left (f^{7 \times 7}\left (\left [\mathbb {E}_c[F_{c,:,:}]; \max _c[F_{c,:,:}]\right ]\right )\right )
+\end{equation}
+
+
+</p>
+
+<p>
+其中\(\mathbb {E}_c\) 表示通道维度上的期望，\(\max _c\) 表示通道维度上的最大值。
+</p>
+</div>
+
+</div>
+<!--
+...... subsection 空间注意力的 PyTorch 实现......
+-->
+<h5 id="autosec-27"><span class="sectionnumber">3.3&#x2003;</span>空间注意力的 PyTorch 实现</h5>
+<a id="document-autopage-27"></a>
+
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 空间注意力模块核心代码 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+完整实现请参见 <kbd>code/spatial_attention.py</kbd> 文件。
+</p>
+</div>
+
+</div>
+<!--
+...... subsection 空间注意力的应用......
+-->
+<h5 id="autosec-28"><span class="sectionnumber">3.4&#x2003;</span>空间注意力的应用</h5>
+<a id="document-autopage-28"></a>
+
+
+
+<p>
+空间注意力在以下任务中特别有效：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 语义分割 </b>：关注前景对象区域
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 目标检测 </b>：关注可能包含目标的区域
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 图像分类 </b>：关注主要对象的位置
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 图像分割 </b>：精确分割对象边界
+</p>
+</li>
+</ul>
+<!--
+...... section 混合注意力：Convolutional Block Attention Module (CBAM) ......
+-->
+<h4 id="autosec-29"><span class="sectionnumber">4&#x2003;</span>混合注意力：Convolutional Block Attention Module (CBAM)</h4>
+<a id="document-autopage-29"></a>
+
+
+
+<figure id="autoid-5" class="figure ">
+<div class="center">
+
+<p>
+
+
+<a href="figures/cbam-block.png" target="_blank" ><img
+      src="figures/cbam-block.png"
+      style="
+      width:347pt;
+      "
+      class="inlineimage"
+      alt="(image)"
+></a>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;3: CBAM 模块
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... subsection CBAM 的整体思路......
+-->
+<h5 id="autosec-31"><span class="sectionnumber">4.1&#x2003;</span>CBAM 的整体思路</h5>
+<a id="document-autopage-31"></a>
+
+
+
+<p>
+CBAM&nbsp;[?] 是结合了通道注意力和空间注意力的模块。其核心思想是：<b> 重要特征不仅需要正确的通道权重，还需要出现在正确的位置 </b>。
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b>CBAM 的流水线 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+CBAM 采用串行连接的方式：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{10}\)</span>
+
+<!--
+
+
+
+                                                                                           F ′ = Ms (F ) ⊙ Mc (F ) ⊙ F          (11)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+F&apos; = M_s(F) \odot M_c(F) \odot F
+\end{equation}
+
+
+</p>
+
+<p>
+或者并行连接：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{11}\)</span>
+
+<!--
+
+
+
+                                                                                     F ′ = α · Ms (F ) ⊙ F + β · Mc (F ) ⊙ F    (12)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+F&apos; = \alpha \cdot M_s(F) \odot F + \beta \cdot M_c(F) \odot F
+\end{equation}
+
+
+</p>
+
+<p>
+其中\(\alpha + \beta = 1\) 是可学习的融合权重。
+</p>
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 串行 vs 并行：为什么串行连接效果更好？</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+<b> 串行连接的优势分析 </b>：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 信息处理顺序 </b>：先决定” 什么特征重要”，再决定” 这些重要特征在哪里”
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 计算效率 </b>：空间注意力在通道注意力之后计算，可以利用已经筛选的特征
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 梯度传播 </b>：串行连接提供更清晰的梯度传播路径
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 特征协同 </b>：通道注意力为空间注意力提供更好的输入特征
+</p>
+</li>
+</ul>
+
+<p>
+<b> 数学解释 </b>：串行连接：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{12}\)</span>
+
+<!--
+
+
+
+                                                                                     F ′ = Ms (Mc (F ) ⊙ F ) ⊙ (Mc (F ) ⊙ F )   (13)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+F&apos; = M_s(M_c(F) \odot F) \odot (M_c(F) \odot F)
+\end{equation}
+
+
+</p>
+
+<p>
+并行连接：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{13}\)</span>
+
+<!--
+
+
+
+                                                                                     F ′ = α · Ms (F ) ⊙ F + β · Mc (F ) ⊙ F    (14)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+F&apos; = \alpha \cdot M_s(F) \odot F + \beta \cdot M_c(F) \odot F
+\end{equation}
+
+
+</p>
+
+<p>
+<b> 串行连接的优势 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 级联效应 </b>：通道注意力先筛选特征，空间注意力在筛选后的特征上工作
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 减少干扰 </b>：空间注意力不会受到不重要通道的干扰
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 计算协同 </b>：两种注意力机制相互增强，而不是简单相加
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 实验验证 </b>：CBAM 原论文中串行连接比并行连接性能更好
+</p>
+</li>
+</ul>
+
+<p>
+<b> 直觉理解 </b>：想象你在人群中找人：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 通道注意力 </b>：先确定要找的人的特征（穿什么颜色衣服、身高多少）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 空间注意力 </b>：然后在人群中定位符合这些特征的人
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 如果同时进行，可能会被无关特征干扰
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<figure id="autoid-6" class="figure ">
+<div class="center">
+
+<p>
+
+
+<a href="figures/cbam-channel-spatial-module.png" target="_blank" ><img
+      src="figures/cbam-channel-spatial-module.png"
+      style="
+      width:347pt;
+      "
+      class="inlineimage"
+      alt="(image)"
+></a>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;4: CBAM 子模块
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... subsection CBAM 的通道注意力子模块......
+-->
+<h5 id="autosec-33"><span class="sectionnumber">4.2&#x2003;</span>CBAM 的通道注意力子模块</h5>
+<a id="document-autopage-33"></a>
+
+
+
+<p>
+CBAM 的通道注意力与 SE 块类似，但有一些改进：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b>CBAM 通道注意力 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+使用平均池化和最大池化两种方式：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{14}\)</span>
+
+<!--
+
+
+
+                                                                              Mc (F ) = σ(MLP(AvgPool(F )) + MLP(MaxPool(F )))                                                    (15)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+M_c(F) = \sigma (\mathrm {MLP}(\mathrm {AvgPool}(F)) + \mathrm {MLP}(\mathrm {MaxPool}(F)))
+\end{equation}
+
+
+</p>
+
+<p>
+其中：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> \(\mathrm {AvgPool}(F)\)：全局平均池化，输出\(\mathbb {R}^{C \times 1 \times 1}\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\mathrm {MaxPool}(F)\)：全局最大池化，输出\(\mathbb {R}^{C \times 1 \times 1}\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\mathrm {MLP}\)：两层的全连接网络（共享权重）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\sigma \)：Sigmoid 激活函数
+</p>
+</li>
+</ul>
+
+<p>
+计算公式：
+</p>
+<span class="hidden"> \(\seteqnumber{0}{}{15}\)</span>
+
+
+
+<!--
+
+
+
+
+                                                                           Mc (F ) = σ(W2 δ(W1 AvgPool(F )) + W2 δ(W1 MaxPool(F )))                                               (16)
+                                                                                               c                c
+                                                                                  = σ(W2 δ(W1 Favg ) + W2 δ(W1 Fmax ))                                                            (17)
+
+
+
+
+-->
+
+
+
+<p>
+
+
+\begin{align}
+M_c(F) &amp;= \sigma (W_2 \delta (W_1 \mathrm {AvgPool}(F)) + W_2 \delta (W_1 \mathrm {MaxPool}(F))) \\ &amp;= \sigma (W_2 \delta (W_1 F_{avg}^c) + W_2 \delta (W_1 F_{max}^c))
+\end{align}
+
+
+</p>
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 为什么同时使用平均池化和最大池化？</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 平均池化 </b>：捕捉通道的全局统计信息
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 最大池化 </b>：捕捉通道的突出特征
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 结合使用 </b>：提供更丰富的通道描述
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection CBAM 的空间注意力子模块......
+-->
+<h5 id="autosec-34"><span class="sectionnumber">4.3&#x2003;</span>CBAM 的空间注意力子模块</h5>
+<a id="document-autopage-34"></a>
+
+
+
+<p>
+在通道注意力之后，应用空间注意力：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b>CBAM 空间注意力 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+使用通道维度上的池化：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{17}\)</span>
+
+<!--
+
+
+
+                                                                                Ms (F ′ ) = σ(f 7×7 ([AvgPool(F ′ ); MaxPool(F ′ )]))                                                                    (18)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+M_s(F&apos;) = \sigma (f^{7 \times 7}([\mathrm {AvgPool}(F&apos;); \mathrm {MaxPool}(F&apos;)]))
+\end{equation}
+
+
+</p>
+
+<p>
+其中：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> \(\mathrm {AvgPool}(F&apos;)\)：沿通道维度的平均池化，输出\(\mathbb {R}^{1 \times H \times W}\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\mathrm {MaxPool}(F&apos;)\)：沿通道维度的最大池化，输出\(\mathbb {R}^{1 \times H \times W}\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(f^{7 \times 7}\)：\(7 \times 7\) 卷积，输出单通道空间注意力图
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\sigma \)：Sigmoid 激活函数
+</p>
+</li>
+</ul>
+
+<p>
+计算过程：
+</p>
+<span class="hidden"> \(\seteqnumber{0}{}{18}\)</span>
+
+
+
+<!--
+
+
+
+                                                                                          ′
+                                                                                         Favg = AvgPoolc (F ′ ) ∈ R1×H×W                                                                                 (19)
+                                                                                         ′
+                                                                                        Fmax = MaxPoolc (F ′ ) ∈ R1×H×W                                                                                  (20)
+                                                                                      Ms (F ′ ) = σ(f 7×7 ([Favg
+                                                                                                             ′      ′
+                                                                                                                 ; Fmax ]))                                                                              (21)
+
+
+
+
+-->
+
+
+
+<p>
+
+
+\begin{align}
+F&apos;_{avg} &amp;= \mathrm {AvgPool}_{c}(F&apos;) \in \mathbb {R}^{1 \times H \times W} \\ F&apos;_{max} &amp;= \mathrm {MaxPool}_{c}(F&apos;) \in \mathbb {R}^{1 \times H \times W} \\ M_s(F&apos;)
+&amp;= \sigma (f^{7 \times 7}([F&apos;_{avg}; F&apos;_{max}]))
+\end{align}
+
+
+</p>
+
+<p>
+最终输出：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{21}\)</span>
+
+<!--
+
+
+
+                                                                                                F ′′ = Ms (F ′ ) ⊙ F ′                                                                                   (22)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+F&apos;&apos; = M_s(F&apos;) \odot F&apos;
+\end{equation}
+
+
+</p>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 注意力的计算顺序 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+CBAM 先计算通道注意力，再计算空间注意力的原因：
+</p>
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 先筛选特征 </b>：通道注意力先决定” 什么特征重要”
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 再定位位置 </b>：空间注意力决定” 这些重要特征在哪里”
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 级联效应 </b>：两种注意力相互补充，提升整体性能
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection CBAM 的完整实现......
+-->
+<h5 id="autosec-35"><span class="sectionnumber">4.4&#x2003;</span>CBAM 的完整实现</h5>
+<a id="document-autopage-35"></a>
+
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b>CBAM 模块核心结构 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+完整实现请参见 <kbd>code/cbam.py</kbd> 文件。
+</p>
+</div>
+
+</div>
+<!--
+...... subsection CBAM 集成到 CNN ......
+-->
+<h5 id="autosec-36"><span class="sectionnumber">4.5&#x2003;</span>CBAM 集成到 CNN</h5>
+<a id="document-autopage-36"></a>
+
+
+
+<p>
+CBAM 是轻量级模块，可以插入到 CNN 的任意位置：
+</p>
+
+<figure id="autoid-7" class="figure ">
+<div class="center">
+
+<p>
+
+
+<a href="figures/cbam-resnet.png" target="_blank" ><img
+      src="figures/cbam-resnet.png"
+      style="
+      width:347pt;
+      "
+      class="inlineimage"
+      alt="(image)"
+></a>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;5: CBAM 在残差网络中的集成
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... subsection CBAM 的性能分析......
+-->
+<h5 id="autosec-38"><span class="sectionnumber">4.6&#x2003;</span>CBAM 的性能分析</h5>
+<a id="document-autopage-38"></a>
+
+
+
+<p>
+CBAM 的性能提升&nbsp;[?]：
+</p>
+
+<figure id="autoid-8" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 模型 </b></td>
+<td class="tdc"><b>Top‑1 错误率 </b></td>
+<td class="tdc"><b>Top‑5 错误率 </b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl">ResNet‑50</td>
+<td class="tdc">24.80&percnt;</td>
+<td class="tdc">7.48&percnt;</td>
+</tr>
+
+
+<tr>
+<td class="tdl">SE‑ResNet‑50</td>
+<td class="tdc">23.29&percnt;</td>
+<td class="tdc">6.62&percnt;</td>
+</tr>
+
+
+<tr>
+<td class="tdl">CBAM‑ResNet‑50</td>
+<td class="tdc"><b>22.99&percnt;</b></td>
+<td class="tdc"><b>6.38&percnt;</b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl">ResNet‑101</td>
+<td class="tdc">23.17&percnt;</td>
+<td class="tdc">6.52&percnt;</td>
+</tr>
+
+
+<tr>
+<td class="tdl">SE‑ResNet‑101</td>
+<td class="tdc">22.38&percnt;</td>
+<td class="tdc">6.07&percnt;</td>
+</tr>
+
+
+<tr>
+<td class="tdl">CBAM‑ResNet‑101</td>
+<td class="tdc"><b>22.16&percnt;</b></td>
+<td class="tdc"><b>5.92&percnt;</b></td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;3: CBAM vs SE‑Net 性能对比
+
+</div>
+
+</div>
+
+</figure>
+
+<p>
+CBAM 相比 SE‑Net 进一步提升了性能：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> ResNet‑50：+0.30&percnt; Top‑1 准确率提升
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> ResNet‑101：+0.22&percnt; Top‑1 准确率提升
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 计算开销极小（<1&percnt;）
+</p>
+</li>
+</ul>
+<!--
+...... section 注意力机制的理论分析......
+-->
+<h4 id="autosec-41"><span class="sectionnumber">5&#x2003;</span>注意力机制的理论分析</h4>
+<a id="document-autopage-41"></a>
+<!--
+...... subsection 数学视角：注意力作为加权平均......
+-->
+<h5 id="autosec-42"><span class="sectionnumber">5.1&#x2003;</span>数学视角：注意力作为加权平均</h5>
+<a id="document-autopage-42"></a>
+
+
+
+<p>
+从数学角度看，注意力机制本质上是加权平均操作：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 注意力的通用形式 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+给定查询\(\mathbf {q}\)、键\(\{\mathbf {k}_i\}\) 和值\(\{\mathbf {v}_i\}\)，注意力输出为：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{22}\)</span>
+
+<!--
+
+
+                                                                                                                     X
+                                                                                      Attention(q, {ki }, {vi }) =       α i vi                                               (23)
+                                                                                                                     i
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+\text {Attention}(\mathbf {q}, \{\mathbf {k}_i\}, \{\mathbf {v}_i\}) = \sum _{i} \alpha _i \mathbf {v}_i
+\end{equation}
+
+
+</p>
+
+<p>
+其中权重\(\alpha _i\) 通过以下方式计算：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{23}\)</span>
+
+<!--
+
+
+                                                                                               exp(score(q, ki ))
+                                                                                         αi = P                                                                               (24)
+                                                                                                j exp(score(q, kj ))
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+\alpha _i = \frac {\exp (\text {score}(\mathbf {q}, \mathbf {k}_i))}{\sum _j \exp (\text {score}(\mathbf {q}, \mathbf {k}_j))}
+\end{equation}
+
+
+</p>
+
+<p>
+<b> 术语解释 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> \(\mathbf {q}\)：查询向量，表示当前需要关注的内容
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\mathbf {k}_i\)：键向量，表示可被关注的内容
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\mathbf {v}_i\)：值向量，包含实际的信息内容
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\alpha _i\)：注意力权重，表示第\(i\) 个元素的重要性
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\exp \)：指数函数，用于将分数转换为正数
+</p>
+</li>
+</ul>
+
+<p>
+常见打分函数：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 点积 </b>：\(\text {score}(\mathbf {q}, \mathbf {k}_i) = \mathbf {q}^T \mathbf {k}_i\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 加性 </b>：\(\text {score}(\mathbf {q}, \mathbf {k}_i) = \mathbf {v}^T \tanh (\mathbf {W}_q \mathbf {q} + \mathbf {W}_k \mathbf {k}_i)\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 缩放点积 </b>：\(\text {score}(\mathbf {q}, \mathbf {k}_i) = \frac {\mathbf {q}^T \mathbf {k}_i}{\sqrt {d}}\)
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 线性代数视角：特征空间的重新加权......
+-->
+<h5 id="autosec-43"><span class="sectionnumber">5.2&#x2003;</span>线性代数视角：特征空间的重新加权</h5>
+<a id="document-autopage-43"></a>
+
+
+
+<p>
+从线性代数角度，注意力机制可以看作是在特征空间上的线性变换：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 通道注意力的矩阵表示 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+设输入特征\(F \in \mathbb {R}^{C \times HW}\)（\(HW = H \times W\)），则通道注意力可以表示为：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{24}\)</span>
+
+
+
+<!--
+
+
+
+                                                                                                              1
+                                                                                      z = GlobalPool(F ) =      F 1 ∈ RC                                                                                (25)
+                                                                                                             HW
+                                                                                      s = σ(W2 δ(W1 z)) ∈ RC                                                                                            (26)
+                                                                                      ′
+                                                                                     F = diag(s)F                                                                                                       (27)
+
+
+
+
+-->
+
+
+
+<p>
+
+
+\begin{align}
+\mathbf {z} &amp;= \text {GlobalPool}(F) = \frac {1}{HW} F \mathbf {1} \in \mathbb {R}^C \\ \mathbf {s} &amp;= \sigma (\mathbf {W}_2 \delta (\mathbf {W}_1 \mathbf {z})) \in \mathbb {R}^C \\ F&apos; &amp;=
+\text {diag}(\mathbf {s}) F
+\end{align}
+
+
+</p>
+
+<p>
+其中：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> \(\mathbf {1} \in \mathbb {R}^{HW}\)：全 1 向量
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\text {diag}(\mathbf {s})\)：以\(\mathbf {s}\) 为对角线的对角矩阵
+</p>
+</li>
+</ul>
+
+<p>
+这相当于：对每个通道\(c\)，乘以注意力权重\(s_c\)，即\(F&apos;_c = s_c \cdot F_c\)。
+</p>
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 线性代数视角的深入理解 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+从线性代数角度看，注意力机制具有以下数学性质：
+</p>
+
+<p>
+<b> 特征空间变换 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 对角变换 </b>：\(\text {diag}(\mathbf {s})\) 是对角矩阵，相当于对每个通道进行独立的缩放
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 保结构变换 </b>：变换保持特征空间的线性结构，但重新加权不同维度的重要性
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 可逆性 </b>：当所有\(s_c &gt; 0\) 时，变换是可逆的
+</p>
+</li>
+</ul>
+
+<p>
+<b> 几何解释 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 特征缩放 </b>：每个特征通道被独立缩放，相当于在特征空间中沿坐标轴方向拉伸或压缩
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 重要性排序 </b>：注意力权重\(\mathbf {s}\) 定义了特征通道的重要性顺序
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 子空间选择 </b>：权重接近 0 的通道被抑制，相当于选择重要的特征子空间
+</p>
+</li>
+</ul>
+
+<p>
+<b> 矩阵分析 </b>：注意力变换可以分解为：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{27}\)</span>
+
+<!--
+
+
+
+                                                                                            F ′ = diag(s) · |{z}
+                                                                                                             F                                                                                          (28)
+                                                                                                  | {z }
+                                                                                                 注意力矩阵 原始特征
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+F&apos; = \underbrace {\text {diag}(\mathbf {s})}_{\text {注意力矩阵}} \cdot \underbrace {F}_{\text {原始特征}}
+\end{equation}
+
+
+</p>
+
+<p>
+其中注意力矩阵是对角矩阵，计算复杂度为\(O(C \cdot HW)\)，相比全连接层的\(O(C^2 \cdot HW)\) 要高效得多。
+</p>
+</div>
+
+</div>
+<!--
+...... subsection 信息论视角：条件概率建模......
+-->
+<h5 id="autosec-44"><span class="sectionnumber">5.3&#x2003;</span>信息论视角：条件概率建模</h5>
+<a id="document-autopage-44"></a>
+
+
+
+<p>
+从信息论角度，注意力机制可以看作是在建模条件概率：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 注意力的概率解释 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+假设我们想预测输出\(y\)，给定输入特征\(\{x_i\}\)。注意力机制学习一个条件分布：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{28}\)</span>
+
+<!--
+
+
+                                                                                                           X
+                                                                                     p(y|{xi }, {ai }) =       p(y|xi )p(xi |{ai })   (29)
+                                                                                                           i
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+p(y | \{x_i\}, \{a_i\}) = \sum _i p(y | x_i) p(x_i | \{a_i\})
+\end{equation}
+
+
+</p>
+
+<p>
+其中注意力权重\(a_i = \frac {\exp (f(x_i))}{\sum _j \exp (f(x_j))}\)，\(f\) 是注意力函数。
+</p>
+
+<p>
+<b> 术语解释 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> \(p(y | \{x_i\}, \{a_i\})\)：给定输入特征和注意力权重的条件概率
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(p(y | x_i)\)：给定单个特征的条件概率
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(p(x_i | \{a_i\})\)：特征在注意力权重下的条件概率
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(f(x_i)\)：注意力打分函数
+</p>
+</li>
+</ul>
+
+<p>
+这相当于：选择性地关注某些特征，忽略其他特征，从而降低模型的不确定性。
+</p>
+
+<p>
+<b> 信息论概念 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 条件概率（Conditional Probability）</b>：在已知某些事件发生的条件下，其他事件发生的概率
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 不确定性（Uncertainty）</b>：在信息论中，表示系统状态的不确定程度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 条件分布（Conditional Distribution）</b>：给定某些条件下，随机变量的概率分布
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 信息论视角的深入分析 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+从信息论角度看，注意力机制具有以下重要性质：
+</p>
+
+<p>
+<b> 信息瓶颈理论 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 信息压缩 </b>：注意力机制通过权重分配实现信息压缩
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 相关特征选择 </b>：选择与目标任务最相关的特征子集
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 互信息最大化 </b>：注意力权重最大化输入特征与输出之间的互信息
+</p>
+</li>
+</ul>
+
+<p>
+<b> 熵与不确定性 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 条件熵减少 </b>：\(H(y|\{x_i\}, \{a_i\}) \leq H(y|\{x_i\})\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 不确定性降低 </b>：注意力机制通过聚焦重要特征降低预测不确定性
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 信息增益 </b>：注意力权重提供了关于哪些特征对预测最有用的信息
+</p>
+</li>
+</ul>
+
+<p>
+<b> 信息论术语解释 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 信息瓶颈理论（Information Bottleneck Theory）</b>：一种理论框架，描述神经网络如何通过压缩输入信息来学习有用表示
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 互信息（Mutual Information）</b>：衡量两个随机变量之间相互依赖程度的量
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 熵（Entropy）</b>：衡量随机变量不确定性的度量
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 条件熵（Conditional Entropy）</b>：在已知某些条件下，随机变量的不确定性
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(H(y|\{x_i\})\)：给定输入特征\(\{x_i\}\) 时输出\(y\) 的条件熵
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 概率图模型视角 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+注意力机制可以看作是一个概率图模型：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{29}\)</span>
+
+<!--
+
+
+
+                                                                                                y ← {xi } ← {ai }                     (30)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+y \leftarrow \{x_i\} \leftarrow \{a_i\}
+\end{equation}
+
+
+</p>
+
+<p>
+其中注意力权重\(\{a_i\}\) 是隐变量，决定了哪些输入特征\(x_i\) 对输出\(y\) 有贡献。
+</p>
+
+<p>
+<b> 变分推断视角 </b>：注意力机制可以看作是在进行变分推断，通过参数化分布\(q(a|x)\) 来近似真实后验分布\(p(a|x,y)\)。
+</p>
+
+<p>
+<b> 概率图模型术语 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 隐变量（Latent Variable）</b>：模型中不可直接观测的变量
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 后验分布（Posterior Distribution）</b>：给定观测数据时，模型参数或隐变量的概率分布
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 变分推断（Variational Inference）</b>：一种近似推断方法，通过优化来近似复杂分布
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 梯度流分析......
+-->
+<h5 id="autosec-45"><span class="sectionnumber">5.4&#x2003;</span>梯度流分析</h5>
+<a id="document-autopage-45"></a>
+
+
+
+<p>
+注意力机制的梯度传播：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b>SE 块的梯度计算 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+对于通道注意力，梯度传播到通道\(c\) 的权重为：
+</p>
+
+<span class="hidden"> \(\seteqnumber{0}{}{30}\)</span>
+
+
+
+<!--
+
+
+
+                                                                                               ∂L     ∂L
+                                                                                                   =        · uc                                                                                      (31)
+                                                                                               ∂sc   ∂ ũc
+                                                                                               ∂L          ∂L
+                                                                                                   = sc ·                                                                                             (32)
+                                                                                               ∂uc         ∂ ũc
+
+
+
+-->
+
+
+
+<p>
+
+
+\begin{align}
+\frac {\partial \mathcal {L}}{\partial s_c} &amp;= \frac {\partial \mathcal {L}}{\partial \tilde {u}_c} \cdot u_c \\ \frac {\partial \mathcal {L}}{\partial u_c} &amp;= s_c \cdot \frac {\partial \mathcal
+{L}}{\partial \tilde {u}_c}
+\end{align}
+
+
+</p>
+
+<p>
+其中\(\mathcal {L}\) 是损失函数。
+</p>
+
+<p>
+这意味着：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 梯度缩放 </b>：通道权重\(s_c\) 缩放了特征\(u_c\) 的梯度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 动态调整 </b>：重要特征的梯度更大，更新更快
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 抑制传播 </b>：不重要的特征梯度较小，更新较慢
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 梯度动态调整机制 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+注意力机制通过智能的梯度分配改善优化过程：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 梯度集中 </b>：重要特征的梯度被放大，加速收敛
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 噪声抑制 </b>：不重要特征的梯度被衰减，减少干扰
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 自适应学习率 </b>：不同特征有不同的有效学习率
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 稀疏性 </b>：注意力权重趋向于稀疏（某些权重接近 0）
+</p>
+</li>
+</ul>
+
+<p>
+这种机制让模型能够专注于真正重要的特征，类似于人类认知中的” 选择性注意” 过程。
+</p>
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 优化理论优势 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+从优化理论角度，注意力机制带来多重好处：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 条件数改善 </b>：注意力机制可以改善损失函数的条件数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 收敛速度 </b>：梯度集中在重要特征上可以加速收敛
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 局部最小值避免 </b>：动态的注意力权重有助于跳出局部最小值
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 泛化能力 </b>：注意力机制通过特征选择提高模型泛化能力
+</p>
+</li>
+</ul>
+
+<p>
+<b> 优化理论术语解释 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 条件数（Condition Number）</b>：衡量函数优化难易程度的指标，条件数越小越容易优化
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 收敛速度（Convergence Rate）</b>：优化算法达到最优解的速度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 局部最小值（Local Minimum）</b>：损失函数在某个小区域内的最小值，但不一定是全局最小值
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 泛化能力（Generalization Ability）</b>：模型在未见过的数据上的表现能力
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 数学分析：梯度传播机制 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+考虑损失函数\(\mathcal {L}\)，注意力机制引入的梯度变化：
+</p>
+<span class="hidden"> \(\seteqnumber{0}{}{32}\)</span>
+
+
+
+<!--
+
+
+
+                                                                                       ∂L X        ∂L ∂Fc
+                                                                                          =   sc ·      ·                                                                                             (33)
+                                                                                       ∂θ   c
+                                                                                                   ∂F c   ∂θ
+                                                                                            X              ∂L    ∂Fc
+                                                                                          =       sc    ·      ·                                                                                      (34)
+                                                                                                |{z}      ∂Fc     ∂θ
+                                                                                            c
+                                                                                              注意力权重       |{z}   |{z}
+                                                                                                          特征梯度 参数梯度
+
+
+
+
+-->
+
+
+
+<p>
+
+
+\begin{align}
+\frac {\partial \mathcal {L}}{\partial \theta } &amp;= \sum _c s_c \cdot \frac {\partial \mathcal {L}}{\partial F_c} \cdot \frac {\partial F_c}{\partial \theta } \\ &amp;= \sum _c \underbrace
+{s_c}_{\text {注意力权重}} \cdot \underbrace {\frac {\partial \mathcal {L}}{\partial F_c}}_{\text {特征梯度}} \cdot \underbrace {\frac {\partial F_c}{\partial \theta }}_{\text {参数梯度}}
+\end{align}
+
+
+</p>
+
+<p>
+<b> 术语解释 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> \(\theta \)：模型参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\frac {\partial \mathcal {L}}{\partial \theta }\)：损失函数对模型参数的梯度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\frac {\partial F_c}{\partial \theta }\)：特征对模型参数的梯度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\sum _c\)：对所有通道求和
+</p>
+</li>
+</ul>
+
+<p>
+这意味着：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 当\(s_c \approx 1\) 时，特征\(c\) 的梯度被完全保留
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 当\(s_c \approx 0\) 时，特征\(c\) 的梯度被抑制
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 梯度传播变得更有针对性
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 优化稳定性保障 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+注意力机制还提供了重要的稳定性保障：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 梯度裁剪 </b>：注意力权重自然限制了梯度大小
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 数值稳定性 </b>：Sigmoid 激活函数提供数值稳定性
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 训练平滑性 </b>：注意力权重变化相对平滑，避免训练震荡
+</p>
+</li>
+</ul>
+
+<p>
+这些特性共同确保了训练过程的稳定性和可靠性。
+</p>
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 核心优化优势总结 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+注意力机制通过智能地重新分配计算资源，让模型能够：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 专注于真正重要的特征 </b>
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 抑制噪声和无关特征的干扰 </b>
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 实现更高效的梯度传播 </b>
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 提升整体优化效率和模型性能 </b>
+</p>
+</li>
+</ul>
+
+<p>
+这种机制本质上模拟了人类认知中的” 选择性注意” 过程，在深度学习优化中起到了类似” 特征重要性指导” 的作用。
+</p>
+</div>
+
+</div>
+<!--
+...... section 其他注意力机制......
+-->
+<h4 id="autosec-46"><span class="sectionnumber">6&#x2003;</span>其他注意力机制</h4>
+<a id="document-autopage-46"></a>
+
+
+
+<p>
+除了 SE‑Net 和 CBAM，还有许多其他注意力机制&nbsp;[?, ?, ?]：
+</p>
+<!--
+...... subsection 非局部注意力（Non-Local Attention）......
+-->
+<h5 id="autosec-47"><span class="sectionnumber">6.1&#x2003;</span>非局部注意力（Non‑Local Attention）</h5>
+<a id="document-autopage-47"></a>
+
+
+
+<p>
+非局部注意力&nbsp;[?] 用于捕获长距离依赖：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 非局部注意力公式 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<span class="hidden"> \(\seteqnumber{0}{}{34}\)</span>
+
+<!--
+
+
+                                                                                                 1 X
+                                                                                         yi =        f (xi , xj )g(xj )   (35)
+                                                                                                C(x)
+                                                                                                     ∀j
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+\mathbf {y}_i = \frac {1}{\mathcal {C}(\mathbf {x})} \sum _{\forall j} f(\mathbf {x}_i, \mathbf {x}_j) g(\mathbf {x}_j)
+\end{equation}
+
+
+</p>
+
+<p>
+其中：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> \(f(\mathbf {x}_i, \mathbf {x}_j)\)：位置\(i\) 和\(j\) 之间的关系
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(g(\mathbf {x}_j)\)：位置\(j\) 的特征嵌入
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\mathcal {C}(\mathbf {x})\)：归一化因子
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 自注意力（Self-Attention）......
+-->
+<h5 id="autosec-48"><span class="sectionnumber">6.2&#x2003;</span>自注意力（Self‑Attention）</h5>
+<a id="document-autopage-48"></a>
+
+
+
+<p>
+自注意力机制&nbsp;[?] 允许模型关注自身特征的不同位置：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 多头自注意力 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<span class="hidden"> \(\seteqnumber{0}{}{35}\)</span>
+
+<!--
+
+
+
+                                                                                   Headi = Attention(QWiQ , KWiK , V WiV )   (36)
+
+
+-->
+
+<p>
+
+
+\begin{equation}
+\text {Head}_i = \text {Attention}(QW_i^Q, KW_i^K, VW_i^V)
+\end{equation}
+
+
+</p>
+
+<p>
+其中\(Q = K = V = X\)（输入特征）。
+</p>
+
+<p>
+多头注意力通过多个注意力头捕获不同类型的关系。
+</p>
+</div>
+
+</div>
+<!--
+...... subsection 协调注意力（Coordinate Attention）......
+-->
+<h5 id="autosec-49"><span class="sectionnumber">6.3&#x2003;</span>协调注意力（Coordinate Attention）</h5>
+<a id="document-autopage-49"></a>
+
+
+
+<p>
+协调注意力&nbsp;[?] 将空间位置信息编码到通道注意力中：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 协调注意力 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+分为两个步骤：
+</p>
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 坐标信息嵌入 </b>：
+</p>
+<span class="hidden"> \(\seteqnumber{0}{}{36}\)</span>
+
+
+<!--
+
+
+                                                                                                      1 X
+                                                                                                          W
+                                                                                              zch =         xc (i, j)        (37)
+                                                                                                      W i=1
+
+                                                                                                      1 X
+                                                                                                          H
+                                                                                              zcw =         xc (i, j)        (38)
+                                                                                                      H j=1
+
+
+-->
+
+
+<p>
+
+
+\begin{align}
+z_c^h &amp;= \frac {1}{W} \sum _{i=1}^{W} x_c(i, j) \\ z_c^w &amp;= \frac {1}{H} \sum _{j=1}^{H} x_c(i, j)
+\end{align}
+
+
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 坐标注意力生成 </b>：
+</p>
+<span class="hidden"> \(\seteqnumber{0}{}{38}\)</span>
+
+
+<!--
+
+
+
+                                                                                                  α = σ(F1 (zch ))           (39)
+                                                                                                  β = σ(F2 (zcw ))           (40)
+                                                                                            yc (i, j) = α · β · xc (i, j)    (41)
+
+
+
+-->
+
+
+<p>
+
+
+\begin{align}
+\alpha &amp;= \sigma (F_1(z_c^h)) \\ \beta &amp;= \sigma (F_2(z_c^w)) \\ y_c(i,j) &amp;= \alpha \cdot \beta \cdot x_c(i,j)
+\end{align}
+
+
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 不同注意力机制的对比......
+-->
+<h5 id="autosec-50"><span class="sectionnumber">6.4&#x2003;</span>不同注意力机制的对比</h5>
+<a id="document-autopage-50"></a>
+
+
+
+<figure id="autoid-9" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 机制 </b></td>
+<td class="tdc"><b> 参数增加 </b></td>
+<td class="tdc"><b> 计算开销 </b></td>
+<td class="tdc"><b> 内存需求 </b></td>
+<td class="tdc"><b> 性能提升 </b></td>
+<td class="tdc"><b> 易集成 </b></td>
+<td class="tdc"><b> 适用场景 </b></td>
+<td class="tdc"><b> 主要优势 </b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl">SE‑Net</td>
+<td class="tdc"> 中等 </td>
+<td class="tdc"> 很低 </td>
+<td class="tdc"> 低 </td>
+<td class="tdc"> 高 </td>
+<td class="tdc"> 容易 </td>
+<td class="tdc"> 通用分类 </td>
+<td class="tdc"> 通道选择 </td>
+</tr>
+
+
+<tr>
+<td class="tdl">CBAM</td>
+<td class="tdc"> 中等 </td>
+<td class="tdc"> 低 </td>
+<td class="tdc"> 中等 </td>
+<td class="tdc"> 很高 </td>
+<td class="tdc"> 容易 </td>
+<td class="tdc"> 多任务 </td>
+<td class="tdc"> 通道 + 空间 </td>
+</tr>
+
+
+<tr>
+<td class="tdl">Non‑local</td>
+<td class="tdc"> 高 </td>
+<td class="tdc"> 高 </td>
+<td class="tdc"> 高 </td>
+<td class="tdc"> 很高 </td>
+<td class="tdc"> 困难 </td>
+<td class="tdc"> 长距离依赖 </td>
+<td class="tdc"> 全局上下文 </td>
+</tr>
+
+
+<tr>
+<td class="tdl">Self‑Attention</td>
+<td class="tdc"> 高 </td>
+<td class="tdc"> 高 </td>
+<td class="tdc"> 高 </td>
+<td class="tdc"> 很高 </td>
+<td class="tdc"> 困难 </td>
+<td class="tdc"> 序列建模 </td>
+<td class="tdc"> 自相关性 </td>
+</tr>
+
+
+<tr>
+<td class="tdl">Coordinate Attention</td>
+<td class="tdc"> 低 </td>
+<td class="tdc"> 很低 </td>
+<td class="tdc"> 低 </td>
+<td class="tdc"> 高 </td>
+<td class="tdc"> 容易 </td>
+<td class="tdc"> 移动端 </td>
+<td class="tdc"> 位置感知 </td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;4: 不同注意力机制的特性对比
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 选择注意力机制的详细准则 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+<b> 根据计算资源选择 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 计算资源有限 </b>：选择 SE‑Net 或 Coordinate Attention（参数增加少，计算开销低）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 追求最佳性能 </b>：选择 CBAM 或 Non‑Local（性能提升显著，但计算成本高）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 平衡性能与效率 </b>：选择 SE‑Net 或 CBAM（在性能和效率间取得良好平衡）
+</p>
+</li>
+</ul>
+
+<p>
+<b> 根据任务类型选择 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 图像分类 </b>：SE‑Net 或 CBAM（关注通道重要性）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 目标检测 </b>：CBAM 或 Coordinate Attention（需要空间位置信息）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 语义分割 </b>：Non‑Local 或 CBAM（需要长距离上下文）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 移动端应用 </b>：Coordinate Attention 或 SE‑Net（轻量级设计）
+</p>
+</li>
+</ul>
+
+<p>
+<b> 根据实现复杂度选择 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 容易实现 </b>：SE‑Net 或 CBAM（结构简单，易于集成）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 中等复杂度 </b>：Coordinate Attention（需要坐标编码）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 复杂实现 </b>：Non‑Local 或 Self‑Attention（计算复杂度高）
+</p>
+</li>
+</ul>
+
+<p>
+<b> 性能与效率权衡 </b>：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b>SE‑Net</b>：性能提升约 1‑2&percnt;，参数增加约 10&percnt;
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>CBAM</b>：性能提升约 1.5‑2.5&percnt;，参数增加约 10‑15&percnt;
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>Non‑Local</b>：性能提升约 2‑3&percnt;，参数增加约 20‑30&percnt;
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>Coordinate Attention</b>：性能提升约 1‑1.5&percnt;，参数增加约 5‑8&percnt;
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... section 实际应用案例......
+-->
+<h4 id="autosec-53"><span class="sectionnumber">7&#x2003;</span>实际应用案例</h4>
+<a id="document-autopage-53"></a>
+
+
+
+<p>
+注意力机制在实际任务中取得了显著成果：
+</p>
+<!--
+...... subsection 图像分类......
+-->
+<h5 id="autosec-54"><span class="sectionnumber">7.1&#x2003;</span>图像分类</h5>
+<a id="document-autopage-54"></a>
+
+
+
+<p>
+在 ImageNet 分类任务&nbsp;[?] 中：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> ResNet‑50 + CBAM：Top‑1 准确率提升 0.81&percnt;
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> EfficientNet + SE：显著减少参数量
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> Vision Transformer 中使用自注意力机制
+</p>
+</li>
+</ul>
+<!--
+...... subsection 目标检测......
+-->
+<h5 id="autosec-55"><span class="sectionnumber">7.2&#x2003;</span>目标检测</h5>
+<a id="document-autopage-55"></a>
+
+
+
+<p>
+在 COCO 数据集&nbsp;[?] 上：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> Faster R‑CNN + SE‑ResNet‑50：AP 提升 2.4&percnt;
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> RetinaNet + CBAM：改进对小目标的检测
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> YOLO 系列整合 SE 模块提升检测精度
+</p>
+</li>
+</ul>
+<!--
+...... subsection 语义分割......
+-->
+<h5 id="autosec-56"><span class="sectionnumber">7.3&#x2003;</span>语义分割</h5>
+<a id="document-autopage-56"></a>
+
+
+
+<p>
+在 Cityscapes 数据集&nbsp;[?] 中：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> DeepLab v3+ + CBAM：mIoU 提升 1.2&percnt;
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> PSPNet + 注意力机制：改进上下文建模
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 注意力引导的分割网络：提升边界精度
+</p>
+</li>
+</ul>
+<!--
+...... section 优势、局限与未来方向......
+-->
+<h4 id="autosec-57"><span class="sectionnumber">8&#x2003;</span>优势、局限与未来方向</h4>
+<a id="document-autopage-57"></a>
+<!--
+...... subsection 注意力机制的优势......
+-->
+<h5 id="autosec-58"><span class="sectionnumber">8.1&#x2003;</span>注意力机制的优势</h5>
+<a id="document-autopage-58"></a>
+
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 主要优势 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 性能提升显著 </b>：在多项任务上取得 SOTA 结果
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 计算开销小 </b>：相比模型规模增加，性能提升巨大
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 易于集成 </b>：可插入现有 CNN 架构
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 可解释性强 </b>：注意力权重可视化帮助理解模型
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b> 通用性强 </b>：适用于各种视觉任务
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 注意力机制的局限......
+-->
+<h5 id="autosec-59"><span class="sectionnumber">8.2&#x2003;</span>注意力机制的局限</h5>
+<a id="document-autopage-59"></a>
+
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 主要局限 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 手工设计 </b>：注意力机制通常是经验设计的，缺乏理论指导
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 计算复杂度 </b>：某些注意力机制（如 Non‑Local）计算开销大
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 内存占用 </b>：部分注意力机制需要额外内存存储注意力图
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 优化困难 </b>：某些注意力机制可能引入优化不稳定性
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b> 任务依赖 </b>：不同任务可能需要不同的注意力机制
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 优化中的问题 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+在训练带有注意力机制的网络时：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 梯度不稳定 </b>：Sigmoid 激活函数在饱和区梯度接近 0
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 注意力崩溃 </b>：所有注意力权重趋向于相等
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 过拟合 </b>：注意力机制可能学习到数据中的噪声
+</p>
+</li>
+</ul>
+
+<p>
+解决方法：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 梯度裁剪 </b>：防止梯度爆炸
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>L2 正则化 </b>：防止注意力权重过大
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>Dropout</b>：在注意力计算中应用 Dropout
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 学习率调度 </b>：使用适当的学习率和调度策略
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 未来研究方向......
+-->
+<h5 id="autosec-60"><span class="sectionnumber">8.3&#x2003;</span>未来研究方向</h5>
+<a id="document-autopage-60"></a>
+
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 未来可能的方向 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 自动化设计 </b>：使用神经架构搜索（NAS）自动设计注意力机制
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 多模态注意力 </b>：结合视觉、语言、音频的注意力机制
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 高效注意力 </b>：设计更轻量、更快速的注意力机制
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 可解释注意力 </b>：提高注意力机制的可解释性和可信度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b> 理论基础 </b>：建立注意力机制的统一理论框架
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 最新研究进展（2024‑2025）</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 轻量级注意力 </b>：MobileViT Attention、Efficient Attention
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 动态注意力 </b>：根据输入自适应调整注意力结构 <b> 跨尺度注意力 </b>：处理多尺度特征图的注意力机制
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 注意力蒸馏 </b>：将大模型的注意力知识迁移到小模型
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... section 实践指南：如何在项目中使用注意力机制......
+-->
+<h4 id="autosec-61"><span class="sectionnumber">9&#x2003;</span>实践指南：如何在项目中使用注意力机制</h4>
+<a id="document-autopage-61"></a>
+<!--
+...... subsection 选择合适的注意力机制......
+-->
+<h5 id="autosec-62"><span class="sectionnumber">9.1&#x2003;</span>选择合适的注意力机制</h5>
+<a id="document-autopage-62"></a>
+
+
+
+<p>
+根据项目需求选择：
+</p>
+
+<figure id="autoid-10" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 场景 </b></td>
+<td class="tdl"><b> 推荐方案 </b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl"> 图像分类（通用）
+                        </td>
+<td class="tdl">CBAM 或 SE‑Net</td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 目标检测（实时性要求高）
+                            </td>
+<td class="tdl">SE‑Net（轻量）
+                         </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 语义分割（高精度要求）
+                           </td>
+<td class="tdl">CBAM + Non‑Local</td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 移动端应用 </td>
+<td class="tdl">Coordinate Attention 或 SE（reduction ratio 大）
+                                                           </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 医学图像分析 </td>
+<td class="tdl">CBAM（准确率优先）
+                          </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 遥感图像处理 </td>
+<td class="tdl">Dual Attention</td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdl"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;5: 注意力机制选择指南
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... subsection 超参数调优......
+-->
+<h5 id="autosec-65"><span class="sectionnumber">9.2&#x2003;</span>超参数调优</h5>
+<a id="document-autopage-65"></a>
+
+
+
+<p>
+关键超参数及其调优：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 关键超参数 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 降维比率\(r\)</b>（SE‑Net, CBAM）
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 小\(r\)（4‑8）：性能更好，计算量大
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 大\(r\)（32‑64）：计算高效，可能损失性能
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 推荐：16（默认），或针对不同层使用不同\(r\)
+</p>
+</li>
+</ul>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 卷积核大小 </b>（空间注意力）
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 3×3：计算快，感受野小
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 7×7：计算稍慢，感受野大
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 推荐：7×7（第一层），3×3（深层）
+</p>
+</li>
+</ul>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 插入位置 </b>（CBAM）
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 残差块前：增强特征表示
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 残差块后：直接调整输出
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 推荐：残差块后（CBAM 原论文）
+</p>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 常见问题与解决方案......
+-->
+<h5 id="autosec-66"><span class="sectionnumber">9.3&#x2003;</span>常见问题与解决方案</h5>
+<a id="document-autopage-66"></a>
+
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 常见问题 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 内存不足 </b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 减少 batch size
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 使用 gradient checkpointing
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 选择更轻量的注意力机制
+</p>
+</li>
+</ul>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 训练不稳定 </b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 降低学习率
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 使用梯度裁剪
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 检查初始化
+</p>
+</li>
+</ul>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 没有性能提升 </b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 调整\(r\) 值
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 检查实现是否正确
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 确保训练充分
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 可视化注意力权重
+</p>
+</li>
+</ul>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 推理速度慢 </b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 使用 TensorRT 优化
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 减少注意力模块数量
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 使用 INT8 量化
+</p>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... section 总结......
+-->
+<h4 id="autosec-67"><span class="sectionnumber">10&#x2003;</span>总结</h4>
+<a id="document-autopage-67"></a>
+
+
+
+<p>
+本文全面介绍了注意力机制在 CNN 中的应用，从基础的通道注意力（SE‑Net）到混合注意力（CBAM），再到其他先进的注意力机制。关键要点：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 核心要点 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 注意力机制的本质 </b>：让神经网络能够动态地关注重要特征，忽略无关信息
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 通道注意力 </b>：通过全局池化和全连接网络学习通道权重
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 空间注意力 </b>：通过空间位置编码关注重要区域
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 混合注意力 </b>：结合通道和空间注意力，实现更全面的特征选择
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b> 性能提升 </b>：在多种任务上取得显著性能提升，同时保持低计算开销
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">6.</span> <b> 实际应用 </b>：已广泛应用于图像分类、目标检测、语义分割等任务
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<p>
+注意力机制是深度学习发展的重要里程碑，它不仅提升了模型性能，更重要的是为模型提供了更强的可解释性。随着研究的深入，我们期待看到更多创新性的注意力机制被提出，推动人工智能技术的发展。
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 给学习者的建议 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 动手实践 </b>：亲自实现 SE‑Net 和 CBAM，理解每一步的计算
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 可视化分析 </b>：使用注意力可视化工具观察模型的注意力分布
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 调参实验 </b>：尝试不同的\(r\) 值、插入位置等超参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 阅读论文 </b>：关注最新的注意力机制研究进展
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b> 实际应用 </b>：将注意力机制应用到自己的项目中
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... section 参考文献......
+-->
+<h4 id="autosec-68">参考文献</h4>
+<a id="document-autopage-68"></a>
+
+
+
+<ul class="list" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">[1]&#x2003;</span> Jie Hu, Li Shen, Samuel Albanie, Gang Sun, and Enhua Wu, ”Squeeze‑and‑excitation networks,” <i>IEEE Transactions on Pattern Analysis and Machine
+Intelligence</i>, vol. 42, no. 8, pp. 2011–2023, Aug. 2020.
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">[2]&#x2003;</span> Sanghyun Woo, Jongchan Park, Joon‑Young Lee, and In So Kweon, ”CBAM: Convolutional block attention module,” in <i>Proceedings of the European Conference
+on Computer Vision (ECCV)</i>, Munich, Germany, Sep. 2018, pp. 3–19.
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">[3]&#x2003;</span> Han Zhang, Ian Goodfellow, Dimitrios Metaxas, and Augustus Odena, ”Self‑attention generative adversarial networks,” in <i>International Conference on
+Machine Learning</i>, Long Beach, CA, USA, Jun. 2019, pp. 7354–7363.
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">[4]&#x2003;</span> Fei Wang, Mengqing Jiang, Chen Qian, Shuo Yang, Cheng Li, Honggang Zhang, Xiaogang Wang, and Xiaoou Tang, ”Residual attention network for image
+classification,” in <i>Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)</i>, Honolulu, HI, USA, Jul. 2017, pp. 3156–3164.
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">[5]&#x2003;</span> Jun Fu, Jing Liu, Haijie Tian, Zhiwei Fang, and Lingqing Shen, ”Dual attention network for scene segmentation,” in <i>Proceedings of the IEEE/CVF Conference on
+Computer Vision and Pattern Recognition (CVPR)</i>, Long Beach, CA, USA, Jun. 2019, pp. 3146–3154.
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">[6]&#x2003;</span> Xiaolong Wang, Ross Girshick, Abhinav Gupta, and Kaiming He, ”Non‑local neural networks,” in <i>Proceedings of the IEEE Conference on Computer Vision and
+Pattern Recognition (CVPR)</i>, Salt Lake City, UT, USA, Jun. 2018, pp. 7794–7803.
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">[7]&#x2003;</span> Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez,   ukasz Kaiser, and Illia Polosukhin, ”Attention is all you need,” in
+<i>Advances in Neural Information Processing Systems 30</i>, Long Beach, CA, USA, Dec. 2017, pp. 5998–6008.
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">[8]&#x2003;</span> Qibin Hou, Ma‑Mi Zhai, Dacheng Tao, and Xian‑Song, ”Coordinate attention for efficient mobile network design,” in <i>Proceedings of the IEEE/CVF Conference
+on Computer Vision and Pattern Recognition (CVPR)</i>, Nashville, TN, USA, Jun. 2021, pp. 13708–13717.
+</p>
+<p>
+
+
+</p>
+</li>
+</ul>
+<!--
+...... section 代码实现附录......
+-->
+<h4 id="autosec-69"><span class="sectionnumber">A&#x2003;</span>代码实现附录</h4>
+<a id="document-autopage-69"></a>
+
+
+
+<p>
+本附录提供了文中提到的所有注意力机制的完整 PyTorch 实现代码。
+</p>
+<!--
+...... subsection SE 块实现 (se-block.py) ......
+-->
+<h5 id="autosec-70"><span class="sectionnumber">A.1&#x2003;</span>SE 块实现 (se_block.py)</h5>
+<a id="document-autopage-70"></a>
+<div class="figurecaption">
+
+<a id="autoid-11" ></a >
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import torch
+2    import torch . nn as nn
+3
+4     class SEBlock(nn.Module):
+5        ”””
+6        Squeeze−and− Excitation Block
+7
+8        Args :
+9             channels ( int ) : 输入特征图的通道数
+10                reduction ( int ) : 降维比率，默认为16
+11        ”””
+12        def __init__ ( self , channels , reduction =16) :
+13                super(SEBlock , self ) . __init__ ()
+14
+15                # Squeeze : 全局平均池化
+16                self . avg_pool = nn. Adaptive \ mathrm{AvgPool}2d(1)
+17
+18                # Excitation : 两层全连接网络
+19                self . fc = nn. Sequential (
+20                     # 降维 : C − &gt; C/r
+21                     nn. Linear ( channels , channels // reduction , bias = False ) ,
+22                     nn.ReLU(inplace=True) ,
+23                     # 升维 : C/r − &gt; C
+24                     nn. Linear ( channels // reduction , channels , bias = False ) ,
+25                     nn.Sigmoid ()
+26                )
+27
+28        def forward ( self , x) :
+29                ”””
+30                Args :
+31                     x : 输入特征图 [ B, C, H, W]
+32                Returns :
+33                     out : 加权后的特征图 [ B, C, H, W]
+34                ”””
+35                batch , channels , _ , _ = x . size ()
+36
+37                # Squeeze : [ B, C, H, W] − &gt; [ B, C, 1, 1]
+38                y = self . avg_pool (x)
+39
+40                # Flatten : [ B, C, 1, 1] − &gt; [ B, C]
+41                y = y . view( batch , channels )
+42
+43                # Excitation : [ B, C] − &gt; [ B, C]
+44                y = self . fc ( y )
+45
+46                # Reshape: [ B, C] − &gt; [ B, C, 1, 1]
+47                y = y . view( batch , channels , 1, 1)
+48
+49                # Scale : 特征重标定
+50                return x * y . expand_as(x)
+51
+52
+53    # 使用示例
+54     if __name__ == ”__main__”:
+55        # 创建块SE
+56        se_block = SEBlock( channels =64, reduction =16)
+57
+58        # 测试输入
+59        x = torch . randn (2, 64, 56, 56)          # [ B, C, H, W]
+60        output = se_block (x)
+61
+62        print ( f”输入形状: {x . shape}”)
+63        print ( f”输出形状: { output . shape}”)
+64        print ( f”参数数量: {sum(p.numel() for p in se_block . parameters () ) }”)
+</pre>
+
+
+           <div class="figurecaption">
+
+
+Listing&nbsp;1: SE 块的完整实现
+</div>
+<!--
+...... subsection 空间注意力实现 (spatial-attention.py) ......
+-->
+<h5 id="autosec-72"><span class="sectionnumber">A.2&#x2003;</span>空间注意力实现 (spatial_attention.py)</h5>
+<a id="document-autopage-72"></a>
+<div class="figurecaption">
+
+<a id="autoid-12" ></a >
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import torch
+2    import torch . nn as nn
+3
+4     class     SpatialAttention (nn.Module):
+5         ”””
+6         Spatial      Attention Module
+7
+8         Args :
+9                 kernel_size ( int ) : 卷积核大小，默认为7
+10            ”””
+11            def __init__ ( self ,     kernel_size =7) :
+12                 super( SpatialAttention , self ) . __init__ ()
+13
+14                 assert     kernel_size in (3, 7) , &apos; kernel size must be 3 or 7 &apos;
+15                 padding = 3 if       kernel_size == 7 else 1
+16
+17                 # 7卷积层x7
+18                 self . conv = nn.Conv2d(
+19                       in_channels =2,       # 平均池化 + 最大池化
+20                       out_channels =1,
+21                       kernel_size = kernel_size ,
+22                      padding=padding,
+23                       bias = False
+24                 )
+25                 self . sigmoid = nn.Sigmoid ()
+26
+27            def forward ( self , x) :
+28                 ”””
+29                 Args :
+30                      x : 输入特征图 [ B, C, H, W]
+31                 Returns :
+32                       out : 加权后的特征图 [ B, C, H, W]
+33                 ”””
+34                 # 沿通道维度进行池化
+35                 avg_out = torch . mean(x, dim=1, keepdim=True) # [ B, 1, H, W]
+36                 max_out, _ = torch . max(x, dim=1, keepdim=True) # [ B, 1, H, W]
+37
+38                 # Concatenate : [ B, 2, H, W]
+39                 pooled = torch . cat ([ avg_out , max_out], dim=1)
+40
+41                 # 卷积 + Sigmoid: [ B, 2, H, W] − &gt; [ B, 1, H, W]
+42                 attention = self . sigmoid ( self . conv(pooled ) )
+43
+44                 # 空间加权
+45                 return x * attention
+46
+47
+48    # 使用示例
+49     if __name__ == ”__main__”:
+50            # 创建空间注意力模块
+51             spatial_attn    =   SpatialAttention ( kernel_size =7)
+52
+53            # 测试输入
+54            x = torch . randn (2, 64, 56, 56)
+55            output =      spatial_attn (x)
+56
+57            print ( f”输入形状: {x . shape}”)
+58            print ( f”输出形状: { output . shape}”)
+59            print ( f”参数数量: {sum(p.numel() for p in             spatial_attn . parameters () ) }”)
+</pre>
+
+
+              <div class="figurecaption">
+
+
+Listing&nbsp;2: 空间注意力模块的完整实现
+</div>
+<!--
+...... subsection CBAM 完整实现 (cbam.py) ......
+-->
+<h5 id="autosec-74"><span class="sectionnumber">A.3&#x2003;</span>CBAM 完整实现 (cbam.py)</h5>
+<a id="document-autopage-74"></a>
+<div class="figurecaption">
+
+<a id="autoid-13" ></a >
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import torch
+2    import torch . nn as nn
+3
+4     class ChannelAttention (nn.Module):
+5         ”””
+6         Channel Attention Module (的通道注意力子模块CBAM)
+7
+8         Args :
+9              channels ( int ) : 输入特征图的通道数
+10                 reduction ( int ) : 降维比率，默认为16
+11         ”””
+12         def __init__ ( self , channels , reduction =16) :
+13                 super( ChannelAttention , self ) . __init__ ()
+14
+15                 self . avg_pool = nn. Adaptive \ mathrm{AvgPool}2d(1)
+16                 self . max_pool = nn. Adaptive \ mathrm{MaxPool}2d(1)
+17
+18                 # 共享的 \ mathrm{MLP}
+19                 self .\ mathrm{MLP} = nn. Sequential (
+20                     nn.Conv2d(channels , channels // reduction , 1, bias = False ) ,
+21                     nn.ReLU(inplace=True) ,
+22                     nn.Conv2d(channels // reduction , channels , 1, bias = False )
+23                 )
+24                 self . sigmoid = nn.Sigmoid ()
+25
+26         def forward ( self , x) :
+27                 # 平均池化分支
+28                 avg_out = self .\ mathrm{MLP}(self. avg_pool (x) )
+29                 # 最大池化分支
+30                 max_out = self .\ mathrm{MLP}(self.max_pool(x) )
+31                 # 合并并激活
+32                 out = self . sigmoid ( avg_out + max_out)
+33                 return x * out
+34
+35
+36     class   SpatialAttention (nn.Module):
+37         ”””
+38         Spatial      Attention Module (的空间注意力子模块CBAM)
+39
+40         Args :
+41                 kernel_size ( int ) : 卷积核大小，默认为7
+42         ”””
+43         def __init__ ( self ,     kernel_size =7) :
+44                 super( SpatialAttention , self ) . __init__ ()
+45
+46                 assert   kernel_size in (3, 7) , &apos; kernel size must be 3 or 7 &apos;
+47                 padding = 3 if    kernel_size == 7 else 1
+48
+49                 self . conv = nn.Conv2d(2, 1,      kernel_size , padding=padding, bias = False )
+50                 self . sigmoid = nn.Sigmoid ()
+51
+52         def forward ( self , x) :
+53                 avg_out = torch . mean(x, dim=1, keepdim=True)
+54                 max_out, _ = torch . max(x, dim=1, keepdim=True)
+55                 pooled = torch . cat ([ avg_out , max_out], dim=1)
+56                 attention = self . sigmoid ( self . conv(pooled ) )
+57                 return x * attention
+58
+59
+60     class CBAM(nn.Module):
+61         ”””
+62         Convolutional Block Attention Module
+63
+64         Args :
+65                 channels ( int ) : 输入特征图的通道数
+66                 reduction ( int ) : 通道注意力的降维比率，默认为16
+67                 kernel_size ( int ) : 空间注意力的卷积核大小，默认为7
+68         ”””
+69         def __init__ ( self , channels , reduction =16,        kernel_size =7) :
+70                 super(CBAM, self ) . __init__ ()
+71
+72                 self . channel_attention = ChannelAttention ( channels , reduction )
+73                 self . spatial_attention   =   SpatialAttention ( kernel_size )
+74
+75         def forward ( self , x) :
+76                 # 先应用通道注意力
+77                 out = self . channel_attention ( x)
+78                 # 再应用空间注意力
+79                 out = self . spatial_attention ( out )
+80                 return out
+81
+82
+83    # 使用示例
+84     if __name__ == ”__main__”:
+85         # 创建模块CBAM
+86         cbam = CBAM(channels=64, reduction =16,           kernel_size =7)
+87
+88         # 测试输入
+89         x = torch . randn (2, 64, 56, 56)
+90         output = cbam(x)
+91
+92         print ( f”输入形状: {x . shape}”)
+93         print ( f”输出形状: { output . shape}”)
+94         print ( f”参数数量: {sum(p.numel() for p in cbam.parameters () ) }”)
+</pre>
+
+
+           <div class="figurecaption">
+
+
+Listing&nbsp;3: CBAM 模块的完整实现
+</div>
+<!--
+...... subsection ResNet-CBAM 集成 (resnet-cbam.py) ......
+-->
+<h5 id="autosec-76"><span class="sectionnumber">A.4&#x2003;</span>ResNet‑CBAM 集成 (resnet_cbam.py)</h5>
+<a id="document-autopage-76"></a>
+<div class="figurecaption">
+
+<a id="autoid-14" ></a >
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1     import torch
+2     import torch . nn as nn
+3     from cbam import CBAM
+4
+5     class CBAMBottleneck(nn.Module):
+6         ”””
+7         ResNet 块 Bottleneck + CBAM
+8
+9         Args :
+10                 in_channels ( int ) : 输入通道数
+11                 out_channels ( int ) : 输出通道数
+12                 stride ( int ) : 步长
+13                 reduction ( int ) : 的降维比率CBAM
+14         ”””
+15         expansion = 4
+16
+17         def __init__ ( self , in_channels , out_channels , stride =1,
+18                                downsample=None, reduction=16) :
+19                 super(CBAMBottleneck, self ) . __init__ ()
+20
+21                 # 1卷积降维x1
+22                 self . conv1 = nn.Conv2d( in_channels , out_channels ,
+23                                                 kernel_size =1, bias = False )
+24                 self . bn1 = nn.BatchNorm2d(out_channels)
+25
+26                 # 3卷积x3
+27                 self . conv2 = nn.Conv2d(out_channels , out_channels ,
+28                                                 kernel_size =3, stride = stride ,
+29                                                padding=1, bias = False )
+30                 self . bn2 = nn.BatchNorm2d(out_channels)
+31
+32                 # 1卷积升维x1
+33                 self . conv3 = nn.Conv2d(out_channels ,
+34                                                out_channels * self . expansion ,
+35                                                 kernel_size =1, bias = False )
+36                 self . bn3 = nn.BatchNorm2d(out_channels * self . expansion )
+37
+38                 # 模块CBAM
+39                 self . cbam = CBAM(out_channels * self . expansion , reduction )
+40
+41                 self . relu = nn.ReLU(inplace=True)
+42                 self . downsample = downsample
+43                 self . stride = stride
+44
+45         def forward ( self , x) :
+46                 identity = x
+47
+48                 # 主路径
+49                 out = self . conv1(x)
+50                 out = self . bn1(out )
+51                 out = self . relu ( out )
+52
+53                 out = self . conv2( out )
+54                 out = self . bn2(out )
+55                 out = self . relu ( out )
+56
+57                 out = self . conv3( out )
+58                 out = self . bn3(out )
+59
+60                 # 应用CBAM
+61                 out = self . cbam(out)
+62
+63                 # 残差连接
+64                 if    self . downsample is not None:
+65                        identity = self . downsample(x)
+66
+67                 out += identity
+68                 out = self . relu ( out )
+69
+70                 return out
+71
+72
+73     class ResNetCBAM(nn.Module):
+74         ”””
+75         ResNet with CBAM
+76
+77         Args :
+78                 block : 残差块类型
+79                 layers : 每个的块数量 stage
+80                 num_classes : 分类类别数
+81         ”””
+82         def __init__ ( self , block , layers , num_classes =1000) :
+83                 super(ResNetCBAM, self ) . __init__ ()
+84
+85                 self . in_channels = 64
+86
+87                 # 初始卷积层
+88                 self . conv1 = nn.Conv2d(3, 64,         kernel_size =7, stride =2,
+89                                                padding=3, bias = False )
+90                 self . bn1 = nn.BatchNorm2d(64)
+91                 self . relu = nn.ReLU(inplace=True)
+92                 self .\ mathrm{MaxPool} = nn .\ mathrm{MaxPool}2d( kernel_size =3, stride =2, padding=1)
+93
+94                 # 个残差4 stage
+95                 self . layer1 = self . _make_layer ( block , 64, layers [0])
+96                 self . layer2 = self . _make_layer ( block , 128, layers [1],        stride =2)
+97                 self . layer3 = self . _make_layer ( block , 256, layers [2],        stride =2)
+98                 self . layer4 = self . _make_layer ( block , 512, layers [3],        stride =2)
+99
+100                 # 分类头
+101                 self .\ mathrm{AvgPool} = nn. Adaptive \ mathrm{AvgPool}2d ((1, 1) )
+102                 self . fc = nn. Linear (512 * block . expansion , num_classes )
+103
+104                 # 权重初始化
+105                 self . _initialize_weights       ()
+106
+107         def _make_layer ( self , block , out_channels , blocks , stride =1) :
+108                 downsample = None
+109                 if    stride != 1 or self . in_channels != out_channels * block . expansion :
+110                        downsample = nn. Sequential (
+111                               nn.Conv2d( self . in_channels , out_channels * block . expansion ,
+112                                           kernel_size =1, stride = stride , bias = False ) ,
+113                               nn.BatchNorm2d(out_channels * block . expansion ) ,
+114                        )
+115
+116                 layers = []
+117                 layers . append(block ( self . in_channels , out_channels , stride , downsample))
+118                 self . in_channels = out_channels * block . expansion
+119
+120                 for _ in range (1, blocks ) :
+121                        layers . append(block ( self . in_channels , out_channels ) )
+122
+123                 return nn. Sequential (* layers )
+124
+125         def         _initialize_weights ( self ) :
+126                 for m in self . modules() :
+127                        if isinstance (m, nn.Conv2d):
+128                               nn. init . kaiming_normal_(m.weight, mode=&apos;fan_out &apos; ,
+129                                                            nonlinearity = &apos; relu &apos; )
+130                        elif    isinstance (m, nn.BatchNorm2d):
+131                               nn. init . constant_ (m.weight, 1)
+132                               nn. init . constant_ (m.bias , 0)
+133
+134         def forward ( self , x) :
+135                 x = self . conv1(x)
+136                 x = self . bn1(x)
+137                 x = self . relu (x)
+138                 x = self .\ mathrm{MaxPool}(x)
+139
+140                 x = self . layer1 (x)
+141                 x = self . layer2 (x)
+142                 x = self . layer3 (x)
+143                 x = self . layer4 (x)
+144
+145                 x = self .\ mathrm{AvgPool}(x)
+146                 x = torch . flatten (x , 1)
+147                 x = self . fc (x)
+148
+149                 return x
+150
+151
+152     def resnet50_cbam(num_classes =1000) :
+153         ”””构建ResNet−50−模型CBAM”””
+154         return ResNetCBAM(CBAMBottleneck, [3, 4, 6, 3], num_classes )
+155
+156
+157     def resnet101_cbam(num_classes =1000) :
+158         ”””构建ResNet−101−模型CBAM”””
+159         return ResNetCBAM(CBAMBottleneck, [3, 4, 23, 3], num_classes )
+160
+161
+162     # 使用示例
+163     if __name__ == ”__main__”:
+164         model = resnet50_cbam(num_classes =1000)
+165         x = torch . randn (2, 3, 224, 224)
+166         output = model(x)
+167
+168         print ( f”输入形状: {x . shape}”)
+169         print ( f”输出形状: { output . shape}”)
+170         print ( f”总参数数量: {sum(p.numel() for p in model.parameters () ) :,} ”)
+</pre>
+
+
+           <div class="figurecaption">
+
+
+Listing&nbsp;4: CBAM 集成到 ResNet 的完整实现
+</div>
+<!--
+...... subsection 注意力机制应用示例 (attention-applications.py) ......
+-->
+<h5 id="autosec-78"><span class="sectionnumber">A.5&#x2003;</span>注意力机制应用示例 (attention_applications.py)</h5>
+<a id="document-autopage-78"></a>
+<div class="figurecaption">
+
+<a id="autoid-15" ></a >
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1     import torch
+2     import torch . nn as nn
+3     from cbam import CBAM
+4     from resnet_cbam import CBAMBottleneck
+5
+6     # ============== 1. 图像分类应用 ==============
+7     class ImageClassifier_CBAM ( nn.Module):
+8         ”””使用的图像分类器CBAM”””
+9         def __init__ ( self , num_classes =10) :
+10                super( ImageClassifier_CBAM , self ) . __init__ ()
+11
+12                 self . features = nn. Sequential (
+13                         # Stage 1
+14                         nn.Conv2d(3, 64, 3, padding=1) ,
+15                         nn.BatchNorm2d(64),
+16                         nn.ReLU(inplace=True) ,
+17                         CBAM(64),
+18                         nn .\ mathrm{MaxPool}2d(2, 2) ,
+19
+20                         # Stage 2
+21                         nn.Conv2d(64, 128, 3, padding=1) ,
+22                         nn.BatchNorm2d(128),
+23                         nn.ReLU(inplace=True) ,
+24                         CBAM(128),
+25                         nn .\ mathrm{MaxPool}2d(2, 2) ,
+26
+27                         # Stage 3
+28                         nn.Conv2d(128, 256, 3, padding=1) ,
+29                         nn.BatchNorm2d(256),
+30                         nn.ReLU(inplace=True) ,
+31                         CBAM(256),
+32                         nn .\ mathrm{MaxPool}2d(2, 2) ,
+33                )
+34
+35                 self . classifier         = nn. Sequential (
+36                         nn. Adaptive \ mathrm{AvgPool}2d ((1, 1) ) ,
+37                         nn. Flatten () ,
+38                         nn. Linear (256, num_classes )
+39                )
+40
+41         def forward ( self , x) :
+42                x = self . features (x)
+43                x = self . classifier (x)
+44                return x
+45
+46
+47     # ============== 2. 目标检测应用 ==============
+48     class DetectionBackbone_CBAM(nn.Module):
+49         ”””使用的目标检测骨干网络CBAM”””
+50         def __init__ ( self ) :
+51                super(DetectionBackbone_CBAM, self ) . __init__ ()
+52
+53                # 多尺度特征提取
+54                 self . stage1 = nn. Sequential (
+55                         nn.Conv2d(3, 64, 7, stride =2, padding=3) ,
+56                         nn.BatchNorm2d(64),
+57                         nn.ReLU(inplace=True) ,
+58                         nn .\ mathrm{MaxPool}2d(3, stride =2, padding=1) ,
+59                )
+60
+61                 self . stage2 = self . _make_stage (64, 128, 2)
+62                 self . stage3 = self . _make_stage (128, 256, 2)
+63                 self . stage4 = self . _make_stage (256, 512, 2)
+64
+65         def _make_stage( self , in_ch , out_ch , num_blocks):
+66                 layers = []
+67                 layers . append(nn.Conv2d(in_ch , out_ch , 3, stride =2, padding=1) )
+68                 layers . append(nn.BatchNorm2d(out_ch))
+69                 layers . append(nn.ReLU(inplace=True) )
+70
+71                for _ in range(num_blocks):
+72                          layers . append(nn.Conv2d(out_ch, out_ch , 3, padding=1) )
+73                          layers . append(nn.BatchNorm2d(out_ch))
+74                          layers . append(nn.ReLU(inplace=True) )
+75                          layers . append(CBAM(out_ch))
+76
+77                return nn. Sequential (* layers )
+78
+79         def forward ( self , x) :
+80                # 返回多尺度特征
+81                c1 = self . stage1 ( x)
+82                c2 = self . stage2 ( c1 )
+83                c3 = self . stage3 ( c2 )
+84                c4 = self . stage4 ( c3 )
+85
+86                return [ c2 , c3 , c4 ]         # 用于FPN
+87
+88
+89     # ============== 3. 语义分割应用 ==============
+90     class SegmentationDecoder_CBAM(nn.Module):
+91         ”””使用的语义分割解码器CBAM”””
+92         def __init__ ( self , in_channels , num_classes ) :
+93                super(SegmentationDecoder_CBAM, self ) . __init__ ()
+94
+95                # 上采样路径
+96                 self . up1 = nn.ConvTranspose2d( in_channels , 256, 2, stride =2)
+97                 self . cbam1 = CBAM(256)
+98                 self . conv1 = self . _conv_block (256, 256)
+99
+100                   self . up2 = nn.ConvTranspose2d (256, 128, 2, stride =2)
+101                   self . cbam2 = CBAM(128)
+102                   self . conv2 = self . _conv_block (128, 128)
+103
+104                   self . up3 = nn.ConvTranspose2d (128, 64, 2, stride =2)
+105                   self . cbam3 = CBAM(64)
+106                   self . conv3 = self . _conv_block (64, 64)
+107
+108                   # 最终分类层
+109                   self . final = nn.Conv2d(64, num_classes , 1)
+110
+111         def _conv_block ( self , in_ch , out_ch ) :
+112                   return nn. Sequential (
+113                         nn.Conv2d(in_ch , out_ch , 3, padding=1) ,
+114                         nn.BatchNorm2d(out_ch),
+115                         nn.ReLU(inplace=True) ,
+116                         nn.Conv2d(out_ch , out_ch , 3, padding=1) ,
+117                         nn.BatchNorm2d(out_ch),
+118                         nn.ReLU(inplace=True) ,
+119                   )
+120
+121         def forward ( self , x) :
+122                   x = self . up1(x)
+123                   x = self . cbam1(x)
+124                   x = self . conv1(x)
+125
+126                   x = self . up2(x)
+127                   x = self . cbam2(x)
+128                   x = self . conv2(x)
+129
+130                   x = self . up3(x)
+131                   x = self . cbam3(x)
+132                   x = self . conv3(x)
+133
+134                   x = self . final (x)
+135                   return x
+136
+137
+138     # ============== 4. 注意力可视化工具 ==============
+139     class     AttentionVisualizer :
+140         ”””注意力权重可视化工具”””
+141
+142         @staticmethod
+143         def           visualize_channel_attention ( model, input_tensor , layer_name) :
+144                   ”””可视化通道注意力权重”””
+145                   activations     = {}
+146
+147                   def hook_fn(module, input , output ) :
+148                          if hasattr (module, &apos; channel_attention &apos; ) :
+149                              # 获取通道注意力权重
+150                              attn = module. channel_attention ( input [0])
+151                               activations [ &apos; channel_weights &apos; ] = attn . detach ()
+152
+153                   # 注册hook
+154                   for name, module in model.named_modules():
+155                          if name == layer_name :
+156                              module. register_forward_hook (hook_fn)
+157
+158                   # 前向传播
+159                   with torch . no_grad () :
+160                         _ = model( input_tensor )
+161
+162                   return     activations . get ( &apos; channel_weights &apos; , None)
+163
+164         @staticmethod
+165         def           visualize_spatial_attention     (model, input_tensor , layer_name) :
+166                   ”””可视化空间注意力图”””
+167                   activations     = {}
+168
+169                   def hook_fn(module, input , output ) :
+170                          if hasattr (module, &apos; spatial_attention &apos; ) :
+171                              # 获取空间注意力图
+172                              attn = module. spatial_attention ( input [0])
+173                               activations [ &apos; spatial_map &apos; ] = attn . detach ()
+174
+175                   # 注册hook
+176                   for name, module in model.named_modules():
+177                          if name == layer_name :
+178                              module. register_forward_hook (hook_fn)
+179
+180                   # 前向传播
+181                   with torch . no_grad () :
+182                         _ = model( input_tensor )
+183
+184                   return     activations . get ( &apos; spatial_map &apos; , None)
+185
+186
+187     # 使用示例
+188     if __name__ == ”__main__”:
+189         # 1. 图像分类
+190         print (”=” * 50)
+191         print (”图像分类应用”)
+192             classifier      = ImageClassifier_CBAM ( num_classes =10)
+193         x = torch . randn (2, 3, 32, 32)
+194         out =          classifier ( x)
+195         print ( f”输入: {x . shape }, 输出 : { out . shape}”)
+196
+197         # 2. 目标检测
+198         print (”\n” + ”=” * 50)
+199         print (”目标检测应用”)
+200         detector_backbone = DetectionBackbone_CBAM()
+201         x = torch . randn (2, 3, 640, 640)
+202         features = detector_backbone (x)
+203         print ( f”输入: {x . shape}”)
+204         for i , feat in enumerate( features ) :
+205                   print ( f”特征{i +1}: { feat . shape}”)
+206
+207         # 3. 语义分割
+208         print (”\n” + ”=” * 50)
+209         print (”语义分割应用”)
+210         seg_decoder = SegmentationDecoder_CBAM(512, num_classes =21)
+211         x = torch . randn (2, 512, 28, 28)
+212         out = seg_decoder (x)
+213         print ( f”输入: {x . shape }, 输出 : { out . shape}”)
+</pre>
+
+
+           <div class="figurecaption">
+
+
+Listing&nbsp;5: 注意力机制在不同任务中的应用
+</div>
+<!--
+...... subsection 性能基准测试 (benchmark.py) ......
+-->
+<h5 id="autosec-80"><span class="sectionnumber">A.6&#x2003;</span>性能基准测试 (benchmark.py)</h5>
+<a id="document-autopage-80"></a>
+<div class="figurecaption">
+
+<a id="autoid-16" ></a >
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1     import torch
+2     import torch . nn as nn
+3     import time
+4     import numpy as np
+5     from thop import profile , clever_format
+6     from resnet_cbam import resnet50_cbam
+7     from torchvision . models import resnet50
+8
+9     class AttentionBenchmark:
+10         ”””注意力机制性能基准测试工具”””
+11
+12         @staticmethod
+13         def count_parameters ( model):
+14              ”””统计模型参数数量”””
+15              return sum(p.numel() for p in model.parameters () )
+16
+17         @staticmethod
+18         def measure_inference_time (model, input_size =(1, 3, 224, 224) ,
+19                                            num_iterations =100, warmup=10):
+20              ”””测量推理时间”””
+21              device = torch . device ( &apos; cuda &apos; if torch . cuda. is_available () else &apos; cpu &apos; )
+22              model = model.to ( device )
+23              model.eval ()
+24
+25              # 创建测试输入
+26              x = torch . randn( input_size ) . to ( device )
+27
+28              # 预热
+29              with torch . no_grad () :
+30                     for _ in range(warmup):
+31                            _ = model(x)
+32
+33              # 同步GPU
+34              if torch . cuda. is_available () :
+35                     torch . cuda. synchronize ()
+36
+37              # 测量时间
+38              times = []
+39              with torch . no_grad () :
+40                     for _ in range( num_iterations ) :
+41                            start = time . time ()
+42                            _ = model(x)
+43
+44                            if torch . cuda. is_available () :
+45                                torch . cuda. synchronize ()
+46
+47                            times . append(time. time () − start )
+48
+49              times = np. array ( times )
+50              return {
+51                     &apos; mean&apos;: times . mean() * 1000,          # ms
+52                                                      * 1000,
+                       &apos; std &apos; : times . std ()
+53                     &apos; min&apos; : times . min() * 1000,
+54                     &apos; max&apos;: times . max() * 1000
+55              }
+56
+57         @staticmethod
+58         def measure_flops ( model, input_size =(1, 3, 224, 224) ) :
+59              ”””测量FLOPs”””
+60              x = torch . randn( input_size )
+61              flops , params = profile ( model, inputs =(x ,) , verbose= False )
+62              flops , params = clever_format ([ flops , params], ”&percnt;.3f”)
+63              return { &apos; FLOPs&apos; : flops , &apos; Params&apos; : params}
+64
+65         @staticmethod
+66         def compare_models(models_dict , input_size =(1, 3, 224, 224) ) :
+67              ”””比较多个模型的性能”””
+68              results = {}
+69
+70              for name, model in models_dict . items () :
+71                     print ( f”\测试模型n: {name}”)
+72                     print (”−” * 50)
+73
+74                     # 参数数量
+75                     params = AttentionBenchmark.count_parameters (model)
+76                     print ( f”参数数量: {params :,} ”)
+77
+78                     # FLOPs
+79                      flops_info = AttentionBenchmark. measure_flops (model, input_size )
+80                     print ( f”FLOPs: { flops_info [ &apos; FLOPs&apos; ]} ”)
+81
+82                     # 推理时间
+83                     time_info = AttentionBenchmark. measure_inference_time (
+84                            model, input_size
+85                     )
+86                     print ( f”推理时间: { time_info [ &apos; mean&apos; ]:.2 f } +/− ”
+87                              f”{time_info [ &apos; std &apos; ]:.2 f } ms”)
+88
+89                     results [ name] = {
+90                            &apos; params&apos; : params,
+91                            &apos; flops &apos; :    flops_info [ &apos; FLOPs&apos; ],
+92                            &apos; inference_time_ms &apos; : time_info [ &apos; mean&apos; ],
+93                            &apos; inference_std_ms &apos; : time_info [ &apos; std &apos; ]
+94                     }
+95
+96              return results
+97
+98
+99     # 使用示例
+100     if __name__ == ”__main__”:
+101         print (”=” * 60)
+102         print (”注意力机制性能基准测试”)
+103         print (”=” * 60)
+104
+105         # 准备模型
+106         models = {
+107                 &apos; ResNet−50 &apos; : resnet50 ( pretrained = False ) ,
+108                 &apos; ResNet−50−CBAM&apos;: resnet50_cbam(num_classes =1000) ,
+109         }
+110
+111         # 运行基准测试
+112          results = AttentionBenchmark.compare_models(
+113                 models,
+114                 input_size =(1, 3, 224, 224)
+115         )
+116
+117         # 打印对比结果
+118         print (”\n” + ”=” * 60)
+119         print (”性能对比总结”)
+120         print (”=” * 60)
+121
+122         baseline_params = results [ &apos; ResNet−50 &apos; ][ &apos; params&apos; ]
+123         baseline_time = results [ &apos; ResNet−50 &apos; ][ &apos; inference_time_ms &apos; ]
+124
+125         for name, metrics in results . items () :
+126                 print ( f”\n{name}:”)
+127                 print ( f” 参数数量 : { metrics [ &apos; params&apos; ]:,}         ”
+128                        f”({ metrics [ &apos; params&apos; ]/ baseline_params :.2&percnt;})”)
+129                 print ( f” FLOPs: { metrics [ &apos; flops &apos; ]} ”)
+130                 print ( f” 推理时间 : { metrics [ &apos; inference_time_ms &apos; ]:.2 f } ms ”
+131                        f”({ metrics [ &apos; inference_time_ms &apos; ]/ baseline_time :.2&percnt;})”)
+</pre>
+
+
+                           <div class="figurecaption">
+
+
+Listing&nbsp;6: 注意力机制性能基准测试
+</div>
+<!--
+...... subsection 训练脚本示例 (train-cbam.py) ......
+-->
+<h5 id="autosec-82"><span class="sectionnumber">A.7&#x2003;</span>训练脚本示例 (train_cbam.py)</h5>
+<a id="document-autopage-82"></a>
+<div class="figurecaption">
+
+<a id="autoid-17" ></a >
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1     import torch
+2     import torch . nn as nn
+3     import torch . optim as optim
+4     from torch . utils . data import DataLoader
+5     from torchvision import datasets , transforms
+6     from resnet_cbam import resnet50_cbam
+7     import wandb # 可选：用于实验跟踪
+8
+9
+10     def train_one_epoch (model, train_loader ,            criterion , optimizer ,
+11                               device , epoch) :
+12         ”””训练一个epoch”””
+13         model. train ()
+14         running_loss = 0.0
+15         correct = 0
+16          total = 0
+17
+18         for batch_idx , ( inputs , targets ) in enumerate( train_loader ) :
+19                inputs , targets = inputs . to ( device ) , targets . to ( device )
+20
+21                # 前向传播
+22                optimizer . zero_grad ()
+23                outputs = model( inputs )
+24                loss = criterion ( outputs , targets )
+25
+26                # 反向传播
+27                loss . backward()
+28                optimizer . step ()
+29
+30                # 统计
+31                running_loss += loss . item ()
+32                _ , predicted = outputs . max(1)
+33                 total += targets . size (0)
+34                correct += predicted . eq( targets ) . sum().item ()
+35
+36                if batch_idx &percnt; 100 == 0:
+37                     print ( f &apos; Epoch: {epoch} | Batch : { batch_idx }/{ len ( train_loader ) } &apos;
+38                            f &apos; | Loss : { running_loss /( batch_idx +1) :.3 f } &apos;
+39                            f &apos; | Acc: {100.* correct / total :.2 f}&percnt;&apos;)
+40
+41         return running_loss / len ( train_loader ) , 100. * correct / total
+42
+43
+44     def validate (model, val_loader ,         criterion , device ) :
+45         ”””验证”””
+46         model.eval ()
+47          val_loss = 0.0
+48         correct = 0
+49          total = 0
+50
+51         with torch . no_grad () :
+52                for inputs , targets in val_loader :
+53                     inputs , targets = inputs . to ( device ) , targets . to ( device )
+54                     outputs = model( inputs )
+55                     loss = criterion ( outputs , targets )
+56
+57                     val_loss += loss . item ()
+58                     _ , predicted = outputs . max(1)
+59                     total += targets . size (0)
+60                     correct += predicted . eq( targets ) . sum().item ()
+61
+62         return val_loss / len ( val_loader ) , 100. * correct / total
+63
+64
+65     def main() :
+66         # 设置
+67         device = torch . device ( &apos; cuda &apos; if torch . cuda. is_available () else &apos; cpu &apos; )
+68         num_epochs = 100
+69         batch_size = 128
+70          learning_rate = 0.1
+71
+72         # 数据预处理
+73          transform_train = transforms . Compose([
+74                transforms . RandomCrop(32, padding=4) ,
+75                transforms . RandomHorizontalFlip () ,
+76                transforms . ToTensor () ,
+77                transforms . Normalize ((0.4914,        0.4822,   0.4465) ,
+78                                         (0.2023,    0.1994,   0.2010) ) ,
+79         ])
+80
+81          transform_test = transforms . Compose([
+82                transforms . ToTensor () ,
+83                transforms . Normalize ((0.4914,        0.4822,   0.4465) ,
+84                                         (0.2023,    0.1994,   0.2010) ) ,
+85         ])
+86
+87         # 数据加载
+88          train_dataset     = datasets . CIFAR10( root = &apos; ./ data &apos; , train =True,
+89                                                      download=True,
+90                                                      transform= transform_train )
+91          test_dataset     = datasets . CIFAR10( root = &apos; ./ data &apos; , train = False ,
+92                                                     download=True,
+93                                                     transform= transform_test )
+94
+95          train_loader = DataLoader( train_dataset , batch_size = batch_size ,
+96                                           shuffle =True, num_workers=4)
+97          test_loader = DataLoader( test_dataset , batch_size = batch_size ,
+98                                          shuffle = False , num_workers=4)
+99
+100         # 模型
+101         model = resnet50_cbam(num_classes =10) . to ( device )
+102
+103         # 损失函数和优化器
+104             criterion = nn. CrossEntropyLoss ()
+105         optimizer = optim.SGD(model.parameters () , lr = learning_rate ,
+106                                       momentum=0.9, weight_decay=5e−4)
+107         scheduler = optim. lr_scheduler . CosineAnnealingLR( optimizer ,
+108                                                                             T_max=num_epochs)
+109
+110         # 训练循环
+111         best_acc = 0.0
+112         for epoch in range(num_epochs):
+113                print ( f &apos; \ nEpoch: {epoch +1}/{ num_epochs}&apos;)
+114
+115                # 训练
+116                 train_loss , train_acc = train_one_epoch (
+117                     model, train_loader ,         criterion , optimizer , device , epoch
+118                )
+119
+120                # 验证
+121                 val_loss , val_acc = validate (model, test_loader ,             criterion , device )
+122
+123                # 学习率调度
+124                scheduler . step ()
+125
+126                print ( f &apos; Train Loss : { train_loss :.3 f } | Train Acc: { train_acc :.2 f}&percnt;&apos;)
+127                print ( f &apos; Val Loss : { val_loss :.3 f } | Val Acc: { val_acc :.2 f}&percnt;&apos;)
+128
+129                # 保存最佳模型
+130                if val_acc &gt; best_acc :
+131                     best_acc = val_acc
+132                     torch . save ({
+133                          &apos; epoch &apos; : epoch,
+134                          &apos; model_state_dict &apos; : model. state_dict () ,
+135                          &apos; optimizer_state_dict &apos; : optimizer . state_dict () ,
+136                          &apos; accuracy &apos; : best_acc ,
+137                     }, &apos; best_cbam_model.pth &apos; )
+138                     print ( f &apos; Saved best model with accuracy : { best_acc :.2 f}&percnt;&apos;)
+139
+140         print ( f &apos; \ nTraining completed! Best accuracy : { best_acc :.2 f}&percnt;&apos;)
+141
+142
+143     if __name__ == ”__main__”:
+144         main()
+</pre>
+
+
+           <div class="figurecaption">
+
+
+Listing&nbsp;7: 使用 CBAM 的完整训练脚本
+</div>
+
+<a id="document-autofile-last"></a>
+</section>
+
+</main>
+
+</div>
+
+</body>
+</html>

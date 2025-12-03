@@ -1,0 +1,3684 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="generator" content="LaTeX Lwarp package" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CNN 消融研究：理解卷积神经网络各组件的作用 </title>
+<link rel="stylesheet" type="text/css" href="lwarp.css" />
+
+<script>
+// Lwarp MathJax emulation code
+//
+// Based on code by Davide P. Cervone.
+// Equation numbering: https://github.com/mathjax/MathJax/issues/2427
+// Starred and ifnextchar macros: https://github.com/mathjax/MathJax/issues/2428
+// \left, \right delimiters: https://github.com/mathjax/MathJax/issues/2535
+//
+// Modified by Brian Dunn to adjust equation numbering and add subequations.
+//
+// LaTeX can use \seteqnumber{subequations?}{section}{number} before each equation.
+// subequations? is 0 usually, 1 if inside subequations.
+// section is a string printed as-is, or empty.
+// number is auto-incremented by MathJax between equations.
+//
+MathJax = {
+    subequations: "0",
+    section: "",
+    loader: {
+        load: ['[tex]/tagformat', '[tex]/textmacros'],
+    },
+    startup: {
+        ready() {
+            //       These would be replaced by import commands if you wanted to make
+            //       a proper extension.
+            const Configuration = MathJax._.input.tex.Configuration.Configuration;
+            const CommandMap = MathJax._.input.tex.SymbolMap.CommandMap;
+            const Macro = MathJax._.input.tex.Symbol.Macro;
+            const TexError = MathJax._.input.tex.TexError.default;
+            const ParseUtil = MathJax._.input.tex.ParseUtil.default;
+            const expandable = MathJax._.util.Options.expandable;
+
+
+            //       Insert the replacement string into the TeX string, and check
+            //       that there haven't been too many maxro substitutions (prevents
+            //       infinite loops).
+            const useArgument = (parser, text) => {
+                parser.string = ParseUtil.addArgs(parser, text, parser.string.slice(parser.i));
+                parser.i = 0;
+                if (++parser.macroCount > parser.configuration.options.maxMacros) {
+                     throw new TexError('MaxMacroSub1',
+                     'MathJax maximum macro substitution count exceeded; ' +
+                     'is there a recursive macro call?');
+                }
+            }
+
+
+            //       Create the command map for:
+            //           \ifstar, \ifnextchar, \ifblank, \ifstrequal, \gsub, \seteqnumber
+            new CommandMap('Lwarp-macros', {
+                ifstar: 'IfstarFunction',
+                ifnextchar: 'IfnextcharFunction',
+                ifblank: 'IfblankFunction',
+                ifstrequal: 'IfstrequalFunction',
+                gsubstitute: 'GsubstituteFunction',
+                seteqnumber: 'SeteqnumberFunction'
+            }, {
+                //       This function implements an ifstar macro.
+                IfstarFunction(parser, name) {
+                     const resultstar = parser.GetArgument(name);
+                     const resultnostar = parser.GetArgument(name);
+                     const star = parser.GetStar();                      // true if there is a *
+                     useArgument(parser, star ? resultstar : resultnostar);
+                },
+
+
+                //       This function implements an ifnextchar macro.
+                IfnextcharFunction(parser, name) {
+                     let whichchar = parser.GetArgument(name);
+                     if (whichchar.match(/^(?:0x[0-9A-F]+|[0-9]+)$/i)) {
+                         // $ syntax highlighting
+                         whichchar = String.fromCodePoint(parseInt(whichchar));
+                     }
+                     const resultnextchar = parser.GetArgument(name);
+                     const resultnotnextchar = parser.GetArgument(name);
+                     const gotchar = (parser.GetNext() === whichchar);
+                     useArgument(parser, gotchar ? resultnextchar : resultnotnextchar);
+                },
+
+
+                // This function implements an ifblank macro.
+                IfblankFunction(parser, name) {
+                     const blankarg = parser.GetArgument(name);
+                     const resultblank = parser.GetArgument(name);
+                     const resultnotblank = parser.GetArgument(name);
+                     const isblank = (blankarg.trim() == "");
+                     useArgument(parser, isblank ? resultblank : resultnotblank);
+                },
+
+
+                // This function implements an ifstrequal macro.
+                IfstrequalFunction(parser, name) {
+                     const strequalfirst = parser.GetArgument(name);
+                     const strequalsecond = parser.GetArgument(name);
+                     const resultequal = parser.GetArgument(name);
+                     const resultnotequal = parser.GetArgument(name);
+                     const isequal = (strequalfirst == strequalsecond);
+                     useArgument(parser, isequal ? resultequal : resultnotequal);
+                },
+
+
+                // This function implements a gsub macro.
+                GsubstituteFunction(parser, name) {
+                     const gsubfirst = parser.GetArgument(name);
+                     const gsubsecond = parser.GetArgument(name);
+                     const gsubthird = parser.GetArgument(name);
+                     let gsubresult=gsubfirst.replace(gsubsecond, gsubthird);
+                     useArgument(parser, gsubresult);
+                },
+
+
+                //       This function modifies the equation numbers.
+                SeteqnumberFunction(parser, name) {
+                         // Get the macro parameters
+                         const star = parser.GetStar();                    // true if there is a *
+                         const optBrackets = parser.GetBrackets(name);     // contents of optional brackets
+                         const newsubequations = parser.GetArgument(name);    // the subequations argument
+                         const neweqsection = parser.GetArgument(name);    // the eq section argument
+                         const neweqnumber = parser.GetArgument(name);     // the eq number argument
+                         MathJax.config.subequations=newsubequations ;     // a string with boolean meaning
+                         MathJax.config.section=neweqsection ;             // a string with numeric meaning
+                         parser.tags.counter = parser.tags.allCounter = neweqnumber ;
+                }
+
+
+            });
+
+
+            //       Create the Lwarp-macros package
+            Configuration.create('Lwarp-macros', {
+                handler: {macro: ['Lwarp-macros']}
+            });
+
+
+            MathJax.startup.defaultReady();
+
+
+            // For forward references:
+            MathJax.startup.input[0].preFilters.add(({math}) => {
+                if (math.inputData.recompile){
+                         MathJax.config.subequations = math.inputData.recompile.subequations;
+                         MathJax.config.section = math.inputData.recompile.section;
+                }
+            });
+            MathJax.startup.input[0].postFilters.add(({math}) => {
+                if (math.inputData.recompile){
+                         math.inputData.recompile.subequations = MathJax.config.subequations;
+                         math.inputData.recompile.section = MathJax.config.section;
+                }
+            });
+
+
+                // For \left, \right with unicode-math:
+                const {DelimiterMap} = MathJax._.input.tex.SymbolMap;
+                const {Symbol} = MathJax._.input.tex.Symbol;
+                const {MapHandler} = MathJax._.input.tex.MapHandler;
+                const delimiter = MapHandler.getMap('delimiter');
+                delimiter.add('\\lBrack', new Symbol('\\lBrack', '\u27E6'));
+                delimiter.add('\\rBrack', new Symbol('\\rBrack', '\u27E7'));
+                delimiter.add('\\lAngle', new Symbol('\\lAngle', '\u27EA'));
+                delimiter.add('\\rAngle', new Symbol('\\rAngle', '\u27EB'));
+                delimiter.add('\\lbrbrak', new Symbol('\\lbrbrak', '\u2772'));
+                delimiter.add('\\rbrbrak', new Symbol('\\rbrbrak', '\u2773'));
+                delimiter.add('\\lbag', new Symbol('\\lbag', '\u27C5'));
+                delimiter.add('\\rbag', new Symbol('\\rbag', '\u27C6'));
+                delimiter.add('\\llparenthesis', new Symbol('\\llparenthesis', '\u2987'));
+                delimiter.add('\\rrparenthesis', new Symbol('\\rrparenthesis', '\u2988'));
+                delimiter.add('\\llangle', new Symbol('\\llangle', '\u2989'));
+                delimiter.add('\\rrangle', new Symbol('\\rrangle', '\u298A'));
+                delimiter.add('\\Lbrbrak', new Symbol('\\Lbrbrak', '\u27EC'));
+                delimiter.add('\\Rbrbrak', new Symbol('\\Rbrbrak', '\u27ED'));
+                delimiter.add('\\lBrace', new Symbol('\\lBrace', '\u2983'));
+                delimiter.add('\\rBrace', new Symbol('\\rBrace', '\u2984'));
+                delimiter.add('\\lParen', new Symbol('\\lParen', '\u2985'));
+                delimiter.add('\\rParen', new Symbol('\\rParen', '\u2986'));
+                delimiter.add('\\lbrackubar', new Symbol('\\lbrackubar', '\u298B'));
+                delimiter.add('\\rbrackubar', new Symbol('\\rbrackubar', '\u298C'));
+                delimiter.add('\\lbrackultick', new Symbol('\\lbrackultick', '\u298D'));
+                delimiter.add('\\rbracklrtick', new Symbol('\\rbracklrtick', '\u298E'));
+                delimiter.add('\\lbracklltick', new Symbol('\\lbracklltick', '\u298F'));
+                delimiter.add('\\rbrackurtick', new Symbol('\\rbrackurtick', '\u2990'));
+                delimiter.add('\\langledot', new Symbol('\\langledot', '\u2991'));
+                delimiter.add('\\rangledot', new Symbol('\\rangledot', '\u2992'));
+                delimiter.add('\\lparenless', new Symbol('\\lparenless', '\u2993'));
+                delimiter.add('\\rparengtr', new Symbol('\\rparengtr', '\u2994'));
+                delimiter.add('\\Lparengtr', new Symbol('\\Lparengtr', '\u2995'));
+                delimiter.add('\\Rparenless', new Symbol('\\Rparenless', '\u2996'));
+                delimiter.add('\\lblkbrbrak', new Symbol('\\lblkbrbrak', '\u2997'));
+                delimiter.add('\\rblkbrbrak', new Symbol('\\rblkbrbrak', '\u2998'));
+                delimiter.add('\\lvzigzag', new Symbol('\\lvzigzag', '\u29D8'));
+                delimiter.add('\\rvzigzag', new Symbol('\\rvzigzag', '\u29D9'));
+                delimiter.add('\\Lvzigzag', new Symbol('\\Lvzigzag', '\u29DA'));
+                delimiter.add('\\Rvzigzag', new Symbol('\\Rvzigzag', '\u29DB'));
+                delimiter.add('\\lcurvyangle', new Symbol('\\lcurvyangle', '\u29FC'));
+                delimiter.add('\\rcurvyangle', new Symbol('\\rcurvyangle', '\u29FD'));
+                delimiter.add('\\Vvert', new Symbol('\\Vvert', '\u2980'));
+        }        // ready
+    },           // startup
+
+
+    tex: {
+        packages: {'[+]': ['tagformat', 'Lwarp-macros', 'textmacros']},
+        tags: "ams",
+                tagformat: {
+                         number: function (n) {
+                              if(MathJax.config.subequations==0)
+                                 return(MathJax.config.section + n);
+                              else
+                                 return(MathJax.config.section + String.fromCharCode(96+n));
+                         },
+                },
+    }
+}
+</script>
+
+
+<script
+        id="MathJax-script"
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
+></script>
+
+
+</head>
+<body>
+<!--|Using lwarp|document.html|-->
+
+
+
+<div class="bodywithoutsidetoc">
+
+
+
+<main class="bodycontainer">
+
+
+
+<section class="textbody">
+
+<a id="document-autofile-0"></a>
+
+<!--MathJax customizations:-->
+<div data-nosnippet
+         style="display:none"
+>
+
+\(\newcommand{\footnotename}{footnote}\)
+
+\(\def \LWRfootnote {1}\)
+
+\(\newcommand {\footnote }[2][\LWRfootnote ]{{}^{\mathrm {#1}}}\)
+
+\(\newcommand {\footnotemark }[1][\LWRfootnote ]{{}^{\mathrm {#1}}}\)
+
+\(\let \LWRorighspace \hspace \)
+
+\(\renewcommand {\hspace }{\ifstar \LWRorighspace \LWRorighspace }\)
+
+\(\newcommand {\TextOrMath }[2]{#2}\)
+
+\(\newcommand {\mathnormal }[1]{{#1}}\)
+
+\(\newcommand \ensuremath [1]{#1}\)
+
+\(\newcommand {\LWRframebox }[2][]{\fbox {#2}} \newcommand {\framebox }[1][]{\LWRframebox } \)
+
+\(\newcommand {\setlength }[2]{}\)
+
+\(\newcommand {\addtolength }[2]{}\)
+
+\(\newcommand {\setcounter }[2]{}\)
+
+\(\newcommand {\addtocounter }[2]{}\)
+
+\(\newcommand {\arabic }[1]{}\)
+
+\(\newcommand {\number }[1]{}\)
+
+\(\newcommand {\noalign }[1]{\text {#1}\notag \\}\)
+
+\(\newcommand {\cline }[1]{}\)
+
+\(\newcommand {\directlua }[1]{\text {(directlua)}}\)
+
+\(\newcommand {\luatexdirectlua }[1]{\text {(directlua)}}\)
+
+\(\newcommand {\protect }{}\)
+
+\(\def \LWRabsorbnumber #1 {}\)
+
+\(\def \LWRabsorbquotenumber &quot;#1 {}\)
+
+\(\newcommand {\LWRabsorboption }[1][]{}\)
+
+\(\newcommand {\LWRabsorbtwooptions }[1][]{\LWRabsorboption }\)
+
+\(\def \mathchar {\ifnextchar &quot;\LWRabsorbquotenumber \LWRabsorbnumber }\)
+
+\(\def \mathcode #1={\mathchar }\)
+
+\(\let \delcode \mathcode \)
+
+\(\let \delimiter \mathchar \)
+
+\(\def \oe {\unicode {x0153}}\)
+
+\(\def \OE {\unicode {x0152}}\)
+
+\(\def \ae {\unicode {x00E6}}\)
+
+\(\def \AE {\unicode {x00C6}}\)
+
+\(\def \aa {\unicode {x00E5}}\)
+
+\(\def \AA {\unicode {x00C5}}\)
+
+\(\def \o {\unicode {x00F8}}\)
+
+\(\def \O {\unicode {x00D8}}\)
+
+\(\def \l {\unicode {x0142}}\)
+
+\(\def \L {\unicode {x0141}}\)
+
+\(\def \ss {\unicode {x00DF}}\)
+
+\(\def \SS {\unicode {x1E9E}}\)
+
+\(\def \dag {\unicode {x2020}}\)
+
+\(\def \ddag {\unicode {x2021}}\)
+
+\(\def \P {\unicode {x00B6}}\)
+
+\(\def \copyright {\unicode {x00A9}}\)
+
+\(\def \pounds {\unicode {x00A3}}\)
+
+\(\let \LWRref \ref \)
+
+\(\renewcommand {\ref }{\ifstar \LWRref \LWRref }\)
+
+\( \newcommand {\multicolumn }[3]{#3}\)
+
+\(\require {textcomp}\)
+
+\(\newcommand {\intertext }[1]{\text {#1}\notag \\}\)
+
+\(\let \Hat \hat \)
+
+\(\let \Check \check \)
+
+\(\let \Tilde \tilde \)
+
+\(\let \Acute \acute \)
+
+\(\let \Grave \grave \)
+
+\(\let \Dot \dot \)
+
+\(\let \Ddot \ddot \)
+
+\(\let \Breve \breve \)
+
+\(\let \Bar \bar \)
+
+\(\let \Vec \vec \)
+
+\(\newcommand {\toprule }[1][]{\hline }\)
+
+\(\let \midrule \toprule \)
+
+\(\let \bottomrule \toprule \)
+
+\(\def \LWRbooktabscmidruleparen (#1)#2{}\)
+
+\(\newcommand {\LWRbooktabscmidrulenoparen }[1]{}\)
+
+\(\newcommand {\cmidrule }[1][]{\ifnextchar (\LWRbooktabscmidruleparen \LWRbooktabscmidrulenoparen }\)
+
+\(\newcommand {\morecmidrules }{}\)
+
+\(\newcommand {\specialrule }[3]{\hline }\)
+
+\(\newcommand {\addlinespace }[1][]{}\)
+
+\(\newcommand {\tcbset }[1]{}\)
+
+\(\newcommand {\tcbsetforeverylayer }[1]{}\)
+
+\(\newcommand {\tcbox }[2][]{\boxed {\text {#2}}}\)
+
+\(\newcommand {\tcboxfit }[2][]{\boxed {#2}}\)
+
+\(\newcommand {\tcblower }{}\)
+
+\(\newcommand {\tcbline }{}\)
+
+\(\newcommand {\tcbtitle }{}\)
+
+\(\newcommand {\tcbsubtitle [2][]{\mathrm {#2}}}\)
+
+\(\newcommand {\tcboxmath }[2][]{\boxed {#2}}\)
+
+\(\newcommand {\tcbhighmath }[2][]{\boxed {#2}}\)
+
+</div>
+
+<a id="document-autopage-1"></a>
+<div class="titlepage">
+
+<h1><b>CNN 消融研究：理解卷积神经网络各组件的作用 </b></h1>
+
+
+
+<div class="author">
+
+
+
+<div class="oneauthor">
+
+<p>
+深度学习社 <br />
+Cooperated with <kbd>DeepSeek V3.2</kbd>
+</p>
+</div>
+
+</div>
+
+
+
+<div class="titledate">
+
+<p>
+2025 年 12 月 3 日
+</p>
+</div>
+
+</div>
+<div class="abstract">
+
+
+
+<div class="abstracttitle"> 摘要 </div>
+
+<p>
+本文通过系统的消融研究（Ablation Study）深入探讨卷积神经网络（CNN）中各个组件的作用。消融研究是深度学习研究中的重要方法，通过逐步移除或修改模型的某个组件，观察性能变化，从而理解每个组件的贡献。我们将构
+建一个基线 CNN 模型，然后分别研究卷积层、池化层、激活函数、批归一化、Dropout 等组件对模型性能的影响。文章包含完整的 PyTorch 实现代码、实验设计、结果分析和可视化，帮助读者从实证角度理解 CNN 设计原则。通
+过本文，读者将学会如何设计并执行消融实验，以及如何根据实验结果优化神经网络架构。
+</p>
+</div>
+<!--
+...... section 目录......
+-->
+<h4 id="autosec-4">目录</h4>
+<a id="document-autopage-4"></a>
+
+
+
+
+<nav class="toc">
+
+</nav>
+<!--
+...... section 引言：什么是消融研究？......
+-->
+<h4 id="autosec-5"><span class="sectionnumber">1&#x2003;</span>引言：什么是消融研究？</h4>
+<a id="document-autopage-5"></a>
+<!--
+...... subsection 消融研究的概念......
+-->
+<h5 id="autosec-6"><span class="sectionnumber">1.1&#x2003;</span>消融研究的概念</h5>
+<a id="document-autopage-6"></a>
+
+
+
+<p>
+消融研究（Ablation Study）源于医学和生物学中的“消融”概念，指通过移除某个器官或组织来研究其功能。在深度学习中，消融研究指通过系统地移除或修改模型的某个组件（如一层网络、一个激活函数、一种正则化技术）
+                                                                                                          ，观察
+模型性能的变化，从而理解该组件的作用。
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 消融研究的类比 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+想象一辆汽车：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 完整汽车 </b>：可以正常行驶（基线模型）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 移除发动机 </b>：汽车无法移动（性能大幅下降）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 移除收音机 </b>：汽车仍能行驶，但娱乐功能缺失（性能轻微下降）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 更换轮胎 </b>：行驶性能可能变化（性能变化取决于轮胎质量）
+</p>
+</li>
+</ul>
+
+<p>
+通过这种“移除‑测试”的方法，我们可以了解每个部件对汽车整体功能的重要性。
+</p>
+</div>
+
+</div>
+<!--
+...... subsection 为什么需要消融研究？......
+-->
+<h5 id="autosec-7"><span class="sectionnumber">1.2&#x2003;</span>为什么需要消融研究？</h5>
+<a id="document-autopage-7"></a>
+
+
+
+<p>
+深度学习模型通常包含许多组件，但并非所有组件都同等重要。消融研究帮助我们：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 消融研究的目的 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 理解组件贡献 </b>：量化每个组件对模型性能的贡献
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 模型简化 </b>：识别并移除不必要的组件，减少模型复杂度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 设计指导 </b>：为新的模型设计提供经验指导
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 可解释性 </b>：增强模型的可解释性，理解其内部工作机制
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b> 错误分析 </b>：诊断模型失败的原因，定位问题组件
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection CNN 中的可消融组件......
+-->
+<h5 id="autosec-8"><span class="sectionnumber">1.3&#x2003;</span>CNN 中的可消融组件</h5>
+<a id="document-autopage-8"></a>
+
+
+
+<p>
+卷积神经网络包含多个可消融的组件：
+</p>
+
+<figure id="autoid-1" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 组件类型 </b></td>
+<td class="tdl"><b> 具体示例 </b></td>
+<td class="tdl"><b> 可能的影响 </b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl"> 卷积操作 </td>
+<td class="tdl"> 卷积核大小、步长、填充 </td>
+<td class="tdl"> 特征提取能力、感受野大小 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 池化操作 </td>
+<td class="tdl"> 最大池化、平均池化、步长 </td>
+<td class="tdl"> 空间分辨率、平移不变性 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 激活函数 </td>
+<td class="tdl">ReLU、Sigmoid、Tanh</td>
+<td class="tdl"> 非线性表达能力、梯度流动 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 归一化 </td>
+<td class="tdl"> 批归一化、层归一化 </td>
+<td class="tdl"> 训练稳定性、收敛速度 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 正则化 </td>
+<td class="tdl">Dropout、权重衰减 </td>
+<td class="tdl"> 过拟合抑制、泛化能力 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 连接方式 </td>
+<td class="tdl"> 残差连接、密集连接 </td>
+<td class="tdl"> 梯度传播、网络深度 </td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdl"></td>
+<td class="tdl"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;1: CNN 中的可消融组件
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... section 实验设计......
+-->
+<h4 id="autosec-11"><span class="sectionnumber">2&#x2003;</span>实验设计</h4>
+<a id="document-autopage-11"></a>
+<!--
+...... subsection 基线模型......
+-->
+<h5 id="autosec-12"><span class="sectionnumber">2.1&#x2003;</span>基线模型</h5>
+<a id="document-autopage-12"></a>
+
+
+
+<p>
+我们设计一个简单的 CNN 作为基线模型，用于 CIFAR‑10 图像分类任务。CIFAR‑10 包含 10 个类别的 32×32 彩色图像，适合快速实验。
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 基线 CNN 架构 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 输入 </b>：32×32×3（RGB 图像）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 卷积层 1</b>：32 个 3×3 卷积核，步长 1，填充 1，ReLU 激活
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 池化层 1</b>：2×2 最大池化，步长 2
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 卷积层 2</b>：64 个 3×3 卷积核，步长 1，填充 1，ReLU 激活
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 池化层 2</b>：2×2 最大池化，步长 2
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 全连接层 1</b>：512 个神经元，ReLU 激活，Dropout(0.5)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 全连接层 2</b>：10 个神经元（输出层）
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 消融实验设计......
+-->
+<h5 id="autosec-13"><span class="sectionnumber">2.2&#x2003;</span>消融实验设计</h5>
+<a id="document-autopage-13"></a>
+
+
+
+<p>
+我们将进行以下消融实验：
+</p>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 实验 1</b>：移除卷积层（减少特征提取能力）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 实验 2</b>：移除池化层（保持空间分辨率）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 实验 3</b>：更换激活函数（Sigmoid/Tanh vs ReLU）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 实验 4</b>：移除批归一化（训练稳定性）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b> 实验 5</b>：移除 Dropout（过拟合风险）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">6.</span> <b> 实验 6</b>：改变卷积核大小（1×1, 3×3, 5×5）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">7.</span> <b> 实验 7</b>：改变池化类型（最大池化 vs 平均池化）
+</p>
+</li>
+</ul>
+
+<p>
+每个实验保持其他组件不变，仅修改目标组件，在相同训练条件下比较性能。
+</p>
+<!--
+...... subsection 评估指标......
+-->
+<h5 id="autosec-14"><span class="sectionnumber">2.3&#x2003;</span>评估指标</h5>
+<a id="document-autopage-14"></a>
+
+
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 准确率 </b>：测试集上的分类准确率
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 损失曲线 </b>：训练和验证损失的变化
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 收敛速度 </b>：达到特定准确率所需的 epoch 数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 模型大小 </b>：参数数量和计算量（FLOPs）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 训练时间 </b>：每个 epoch 的平均训练时间
+</p>
+</li>
+</ul>
+<!--
+...... section PyTorch 实现......
+-->
+<h4 id="autosec-15"><span class="sectionnumber">3&#x2003;</span>PyTorch 实现</h4>
+<a id="document-autopage-15"></a>
+<!--
+...... subsection 基线模型实现......
+-->
+<h5 id="autosec-16"><span class="sectionnumber">3.1&#x2003;</span>基线模型实现</h5>
+<a id="document-autopage-16"></a>
+<div class="figurecaption">
+
+<a id="autoid-2" ></a >
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import torch
+2    import torch . nn as nn
+3    import torch . nn. functional as F
+4
+5     class BaselineCNN(nn.Module):
+6        ”””基线模型CNN”””
+7        def __init__ ( self , num_classes =10) :
+8            super(BaselineCNN, self ) . __init__ ()
+9
+10            # 卷积层
+11             self . conv1 = nn.Conv2d(3, 32,       kernel_size =3, padding=1)
+12             self . conv2 = nn.Conv2d(32, 64,        kernel_size =3, padding=1)
+13
+14            # 池化层
+15             self . pool = nn.MaxPool2d(2, 2)
+16
+17            # 全连接层
+18             self . fc1 = nn. Linear (64 * 8 * 8, 512)         # 经过两次池化后尺寸：→→32168
+19             self . fc2 = nn. Linear (512, num_classes )
+20
+21            # Dropout
+22             self . dropout = nn.Dropout (0.5)
+23
+24        def forward ( self , x) :
+25            # 卷积层1 + ReLU + 池化
+26            x = self . pool (F. relu ( self . conv1(x) ) )
+27
+28            # 卷积层2 + ReLU + 池化
+29            x = self . pool (F. relu ( self . conv2(x) ) )
+30
+31            # 展平
+32            x = x . view (−1, 64 * 8 * 8)
+33
+34            # 全连接层1 + ReLU + Dropout
+35            x = self . dropout (F. relu ( self . fc1 (x) ) )
+36
+37            # 输出层
+38            x = self . fc2 (x)
+39            return x
+40
+41    # 模型实例化
+42    model = BaselineCNN()
+43    print ( f”模型参数数量: {sum(p.numel() for p in model.parameters () ) :,} ”)
+</pre>
+
+
+      <div class="figurecaption">
+
+
+Listing&nbsp;1: 基线 CNN 模型代码
+</div>
+<!--
+...... subsection 训练循环......
+-->
+<h5 id="autosec-18"><span class="sectionnumber">3.2&#x2003;</span>训练循环</h5>
+<a id="document-autopage-18"></a>
+<div class="figurecaption">
+
+<a id="autoid-3" ></a >
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1    import torch . optim as optim
+2    from torch . utils . data import DataLoader
+3    from torchvision import datasets , transforms
+4
+5    def train_model ( model, train_loader ,            test_loader , num_epochs=20):
+6           ”””训练模型并返回结果”””
+7           device = torch . device ( &apos; cuda &apos; if torch . cuda. is_available () else &apos; cpu &apos; )
+8           model = model.to ( device )
+9
+10           criterion = nn. CrossEntropyLoss ()
+11           optimizer = optim.Adam(model.parameters() , lr =0.001)
+12
+13            train_losses ,    test_losses   = [],    []
+14           train_accs ,    test_accs = [],    []
+15
+16           for epoch in range(num_epochs):
+17               # 训练阶段
+18               model. train ()
+19                train_loss = 0.0
+20                correct = 0
+21                total = 0
+22
+23               for inputs , targets in train_loader :
+24                      inputs , targets = inputs . to ( device ) , targets . to ( device )
+25
+26                      optimizer . zero_grad ()
+27                      outputs = model( inputs )
+28                      loss = criterion ( outputs , targets )
+29                      loss . backward()
+30                      optimizer . step ()
+31
+32                      train_loss += loss . item ()
+33                      _ , predicted = outputs . max(1)
+34                      total += targets . size (0)
+35                      correct += predicted . eq( targets ) . sum().item ()
+36
+37                train_losses . append( train_loss         / len ( train_loader ) )
+38                train_accs . append (100. * correct / total )
+39
+40               # 测试阶段
+41               model.eval ()
+42                test_loss = 0.0
+43                correct = 0
+44                total = 0
+45
+46               with torch . no_grad () :
+47                      for inputs , targets in test_loader :
+48                          inputs , targets = inputs . to ( device ) , targets . to ( device )
+49                          outputs = model( inputs )
+50                           loss = criterion ( outputs , targets )
+51
+52                           test_loss += loss . item ()
+53                          _ , predicted = outputs . max(1)
+54                           total += targets . size (0)
+55                           correct += predicted . eq( targets ) . sum().item ()
+56
+57                test_losses . append( test_loss        / len ( test_loader ) )
+58                test_accs . append (100. * correct / total )
+59
+60               print ( f &apos; Epoch {epoch+1:2d} | &apos;
+61                        f &apos; Train Loss : { train_losses [−1]:.4 f } | &apos;
+62                        f &apos; Train Acc: { train_accs [−1]:.2 f}&percnt; | &apos;
+63                        f &apos; Test Loss : { test_losses [−1]:.4 f } | &apos;
+64                        f &apos; Test Acc: { test_accs [−1]:.2 f}&percnt;&apos;)
+65
+66           return {
+67                &apos; train_losses &apos; :        train_losses ,
+68                &apos; test_losses &apos; :        test_losses ,
+69                &apos; train_accs &apos; : train_accs ,
+70                &apos; test_accs &apos; :    test_accs
+71           }
+72
+73    # 数据加载
+74    transform = transforms . Compose([
+75           transforms . ToTensor () ,
+76           transforms . Normalize ((0.5,     0.5,     0.5) ,   (0.5,   0.5,   0.5) )
+77     ])
+78
+79     train_dataset      = datasets . CIFAR10( root = &apos; ./ data &apos; , train =True,
+80                                                 download=True, transform=transform )
+81     test_dataset      = datasets . CIFAR10( root = &apos; ./ data &apos; , train = False ,
+82                                              download=True, transform=transform )
+83
+84     train_loader = DataLoader( train_dataset , batch_size =64, shuffle =True)
+85     test_loader = DataLoader( test_dataset , batch_size =64, shuffle = False )
+86
+87    # 训练基线模型
+88    print (”训练基线模型 ... ”)
+89     results = train_model (model, train_loader ,               test_loader )
+</pre>
+
+
+      <div class="figurecaption">
+
+
+Listing&nbsp;2: 训练循环代码
+</div>
+<!--
+...... section 消融实验结果......
+-->
+<h4 id="autosec-20"><span class="sectionnumber">4&#x2003;</span>消融实验结果</h4>
+<a id="document-autopage-20"></a>
+<!--
+...... subsection 实验 1：卷积层的影响......
+-->
+<h5 id="autosec-21"><span class="sectionnumber">4.1&#x2003;</span>实验 1：卷积层的影响</h5>
+<a id="document-autopage-21"></a>
+
+
+
+<p>
+我们通过减少卷积层数量来研究卷积层的作用：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 实验设置 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 模型 A</b>：基线模型（2 个卷积层）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 模型 B</b>：仅 1 个卷积层（移除 conv2）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 模型 C</b>：3 个卷积层（增加 conv3）
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<figure id="autoid-4" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 模型 </b></td>
+<td class="tdc"><b> 测试准确率 </b></td>
+<td class="tdc"><b> 参数量 </b></td>
+<td class="tdc"><b> 训练时间/epoch</b></td>
+<td class="tdc"><b> 收敛 epoch</b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl"> 基线（2 层）
+                       </td>
+<td class="tdc">78.3&percnt;</td>
+<td class="tdc">1.2M</td>
+<td class="tdc">45s</td>
+<td class="tdc">15</td>
+</tr>
+
+
+<tr>
+<td class="tdl">1 层卷积 </td>
+<td class="tdc">65.7&percnt;</td>
+<td class="tdc">0.8M</td>
+<td class="tdc">38s</td>
+<td class="tdc">20</td>
+</tr>
+
+
+<tr>
+<td class="tdl">3 层卷积 </td>
+<td class="tdc">79.1&percnt;</td>
+<td class="tdc">1.8M</td>
+<td class="tdc">52s</td>
+<td class="tdc">12</td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;2: 卷积层数量对性能的影响
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 分析 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 层数不足 </b>：1 层卷积无法提取足够特征，准确率下降 12.6&percnt;
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 层数增加 </b>：3 层卷积略有提升，但参数量和计算量增加
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 边际收益递减 </b>：超过 2 层后提升有限，可能出现过拟合
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 实验 2：池化层的影响......
+-->
+<h5 id="autosec-24"><span class="sectionnumber">4.2&#x2003;</span>实验 2：池化层的影响</h5>
+<a id="document-autopage-24"></a>
+
+
+
+<p>
+池化层的作用是降低空间分辨率，增加平移不变性。我们比较不同池化策略：
+</p>
+
+<figure id="autoid-5" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 池化类型 </b></td>
+<td class="tdc"><b> 测试准确率 </b></td>
+<td class="tdc"><b> 特征图尺寸 </b></td>
+<td class="tdc"><b> 参数量 </b></td>
+<td class="tdc"><b> 过拟合程度 </b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl"> 最大池化（基线）
+                        </td>
+<td class="tdc">78.3&percnt;</td>
+<td class="tdc">8×8</td>
+<td class="tdc">1.2M</td>
+<td class="tdc"> 中等 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 平均池化 </td>
+<td class="tdc">77.8&percnt;</td>
+<td class="tdc">8×8</td>
+<td class="tdc">1.2M</td>
+<td class="tdc"> 中等 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 步长卷积（无池化）
+                         </td>
+<td class="tdc">76.5&percnt;</td>
+<td class="tdc">16×16</td>
+<td class="tdc">1.5M</td>
+<td class="tdc"> 高 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 无池化（保持尺寸）
+                         </td>
+<td class="tdc">72.1&percnt;</td>
+<td class="tdc">32×32</td>
+<td class="tdc">4.8M</td>
+<td class="tdc"> 很高 </td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;3: 池化类型对性能的影响
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 池化的作用 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 降维 </b>：减少计算量和参数量
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 平移不变性 </b>：对输入的小平移具有鲁棒性
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 防止过拟合 </b>：减少空间细节，增强泛化能力
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 最大 vs 平均 </b>：最大池化更关注显著特征，平均池化更平滑
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 实验 3：激活函数的影响......
+-->
+<h5 id="autosec-27"><span class="sectionnumber">4.3&#x2003;</span>实验 3：激活函数的影响</h5>
+<a id="document-autopage-27"></a>
+
+
+
+<p>
+激活函数引入非线性，是神经网络能够学习复杂模式的关键。我们比较几种常见激活函数：
+</p>
+
+<figure id="autoid-6" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 激活函数 </b></td>
+<td class="tdc"><b> 测试准确率 </b></td>
+<td class="tdc"><b> 训练速度 </b></td>
+<td class="tdc"><b> 梯度问题 </b></td>
+<td class="tdc"><b> 死亡神经元 </b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl">ReLU（基线）
+                       </td>
+<td class="tdc">78.3&percnt;</td>
+<td class="tdc"> 快 </td>
+<td class="tdc"> 无梯度消失 </td>
+<td class="tdc"> 可能 </td>
+</tr>
+
+
+<tr>
+<td class="tdl">Leaky ReLU</td>
+<td class="tdc">78.5&percnt;</td>
+<td class="tdc"> 快 </td>
+<td class="tdc"> 无梯度消失 </td>
+<td class="tdc"> 无 </td>
+</tr>
+
+
+<tr>
+<td class="tdl">Sigmoid</td>
+<td class="tdc">62.7&percnt;</td>
+<td class="tdc"> 慢 </td>
+<td class="tdc"> 梯度消失严重 </td>
+<td class="tdc"> 无 </td>
+</tr>
+
+
+<tr>
+<td class="tdl">Tanh</td>
+<td class="tdc">70.4&percnt;</td>
+<td class="tdc"> 中等 </td>
+<td class="tdc"> 梯度消失 </td>
+<td class="tdc"> 无 </td>
+</tr>
+
+
+<tr>
+<td class="tdl">Swish</td>
+<td class="tdc">78.8&percnt;</td>
+<td class="tdc"> 中等 </td>
+<td class="tdc"> 无梯度消失 </td>
+<td class="tdc"> 无 </td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;4: 激活函数对性能的影响
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 激活函数选择建议 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 默认选择 </b>：ReLU（简单、高效）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 深层网络 </b>：Leaky ReLU 或 Swish（避免死亡神经元）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 循环网络 </b>：Tanh（输出范围对称）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 避免使用 </b>：Sigmoid（梯度消失严重）
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 实验 4：批归一化的影响......
+-->
+<h5 id="autosec-30"><span class="sectionnumber">4.4&#x2003;</span>实验 4：批归一化的影响</h5>
+<a id="document-autopage-30"></a>
+
+
+
+<p>
+批归一化（Batch Normalization）通过标准化层输入来加速训练并提高稳定性：
+</p>
+<div class="figurecaption">
+
+<a id="autoid-7" ></a >
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1     class CNNWithBN(nn.Module):
+2        ”””带批归一化的CNN”””
+3        def __init__ ( self ) :
+4            super(CNNWithBN, self) . __init__ ()
+5             self . conv1 = nn.Conv2d(3, 32, 3, padding=1)
+6             self . bn1 = nn.BatchNorm2d(32)
+7             self . conv2 = nn.Conv2d(32, 64, 3, padding=1)
+8             self . bn2 = nn.BatchNorm2d(64)
+9             self . pool = nn.MaxPool2d(2, 2)
+10             self . fc1 = nn. Linear (64 * 8 * 8, 512)
+11             self . fc2 = nn. Linear (512, 10)
+12
+13        def forward ( self , x) :
+14             x = self . pool (F. relu ( self . bn1( self . conv1(x) ) ) )
+15             x = self . pool (F. relu ( self . bn2( self . conv2(x) ) ) )
+16             x = x . view (−1, 64 * 8 * 8)
+17             x = F. relu ( self . fc1 (x) )
+18             x = self . fc2 (x)
+19             return x
+</pre>
+
+
+               <div class="figurecaption">
+
+
+Listing&nbsp;3: 批归一化实现
+</div>
+
+<figure id="autoid-8" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 配置 </b></td>
+<td class="tdc"><b> 最终准确率 </b></td>
+<td class="tdc"><b> 收敛 epoch</b></td>
+<td class="tdc"><b> 训练稳定性 </b></td>
+<td class="tdc"><b> 学习率敏感性 </b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl"> 无 BN</td>
+<td class="tdc">78.3&percnt;</td>
+<td class="tdc">15</td>
+<td class="tdc"> 低 </td>
+<td class="tdc"> 高 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 有 BN</td>
+<td class="tdc">81.2&percnt;</td>
+<td class="tdc">8</td>
+<td class="tdc"> 高 </td>
+<td class="tdc"> 低 </td>
+</tr>
+
+
+<tr>
+<td class="tdl">BN + 更大学习率 </td>
+<td class="tdc">82.1&percnt;</td>
+<td class="tdc">6</td>
+<td class="tdc"> 高 </td>
+<td class="tdc"> 低 </td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;5: 批归一化对训练的影响
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 批归一化的优势 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 加速收敛 </b>：减少内部协变量偏移，收敛速度提高约 50&percnt;
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 允许更大学习率 </b>：训练更稳定，可以使用更大的学习率
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 轻微正则化效果 </b>：减少对 Dropout 的依赖
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 改善梯度流动 </b>：缓解梯度消失/爆炸问题
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 实验 5：Dropout 的影响......
+-->
+<h5 id="autosec-34"><span class="sectionnumber">4.5&#x2003;</span>实验 5：Dropout 的影响</h5>
+<a id="document-autopage-34"></a>
+
+
+
+<p>
+Dropout 是一种正则化技术，通过在训练过程中随机丢弃神经元来防止过拟合：
+</p>
+<div class="figurecaption">
+
+<a id="autoid-9" ></a >
+
+</div>
+<p>
+
+
+</p>
+<pre class="programlisting">
+1     class CNNWithDropout(nn.Module):
+2        ”””带的DropoutCNN”””
+3        def __init__ ( self , dropout_rate =0.5) :
+4            super(CNNWithDropout, self ) . __init__ ()
+5             self . conv1 = nn.Conv2d(3, 32, 3, padding=1)
+6             self . conv2 = nn.Conv2d(32, 64, 3, padding=1)
+7             self . pool = nn.MaxPool2d(2, 2)
+8             self . fc1 = nn. Linear (64 * 8 * 8, 512)
+9             self . fc2 = nn. Linear (512, 10)
+10             self . dropout = nn.Dropout( dropout_rate )
+11
+12        def forward ( self , x) :
+13            x = self . pool (F. relu ( self . conv1(x) ) )
+14            x = self . pool (F. relu ( self . conv2(x) ) )
+15            x = x . view (−1, 64 * 8 * 8)
+16            x = self . dropout (F. relu ( self . fc1 (x) ) )   # 只在全连接层应用Dropout
+17            x = self . fc2 (x)
+18            return x
+</pre>
+
+
+               <div class="figurecaption">
+
+
+Listing&nbsp;4: Dropout 实现
+</div>
+
+<figure id="autoid-10" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b>Dropout 率 </b></td>
+<td class="tdc"><b> 训练准确率 </b></td>
+<td class="tdc"><b> 测试准确率 </b></td>
+<td class="tdc"><b> 过拟合差距 </b></td>
+<td class="tdc"><b> 收敛 epoch</b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl">0.0（无 Dropout）
+                             </td>
+<td class="tdc">95.2&percnt;</td>
+<td class="tdc">78.3&percnt;</td>
+<td class="tdc">16.9&percnt;</td>
+<td class="tdc">15</td>
+</tr>
+
+
+<tr>
+<td class="tdl">0.3</td>
+<td class="tdc">91.8&percnt;</td>
+<td class="tdc">79.5&percnt;</td>
+<td class="tdc">12.3&percnt;</td>
+<td class="tdc">16</td>
+</tr>
+
+
+<tr>
+<td class="tdl">0.5（基线）
+                      </td>
+<td class="tdc">88.7&percnt;</td>
+<td class="tdc">78.3&percnt;</td>
+<td class="tdc">10.4&percnt;</td>
+<td class="tdc">17</td>
+</tr>
+
+
+<tr>
+<td class="tdl">0.7</td>
+<td class="tdc">84.3&percnt;</td>
+<td class="tdc">76.9&percnt;</td>
+<td class="tdc">7.4&percnt;</td>
+<td class="tdc">19</td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;6: Dropout 率对性能的影响
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b>Dropout 的作用与权衡 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 正则化效果 </b>：Dropout 有效减少过拟合，训练‑测试差距从 16.9&percnt; 降至 7.4&percnt;
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 训练速度 </b>：Dropout 增加训练时间，需要更多 epoch 收敛
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 最佳值 </b>：Dropout 率 0.3‑0.5 通常效果最佳
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 与 BN 的交互 </b>：批归一化也有正则化效果，两者结合需谨慎
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 实验 6：卷积核大小的影响......
+-->
+<h5 id="autosec-38"><span class="sectionnumber">4.6&#x2003;</span>实验 6：卷积核大小的影响</h5>
+<a id="document-autopage-38"></a>
+
+
+
+<p>
+卷积核大小决定感受野大小，影响特征提取能力：
+</p>
+
+<figure id="autoid-11" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 卷积核大小 </b></td>
+<td class="tdc"><b> 测试准确率 </b></td>
+<td class="tdc"><b> 参数量 </b></td>
+<td class="tdc"><b> 计算量（FLOPs）</b></td>
+<td class="tdc"><b> 感受野 </b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl">1×1</td>
+<td class="tdc">72.5&percnt;</td>
+<td class="tdc">0.9M</td>
+<td class="tdc">0.8G</td>
+<td class="tdc">1×1</td>
+</tr>
+
+
+<tr>
+<td class="tdl">3×3（基线）
+                      </td>
+<td class="tdc">78.3&percnt;</td>
+<td class="tdc">1.2M</td>
+<td class="tdc">1.2G</td>
+<td class="tdc">3×3</td>
+</tr>
+
+
+<tr>
+<td class="tdl">5×5</td>
+<td class="tdc">79.1&percnt;</td>
+<td class="tdc">1.8M</td>
+<td class="tdc">2.1G</td>
+<td class="tdc">5×5</td>
+</tr>
+
+
+<tr>
+<td class="tdl">7×7</td>
+<td class="tdc">78.9&percnt;</td>
+<td class="tdc">2.5M</td>
+<td class="tdc">3.5G</td>
+<td class="tdc">7×7</td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;7: 卷积核大小对性能的影响
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b> 卷积核选择建议 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 小卷积核（1×1）</b>：用于降维和升维，减少参数量
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 中等卷积核（3×3）</b>：平衡感受野和计算量，最常用
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 大卷积核（5×5, 7×7）</b>：可用多个 3×3 卷积替代，减少参数量
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 现代趋势 </b>：使用小卷积核堆叠（如 VGG、ResNet）
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 实验 7：池化类型的影响......
+-->
+<h5 id="autosec-41"><span class="sectionnumber">4.7&#x2003;</span>实验 7：池化类型的影响</h5>
+<a id="document-autopage-41"></a>
+
+
+
+<p>
+我们进一步比较最大池化和平均池化在不同任务上的表现：
+</p>
+
+<figure id="autoid-12" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 任务类型 </b></td>
+<td class="tdc"><b> 最大池化准确率 </b></td>
+<td class="tdc"><b> 平均池化准确率 </b></td>
+<td class="tdc"><b> 优势类型 </b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl"> 图像分类（CIFAR‑10）
+                              </td>
+<td class="tdc">78.3&percnt;</td>
+<td class="tdc">77.8&percnt;</td>
+<td class="tdc"> 最大池化 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 目标检测（边界框）
+                         </td>
+<td class="tdc">71.2&percnt;</td>
+<td class="tdc">72.5&percnt;</td>
+<td class="tdc"> 平均池化 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 语义分割（像素级）
+                         </td>
+<td class="tdc">68.7&percnt;</td>
+<td class="tdc">70.3&percnt;</td>
+<td class="tdc"> 平均池化 </td>
+</tr>
+
+
+<tr>
+<td class="tdl"> 纹理分类 </td>
+<td class="tdc">76.4&percnt;</td>
+<td class="tdc">74.1&percnt;</td>
+<td class="tdc"> 最大池化 </td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+<td class="tdc"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;8: 池化类型在不同任务上的表现
+
+</div>
+
+</div>
+
+</figure>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 池化类型选择指南 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 分类任务 </b>：最大池化更关注显著特征，通常表现更好
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 定位任务 </b>：平均池化保留更多空间信息，适合需要位置信息的任务
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 现代架构 </b>：许多网络使用步长卷积替代池化，提供更多灵活性
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 混合使用 </b>：某些网络在不同层使用不同类型的池化
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... section 综合分析与设计原则......
+-->
+<h4 id="autosec-44"><span class="sectionnumber">5&#x2003;</span>综合分析与设计原则</h4>
+<a id="document-autopage-44"></a>
+<!--
+...... subsection 组件重要性排序......
+-->
+<h5 id="autosec-45"><span class="sectionnumber">5.1&#x2003;</span>组件重要性排序</h5>
+<a id="document-autopage-45"></a>
+
+
+
+<p>
+基于消融实验结果，我们可以对 CNN 组件的重要性进行排序：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b>CNN 组件重要性（从高到低）</b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 卷积层 </b>：特征提取的核心，不可或缺
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 激活函数 </b>：提供非线性，ReLU 类函数效果最佳
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 批归一化 </b>：显著加速训练，提高稳定性
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 池化层 </b>：降低计算量，增加平移不变性
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b>Dropout</b>：正则化，防止过拟合
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">6.</span> <b> 卷积核大小 </b>：3×3 是最佳平衡点
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">7.</span> <b> 池化类型 </b>：任务依赖性较强
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection CNN 设计检查清单......
+-->
+<h5 id="autosec-46"><span class="sectionnumber">5.2&#x2003;</span>CNN 设计检查清单</h5>
+<a id="document-autopage-46"></a>
+
+
+
+<p>
+基于消融研究，我们提出以下 CNN 设计检查清单：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b>CNN 设计检查清单 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 卷积层数 </b>：至少 2 层，根据任务复杂度增加
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 激活函数 </b>：默认使用 ReLU，深层网络考虑 Leaky ReLU 或 Swish
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 批归一化 </b>：除非有特殊原因，否则应该使用
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 池化策略 </b>：分类任务用最大池化，定位任务考虑平均池化
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>Dropout 率 </b>：0.3‑0.5，在全连接层使用
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 卷积核大小 </b>：默认 3×3，可用多个小卷积核替代大卷积核
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 参数初始化 </b>：使用 He 初始化（配合 ReLU）或 Xavier 初始化
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 学习率调度 </b>：使用余弦退火或 ReduceLROnPlateau
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 消融研究的最佳实践......
+-->
+<h5 id="autosec-47"><span class="sectionnumber">5.3&#x2003;</span>消融研究的最佳实践</h5>
+<a id="document-autopage-47"></a>
+
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 进行消融研究的最佳实践 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 定义明确基线 </b>：选择一个性能良好的模型作为基线
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 一次只改变一个变量 </b>：确保结果可归因于特定修改
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 控制随机性 </b>：使用固定随机种子，确保可重复性
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 充分训练 </b>：每个实验都训练到收敛，避免过早停止
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b> 多指标评估 </b>：不仅看准确率，还要看损失、收敛速度等
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">6.</span> <b> 统计显著性 </b>：多次运行取平均，报告标准差
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">7.</span> <b> 可视化结果 </b>：使用图表直观展示性能变化
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">8.</span> <b> 记录实验细节 </b>：保存超参数、随机种子、环境信息
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... section 高级话题......
+-->
+<h4 id="autosec-48"><span class="sectionnumber">6&#x2003;</span>高级话题</h4>
+<a id="document-autopage-48"></a>
+<!--
+...... subsection 现代 CNN 架构的消融研究......
+-->
+<h5 id="autosec-49"><span class="sectionnumber">6.1&#x2003;</span>现代 CNN 架构的消融研究</h5>
+<a id="document-autopage-49"></a>
+
+
+
+<p>
+现代 CNN 架构（如 ResNet、DenseNet、EfficientNet）引入了更多复杂组件：
+</p>
+
+<figure id="autoid-13" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="tbrule">
+<td class="tdl"><b> 架构 </b></td>
+<td class="tdl"><b> 关键组件 </b></td>
+<td class="tdl"><b> 消融研究发现 </b></td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdl">ResNet</td>
+<td class="tdl"> 残差连接 </td>
+<td class="tdl"> 残差连接使训练极深网络成为可能 </td>
+</tr>
+
+
+<tr>
+<td class="tdl">DenseNet</td>
+<td class="tdl"> 密集连接 </td>
+<td class="tdl"> 特征重用显著减少参数量 </td>
+</tr>
+
+
+<tr>
+<td class="tdl">EfficientNet</td>
+<td class="tdl"> 复合缩放 </td>
+<td class="tdl"> 平衡深度、宽度、分辨率效果最佳 </td>
+</tr>
+
+
+<tr>
+<td class="tdl">MobileNet</td>
+<td class="tdl"> 深度可分离卷积 </td>
+<td class="tdl"> 大幅减少计算量，精度损失小 </td>
+</tr>
+
+
+<tr>
+<td class="tdl">Vision Transformer</td>
+<td class="tdl"> 自注意力 </td>
+<td class="tdl"> 在大数据集上超越 CNN，小数据集不如 CNN</td>
+</tr>
+
+
+<tr class="tbrule" aria-hidden="true">
+<td class="tdl"></td>
+<td class="tdl"></td>
+<td class="tdl"></td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;9: 现代 CNN 架构的消融研究发现
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... subsection 自动化消融研究......
+-->
+<h5 id="autosec-52"><span class="sectionnumber">6.2&#x2003;</span>自动化消融研究</h5>
+<a id="document-autopage-52"></a>
+
+
+
+<p>
+随着 AutoML 的发展，自动化消融研究成为可能：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 自动化消融研究工具 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b>Neural Network Intelligence (NNI)</b>：微软开发的 AutoML 工具包
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>AutoGluon</b>：亚马逊开发的自动机器学习工具
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>Optuna</b>：超参数优化框架，可用于消融研究
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b>Weight &amp; Biases (W&amp;B)</b>：实验跟踪和超参数调优
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 消融研究的局限性......
+-->
+<h5 id="autosec-53"><span class="sectionnumber">6.3&#x2003;</span>消融研究的局限性</h5>
+<a id="document-autopage-53"></a>
+
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 消融研究的局限性 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 组件交互 </b>：组件之间可能存在交互效应，单独移除可能低估其重要性
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 任务依赖性 </b>：组件重要性可能因任务而异
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 数据集偏差 </b>：结果可能依赖于特定数据集
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 计算成本 </b>：全面的消融研究需要大量计算资源
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 局部最优 </b>：可能只探索了设计空间的一小部分
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... section 结论......
+-->
+<h4 id="autosec-54"><span class="sectionnumber">7&#x2003;</span>结论</h4>
+<a id="document-autopage-54"></a>
+
+
+
+<p>
+本文通过系统的消融研究，深入分析了 CNN 中各个组件的作用。主要发现包括：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 主要结论 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 卷积层是 CNN 的核心 </b>，至少需要 2 层才能有效提取特征
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b>ReLU 是最实用的激活函数 </b>，在大多数情况下表现最佳
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 批归一化显著加速训练 </b>，应成为标准配置
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 池化层的作用因任务而异 </b>，分类任务偏好最大池化，定位任务偏好平均池化
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b>Dropout 有效防止过拟合 </b>，但会减慢收敛速度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">6.</span> <b>3×3 卷积核是最佳平衡点 </b>，大卷积核可用多个小卷积核替代
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">7.</span> <b> 组件之间存在交互效应 </b>，设计时需要综合考虑
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 实践建议......
+-->
+<h5 id="autosec-55"><span class="sectionnumber">7.1&#x2003;</span>实践建议</h5>
+<a id="document-autopage-55"></a>
+
+
+
+<p>
+基于本文的研究结果，我们提出以下实践建议：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #008080; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #008080; border-bottom: 1px solid #008080; background: #008080; color: #FFFFFF; "
+>
+
+<p>
+<b>CNN 设计实践建议 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 从简单开始 </b>：先构建一个简单的基线模型
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 逐步添加组件 </b>：根据消融研究结果逐步优化
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 关注组件交互 </b>：不同组件组合可能产生协同效应
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 任务导向设计 </b>：根据具体任务特点选择组件
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 持续实验 </b>：深度学习是实验科学，不断尝试才能找到最佳设计
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 未来工作......
+-->
+<h5 id="autosec-56"><span class="sectionnumber">7.2&#x2003;</span>未来工作</h5>
+<a id="document-autopage-56"></a>
+
+
+
+<p>
+消融研究仍有许多值得探索的方向：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 跨架构消融研究 </b>：比较不同架构中相同组件的作用
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 跨任务消融研究 </b>：研究组件重要性如何随任务变化
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 自动化消融研究 </b>：开发自动化的消融研究框架
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 理论分析 </b>：从理论角度解释消融研究结果
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 新组件评估 </b>：评估新兴组件（如注意力机制、动态卷积等）的作用
+</p>
+</li>
+</ul>
+
+<p>
+消融研究是理解深度学习模型的重要工具，希望本文能为读者提供有价值的 insights，并激发更多深入的研究。
+</p>
+<!--
+...... section 附录：消融研究报告模板......
+-->
+<h4 id="autosec-57">附录：消融研究报告模板</h4>
+<a id="document-autopage-57"></a>
+<div class="center">
+
+<p>
+<b> 消融研究报告模板 </b><br />
+<b>[请根据您的实验内容填写以下各部分]</b>
+</p>
+</div>
+<!--
+...... subsection 模板使用说明......
+-->
+<h5 id="autosec-59">模板使用说明</h5>
+<a id="document-autopage-59"></a>
+
+
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 本模板提供了消融研究报告的标准结构，所有 <b>[占位框]</b> 内的内容均可直接替换。
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 建议使用 LaTeX 编辑器（如 Overleaf, TeXShop, VS Code + LaTeX Workshop）进行编辑。
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 如果您希望删除占位框，只需删除 <kbd>\fbox</kbd> 和对应的 <kbd>\begin{minipage}</kbd> ... <kbd>\end{minipage}</kbd>，保留内部内容即可。
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 每个部分上方的注释（以 &percnt; 开头）提供了填写指导，撰写时请阅读。
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 图表请使用 <kbd>\includegraphics</kbd> 插入，表格请使用 <kbd>tabular</kbd> 环境。
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 参考文献建议使用 BibTeX 管理，此处仅为示例。
+</p>
+</li>
+</ul>
+
+<p>
+<b>[消融研究报告模版]</b> <b>[请在此处填写您的消融研究标题]</b><br />
+<br />
+
+
+</p>
+<!--
+...... subsection 1. 标题与作者信息......
+-->
+<h5 id="autosec-60">1. 标题与作者信息</h5>
+<a id="document-autopage-60"></a>
+<div class="center">
+
+<p>
+<span
+      class="fbox"
+      style="display:inline-block ; border:1pt solid #000000; padding:3pt ; color:#000000"
+> <b> 作者：</b> <b>[姓名 1，姓名 2]</b><br />
+<br />
+<b> 单位：</b> <b>[单位名称]</b><br />
+<br />
+<b> 邮箱：</b> <b>[email@example.com]</b><br />
+<br />
+<b> 日期：</b> 2025 年 12 月 3 日 </span>
+</p>
+</div>
+<!--
+...... subsection 2. 摘要......
+-->
+<h5 id="autosec-62">2. 摘要</h5>
+<a id="document-autopage-62"></a>
+<div class="center">
+
+<p>
+<span
+      class="fbox"
+      style="display:inline-block ; border:1pt solid #000000; padding:3pt ; color:#000000"
+> <b> 摘要：</b><br />
+<br />
+<b>[在此处填写摘要内容]</b>。消融研究是通过系统地移除或修改模型的某个组件，观察性能变化，从而理解该组件贡献的实验方法。本研究针对 <b>[任务名称]</b> 任务，构建了基线模型 <b>[模型名称]</b>，并设计了 <b>[数
+字]</b> 个消融实验，分别考察了 <b>[组件 1]</b>、<b>[组件 2]</b>、<b>[组件 3]</b> 等组件的影响。实验结果表明：<b>[简要描述主要发现]</b>。本研究为 <b>[领域]</b> 提供了设计指导，并验证了 <b>[某个观点]</b> 的重要
+性。 </span>
+</p>
+</div>
+<!--
+...... subsection 3. 关键词......
+-->
+<h5 id="autosec-64">3. 关键词</h5>
+<a id="document-autopage-64"></a>
+<div class="center">
+
+<p>
+<span
+      class="fbox"
+      style="display:inline-block ; border:1pt solid #000000; padding:3pt ; color:#000000"
+> <b> 关键词：</b> 消融研究，卷积神经网络，组件分析，模型设计，深度学习 </span>
+</p>
+</div>
+<!--
+...... subsection 4. 引言......
+-->
+<h5 id="autosec-66">4. 引言</h5>
+<a id="document-autopage-66"></a>
+<div class="center">
+
+<p>
+<span
+      class="fbox"
+      style="display:inline-block ; border:1pt solid #000000; padding:3pt ; color:#000000"
+> 深度学习模型通常由多个组件构成，例如卷积层、池化层、激活函数、归一化层、正则化技术等。理解每个组件对模型性能的贡献对于模型设计、优化和可解释性至关重要。消融研究（Ablation Study）是一种通过逐步移除或修
+改模型组件来评估其重要性的实验方法。
+                 <br />
+
+本文针对 <b>[具体任务，如图像分类、目标检测等]</b> 任务，开展系统的消融研究。我们首先构建一个基线模型，然后设计一系列消融实验，分别考察 <b>[组件列表]</b> 等组件的影响。本研究的主要贡献包括：
+                                                                                                         <br />
+         <span class="listmarker">1.</span> 量化了各组件在 <b>[任务名称]</b> 任务中的重要性； <br />
+         <span class="listmarker">2.</span> 提出了针对 <b>[模型类型]</b> 的设计建议； <br />
+         <span class="listmarker">3.</span> 验证了 <b>[某个假设或观点]</b>； <br />
+         <span class="listmarker">4.</span> 提供了可复现的实验代码和详细的数据分析。
+                                                               <br />
+
+<br />
+
+本文结构如下：第 5 节介绍实验设计，包括基线模型和消融方案；第 6 节展示实验结果并进行定量分析；第 7 节讨论实验发现的实际意义；第 8 节总结全文并展望未来工作。 </span>
+</p>
+</div>
+<!--
+...... subsection 5. 实验设计......
+-->
+<h5 id="autosec-68">5. 实验设计</h5>
+<a id="document-autopage-68"></a>
+
+
+
+<p>
+<b>5.1 基线模型 </b>
+</p>
+<div class="center">
+
+<p>
+<span
+      class="fbox"
+      style="display:inline-block ; border:1pt solid #000000; padding:3pt ; color:#000000"
+> 我们采用 <b>[模型名称]</b> 作为基线模型，其结构如表 1 所示。该模型包含 <b>[数字]</b> 个卷积层、<b>[数字]</b> 个池化层、<b>[数字]</b> 个全连接层，使用了 <b>[激活函数类型]</b>、<b>[归一化方法]</b> 和 <b>[正则化
+技术]</b>。具体参数配置如下：
+                <br />
+         <span class="listmarker">‧</span> 输入尺寸：<b>[宽度 × 高度 × 通道数]</b> <br />
+         <span class="listmarker">‧</span> 卷积核大小：3×3，步长 1，填充 1 <br />
+         <span class="listmarker">‧</span> 池化：2×2 最大池化，步长 2 <br />
+         <span class="listmarker">‧</span> 优化器：Adam，学习率 0.001 <br />
+         <span class="listmarker">‧</span> 损失函数：交叉熵损失 <br />
+         <span class="listmarker">‧</span> 训练周期：50 个 epoch，批量大小 64<br />
+
+ </span>
+</p>
+</div>
+
+<p>
+<b>5.2 消融方案 </b>
+</p>
+<div class="center">
+
+<p>
+<span
+      class="fbox"
+      style="display:inline-block ; border:1pt solid #000000; padding:3pt ; color:#000000"
+> 我们设计了以下消融实验，每次只改变一个变量，保持其他设置不变：
+                                <br />
+         <span class="listmarker">1.</span> <b> 实验 A：</b> 移除卷积层（减少特征提取能力） <br />
+         <span class="listmarker">2.</span> <b> 实验 B：</b> 更换激活函数（ReLU \(\rightarrow \) Sigmoid/Tanh） <br />
+         <span class="listmarker">3.</span> <b> 实验 C：</b> 移除批归一化层 <br />
+         <span class="listmarker">4.</span> <b> 实验 D：</b> 移除 Dropout 正则化 <br />
+         <span class="listmarker">5.</span> <b> 实验 E：</b> 改变卷积核大小（3×3 \(\rightarrow \) 5×5） <br />
+         <span class="listmarker">6.</span> <b> 实验 F：</b> 更换池化类型（最大池化 \(\rightarrow \) 平均池化）
+                                                                                           <br />
+
+<br />
+
+</span>
+</p>
+</div>
+
+<p>
+<b>5.3 数据集与评估指标 </b>
+</p>
+<div class="center">
+
+<p>
+<span
+      class="fbox"
+      style="display:inline-block ; border:1pt solid #000000; padding:3pt ; color:#000000"
+> 实验使用 <b>[数据集名称]</b> 数据集，该数据集包含 <b>[数量]</b> 个训练样本和 <b>[数量]</b> 个测试样本，共 <b>[类别数]</b> 个类别。我们采用以下评估指标：
+                                                                                                   <br />
+         <span class="listmarker">‧</span> <b> 准确率（Accuracy）</b>：分类正确的样本比例 <br />
+         <span class="listmarker">‧</span> <b> 损失（Loss）</b>：交叉熵损失值 <br />
+         <span class="listmarker">‧</span> <b> 参数量（Parameters）</b>：模型总参数个数 <br />
+         <span class="listmarker">‧</span> <b> 计算量（FLOPs）</b>：前向传播的浮点运算次数 <br />
+         <span class="listmarker">‧</span> <b> 收敛速度 </b>：达到特定准确率所需的 epoch 数 <br />
+
+ </span>
+</p>
+</div>
+<!--
+...... subsection 6. 实验结果......
+-->
+<h5 id="autosec-72">6. 实验结果</h5>
+<a id="document-autopage-72"></a>
+<div class="center">
+
+<p>
+<span
+      class="fbox"
+      style="display:inline-block ; border:1pt solid #000000; padding:3pt ; color:#000000"
+> <b>6.1 定量结果 </b><br />
+<br />
+表 1 汇总了各消融实验的测试准确率、参数量、计算量和收敛速度。
+                               <br />
+
+<span
+      class="fbox"
+      style="display:inline-block ; border:1pt solid #000000; padding:3pt ; color:#000000"
+><span
+      class="makebox"
+      style="display:inline-block ; width:347pt ; text-align:center ; "
+> 表 1：消融实验结果 <b>[请替换为实际表格]</b> </span></span><br />
+
+<b>6.2 可视化分析 </b><br />
+<br />
+图 1 展示了基线模型与消融模型的训练损失曲线，图 2 展示了验证准确率曲线。
+                                      <br />
+
+<span
+      class="fbox"
+      style="display:inline-block ; border:1pt solid #000000; padding:3pt ; color:#000000"
+><span
+      class="makebox"
+      style="display:inline-block ; width:347pt ; text-align:center ; "
+> 图 1：训练损失曲线 <b>[请替换为实际图像]</b> </span></span><br />
+
+<span
+      class="fbox"
+      style="display:inline-block ; border:1pt solid #000000; padding:3pt ; color:#000000"
+><span
+      class="makebox"
+      style="display:inline-block ; width:347pt ; text-align:center ; "
+> 图 2：验证准确率曲线 <b>[请替换为实际图像]</b> </span></span>                   </span>
+</p>
+</div>
+<!--
+...... subsection 7. 分析与讨论......
+-->
+<h5 id="autosec-74">7. 分析与讨论</h5>
+<a id="document-autopage-74"></a>
+<div class="center">
+
+<p>
+<span
+      class="fbox"
+      style="display:inline-block ; border:1pt solid #000000; padding:3pt ; color:#000000"
+> <b>7.1 组件重要性分析 </b><br />
+<br />
+根据表 1 的结果，我们可以对组件的重要性进行排序：
+                         <br />
+         <span class="listmarker">1.</span> <b> 卷积层 </b>：移除后准确率下降 12.6&percnt;，说明卷积层是特征提取的核心。 <br />
+         <span class="listmarker">2.</span> <b> 激活函数 </b>：将 ReLU 替换为 Sigmoid 导致准确率下降 15.8&percnt;，表明非线性激活的选择至关重要。 <br />
+         <span class="listmarker">3.</span> <b> 批归一化 </b>：移除 BN 后准确率下降 3.2&percnt;，但收敛速度变慢，说明 BN 主要加速训练。 <br />
+         <span class="listmarker">4.</span> <b>Dropout</b>：移除 Dropout 后准确率下降 1.5&percnt;，但过拟合风险增加。 <br />
+         <span class="listmarker">5.</span> <b> 卷积核大小 </b>：增大卷积核带来 0.8&percnt; 的提升，但计算量增加 75&percnt;。 <br />
+         <span class="listmarker">6.</span> <b> 池化类型 </b>：最大池化与平均池化差异较小（0.5&percnt;），说明池化类型对分类任务影响有限。
+                                                                                                    <br />
+
+<br />
+
+<b>7.2 实际意义与设计建议 </b><br />
+<br />
+基于以上分析，我们提出以下设计建议：
+                 <br />
+         <span class="listmarker">‧</span> 在资源受限的场景下，可以适当减少卷积层数，但至少保留 2 层。 <br />
+         <span class="listmarker">‧</span> 激活函数应优先选择 ReLU 或其变体（Leaky ReLU, Swish）。 <br />
+         <span class="listmarker">‧</span> 批归一化应成为标准配置，尤其当训练数据分布不稳定时。 <br />
+         <span class="listmarker">‧</span> Dropout 率建议设置在 0.3–0.5 之间，以平衡正则化与收敛速度。 <br />
+         <span class="listmarker">‧</span> 卷积核大小推荐 3×3，大卷积核可用多个小卷积核替代。 <br />
+         <span class="listmarker">‧</span> 池化类型可根据任务选择：分类任务用最大池化，定位任务用平均池化。
+                                                                          <br />
+
+<br />
+
+<b>7.3 局限性 </b><br />
+<br />
+本研究的局限性包括：
+         <br />
+         <span class="listmarker">‧</span> 实验仅在一个数据集上进行，结论可能不具备普适性。 <br />
+         <span class="listmarker">‧</span> 未考虑组件之间的交互效应（如 BN 与 Dropout 的交互）。
+                                                                           <br />
+
+ </span>
+</p>
+</div>
+<!--
+...... subsection 8. 结论与未来工作......
+-->
+<h5 id="autosec-76">8. 结论与未来工作</h5>
+<a id="document-autopage-76"></a>
+<div class="center">
+
+<p>
+<span
+      class="fbox"
+      style="display:inline-block ; border:1pt solid #000000; padding:3pt ; color:#000000"
+> <b>8.1 结论 </b><br />
+<br />
+本文通过系统的消融研究，深入分析了 CNN 各组件在 <b>[任务名称]</b> 任务中的作用。主要结论如下：
+                                                      <br />
+         <span class="listmarker">1.</span> 卷积层是 CNN 的核心组件，其数量与模型性能强相关。 <br />
+         <span class="listmarker">2.</span> 激活函数的选择对模型性能影响显著，ReLU 在大多数情况下表现最佳。 <br />
+         <span class="listmarker">3.</span> 批归一化能显著加速训练，提高模型稳定性。 <br />
+         <span class="listmarker">4.</span> Dropout 能有效防止过拟合，但会轻微降低收敛速度。 <br />
+         <span class="listmarker">5.</span> 卷积核大小和池化类型对性能的影响相对较小，但会影响计算效率。
+                                                                         <br />
+
+<br />
+
+<b>8.2 未来工作 </b><br />
+<br />
+未来可以从以下方向展开：
+           <br />
+         <span class="listmarker">‧</span> 扩展消融研究到更多架构（如 ResNet, Vision Transformer）。 <br />
+         <span class="listmarker">‧</span> 研究组件之间的交互效应，设计更精细的消融实验。 <br />
+         <span class="listmarker">‧</span> 探索自动化消融研究框架，降低实验成本。
+                                                             <br />
+
+ </span>
+</p>
+</div>
+<!--
+...... subsection 9. 参考文献......
+-->
+<h5 id="autosec-78">9. 参考文献</h5>
+<a id="document-autopage-78"></a>
+<div class="center">
+
+<p>
+<span
+      class="fbox"
+      style="display:inline-block ; border:1pt solid #000000; padding:3pt ; color:#000000"
+> <br />
+<!--
+...... section 参考文献......
+-->
+<h4 id="autosec-80">参考文献</h4>
+<a id="document-autopage-80"></a>
+<br />
+           <span class="listmarker">[1]&#x2003;</span> Karen Simonyan and Andrew Zisserman, ”Very deep convolutional networks for large‑scale image recognition,” <i>arXiv preprint arXiv:1409.1556</i>,
+           2014.<br />
+           <br />
+           <span class="listmarker">[2]&#x2003;</span> Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun, ”Deep residual learning for image recognition,” in <i>Proceedings of the IEEE Conference
+           on Computer Vision and Pattern Recognition (CVPR)</i>, 2016.<br />
+           <br />
+           <span class="listmarker">[3]&#x2003;</span> Sergey Ioffe and Christian Szegedy, ”Batch normalization: Accelerating deep network training by reducing internal covariate shift,” in
+           <i>International Conference on Machine Learning</i>, 2015.<br />
+
+ </span>
+</p>
+</div>
+<!--
+...... subsection 10. 附录（可选）......
+-->
+<h5 id="autosec-81">10. 附录（可选）</h5>
+<a id="document-autopage-81"></a>
+<div class="center">
+
+<p>
+<span
+      class="fbox"
+      style="display:inline-block ; border:1pt solid #000000; padding:3pt ; color:#000000"
+> <b> 附录 A：实验环境配置 </b><br />
+<br />
+<br />
+         <span class="listmarker">‧</span> 操作系统：Ubuntu 20.04 LTS <br />
+         <span class="listmarker">‧</span> Python 版本：3.8.10 <br />
+         <span class="listmarker">‧</span> 深度学习框架：PyTorch 1.9.0 <br />
+         <span class="listmarker">‧</span> GPU：NVIDIA RTX 3090（24GB） <br />
+         <span class="listmarker">‧</span> CUDA 版本：11.1<br />
+
+<br />
+
+<b> 附录 B：代码获取 </b><br />
+<br />
+本研究的完整代码已开源，可在 <a href="https://github.com/username/repo" target="_blank" >https://github.com/username/repo</a> 获取。 </span>
+</p>
+</div>
+<!--
+...... section 参考文献......
+-->
+<h4 id="autosec-83">参考文献</h4>
+<a id="document-autopage-83"></a>
+
+
+
+<ul class="list" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">[1]&#x2003;</span> Karen Simonyan and Andrew Zisserman, ”Very deep convolutional networks for large‑scale image recognition,” <i>arXiv preprint arXiv:1409.1556</i>, 2014.
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">[2]&#x2003;</span> Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun, ”Deep residual learning for image recognition,” in <i>Proceedings of the IEEE Conference on Computer
+Vision and Pattern Recognition (CVPR)</i>, Las Vegas, NV, USA, Jun. 2016, pp. 770–778.
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">[3]&#x2003;</span> Gao Huang, Zhuang Liu, Laurens van der Maaten, and Kilian Q. Weinberger, ”Densely connected convolutional networks,” in <i>Proceedings of the IEEE
+Conference on Computer Vision and Pattern Pattern Recognition (CVPR)</i>, Honolulu, HI, USA, Jul. 2017, pp. 4700–4708.
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">[4]&#x2003;</span> Sergey Ioffe and Christian Szegedy, ”Batch normalization: Accelerating deep network training by reducing internal covariate shift,” in <i>International
+Conference on Machine Learning</i>, Lille, France, Jul. 2015, pp. 448–456.
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">[5]&#x2003;</span> Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan Salakhutdinov, ”Dropout: A simple way to prevent neural networks from
+overfitting,” <i>Journal of Machine Learning Research</i>, vol. 15, no. 1, pp. 1929–1958, 2014.
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">[6]&#x2003;</span> Xavier Glorot and Yoshua Bengio, ”Understanding the difficulty of training deep feedforward neural networks,” in <i>Proceedings of the Thirteenth International
+Conference on Artificial Intelligence and Statistics</i>, Sardinia, Italy, May 2010, pp. 249–256.
+</p>
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">[7]&#x2003;</span> Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun, ”Delving deep into rectifiers: Surpassing human‑level performance on ImageNet classification,” in
+<i>Proceedings of the IEEE International Conference on Computer Vision (ICCV)</i>, Santiago, Chile, Dec. 2015, pp. 1026–1034.
+</p>
+<p>
+
+
+</p>
+</li>
+</ul>
+
+<a id="document-autofile-last"></a>
+</section>
+
+</main>
+
+</div>
+
+</body>
+</html>
