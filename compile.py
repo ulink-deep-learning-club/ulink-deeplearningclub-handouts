@@ -74,7 +74,7 @@ def recursively_find_dependencies(tex_path: Path) -> set[Path]:
                 dependencies.add(included_path.resolve())
                 
         # Find \includegraphics commands
-        graphics_pattern = r'\\includegraphics(?:\[[^\]]*\])?\{([^}]+)\}'
+        graphics_pattern = r'\\(?:includegraphics|lstinputlisting)(?:\[[^\]]*\])?\{([^}]+)\}'
         for match in re.finditer(graphics_pattern, content):
             graphics_file = match.group(1)
             graphics_path = current_path.parent / graphics_file
@@ -128,7 +128,9 @@ def compile_tex_to_html(project_root: Path, target_root: Path, temp_path: Path, 
         if not tex_files:
             return False, "No .tex file found in project root"
         
-        file_index = 0
+        file_index = -1
+        if "document.tex" in map(lambda x: x.name, tex_files):
+            file_index = list(map(lambda x: x.name, tex_files)).index("document.tex")
         if len(tex_files) > 1 and (not NON_INTERACTIVE_MODE):  # If there are multiple .tex files, ask the user which one to compile
             file_index = -1
             print("Multiple .tex files found in project root. Which one to compile?")
@@ -143,7 +145,7 @@ def compile_tex_to_html(project_root: Path, target_root: Path, temp_path: Path, 
         
         # Find all dependencies
         dependencies = recursively_find_dependencies(main_tex)
-        dependencies.add(main_tex)
+        dependencies.add(main_tex.absolute())
         
         # Find the deepest common ancestor to maintain relative paths
         common_ancestor = find_deepest_common_ancestor(list(dependencies))
@@ -151,42 +153,59 @@ def compile_tex_to_html(project_root: Path, target_root: Path, temp_path: Path, 
         # Create temp directory structure
         temp_path.mkdir(parents=True, exist_ok=True)
         target_root.mkdir(parents=True, exist_ok=True)
+
+        if VERBOSE_MODE:
+            print("Creating temp directory structure...")
+
+        print(dependencies)
         
         # Copy all dependencies to temp directory maintaining relative structure
         for dep in dependencies:
-            # Calculate relative path from common ancestor
-            relative_path = dep.relative_to(common_ancestor)
-            temp_file_path = temp_path / relative_path
-            
-            # Create parent directories if needed
-            temp_file_path.parent.mkdir(parents=True, exist_ok=True)
-            
-            # Copy file
-            shutil.copy2(dep, temp_file_path)
-            if VERBOSE_MODE:
-                print(f"Copied: {dep} -> {temp_file_path}")
+            try:
+                # Calculate relative path from common ancestor
+                relative_path = dep.relative_to(common_ancestor)
+                temp_file_path = temp_path / relative_path
+                
+                # Create parent directories if needed
+                temp_file_path.parent.mkdir(parents=True, exist_ok=True)
+                
+                # Copy file
+                shutil.copy2(dep, temp_file_path)
+                if VERBOSE_MODE:
+                    print(f"Copied: {dep} -> {temp_file_path}")
+            except Exception as e:
+                return False, f"Error copying file: {dep} Error: {str(e)}"
+
+        
+        if VERBOSE_MODE:
+            print("Compiling TeX to HTML...")
         
         # Get the main tex file in temp directory
-        temp_main_tex = temp_path / main_tex.relative_to(common_ancestor)
+        temp_main_tex = temp_path / main_tex
         
         # Change to the temp directory (project root in temp)
-        temp_project_root = (temp_path / project_root.relative_to(common_ancestor)).resolve()
+        temp_project_root = (temp_path / project_root).resolve()
         
         # Step 1: Compile with XeLaTeX once
         if VERBOSE_MODE:
-            print("Step 1: Compiling with XeLaTeX...")
+            print("Step 1.1: Compiling with XeLaTeX...")
         
         success, error = call_xelatex(temp_main_tex, temp_project_root)
         if not success:
-            return False, f"XeLaTeX compilation failed: {error}"
+            return False, f"XeLaTeX compilation 1 failed: {error}"
+
+        if VERBOSE_MODE:
+            print("Step 1.2: Compiling with XeLaTeX...")
+        
+        success, error = call_xelatex(temp_main_tex, temp_project_root)
+        if not success:
+            return False, f"XeLaTeX compilation 2 failed: {error}"
+
         
         # Step 2: Call lwarpmk html from the copied project directory
-        if VERBOSE_MODE:
-            print("Step 2: Running lwarpmk html...")
-        
-        success, error = call_lwarpmk(temp_project_root, ['html'])
+        success, error = call_lwarpmk(temp_project_root, ['html1'])
         if not success:
-            return False, f"lwarpmk html failed: {error}"
+            return False, f"lwarpmk html1 second failed: {error}"
         
         # Step 3: Call lwarpmk limages from the copied project directory
         if VERBOSE_MODE:
@@ -194,7 +213,7 @@ def compile_tex_to_html(project_root: Path, target_root: Path, temp_path: Path, 
         
         success, error = call_lwarpmk(temp_project_root, ['limages'])
         if not success:
-            return False, f"lwarpmk limages failed: {error}"
+            print(f"WARN: lwarpmk limages failed: {error}")
         
         
         for file in temp_project_root.iterdir():  # iterate through the top level dictionary, copy html, css files.
@@ -332,7 +351,7 @@ def main():
     parser.add_argument('--source-path', help='Path to the original document')
     parser.add_argument('--target-path', nargs='?', default=None, 
                         help='Target path (optional, default: ./dist/<name of the tex doc>)')
-    parser.add_argument('--clean', action='store_true', help='Clean temporary files after compilation', default=True)
+    parser.add_argument('--clean', action='store_true', help='Clean temporary files after compilation', default=False)
     parser.add_argument('--hyperref', action='store_true', help='Support hyperref package (only for pdf)')
     parser.add_argument('--verbose', action='store_true', help='Print debugging information')
     parser.add_argument('--non-interactive', action='store_true', help='Run in non-interactive mode')
