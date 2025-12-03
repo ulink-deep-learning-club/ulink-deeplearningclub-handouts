@@ -26,55 +26,55 @@ MathJax = {
     subequations: "0",
     section: "",
     loader: {
-         load: ['[tex]/tagformat', '[tex]/textmacros'],
+        load: ['[tex]/tagformat', '[tex]/textmacros'],
     },
     startup: {
-         ready() {
-             //      These would be replaced by import commands if you wanted to make
-             //      a proper extension.
-             const Configuration = MathJax._.input.tex.Configuration.Configuration;
-             const CommandMap = MathJax._.input.tex.SymbolMap.CommandMap;
-             const Macro = MathJax._.input.tex.Symbol.Macro;
-             const TexError = MathJax._.input.tex.TexError.default;
-             const ParseUtil = MathJax._.input.tex.ParseUtil.default;
-             const expandable = MathJax._.util.Options.expandable;
+        ready() {
+            //       These would be replaced by import commands if you wanted to make
+            //       a proper extension.
+            const Configuration = MathJax._.input.tex.Configuration.Configuration;
+            const CommandMap = MathJax._.input.tex.SymbolMap.CommandMap;
+            const Macro = MathJax._.input.tex.Symbol.Macro;
+            const TexError = MathJax._.input.tex.TexError.default;
+            const ParseUtil = MathJax._.input.tex.ParseUtil.default;
+            const expandable = MathJax._.util.Options.expandable;
 
 
-             //      Insert the replacement string into the TeX string, and check
-             //      that there haven't been too many maxro substitutions (prevents
-             //      infinite loops).
-             const useArgument = (parser, text) => {
-                 parser.string = ParseUtil.addArgs(parser, text, parser.string.slice(parser.i));
-                 parser.i = 0;
-                 if (++parser.macroCount > parser.configuration.options.maxMacros) {
+            //       Insert the replacement string into the TeX string, and check
+            //       that there haven't been too many maxro substitutions (prevents
+            //       infinite loops).
+            const useArgument = (parser, text) => {
+                parser.string = ParseUtil.addArgs(parser, text, parser.string.slice(parser.i));
+                parser.i = 0;
+                if (++parser.macroCount > parser.configuration.options.maxMacros) {
                      throw new TexError('MaxMacroSub1',
                      'MathJax maximum macro substitution count exceeded; ' +
                      'is there a recursive macro call?');
-                 }
-             }
+                }
+            }
 
 
-             //      Create the command map for:
-             //          \ifstar, \ifnextchar, \ifblank, \ifstrequal, \gsub, \seteqnumber
-             new CommandMap('Lwarp-macros', {
-                 ifstar: 'IfstarFunction',
-                 ifnextchar: 'IfnextcharFunction',
-                 ifblank: 'IfblankFunction',
-                 ifstrequal: 'IfstrequalFunction',
-                 gsubstitute: 'GsubstituteFunction',
-                 seteqnumber: 'SeteqnumberFunction'
-             }, {
-                 //      This function implements an ifstar macro.
-                 IfstarFunction(parser, name) {
+            //       Create the command map for:
+            //           \ifstar, \ifnextchar, \ifblank, \ifstrequal, \gsub, \seteqnumber
+            new CommandMap('Lwarp-macros', {
+                ifstar: 'IfstarFunction',
+                ifnextchar: 'IfnextcharFunction',
+                ifblank: 'IfblankFunction',
+                ifstrequal: 'IfstrequalFunction',
+                gsubstitute: 'GsubstituteFunction',
+                seteqnumber: 'SeteqnumberFunction'
+            }, {
+                //       This function implements an ifstar macro.
+                IfstarFunction(parser, name) {
                      const resultstar = parser.GetArgument(name);
                      const resultnostar = parser.GetArgument(name);
-                     const star = parser.GetStar();                        // true if there is a *
+                     const star = parser.GetStar();                      // true if there is a *
                      useArgument(parser, star ? resultstar : resultnostar);
-                 },
+                },
 
 
-                 //      This function implements an ifnextchar macro.
-                 IfnextcharFunction(parser, name) {
+                //       This function implements an ifnextchar macro.
+                IfnextcharFunction(parser, name) {
                      let whichchar = parser.GetArgument(name);
                      if (whichchar.match(/^(?:0x[0-9A-F]+|[0-9]+)$/i)) {
                          // $ syntax highlighting
@@ -84,148 +84,148 @@ MathJax = {
                      const resultnotnextchar = parser.GetArgument(name);
                      const gotchar = (parser.GetNext() === whichchar);
                      useArgument(parser, gotchar ? resultnextchar : resultnotnextchar);
-                 },
+                },
 
 
-                 // This function implements an ifblank macro.
-                 IfblankFunction(parser, name) {
+                // This function implements an ifblank macro.
+                IfblankFunction(parser, name) {
                      const blankarg = parser.GetArgument(name);
                      const resultblank = parser.GetArgument(name);
                      const resultnotblank = parser.GetArgument(name);
                      const isblank = (blankarg.trim() == "");
                      useArgument(parser, isblank ? resultblank : resultnotblank);
-                 },
+                },
 
 
-                 // This function implements an ifstrequal macro.
-                 IfstrequalFunction(parser, name) {
+                // This function implements an ifstrequal macro.
+                IfstrequalFunction(parser, name) {
                      const strequalfirst = parser.GetArgument(name);
                      const strequalsecond = parser.GetArgument(name);
                      const resultequal = parser.GetArgument(name);
                      const resultnotequal = parser.GetArgument(name);
                      const isequal = (strequalfirst == strequalsecond);
                      useArgument(parser, isequal ? resultequal : resultnotequal);
-                 },
+                },
 
 
-                 // This function implements a gsub macro.
-                 GsubstituteFunction(parser, name) {
+                // This function implements a gsub macro.
+                GsubstituteFunction(parser, name) {
                      const gsubfirst = parser.GetArgument(name);
                      const gsubsecond = parser.GetArgument(name);
                      const gsubthird = parser.GetArgument(name);
                      let gsubresult=gsubfirst.replace(gsubsecond, gsubthird);
                      useArgument(parser, gsubresult);
-                 },
+                },
 
 
-                 //      This function modifies the equation numbers.
-                 SeteqnumberFunction(parser, name) {
-                         //   Get the macro parameters
-                         const star = parser.GetStar();                       // true if there is a *
-                         const optBrackets = parser.GetBrackets(name);        // contents of optional brackets
-                         const newsubequations = parser.GetArgument(name);       // the subequations argument
-                         const neweqsection = parser.GetArgument(name);       // the eq section argument
-                         const neweqnumber = parser.GetArgument(name);        // the eq number argument
-                         MathJax.config.subequations=newsubequations ;        // a string with boolean meaning
-                         MathJax.config.section=neweqsection ;                // a string with numeric meaning
+                //       This function modifies the equation numbers.
+                SeteqnumberFunction(parser, name) {
+                         // Get the macro parameters
+                         const star = parser.GetStar();                    // true if there is a *
+                         const optBrackets = parser.GetBrackets(name);     // contents of optional brackets
+                         const newsubequations = parser.GetArgument(name);    // the subequations argument
+                         const neweqsection = parser.GetArgument(name);    // the eq section argument
+                         const neweqnumber = parser.GetArgument(name);     // the eq number argument
+                         MathJax.config.subequations=newsubequations ;     // a string with boolean meaning
+                         MathJax.config.section=neweqsection ;             // a string with numeric meaning
                          parser.tags.counter = parser.tags.allCounter = neweqnumber ;
-                 }
+                }
 
 
-             });
+            });
 
 
-             //      Create the Lwarp-macros package
-             Configuration.create('Lwarp-macros', {
-                 handler: {macro: ['Lwarp-macros']}
-             });
+            //       Create the Lwarp-macros package
+            Configuration.create('Lwarp-macros', {
+                handler: {macro: ['Lwarp-macros']}
+            });
 
 
-             MathJax.startup.defaultReady();
+            MathJax.startup.defaultReady();
 
 
-             // For forward references:
-             MathJax.startup.input[0].preFilters.add(({math}) => {
-                 if (math.inputData.recompile){
+            // For forward references:
+            MathJax.startup.input[0].preFilters.add(({math}) => {
+                if (math.inputData.recompile){
                          MathJax.config.subequations = math.inputData.recompile.subequations;
                          MathJax.config.section = math.inputData.recompile.section;
-                 }
-             });
-             MathJax.startup.input[0].postFilters.add(({math}) => {
-                 if (math.inputData.recompile){
+                }
+            });
+            MathJax.startup.input[0].postFilters.add(({math}) => {
+                if (math.inputData.recompile){
                          math.inputData.recompile.subequations = MathJax.config.subequations;
                          math.inputData.recompile.section = MathJax.config.section;
-                 }
-             });
+                }
+            });
 
 
-                 // For \left, \right with unicode-math:
-                 const {DelimiterMap} = MathJax._.input.tex.SymbolMap;
-                 const {Symbol} = MathJax._.input.tex.Symbol;
-                 const {MapHandler} = MathJax._.input.tex.MapHandler;
-                 const delimiter = MapHandler.getMap('delimiter');
-                 delimiter.add('\\lBrack', new Symbol('\\lBrack', '\u27E6'));
-                 delimiter.add('\\rBrack', new Symbol('\\rBrack', '\u27E7'));
-                 delimiter.add('\\lAngle', new Symbol('\\lAngle', '\u27EA'));
-                 delimiter.add('\\rAngle', new Symbol('\\rAngle', '\u27EB'));
-                 delimiter.add('\\lbrbrak', new Symbol('\\lbrbrak', '\u2772'));
-                 delimiter.add('\\rbrbrak', new Symbol('\\rbrbrak', '\u2773'));
-                 delimiter.add('\\lbag', new Symbol('\\lbag', '\u27C5'));
-                 delimiter.add('\\rbag', new Symbol('\\rbag', '\u27C6'));
-                 delimiter.add('\\llparenthesis', new Symbol('\\llparenthesis', '\u2987'));
-                 delimiter.add('\\rrparenthesis', new Symbol('\\rrparenthesis', '\u2988'));
-                 delimiter.add('\\llangle', new Symbol('\\llangle', '\u2989'));
-                 delimiter.add('\\rrangle', new Symbol('\\rrangle', '\u298A'));
-                 delimiter.add('\\Lbrbrak', new Symbol('\\Lbrbrak', '\u27EC'));
-                 delimiter.add('\\Rbrbrak', new Symbol('\\Rbrbrak', '\u27ED'));
-                 delimiter.add('\\lBrace', new Symbol('\\lBrace', '\u2983'));
-                 delimiter.add('\\rBrace', new Symbol('\\rBrace', '\u2984'));
-                 delimiter.add('\\lParen', new Symbol('\\lParen', '\u2985'));
-                 delimiter.add('\\rParen', new Symbol('\\rParen', '\u2986'));
-                 delimiter.add('\\lbrackubar', new Symbol('\\lbrackubar', '\u298B'));
-                 delimiter.add('\\rbrackubar', new Symbol('\\rbrackubar', '\u298C'));
-                 delimiter.add('\\lbrackultick', new Symbol('\\lbrackultick', '\u298D'));
-                 delimiter.add('\\rbracklrtick', new Symbol('\\rbracklrtick', '\u298E'));
-                 delimiter.add('\\lbracklltick', new Symbol('\\lbracklltick', '\u298F'));
-                 delimiter.add('\\rbrackurtick', new Symbol('\\rbrackurtick', '\u2990'));
-                 delimiter.add('\\langledot', new Symbol('\\langledot', '\u2991'));
-                 delimiter.add('\\rangledot', new Symbol('\\rangledot', '\u2992'));
-                 delimiter.add('\\lparenless', new Symbol('\\lparenless', '\u2993'));
-                 delimiter.add('\\rparengtr', new Symbol('\\rparengtr', '\u2994'));
-                 delimiter.add('\\Lparengtr', new Symbol('\\Lparengtr', '\u2995'));
-                 delimiter.add('\\Rparenless', new Symbol('\\Rparenless', '\u2996'));
-                 delimiter.add('\\lblkbrbrak', new Symbol('\\lblkbrbrak', '\u2997'));
-                 delimiter.add('\\rblkbrbrak', new Symbol('\\rblkbrbrak', '\u2998'));
-                 delimiter.add('\\lvzigzag', new Symbol('\\lvzigzag', '\u29D8'));
-                 delimiter.add('\\rvzigzag', new Symbol('\\rvzigzag', '\u29D9'));
-                 delimiter.add('\\Lvzigzag', new Symbol('\\Lvzigzag', '\u29DA'));
-                 delimiter.add('\\Rvzigzag', new Symbol('\\Rvzigzag', '\u29DB'));
-                 delimiter.add('\\lcurvyangle', new Symbol('\\lcurvyangle', '\u29FC'));
-                 delimiter.add('\\rcurvyangle', new Symbol('\\rcurvyangle', '\u29FD'));
-                 delimiter.add('\\Vvert', new Symbol('\\Vvert', '\u2980'));
-         }       // ready
+                // For \left, \right with unicode-math:
+                const {DelimiterMap} = MathJax._.input.tex.SymbolMap;
+                const {Symbol} = MathJax._.input.tex.Symbol;
+                const {MapHandler} = MathJax._.input.tex.MapHandler;
+                const delimiter = MapHandler.getMap('delimiter');
+                delimiter.add('\\lBrack', new Symbol('\\lBrack', '\u27E6'));
+                delimiter.add('\\rBrack', new Symbol('\\rBrack', '\u27E7'));
+                delimiter.add('\\lAngle', new Symbol('\\lAngle', '\u27EA'));
+                delimiter.add('\\rAngle', new Symbol('\\rAngle', '\u27EB'));
+                delimiter.add('\\lbrbrak', new Symbol('\\lbrbrak', '\u2772'));
+                delimiter.add('\\rbrbrak', new Symbol('\\rbrbrak', '\u2773'));
+                delimiter.add('\\lbag', new Symbol('\\lbag', '\u27C5'));
+                delimiter.add('\\rbag', new Symbol('\\rbag', '\u27C6'));
+                delimiter.add('\\llparenthesis', new Symbol('\\llparenthesis', '\u2987'));
+                delimiter.add('\\rrparenthesis', new Symbol('\\rrparenthesis', '\u2988'));
+                delimiter.add('\\llangle', new Symbol('\\llangle', '\u2989'));
+                delimiter.add('\\rrangle', new Symbol('\\rrangle', '\u298A'));
+                delimiter.add('\\Lbrbrak', new Symbol('\\Lbrbrak', '\u27EC'));
+                delimiter.add('\\Rbrbrak', new Symbol('\\Rbrbrak', '\u27ED'));
+                delimiter.add('\\lBrace', new Symbol('\\lBrace', '\u2983'));
+                delimiter.add('\\rBrace', new Symbol('\\rBrace', '\u2984'));
+                delimiter.add('\\lParen', new Symbol('\\lParen', '\u2985'));
+                delimiter.add('\\rParen', new Symbol('\\rParen', '\u2986'));
+                delimiter.add('\\lbrackubar', new Symbol('\\lbrackubar', '\u298B'));
+                delimiter.add('\\rbrackubar', new Symbol('\\rbrackubar', '\u298C'));
+                delimiter.add('\\lbrackultick', new Symbol('\\lbrackultick', '\u298D'));
+                delimiter.add('\\rbracklrtick', new Symbol('\\rbracklrtick', '\u298E'));
+                delimiter.add('\\lbracklltick', new Symbol('\\lbracklltick', '\u298F'));
+                delimiter.add('\\rbrackurtick', new Symbol('\\rbrackurtick', '\u2990'));
+                delimiter.add('\\langledot', new Symbol('\\langledot', '\u2991'));
+                delimiter.add('\\rangledot', new Symbol('\\rangledot', '\u2992'));
+                delimiter.add('\\lparenless', new Symbol('\\lparenless', '\u2993'));
+                delimiter.add('\\rparengtr', new Symbol('\\rparengtr', '\u2994'));
+                delimiter.add('\\Lparengtr', new Symbol('\\Lparengtr', '\u2995'));
+                delimiter.add('\\Rparenless', new Symbol('\\Rparenless', '\u2996'));
+                delimiter.add('\\lblkbrbrak', new Symbol('\\lblkbrbrak', '\u2997'));
+                delimiter.add('\\rblkbrbrak', new Symbol('\\rblkbrbrak', '\u2998'));
+                delimiter.add('\\lvzigzag', new Symbol('\\lvzigzag', '\u29D8'));
+                delimiter.add('\\rvzigzag', new Symbol('\\rvzigzag', '\u29D9'));
+                delimiter.add('\\Lvzigzag', new Symbol('\\Lvzigzag', '\u29DA'));
+                delimiter.add('\\Rvzigzag', new Symbol('\\Rvzigzag', '\u29DB'));
+                delimiter.add('\\lcurvyangle', new Symbol('\\lcurvyangle', '\u29FC'));
+                delimiter.add('\\rcurvyangle', new Symbol('\\rcurvyangle', '\u29FD'));
+                delimiter.add('\\Vvert', new Symbol('\\Vvert', '\u2980'));
+        }        // ready
     },           // startup
 
 
     tex: {
-         packages: {'[+]': ['tagformat', 'Lwarp-macros', 'textmacros']},
-         tags: "ams",
-                 tagformat: {
+        packages: {'[+]': ['tagformat', 'Lwarp-macros', 'textmacros']},
+        tags: "ams",
+                tagformat: {
                          number: function (n) {
                               if(MathJax.config.subequations==0)
-                                     return(MathJax.config.section + n);
+                                 return(MathJax.config.section + n);
                               else
-                                     return(MathJax.config.section + String.fromCharCode(96+n));
+                                 return(MathJax.config.section + String.fromCharCode(96+n));
                          },
-                 },
+                },
     }
 }
 </script>
 
 
 <script
-         id="MathJax-script"
-         src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
+        id="MathJax-script"
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
 ></script>
 
 
@@ -439,7 +439,7 @@ Anson, 深度学习社 &#x2003;Cooperated with <kbd>Kimi K2 0905</kbd>
 <div class="titledate">
 
 <p>
-2025 年 10 月 18 日
+2025 年 12 月 3 日
 </p>
 </div>
 
@@ -468,437 +468,6 @@ Anson, 深度学习社 &#x2003;Cooperated with <kbd>Kimi K2 0905</kbd>
 
 <nav class="toc">
 
-<p>
-<a href="mnist.html#autosec-5" class="tocsection" >
-<span class="sectionnumber">1</span>&#x2003;引言</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-6" class="tocsubsection" >
-<span class="sectionnumber">1.1</span>&#x2003;MNIST 数据集简介</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-8" class="tocsubsection" >
-<span class="sectionnumber">1.2</span>&#x2003;LeNet 的历史意义</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-9" class="tocsection" >
-<span class="sectionnumber">2</span>&#x2003;神经网络训练基础</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-10" class="tocsubsection" >
-<span class="sectionnumber">2.1</span>&#x2003;基本训练术语</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-11" class="tocsubsection" >
-<span class="sectionnumber">2.2</span>&#x2003;损失函数的选择</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-14" class="tocsubsection" >
-<span class="sectionnumber">2.3</span>&#x2003;训练过程与验证</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-15" class="tocsubsubsection" >
-<span class="sectionnumber">2.3.1</span>&#x2003;训练集与测试集的划分</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-16" class="tocsubsubsection" >
-<span class="sectionnumber">2.3.2</span>&#x2003;训练过程的监控</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-17" class="tocsubsection" >
-<span class="sectionnumber">2.4</span>&#x2003;过拟合与欠拟合</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-18" class="tocsubsubsection" >
-<span class="sectionnumber">2.4.1</span>&#x2003;欠拟合（Underfitting）</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-19" class="tocsubsubsection" >
-<span class="sectionnumber">2.4.2</span>&#x2003;过拟合（Overfitting）</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-23" class="tocsubsection" >
-<span class="sectionnumber">2.5</span>&#x2003;正则化技术：防止过拟合的实用方法</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-24" class="tocsubsubsection" >
-<span class="sectionnumber">2.5.1</span>&#x2003;什么是正则化？</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-28" class="tocsubsubsection" >
-<span class="sectionnumber">2.5.2</span>&#x2003;L1 和 L2 正则化：最简单的正则化方法</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-30" class="tocsubsubsection" >
-<span class="sectionnumber">2.5.3</span>&#x2003;Dropout：随机“失忆”技术</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-35" class="tocsubsubsection" >
-<span class="sectionnumber">2.5.4</span>&#x2003;早停法：聪明的“刹车”技术</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-39" class="tocsubsubsection" >
-<span class="sectionnumber">2.5.5</span>&#x2003;数据增强：免费的“新数据”</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-41" class="tocsubsubsection" >
-<span class="sectionnumber">2.5.6</span>&#x2003;如何选择正则化方法？</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-44" class="tocsubsection" >
-<span class="sectionnumber">2.6</span>&#x2003;批量大小与学习率调度</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-45" class="tocsubsubsection" >
-<span class="sectionnumber">2.6.1</span>&#x2003;批量大小的影响</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-48" class="tocsubsubsection" >
-<span class="sectionnumber">2.6.2</span>&#x2003;学习率调度</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-49" class="tocsubsection" >
-<span class="sectionnumber">2.7</span>&#x2003;评价指标</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-50" class="tocsection" >
-<span class="sectionnumber">3</span>&#x2003;经典神经网络：全连接层</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-51" class="tocsubsection" >
-<span class="sectionnumber">3.1</span>&#x2003;全连接层的基本原理</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-55" class="tocsubsection" >
-<span class="sectionnumber">3.2</span>&#x2003;参数数量分析</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-56" class="tocsubsection" >
-<span class="sectionnumber">3.3</span>&#x2003;PyTorch 实现</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-58" class="tocsubsection" >
-<span class="sectionnumber">3.4</span>&#x2003;全连接层的优缺点</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-61" class="tocsection" >
-<span class="sectionnumber">4</span>&#x2003;卷积神经网络：CNN</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-62" class="tocsubsection" >
-<span class="sectionnumber">4.1</span>&#x2003;卷积操作的基本原理</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-64" class="tocsubsection" >
-<span class="sectionnumber">4.2</span>&#x2003;特征图尺寸计算</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-65" class="tocsubsection" >
-<span class="sectionnumber">4.3</span>&#x2003;参数共享机制</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-67" class="tocsubsection" >
-<span class="sectionnumber">4.4</span>&#x2003;池化层</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-68" class="tocsubsection" >
-<span class="sectionnumber">4.5</span>&#x2003;PyTorch 实现 CNN</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-70" class="tocsubsection" >
-<span class="sectionnumber">4.6</span>&#x2003;CNN 的优缺点</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-73" class="tocsection" >
-<span class="sectionnumber">5</span>&#x2003;LeNet 架构详解</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-74" class="tocsubsection" >
-<span class="sectionnumber">5.1</span>&#x2003;LeNet‑5 架构概述</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-77" class="tocsubsection" >
-<span class="sectionnumber">5.2</span>&#x2003;LeNet 的 PyTorch 实现</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-79" class="tocsubsection" >
-<span class="sectionnumber">5.3</span>&#x2003;LeNet 的参数分析</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-80" class="tocsubsection" >
-<span class="sectionnumber">5.4</span>&#x2003;特征图的语义演化：从低层到高层</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-84" class="tocsection" >
-<span class="sectionnumber">6</span>&#x2003;架构对比分析：理论与实践</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-85" class="tocsubsection" >
-<span class="sectionnumber">6.1</span>&#x2003;为什么需要对比分析？</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-86" class="tocsubsection" >
-<span class="sectionnumber">6.2</span>&#x2003;信息处理方式的对比</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-87" class="tocsubsubsection" >
-<span class="sectionnumber">6.2.1</span>&#x2003;全连接网络的信息处理</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-91" class="tocsubsubsection" >
-<span class="sectionnumber">6.2.2</span>&#x2003;CNN 的信息处理</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-95" class="tocsubsection" >
-<span class="sectionnumber">6.3</span>&#x2003;参数效率的数学分析</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-96" class="tocsubsection" >
-<span class="sectionnumber">6.4</span>&#x2003;什么是归纳偏置？</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-100" class="tocsubsection" >
-<span class="sectionnumber">6.5</span>&#x2003;归纳偏置的深层分析</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-101" class="tocsubsubsection" >
-<span class="sectionnumber">6.5.1</span>&#x2003;全连接网络的归纳偏置</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-102" class="tocsubsubsection" >
-<span class="sectionnumber">6.5.2</span>&#x2003;CNN 的归纳偏置</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-103" class="tocsubsection" >
-<span class="sectionnumber">6.6</span>&#x2003;实际性能对比实验</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-104" class="tocsubsection" >
-<span class="sectionnumber">6.7</span>&#x2003;何时选择哪种架构？</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-107" class="tocsection" >
-<span class="sectionnumber">7</span>&#x2003;神经网络的缩放定律</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-108" class="tocsubsection" >
-<span class="sectionnumber">7.1</span>&#x2003;缩放定律的基本概念</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-109" class="tocsubsection" >
-<span class="sectionnumber">7.2</span>&#x2003;模型规模缩放</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-110" class="tocsubsection" >
-<span class="sectionnumber">7.3</span>&#x2003;数据集规模缩放</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-111" class="tocsubsection" >
-<span class="sectionnumber">7.4</span>&#x2003;计算最优缩放</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-112" class="tocsubsection" >
-<span class="sectionnumber">7.5</span>&#x2003;MNIST 与 LeNet 的缩放分析</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-116" class="tocsection" >
-<span class="sectionnumber">8</span>&#x2003;现代发展与应用</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-117" class="tocsubsection" >
-<span class="sectionnumber">8.1</span>&#x2003;深度学习的现代发展</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-118" class="tocsubsection" >
-<span class="sectionnumber">8.2</span>&#x2003;在实际应用中的选择</a>
-</p>
-
-
-
-<p>
-<a href="mnist.html#autosec-119" class="tocsection" >
-<span class="sectionnumber">9</span>&#x2003;结论</a>
-</p>
 </nav>
 <!--
 ...... section 引言......
@@ -1032,7 +601,7 @@ MNIST 数据集之所以成为“Hello World”级别的基准测试，是因为
 
 
 <p>
-LeNet 由 Yann LeCun 在 1989 年提出&nbsp;[2]，是最早的卷积神经网络之一。其历史意义在于：
+LeNet 由 Yann LeCun 在 1989 年提出&nbsp;[?]，是最早的卷积神经网络之一。其历史意义在于：
 </p>
 
 <ul class="itemize" style="list-style-type:none">
@@ -1103,7 +672,7 @@ LeNet 由 Yann LeCun 在 1989 年提出&nbsp;[2]，是最早的卷积神经网�
 >
 
 <p>
-核心训练术语
+<b> 核心训练术语 </b>
 </p>
 </div>
 
@@ -1269,7 +838,7 @@ LeNet 由 Yann LeCun 在 1989 年提出&nbsp;[2]，是最早的卷积神经网�
 >
 
 <p>
-MNIST 分类的损失函数
+<b>MNIST 分类的损失函数 </b>
 </p>
 </div>
 
@@ -1289,10 +858,10 @@ MNIST 分类的损失函数
 <!--
 
 
-                                                                                               ∑
-                                                                                               10
-                                                                                         L=−         yc log(pc )         (1)
-                                                                                               c=1
+                                                                                                   ∑
+                                                                                                   10
+                                                                                             L=−         yc log(pc )     (1)
+                                                                                                   c=1
 
 
 -->
@@ -1404,7 +973,7 @@ MNIST 分类的损失函数
 >
 
 <p>
-数据划分的重要性
+<b> 数据划分的重要性 </b>
 </p>
 </div>
 
@@ -1473,7 +1042,7 @@ MNIST 分类的损失函数
 >
 
 <p>
-关键监控指标
+<b> 关键监控指标 </b>
 </p>
 </div>
 
@@ -1686,7 +1255,7 @@ MNIST 分类的损失函数
 >
 
 <p>
-有点牵强的总结：
+<b> 有点牵强的总结：</b>
 </p>
 </div>
 
@@ -1783,7 +1352,7 @@ MNIST 分类的损失函数
 >
 
 <p>
-L1 正则化（Lasso 回归）
+<b>L1 正则化（Lasso 回归）</b>
 </p>
 </div>
 
@@ -1799,10 +1368,10 @@ L1 正则化（Lasso 回归）
 <!--
 
 
-                                                                                                              ∑
-                                                                                                              n
-                                                                                     Ltotal = Loriginal + λ         |wi |   (2)
-                                                                                                              i=1
+                                                                                                                  ∑
+                                                                                                                  n
+                                                                                         Ltotal = Loriginal + λ         |wi |   (2)
+                                                                                                                  i=1
 
 
 -->
@@ -1876,7 +1445,7 @@ L1 正则化（Lasso 回归）
 >
 
 <p>
-L2 正则化（Ridge 回归）
+<b>L2 正则化（Ridge 回归）</b>
 </p>
 </div>
 
@@ -1892,10 +1461,10 @@ L2 正则化（Ridge 回归）
 <!--
 
 
-                                                                                                             λ∑ 2
-                                                                                                               n
-                                                                                      Ltotal = Loriginal +        w         (3)
-                                                                                                             2 i=1 i
+                                                                                                                 λ∑ 2
+                                                                                                                   n
+                                                                                          Ltotal = Loriginal +        w         (3)
+                                                                                                                 2 i=1 i
 
 -->
 
@@ -1968,7 +1537,7 @@ L2 正则化（Ridge 回归）
 >
 
 <p>
-类比
+<b> 类比 </b>
 </p>
 </div>
 
@@ -2020,7 +1589,7 @@ L2 正则化（Ridge 回归）
 >
 
 <p>
-为什么有效？
+<b> 为什么有效？</b>
 </p>
 </div>
 
@@ -2078,7 +1647,7 @@ L2 正则化（Ridge 回归）
 >
 
 <p>
-PyTorch 中的 L2 正则化
+<b>PyTorch 中的 L2 正则化 </b>
 </p>
 </div>
 
@@ -2100,15 +1669,15 @@ PyTorch 中的 L2 正则化
 
 </p>
 <pre class="programlisting">
-1   optimizer = torch . optim.Adam(
-2         model.parameters () ,
-3         lr =0.001,
-4         weight_decay =0.0001    # 正则化L2
-5   )
+1     optimizer = torch . optim.Adam(
+2           model.parameters () ,
+3           lr =0.001,
+4           weight_decay =0.0001    # 正则化L2
+5     )
 </pre>
 
 
-        <div class="figurecaption">
+          <div class="figurecaption">
 </div>
 
 <p>
@@ -2174,7 +1743,7 @@ Dropout：随机让部分神经元“罢工”
 >
 
 <p>
-直观的理解
+<b> 直观的理解 </b>
 </p>
 </div>
 
@@ -2248,7 +1817,7 @@ Dropout：随机让部分神经元“罢工”
 >
 
 <p>
-Dropout 的 PyTorch 实现
+<b>Dropout 的 PyTorch 实现 </b>
 </p>
 </div>
 
@@ -2385,7 +1954,7 @@ Dropout 的 PyTorch 实现
 >
 
 <p>
-什么时候该停止？
+<b> 什么时候该停止？</b>
 </p>
 </div>
 
@@ -2457,7 +2026,7 @@ Dropout 的 PyTorch 实现
 >
 
 <p>
-MNIST 数据增强实例
+<b>MNIST 数据增强实例 </b>
 </p>
 </div>
 
@@ -2527,7 +2096,7 @@ MNIST 数据增强实例
 >
 
 <p>
-数据增强的注意事项
+<b> 数据增强的注意事项 </b>
 </p>
 </div>
 
@@ -2594,7 +2163,7 @@ MNIST 数据增强实例
 >
 
 <p>
-PyTorch 中的 MNIST 数据增强
+<b>PyTorch 中的 MNIST 数据增强 </b>
 </p>
 </div>
 
@@ -2616,15 +2185,15 @@ PyTorch 中的 MNIST 数据增强
 2
 3    # 定义数据增强变换
 4     train_transform = transforms . Compose([
-5            transforms . RandomRotation(10) ,        # 随机旋转度±10
+5            transforms . RandomRotation(10) ,         # 随机旋转度±10
 6            transforms . RandomAffine(0, translate =(0.1,       0.1) ) ,   # 随机平移10&percnt;
 7            transforms . ToTensor () ,
 8            transforms . Normalize ((0.1307,) ,   (0.3081,) )   # 数据的标准化MNIST
 9     ])
 10
 11    # 应用到训练数据
-12         train_dataset   = MNIST(root=&apos; ./ data &apos; , train =True,
-13                                transform= train_transform , download=True)
+12         train_dataset   = MNIST(root= &apos; ./ data &apos; , train =True,
+13                                 transform= train_transform , download=True)
 </pre>
 
 
@@ -2719,7 +2288,7 @@ PyTorch 中的 MNIST 数据增强
 >
 
 <p>
-初学者建议（从简单到复杂）
+<b> 初学者建议（从简单到复杂）</b>
 </p>
 </div>
 
@@ -2880,7 +2449,7 @@ PyTorch 中的 MNIST 数据增强
 >
 
 <p>
-常见学习率调度策略
+<b> 常见学习率调度策略 </b>
 </p>
 </div>
 
@@ -2958,7 +2527,7 @@ PyTorch 中的 MNIST 数据增强
 >
 
 <p>
-分类任务的核心指标
+<b> 分类任务的核心指标 </b>
 </p>
 </div>
 
@@ -3035,7 +2604,7 @@ PyTorch 中的 MNIST 数据增强
 >
 
 <p>
-MNIST 评价指标选择
+<b>MNIST 评价指标选择 </b>
 </p>
 </div>
 
@@ -3143,7 +2712,7 @@ MNIST 评价指标选择
 >
 
 <p>
-全连接层的数学表达
+<b> 全连接层的数学表达 </b>
 </p>
 </div>
 
@@ -3164,7 +2733,7 @@ MNIST 评价指标选择
 
 
 
-                                                                                            y = Wx + b                  (4)
+                                                                                                y = Wx + b              (4)
 
 
 -->
@@ -3203,7 +2772,7 @@ MNIST 评价指标选择
 
 
 
-                                                                           Parameters = m × n + m = m(n + 1)   (5)
+                                                                                Parameters = m × n + m = m(n + 1)   (5)
 
 
 -->
@@ -3290,17 +2859,17 @@ MNIST 评价指标选择
 20             # 展平输入
 21             x = self . flatten (x)
 22
-23             # 第一层：784 −&gt; 256
+23             # 第一层：784 − &gt; 256
 24             x = self . fc1 (x)
 25             x = F. relu (x)
 26             x = self . dropout (x)
 27
-28             # 第二层：256 −&gt; 128
+28             # 第二层：256 − &gt; 128
 29             x = self . fc2 (x)
 30             x = F. relu (x)
 31             x = self . dropout (x)
 32
-33             # 输出层：128 −&gt; 10
+33             # 输出层：128 − &gt; 10
 34             x = self . fc3 (x)
 35
 36             return x
@@ -3400,7 +2969,7 @@ Listing&nbsp;1: 全连接神经网络 PyTorch 实现
 
 
 <p>
-卷积操作是 CNN 的核心，它通过滑动窗口的方式在输入图像上应用滤波器（卷积核）来提取特征。这种思想最早由 LeCun 等人&nbsp;[2] 在 1989 年提出，并在后续的 LeNet‑5&nbsp;[1] 工作中得到完善。
+卷积操作是 CNN 的核心，它通过滑动窗口的方式在输入图像上应用（通过点积）滤波器（卷积核）来提取特征。这种思想最早由 LeCun 等人&nbsp;[?] 在 1989 年提出，并在后续的 LeNet‑5&nbsp;[?] 工作中得到完善。
 </p>
 
 <figure id="autoid-12" class="figure ">
@@ -3447,7 +3016,7 @@ Listing&nbsp;1: 全连接神经网络 PyTorch 实现
 >
 
 <p>
-卷积操作的数学定义
+<b> 卷积操作的数学定义 </b>
 </p>
 </div>
 
@@ -3463,11 +3032,11 @@ Listing&nbsp;1: 全连接神经网络 PyTorch 实现
 <!--
 
 
-                                                                                                ∞
-                                                                                                ∑        ∞
-                                                                                                         ∑
-                                                                             (f ∗ g)[m, n] =                  f [i, j] · g[m − i, n − j]   (6)
-                                                                                               i=−∞ j=−∞
+                                                                                                    ∞
+                                                                                                    ∑        ∞
+                                                                                                             ∑
+                                                                                 (f ∗ g)[m, n] =                  f [i, j] · g[m − i, n − j]   (6)
+                                                                                                   i=−∞ j=−∞
 
 
 -->
@@ -3491,10 +3060,10 @@ Listing&nbsp;1: 全连接神经网络 PyTorch 实现
 <!--
 
 
-                                                                                            ∑ k−1
-                                                                                            k−1 ∑
-                                                                               Y [i, j] =             X[i + u, j + v] · K[u, v] + b        (7)
-                                                                                            u=0 v=0
+                                                                                                ∑ k−1
+                                                                                                k−1 ∑
+                                                                                   Y [i, j] =             X[i + u, j + v] · K[u, v] + b        (7)
+                                                                                                u=0 v=0
 
 
 -->
@@ -3552,6 +3121,10 @@ Y[i,j] = \sum _{u=0}^{k-1}\sum _{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 </div>
 
 </div>
+
+<p>
+简单来说，卷积操作通过将卷积核在输入特征图上滑动，计算局部区域的加权和，即该区域与卷积核的相似程度，来生成输出特征图。
+</p>
 <!--
 ...... subsection 特征图尺寸计算......
 -->
@@ -3568,10 +3141,10 @@ Y[i,j] = \sum _{u=0}^{k-1}\sum _{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 
 <!--
 
-                                                                                               ⌊                ⌋
-                                                                                                   W − K + 2P
-                                                                                     Wout =                         +1   (8)
-                                                                                                       S
+                                                                                                   ⌊                ⌋
+                                                                                                       W − K + 2P
+                                                                                         Wout =                         +1   (8)
+                                                                                                           S
 
 -->
 
@@ -3589,10 +3162,10 @@ W_{out} = \left \lfloor \frac {W - K + 2P}{S} \right \rfloor + 1
 
 <!--
 
-                                                                                               ⌊                ⌋
-                                                                                                   H − K + 2P
-                                                                                      Hout =                        +1   (9)
-                                                                                                       S
+                                                                                                   ⌊                ⌋
+                                                                                                       H − K + 2P
+                                                                                          Hout =                        +1   (9)
+                                                                                                           S
 
 -->
 
@@ -3621,7 +3194,7 @@ H_{out} = \left \lfloor \frac {H - K + 2P}{S} \right \rfloor + 1
 >
 
 <p>
-MNIST 实例计算
+<b>MNIST 实例计算 </b>
 </p>
 </div>
 
@@ -3739,7 +3312,7 @@ MNIST 实例计算
 
 
 
-                                                                                 Parameters = Cout × (K × K × Cin + 1)           (10)
+                                                                                    Parameters = Cout × (K × K × Cin + 1)           (10)
 
 
 -->
@@ -3768,7 +3341,7 @@ MNIST 实例计算
 
 
 
-                                                                             Parameters = 32 × (3 × 3 × 1 + 1) = 32 × 10 = 320   (11)
+                                                                                Parameters = 32 × (3 × 3 × 1 + 1) = 32 × 10 = 320   (11)
 
 
 -->
@@ -3843,11 +3416,11 @@ MNIST 实例计算
 6        def __init__ ( self , num_classes =10) :
 7            super(SimpleCNN, self ) . __init__ ()
 8
-9            # 第一个卷积块：1 −&gt; 通道32
+9            # 第一个卷积块：1 − &gt; 通道32
 10             self . conv1 = nn.Conv2d(1, 32,      kernel_size =3, padding=1)
 11             self . bn1 = nn.BatchNorm2d(32)
 12
-13            # 第二个卷积块：32 −&gt; 通道64
+13            # 第二个卷积块：32 − &gt; 通道64
 14             self . conv2 = nn.Conv2d(32, 64,      kernel_size =3, padding=1)
 15             self . bn2 = nn.BatchNorm2d(64)
 16
@@ -3861,13 +3434,13 @@ MNIST 实例计算
 24             self . dropout = nn.Dropout (0.5)
 25
 26        def forward ( self , x) :
-27            # 第一个卷积块：28x28 −&gt; 14x14
+27            # 第一个卷积块：28x28 − &gt; 14x14
 28            x = self . conv1(x)
 29            x = self . bn1(x)
 30            x = F. relu (x)
 31            x = self . pool (x)
 32
-33            # 第二个卷积块：14x14 −&gt; 7x7
+33            # 第二个卷积块：14x14 − &gt; 7x7
 34            x = self . conv2(x)
 35            x = self . bn2(x)
 36            x = F. relu (x)
@@ -3978,7 +3551,7 @@ Listing&nbsp;2: 基础 CNN PyTorch 实现
 
 
 <p>
-LeNet‑5 由 Yann LeCun 等人于 1998 年提出&nbsp;[1]，是卷积神经网络发展史上的里程碑工作。
+LeNet‑5 由 Yann LeCun 等人于 1998 年提出&nbsp;[?]，是卷积神经网络发展史上的里程碑工作。
 </p>
 
 
@@ -3996,7 +3569,7 @@ LeNet‑5 由 Yann LeCun 等人于 1998 年提出&nbsp;[1]，是卷积神经网�
 >
 
 <p>
-LeNet‑5 架构
+<b>LeNet‑5 架构 </b>
 </p>
 </div>
 
@@ -4013,7 +3586,7 @@ LeNet‑5 架构
 
 
 
-                                                                  INPUT → CONV → POOL → CONV → POOL → FC → FC → OUTPUT                                                                       (12)
+                                                                     INPUT → CONV → POOL → CONV → POOL → FC → FC → OUTPUT                                                                    (12)
 
 
 -->
@@ -4174,18 +3747,18 @@ LeNet‑5 架构
 22        def forward ( self , x) :
 23            # 输入：1x28x28
 24
-25            # ：卷积层，C11x28x28 −&gt; 6x24x24
+25            # ：卷积层，C11x28x28 − &gt; 6x24x24
 26            x = self . conv1(x)
 27            x = torch . tanh (x)
 28
-29            # ：平均池化，S26x24x24 −&gt; 6x12x12
+29            # ：平均池化，S26x24x24 − &gt; 6x12x12
 30            x = self . pool1 (x)
 31
-32            # ：卷积层，C36x12x12 −&gt; 16x8x8
+32            # ：卷积层，C36x12x12 − &gt; 16x8x8
 33            x = self . conv2(x)
 34            x = torch . tanh (x)
 35
-36            # ：平均池化，S416x8x8 −&gt; 16x4x4
+36            # ：平均池化，S416x8x8 − &gt; 16x4x4
 37            # 注意：这里需要调整以适应的输入MNIST28x28
 38            # 实际实现中，我们通常将输入填充到32x32
 39            x = self . pool2 (x)
@@ -4205,7 +3778,7 @@ LeNet‑5 架构
 53            return x
 54
 55    # 适配的实现MNISTLeNet
-56    class LeNetMNIST(nn.Module):
+56     class LeNetMNIST(nn.Module):
 57        def __init__ ( self , num_classes =10) :
 58            super(LeNetMNIST, self ) . __init__ ()
 59
@@ -4221,18 +3794,18 @@ LeNet‑5 架构
 69             self . fc3 = nn. Linear (84, num_classes )
 70
 71        def forward ( self , x) :
-72            # ：C11x28x28 −&gt; 6x28x28 ( with padding)
+72            # ：C11x28x28 − &gt; 6x28x28 ( with padding)
 73            x = self . conv1(x)
 74            x = torch . tanh (x)
 75
-76            # ：S26x28x28 −&gt; 6x14x14
+76            # ：S26x28x28 − &gt; 6x14x14
 77            x = self . pool1 (x)
 78
-79            # ：C36x14x14 −&gt; 16x10x10
+79            # ：C36x14x14 − &gt; 16x10x10
 80            x = self . conv2(x)
 81            x = torch . tanh (x)
 82
-83            # ：S416x10x10 −&gt; 16x5x5
+83            # ：S416x10x10 − &gt; 16x5x5
 84            x = self . pool2 (x)
 85
 86            # 展平
@@ -4348,7 +3921,7 @@ LeNet 的参数分布：
 >
 
 <p>
-低层特征（C1 层）：边缘和纹理检测
+<b> 低层特征（C1 层）：边缘和纹理检测 </b>
 </p>
 </div>
 
@@ -4412,7 +3985,7 @@ LeNet 的参数分布：
 >
 
 <p>
-中层特征（C3 层）：形状和部件组合
+<b> 中层特征（C3 层）：形状和部件组合 </b>
 </p>
 </div>
 
@@ -4476,7 +4049,7 @@ LeNet 的参数分布：
 >
 
 <p>
-高层特征（全连接层）：语义概念
+<b> 高层特征（全连接层）：语义概念 </b>
 </p>
 </div>
 
@@ -4537,7 +4110,7 @@ LeNet 的参数分布：
 >
 
 <p>
-语义演化的数学解释
+<b> 语义演化的数学解释 </b>
 </p>
 </div>
 
@@ -4557,9 +4130,9 @@ LeNet 的参数分布：
 <!--
 
 
-                                                                                          高层特征响应
-                                                                             特征复杂度 =             × 空间不变性程度              (13)
-                                                                                          低层特征响应
+                                                                                              高层特征响应
+                                                                                 特征复杂度 =             × 空间不变性程度          (13)
+                                                                                              低层特征响应
 
 -->
 
@@ -4623,7 +4196,7 @@ LeNet 的参数分布：
 >
 
 <p>
-为什么这种分层特征提取有效？
+<b> 为什么这种分层特征提取有效？</b>
 </p>
 </div>
 
@@ -4755,7 +4328,7 @@ LeNet 的参数分布：
 >
 
 <p>
-核心问题
+<b> 核心问题 </b>
 </p>
 </div>
 
@@ -4941,7 +4514,7 @@ CNN 通过局部感受野和参数共享，保留了图像的空间结构：
 >
 
 <p>
-参数数量对比实例
+<b> 参数数量对比实例 </b>
 </p>
 </div>
 
@@ -5008,10 +4581,10 @@ CNN 通过局部感受野和参数共享，保留了图像的空间结构：
 
 
 
-                                                                                  Layer 1 : 784 × 256 + 256 = 200, 960                                                                       (14)
-                                                                                  Layer 2 : 256 × 128 + 128 = 32, 896                                                                        (15)
-                                                                                  Layer 3 : 128 × 10 + 10 = 1, 290                                                                           (16)
-                                                                                    Total : 235, 146 参数                                                                                      (17)
+                                                                                      Layer 1 : 784 × 256 + 256 = 200, 960                                                                            (14)
+                                                                                      Layer 2 : 256 × 128 + 128 = 32, 896                                                                             (15)
+                                                                                      Layer 3 : 128 × 10 + 10 = 1, 290                                                                                (16)
+                                                                                        Total : 235, 146 参数                                                                                           (17)
 
 
 
@@ -5024,8 +4597,8 @@ CNN 通过局部感受野和参数共享，保留了图像的空间结构：
 
 
 \begin{align}
-\text {Layer 1} &amp;: 784 \times 256 + 256 = 200,960 \\ \text {Layer 2} &amp;: 256 \times 128 + 128 = 32,896 \\ \text {Layer 3} &amp;: 128 \times 10 + 10 = 1,290 \\ \text {Total} &amp;:
-235,146 \text { 参数}
+\text {Layer 1} &amp;: 784 \times 256 + 256 = 200,960 \\ \text {Layer 2} &amp;: 256 \times 128 + 128 = 32,896 \\ \text {Layer 3} &amp;: 128 \times 10 + 10 = 1,290 \\ \text {Total} &amp;: 235,146 \text {
+参数}
 \end{align}
 
 
@@ -5049,7 +4622,7 @@ CNN 通过局部感受野和参数共享，保留了图像的空间结构：
 >
 
 <p>
-LeNet 方案：
+<b>LeNet 方案：</b>
 </p>
 </div>
 
@@ -5128,7 +4701,7 @@ LeNet 方案：
 >
 
 <p>
-关键发现
+<b> 关键发现 </b>
 </p>
 </div>
 
@@ -5200,7 +4773,7 @@ LeNet 的参数数量仅为全连接网络的 <b>26&percnt;</b>，但在准确�
 >
 
 <p>
-归纳偏置的定义
+<b> 归纳偏置的定义 </b>
 </p>
 </div>
 
@@ -5274,7 +4847,7 @@ LeNet 的参数数量仅为全连接网络的 <b>26&percnt;</b>，但在准确�
 >
 
 <p>
-直观的类比
+<b> 直观的类比 </b>
 </p>
 </div>
 
@@ -5319,7 +4892,7 @@ LeNet 的参数数量仅为全连接网络的 <b>26&percnt;</b>，但在准确�
 >
 
 <p>
-为什么归纳偏置至关重要？
+<b> 为什么归纳偏置至关重要？</b>
 </p>
 </div>
 
@@ -5501,7 +5074,7 @@ LeNet 的参数数量仅为全连接网络的 <b>26&percnt;</b>，但在准确�
 >
 
 <p>
-数学表达
+<b> 数学表达 </b>
 </p>
 </div>
 
@@ -5522,7 +5095,7 @@ LeNet 的参数数量仅为全连接网络的 <b>26&percnt;</b>，但在准确�
 
 
 
-                                                                                           f : R784 → R10               (18)
+                                                                                               f : R784 → R10           (18)
 
 
 -->
@@ -5598,7 +5171,7 @@ CNN 引入了三个关键的归纳偏置：
 >
 
 <p>
-数学表达
+<b> 数学表达 </b>
 </p>
 </div>
 
@@ -5618,11 +5191,11 @@ CNN 通过卷积操作实现这些偏置：
 <!--
 
 
-                                                                                           ∑
-                                                                                           k ∑
-                                                                                             k
-                                                                              Y [i, j] =               X[i + u, j + v] · K[u, v] + b   (19)
-                                                                                           u=−k v=−k
+                                                                                               ∑
+                                                                                               k ∑
+                                                                                                 k
+                                                                                  Y [i, j] =               X[i + u, j + v] · K[u, v] + b   (19)
+                                                                                               u=−k v=−k
 
 
 -->
@@ -5652,7 +5225,7 @@ Y[i,j] = \sum _{u=-k}^{k}\sum _{v=-k}^{k} X[i+u, j+v] \cdot K[u,v] + b
 
 
 <p>
-让我们通过一个具体的实验来对比两种架构的性能。这种对比分析方法受到了现代深度学习研究&nbsp;[3, 4, 5] 的启发：
+让我们通过一个具体的实验来对比两种架构的性能。这种对比分析方法受到了现代深度学习研究&nbsp;[?, ?, ?] 的启发：
 </p>
 
 
@@ -5670,7 +5243,7 @@ Y[i,j] = \sum _{u=-k}^{k}\sum _{v=-k}^{k} X[i+u, j+v] \cdot K[u,v] + b
 >
 
 <p>
-实验设置
+<b> 实验设置 </b>
 </p>
 </div>
 
@@ -5823,7 +5396,7 @@ Y[i,j] = \sum _{u=-k}^{k}\sum _{v=-k}^{k} X[i+u, j+v] \cdot K[u,v] + b
 >
 
 <p>
-归纳偏置总结
+<b> 归纳偏置总结 </b>
 </p>
 </div>
 
@@ -5913,7 +5486,7 @@ Y[i,j] = \sum _{u=-k}^{k}\sum _{v=-k}^{k} X[i+u, j+v] \cdot K[u,v] + b
 
 
 <p>
-缩放定律（Scaling Laws）描述了神经网络性能如何随着模型规模、数据集规模和计算资源的增加而变化。Kaplan 等人&nbsp;[6] 的研究表明，这些关系通常遵循幂律分布：
+缩放定律（Scaling Laws）描述了神经网络性能如何随着模型规模、数据集规模和计算资源的增加而变化。Kaplan 等人&nbsp;[?] 的研究表明，这些关系通常遵循幂律分布：
 </p>
 
 <span class="hidden"> \(\seteqnumber{0}{}{19}\)</span>
@@ -5922,7 +5495,7 @@ Y[i,j] = \sum _{u=-k}^{k}\sum _{v=-k}^{k} X[i+u, j+v] \cdot K[u,v] + b
 
 
 
-                                                                           L(N, D, C) ∝ N −α · D−β · C −γ   (20)
+                                                                              L(N, D, C) ∝ N −α · D−β · C −γ   (20)
 
 
 -->
@@ -6074,8 +5647,8 @@ L(D) = L_{\infty } + B \cdot D^{-\beta }
 <!--
 
 
-                                                                                             α                β
-                                                                                   Nopt ∝ C α+β ,   Dopt ∝ C α+β   (23)
+                                                                                                  α                β
+                                                                                        Nopt ∝ C α+β ,   Dopt ∝ C α+β   (23)
 
 
 -->
@@ -6188,7 +5761,7 @@ N_{opt} \propto C^{\frac {\alpha }{\alpha + \beta }}, \quad D_{opt} \propto C^{\
 >
 
 <p>
-重要启示
+<b> 重要启示 </b>
 </p>
 </div>
 
@@ -6200,7 +5773,7 @@ N_{opt} \propto C^{\frac {\alpha }{\alpha + \beta }}, \quad D_{opt} \propto C^{\
 >
 
 <p>
-MNIST 任务告诉我们&nbsp;[6]：
+MNIST 任务告诉我们&nbsp;[?]：
 </p>
 <ul class="enumerate" style="list-style-type:none">
 
@@ -6256,8 +5829,8 @@ MNIST 任务告诉我们&nbsp;[6]：
 
 
 <p>
-自 LeNet 以来，深度学习领域取得了显著进展。Krizhevsky 等人&nbsp;[3] 在 2012 年提出了 AlexNet，在 ImageNet 竞赛中取得了突破性成果，重新点燃了人们对卷积神经网络的兴趣。随后，Simonyan 和 Zisserman&nbsp;[4]
-提出了 VGG 网络，通过使用更小的卷积核和更深的网络结构进一步提升了性能。He 等人&nbsp;[5] 提出的 ResNet 通过引入残差连接，解决了深层网络的训练问题，使得网络可以达到前所未有的深度。
+自 LeNet 以来，深度学习领域取得了显著进展。Krizhevsky 等人&nbsp;[?] 在 2012 年提出了 AlexNet，在 ImageNet 竞赛中取得了突破性成果，重新点燃了人们对卷积神经网络的兴趣。随后，Simonyan 和 Zisserman&nbsp;[?]
+提出了 VGG 网络，通过使用更小的卷积核和更深的网络结构进一步提升了性能。He 等人&nbsp;[?] 提出的 ResNet 通过引入残差连接，解决了深层网络的训练问题，使得网络可以达到前所未有的深度。
 </p>
 <!--
 ...... subsection 在实际应用中的选择......
@@ -6325,7 +5898,7 @@ MNIST 任务告诉我们&nbsp;[6]：
 
 
 <p>
-本文通过 MNIST 手写数字识别任务，深入比较了全连接神经网络和卷积神经网络的原理、实现和性能。正如 LeCun 等人在其开创性工作&nbsp;[1, 2] 中所展示的，以及后续研究者&nbsp;[3, 4, 5] 所发展的，主要结论如下：
+本文通过 MNIST 手写数字识别任务，深入比较了全连接神经网络和卷积神经网络的原理、实现和性能。正如 LeCun 等人在其开创性工作&nbsp;[?, ?] 中所展示的，以及后续研究者&nbsp;[?, ?, ?] 所发展的，主要结论如下：
 </p>
 
 <ul class="enumerate" style="list-style-type:none">

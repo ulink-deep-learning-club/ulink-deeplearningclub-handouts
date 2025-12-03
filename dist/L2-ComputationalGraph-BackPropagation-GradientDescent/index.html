@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="generator" content="LaTeX Lwarp package" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title> 计算图、反向传播与梯度下降：深度学习的数学基础 </title>
+<title> 计算图、反向传播与梯度下降：深度学习核心数学基础 </title>
 <link rel="stylesheet" type="text/css" href="lwarp.css" />
 
 <script>
@@ -26,55 +26,55 @@ MathJax = {
     subequations: "0",
     section: "",
     loader: {
-         load: ['[tex]/tagformat', '[tex]/textmacros'],
+        load: ['[tex]/tagformat', '[tex]/textmacros'],
     },
     startup: {
-         ready() {
-             //      These would be replaced by import commands if you wanted to make
-             //      a proper extension.
-             const Configuration = MathJax._.input.tex.Configuration.Configuration;
-             const CommandMap = MathJax._.input.tex.SymbolMap.CommandMap;
-             const Macro = MathJax._.input.tex.Symbol.Macro;
-             const TexError = MathJax._.input.tex.TexError.default;
-             const ParseUtil = MathJax._.input.tex.ParseUtil.default;
-             const expandable = MathJax._.util.Options.expandable;
+        ready() {
+            //       These would be replaced by import commands if you wanted to make
+            //       a proper extension.
+            const Configuration = MathJax._.input.tex.Configuration.Configuration;
+            const CommandMap = MathJax._.input.tex.SymbolMap.CommandMap;
+            const Macro = MathJax._.input.tex.Symbol.Macro;
+            const TexError = MathJax._.input.tex.TexError.default;
+            const ParseUtil = MathJax._.input.tex.ParseUtil.default;
+            const expandable = MathJax._.util.Options.expandable;
 
 
-             //      Insert the replacement string into the TeX string, and check
-             //      that there haven't been too many maxro substitutions (prevents
-             //      infinite loops).
-             const useArgument = (parser, text) => {
-                 parser.string = ParseUtil.addArgs(parser, text, parser.string.slice(parser.i));
-                 parser.i = 0;
-                 if (++parser.macroCount > parser.configuration.options.maxMacros) {
+            //       Insert the replacement string into the TeX string, and check
+            //       that there haven't been too many maxro substitutions (prevents
+            //       infinite loops).
+            const useArgument = (parser, text) => {
+                parser.string = ParseUtil.addArgs(parser, text, parser.string.slice(parser.i));
+                parser.i = 0;
+                if (++parser.macroCount > parser.configuration.options.maxMacros) {
                      throw new TexError('MaxMacroSub1',
                      'MathJax maximum macro substitution count exceeded; ' +
                      'is there a recursive macro call?');
-                 }
-             }
+                }
+            }
 
 
-             //      Create the command map for:
-             //          \ifstar, \ifnextchar, \ifblank, \ifstrequal, \gsub, \seteqnumber
-             new CommandMap('Lwarp-macros', {
-                 ifstar: 'IfstarFunction',
-                 ifnextchar: 'IfnextcharFunction',
-                 ifblank: 'IfblankFunction',
-                 ifstrequal: 'IfstrequalFunction',
-                 gsubstitute: 'GsubstituteFunction',
-                 seteqnumber: 'SeteqnumberFunction'
-             }, {
-                 //      This function implements an ifstar macro.
-                 IfstarFunction(parser, name) {
+            //       Create the command map for:
+            //           \ifstar, \ifnextchar, \ifblank, \ifstrequal, \gsub, \seteqnumber
+            new CommandMap('Lwarp-macros', {
+                ifstar: 'IfstarFunction',
+                ifnextchar: 'IfnextcharFunction',
+                ifblank: 'IfblankFunction',
+                ifstrequal: 'IfstrequalFunction',
+                gsubstitute: 'GsubstituteFunction',
+                seteqnumber: 'SeteqnumberFunction'
+            }, {
+                //       This function implements an ifstar macro.
+                IfstarFunction(parser, name) {
                      const resultstar = parser.GetArgument(name);
                      const resultnostar = parser.GetArgument(name);
-                     const star = parser.GetStar();                        // true if there is a *
+                     const star = parser.GetStar();                      // true if there is a *
                      useArgument(parser, star ? resultstar : resultnostar);
-                 },
+                },
 
 
-                 //      This function implements an ifnextchar macro.
-                 IfnextcharFunction(parser, name) {
+                //       This function implements an ifnextchar macro.
+                IfnextcharFunction(parser, name) {
                      let whichchar = parser.GetArgument(name);
                      if (whichchar.match(/^(?:0x[0-9A-F]+|[0-9]+)$/i)) {
                          // $ syntax highlighting
@@ -84,148 +84,148 @@ MathJax = {
                      const resultnotnextchar = parser.GetArgument(name);
                      const gotchar = (parser.GetNext() === whichchar);
                      useArgument(parser, gotchar ? resultnextchar : resultnotnextchar);
-                 },
+                },
 
 
-                 // This function implements an ifblank macro.
-                 IfblankFunction(parser, name) {
+                // This function implements an ifblank macro.
+                IfblankFunction(parser, name) {
                      const blankarg = parser.GetArgument(name);
                      const resultblank = parser.GetArgument(name);
                      const resultnotblank = parser.GetArgument(name);
                      const isblank = (blankarg.trim() == "");
                      useArgument(parser, isblank ? resultblank : resultnotblank);
-                 },
+                },
 
 
-                 // This function implements an ifstrequal macro.
-                 IfstrequalFunction(parser, name) {
+                // This function implements an ifstrequal macro.
+                IfstrequalFunction(parser, name) {
                      const strequalfirst = parser.GetArgument(name);
                      const strequalsecond = parser.GetArgument(name);
                      const resultequal = parser.GetArgument(name);
                      const resultnotequal = parser.GetArgument(name);
                      const isequal = (strequalfirst == strequalsecond);
                      useArgument(parser, isequal ? resultequal : resultnotequal);
-                 },
+                },
 
 
-                 // This function implements a gsub macro.
-                 GsubstituteFunction(parser, name) {
+                // This function implements a gsub macro.
+                GsubstituteFunction(parser, name) {
                      const gsubfirst = parser.GetArgument(name);
                      const gsubsecond = parser.GetArgument(name);
                      const gsubthird = parser.GetArgument(name);
                      let gsubresult=gsubfirst.replace(gsubsecond, gsubthird);
                      useArgument(parser, gsubresult);
-                 },
+                },
 
 
-                 //      This function modifies the equation numbers.
-                 SeteqnumberFunction(parser, name) {
-                         //   Get the macro parameters
-                         const star = parser.GetStar();                       // true if there is a *
-                         const optBrackets = parser.GetBrackets(name);        // contents of optional brackets
-                         const newsubequations = parser.GetArgument(name);       // the subequations argument
-                         const neweqsection = parser.GetArgument(name);       // the eq section argument
-                         const neweqnumber = parser.GetArgument(name);        // the eq number argument
-                         MathJax.config.subequations=newsubequations ;        // a string with boolean meaning
-                         MathJax.config.section=neweqsection ;                // a string with numeric meaning
+                //       This function modifies the equation numbers.
+                SeteqnumberFunction(parser, name) {
+                         // Get the macro parameters
+                         const star = parser.GetStar();                    // true if there is a *
+                         const optBrackets = parser.GetBrackets(name);     // contents of optional brackets
+                         const newsubequations = parser.GetArgument(name);    // the subequations argument
+                         const neweqsection = parser.GetArgument(name);    // the eq section argument
+                         const neweqnumber = parser.GetArgument(name);     // the eq number argument
+                         MathJax.config.subequations=newsubequations ;     // a string with boolean meaning
+                         MathJax.config.section=neweqsection ;             // a string with numeric meaning
                          parser.tags.counter = parser.tags.allCounter = neweqnumber ;
-                 }
+                }
 
 
-             });
+            });
 
 
-             //      Create the Lwarp-macros package
-             Configuration.create('Lwarp-macros', {
-                 handler: {macro: ['Lwarp-macros']}
-             });
+            //       Create the Lwarp-macros package
+            Configuration.create('Lwarp-macros', {
+                handler: {macro: ['Lwarp-macros']}
+            });
 
 
-             MathJax.startup.defaultReady();
+            MathJax.startup.defaultReady();
 
 
-             // For forward references:
-             MathJax.startup.input[0].preFilters.add(({math}) => {
-                 if (math.inputData.recompile){
+            // For forward references:
+            MathJax.startup.input[0].preFilters.add(({math}) => {
+                if (math.inputData.recompile){
                          MathJax.config.subequations = math.inputData.recompile.subequations;
                          MathJax.config.section = math.inputData.recompile.section;
-                 }
-             });
-             MathJax.startup.input[0].postFilters.add(({math}) => {
-                 if (math.inputData.recompile){
+                }
+            });
+            MathJax.startup.input[0].postFilters.add(({math}) => {
+                if (math.inputData.recompile){
                          math.inputData.recompile.subequations = MathJax.config.subequations;
                          math.inputData.recompile.section = MathJax.config.section;
-                 }
-             });
+                }
+            });
 
 
-                 // For \left, \right with unicode-math:
-                 const {DelimiterMap} = MathJax._.input.tex.SymbolMap;
-                 const {Symbol} = MathJax._.input.tex.Symbol;
-                 const {MapHandler} = MathJax._.input.tex.MapHandler;
-                 const delimiter = MapHandler.getMap('delimiter');
-                 delimiter.add('\\lBrack', new Symbol('\\lBrack', '\u27E6'));
-                 delimiter.add('\\rBrack', new Symbol('\\rBrack', '\u27E7'));
-                 delimiter.add('\\lAngle', new Symbol('\\lAngle', '\u27EA'));
-                 delimiter.add('\\rAngle', new Symbol('\\rAngle', '\u27EB'));
-                 delimiter.add('\\lbrbrak', new Symbol('\\lbrbrak', '\u2772'));
-                 delimiter.add('\\rbrbrak', new Symbol('\\rbrbrak', '\u2773'));
-                 delimiter.add('\\lbag', new Symbol('\\lbag', '\u27C5'));
-                 delimiter.add('\\rbag', new Symbol('\\rbag', '\u27C6'));
-                 delimiter.add('\\llparenthesis', new Symbol('\\llparenthesis', '\u2987'));
-                 delimiter.add('\\rrparenthesis', new Symbol('\\rrparenthesis', '\u2988'));
-                 delimiter.add('\\llangle', new Symbol('\\llangle', '\u2989'));
-                 delimiter.add('\\rrangle', new Symbol('\\rrangle', '\u298A'));
-                 delimiter.add('\\Lbrbrak', new Symbol('\\Lbrbrak', '\u27EC'));
-                 delimiter.add('\\Rbrbrak', new Symbol('\\Rbrbrak', '\u27ED'));
-                 delimiter.add('\\lBrace', new Symbol('\\lBrace', '\u2983'));
-                 delimiter.add('\\rBrace', new Symbol('\\rBrace', '\u2984'));
-                 delimiter.add('\\lParen', new Symbol('\\lParen', '\u2985'));
-                 delimiter.add('\\rParen', new Symbol('\\rParen', '\u2986'));
-                 delimiter.add('\\lbrackubar', new Symbol('\\lbrackubar', '\u298B'));
-                 delimiter.add('\\rbrackubar', new Symbol('\\rbrackubar', '\u298C'));
-                 delimiter.add('\\lbrackultick', new Symbol('\\lbrackultick', '\u298D'));
-                 delimiter.add('\\rbracklrtick', new Symbol('\\rbracklrtick', '\u298E'));
-                 delimiter.add('\\lbracklltick', new Symbol('\\lbracklltick', '\u298F'));
-                 delimiter.add('\\rbrackurtick', new Symbol('\\rbrackurtick', '\u2990'));
-                 delimiter.add('\\langledot', new Symbol('\\langledot', '\u2991'));
-                 delimiter.add('\\rangledot', new Symbol('\\rangledot', '\u2992'));
-                 delimiter.add('\\lparenless', new Symbol('\\lparenless', '\u2993'));
-                 delimiter.add('\\rparengtr', new Symbol('\\rparengtr', '\u2994'));
-                 delimiter.add('\\Lparengtr', new Symbol('\\Lparengtr', '\u2995'));
-                 delimiter.add('\\Rparenless', new Symbol('\\Rparenless', '\u2996'));
-                 delimiter.add('\\lblkbrbrak', new Symbol('\\lblkbrbrak', '\u2997'));
-                 delimiter.add('\\rblkbrbrak', new Symbol('\\rblkbrbrak', '\u2998'));
-                 delimiter.add('\\lvzigzag', new Symbol('\\lvzigzag', '\u29D8'));
-                 delimiter.add('\\rvzigzag', new Symbol('\\rvzigzag', '\u29D9'));
-                 delimiter.add('\\Lvzigzag', new Symbol('\\Lvzigzag', '\u29DA'));
-                 delimiter.add('\\Rvzigzag', new Symbol('\\Rvzigzag', '\u29DB'));
-                 delimiter.add('\\lcurvyangle', new Symbol('\\lcurvyangle', '\u29FC'));
-                 delimiter.add('\\rcurvyangle', new Symbol('\\rcurvyangle', '\u29FD'));
-                 delimiter.add('\\Vvert', new Symbol('\\Vvert', '\u2980'));
-         }       // ready
+                // For \left, \right with unicode-math:
+                const {DelimiterMap} = MathJax._.input.tex.SymbolMap;
+                const {Symbol} = MathJax._.input.tex.Symbol;
+                const {MapHandler} = MathJax._.input.tex.MapHandler;
+                const delimiter = MapHandler.getMap('delimiter');
+                delimiter.add('\\lBrack', new Symbol('\\lBrack', '\u27E6'));
+                delimiter.add('\\rBrack', new Symbol('\\rBrack', '\u27E7'));
+                delimiter.add('\\lAngle', new Symbol('\\lAngle', '\u27EA'));
+                delimiter.add('\\rAngle', new Symbol('\\rAngle', '\u27EB'));
+                delimiter.add('\\lbrbrak', new Symbol('\\lbrbrak', '\u2772'));
+                delimiter.add('\\rbrbrak', new Symbol('\\rbrbrak', '\u2773'));
+                delimiter.add('\\lbag', new Symbol('\\lbag', '\u27C5'));
+                delimiter.add('\\rbag', new Symbol('\\rbag', '\u27C6'));
+                delimiter.add('\\llparenthesis', new Symbol('\\llparenthesis', '\u2987'));
+                delimiter.add('\\rrparenthesis', new Symbol('\\rrparenthesis', '\u2988'));
+                delimiter.add('\\llangle', new Symbol('\\llangle', '\u2989'));
+                delimiter.add('\\rrangle', new Symbol('\\rrangle', '\u298A'));
+                delimiter.add('\\Lbrbrak', new Symbol('\\Lbrbrak', '\u27EC'));
+                delimiter.add('\\Rbrbrak', new Symbol('\\Rbrbrak', '\u27ED'));
+                delimiter.add('\\lBrace', new Symbol('\\lBrace', '\u2983'));
+                delimiter.add('\\rBrace', new Symbol('\\rBrace', '\u2984'));
+                delimiter.add('\\lParen', new Symbol('\\lParen', '\u2985'));
+                delimiter.add('\\rParen', new Symbol('\\rParen', '\u2986'));
+                delimiter.add('\\lbrackubar', new Symbol('\\lbrackubar', '\u298B'));
+                delimiter.add('\\rbrackubar', new Symbol('\\rbrackubar', '\u298C'));
+                delimiter.add('\\lbrackultick', new Symbol('\\lbrackultick', '\u298D'));
+                delimiter.add('\\rbracklrtick', new Symbol('\\rbracklrtick', '\u298E'));
+                delimiter.add('\\lbracklltick', new Symbol('\\lbracklltick', '\u298F'));
+                delimiter.add('\\rbrackurtick', new Symbol('\\rbrackurtick', '\u2990'));
+                delimiter.add('\\langledot', new Symbol('\\langledot', '\u2991'));
+                delimiter.add('\\rangledot', new Symbol('\\rangledot', '\u2992'));
+                delimiter.add('\\lparenless', new Symbol('\\lparenless', '\u2993'));
+                delimiter.add('\\rparengtr', new Symbol('\\rparengtr', '\u2994'));
+                delimiter.add('\\Lparengtr', new Symbol('\\Lparengtr', '\u2995'));
+                delimiter.add('\\Rparenless', new Symbol('\\Rparenless', '\u2996'));
+                delimiter.add('\\lblkbrbrak', new Symbol('\\lblkbrbrak', '\u2997'));
+                delimiter.add('\\rblkbrbrak', new Symbol('\\rblkbrbrak', '\u2998'));
+                delimiter.add('\\lvzigzag', new Symbol('\\lvzigzag', '\u29D8'));
+                delimiter.add('\\rvzigzag', new Symbol('\\rvzigzag', '\u29D9'));
+                delimiter.add('\\Lvzigzag', new Symbol('\\Lvzigzag', '\u29DA'));
+                delimiter.add('\\Rvzigzag', new Symbol('\\Rvzigzag', '\u29DB'));
+                delimiter.add('\\lcurvyangle', new Symbol('\\lcurvyangle', '\u29FC'));
+                delimiter.add('\\rcurvyangle', new Symbol('\\rcurvyangle', '\u29FD'));
+                delimiter.add('\\Vvert', new Symbol('\\Vvert', '\u2980'));
+        }        // ready
     },           // startup
 
 
     tex: {
-         packages: {'[+]': ['tagformat', 'Lwarp-macros', 'textmacros']},
-         tags: "ams",
-                 tagformat: {
+        packages: {'[+]': ['tagformat', 'Lwarp-macros', 'textmacros']},
+        tags: "ams",
+                tagformat: {
                          number: function (n) {
                               if(MathJax.config.subequations==0)
-                                     return(MathJax.config.section + n);
+                                 return(MathJax.config.section + n);
                               else
-                                     return(MathJax.config.section + String.fromCharCode(96+n));
+                                 return(MathJax.config.section + String.fromCharCode(96+n));
                          },
-                 },
+                },
     }
 }
 </script>
 
 
 <script
-         id="MathJax-script"
-         src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
+        id="MathJax-script"
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
 ></script>
 
 
@@ -417,7 +417,7 @@ MathJax = {
 <a id="document-autopage-1"></a>
 <div class="titlepage">
 
-<h1><b> 计算图、反向传播与梯度下降：深度学习的数学基础 </b></h1>
+<h1><b> 计算图、反向传播与梯度下降：深度学习核心数学基础 </b></h1>
 
 
 
@@ -439,7 +439,7 @@ Anson, 深度学习社 &#x2003;Cooperated with <kbd>Kimi K2 0905</kbd>
 <div class="titledate">
 
 <p>
-2025 年 10 月 16 日
+2025 年 12 月 3 日
 </p>
 </div>
 
@@ -451,8 +451,9 @@ Anson, 深度学习社 &#x2003;Cooperated with <kbd>Kimi K2 0905</kbd>
 <div class="abstracttitle"> 摘要 </div>
 
 <p>
-本文深入探讨了深度学习中三个核心数学概念：计算图、反向传播和梯度下降。计算图提供了数学表达式的可视化表示，为自动微分奠定基础；反向传播算法基于链式法则高效计算梯度；梯度下降利用梯度信息优化模型参数。文章
-从基础概念出发，通过详细的数学推导、直观的图示和实际例子，系统性地阐述了这些技术在深度学习中的重要作用。我们不仅介绍了基本理论，还探讨了现代深度学习框架如何实现这些机制，以及它们在实际应用中的优化策略。
+本文深入探讨了深度学习中的三个核心数学基础：计算图表示、反向传播算法和梯度下降优化。通过 MNIST 手写数字识别任务作为贯穿始终的实例，我们从基础概念出发，结合详细的数学推导、直观的图示和完整的 PyTorch 实现，
+系统性地阐述了这些技术在深度学习中的重要作用。文章首先介绍计算图如何将复杂的数学表达式可视化为图结构，然后详细推导反向传播算法如何基于链式法则高效计算梯度，最后探讨梯度下降如何利用梯度信息优化模型参数。
+通过实际的代码示例，我们展示了现代深度学习框架中的自动微分系统实现，并提供了实用的优化策略和实际应用指导。本文不仅涵盖基本理论，还包含了可运行的 Python 代码，帮助读者深入理解这些核心概念的实际应用。
 </p>
 </div>
 <!--
@@ -466,346 +467,6 @@ Anson, 深度学习社 &#x2003;Cooperated with <kbd>Kimi K2 0905</kbd>
 
 <nav class="toc">
 
-<p>
-<a href="document.html#autosec-5" class="tocsection" >
-<span class="sectionnumber">1</span>&#x2003;引言</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-6" class="tocsubsection" >
-<span class="sectionnumber">1.1</span>&#x2003;机器学习的基本问题</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-7" class="tocsubsection" >
-<span class="sectionnumber">1.2</span>&#x2003;为什么需要计算图、反向传播和梯度下降？</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-8" class="tocsection" >
-<span class="sectionnumber">2</span>&#x2003;计算图基础</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-9" class="tocsubsection" >
-<span class="sectionnumber">2.1</span>&#x2003;什么是计算图？</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-10" class="tocsubsection" >
-<span class="sectionnumber">2.2</span>&#x2003;计算图的基本元素</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-14" class="tocsubsubsection" >
-<span class="sectionnumber">2.2.1</span>&#x2003;节点类型</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-15" class="tocsubsubsection" >
-<span class="sectionnumber">2.2.2</span>&#x2003;边的语义</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-16" class="tocsubsection" >
-<span class="sectionnumber">2.3</span>&#x2003;计算图的构建规则</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-17" class="tocsubsection" >
-<span class="sectionnumber">2.4</span>&#x2003;复杂模型的表示</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-21" class="tocsection" >
-<span class="sectionnumber">3</span>&#x2003;前向传播</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-22" class="tocsubsection" >
-<span class="sectionnumber">3.1</span>&#x2003;前向传播的基本概念</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-23" class="tocsubsection" >
-<span class="sectionnumber">3.2</span>&#x2003;拓扑排序的重要性</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-24" class="tocsubsection" >
-<span class="sectionnumber">3.3</span>&#x2003;前向传播的详细步骤</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-29" class="tocsubsection" >
-<span class="sectionnumber">3.4</span>&#x2003;前向传播的计算复杂度</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-32" class="tocsection" >
-<span class="sectionnumber">4</span>&#x2003;反向传播</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-33" class="tocsubsection" >
-<span class="sectionnumber">4.1</span>&#x2003;为什么需要反向传播？</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-34" class="tocsubsection" >
-<span class="sectionnumber">4.2</span>&#x2003;链式法则：反向传播的数学基础</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-35" class="tocsubsection" >
-<span class="sectionnumber">4.3</span>&#x2003;反向传播的直观理解</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-36" class="tocsubsection" >
-<span class="sectionnumber">4.4</span>&#x2003;反向传播的直观理解</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-37" class="tocsubsection" >
-<span class="sectionnumber">4.5</span>&#x2003;反向传播的算法步骤</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-38" class="tocsubsection" >
-<span class="sectionnumber">4.6</span>&#x2003;详细计算示例</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-39" class="tocsubsection" >
-<span class="sectionnumber">4.7</span>&#x2003;计算图可视化：前向传播与反向传播对比</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-45" class="tocsubsection" >
-<span class="sectionnumber">4.8</span>&#x2003;常见操作的梯度计算规则</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-48" class="tocsection" >
-<span class="sectionnumber">5</span>&#x2003;梯度下降</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-49" class="tocsubsection" >
-<span class="sectionnumber">5.1</span>&#x2003;优化问题的数学表述</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-50" class="tocsubsection" >
-<span class="sectionnumber">5.2</span>&#x2003;梯度下降的基本思想</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-51" class="tocsubsection" >
-<span class="sectionnumber">5.3</span>&#x2003;梯度下降的数学表达</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-52" class="tocsubsection" >
-<span class="sectionnumber">5.4</span>&#x2003;学习率的重要性</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-60" class="tocsubsection" >
-<span class="sectionnumber">5.5</span>&#x2003;梯度下降的变体</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-63" class="tocsubsection" >
-<span class="sectionnumber">5.6</span>&#x2003;梯度下降的收敛性分析</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-64" class="tocsection" >
-<span class="sectionnumber">6</span>&#x2003;综合实例：训练线性回归模型</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-65" class="tocsubsection" >
-<span class="sectionnumber">6.1</span>&#x2003;问题设定</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-66" class="tocsubsection" >
-<span class="sectionnumber">6.2</span>&#x2003;计算图表示</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-70" class="tocsubsection" >
-<span class="sectionnumber">6.3</span>&#x2003;详细训练过程</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-71" class="tocsubsection" >
-<span class="sectionnumber">6.4</span>&#x2003;多轮迭代的收敛过程</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-74" class="tocsection" >
-<span class="sectionnumber">7</span>&#x2003;现代深度学习框架的实现</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-75" class="tocsubsection" >
-<span class="sectionnumber">7.1</span>&#x2003;自动微分系统</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-76" class="tocsubsection" >
-<span class="sectionnumber">7.2</span>&#x2003;PyTorch 实现示例</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-78" class="tocsubsection" >
-<span class="sectionnumber">7.3</span>&#x2003;优化器的抽象</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-80" class="tocsection" >
-<span class="sectionnumber">8</span>&#x2003;高级主题与优化策略</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-81" class="tocsubsection" >
-<span class="sectionnumber">8.1</span>&#x2003;梯度消失与梯度爆炸</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-82" class="tocsubsection" >
-<span class="sectionnumber">8.2</span>&#x2003;二阶优化方法</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-85" class="tocsubsection" >
-<span class="sectionnumber">8.3</span>&#x2003;自适应优化算法</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-86" class="tocsection" >
-<span class="sectionnumber">9</span>&#x2003;结论与展望</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-87" class="tocsubsection" >
-<span class="sectionnumber">9.1</span>&#x2003;核心概念总结</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-88" class="tocsubsection" >
-<span class="sectionnumber">9.2</span>&#x2003;技术发展历程</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-89" class="tocsubsection" >
-<span class="sectionnumber">9.3</span>&#x2003;未来发展方向</a>
-</p>
-
-
-
-<p>
-<a href="document.html#autosec-90" class="tocsubsection" >
-<span class="sectionnumber">9.4</span>&#x2003;实际应用建议</a>
-</p>
 </nav>
 <!--
 ...... section 引言......
@@ -813,16 +474,15 @@ Anson, 深度学习社 &#x2003;Cooperated with <kbd>Kimi K2 0905</kbd>
 <h4 id="autosec-5"><span class="sectionnumber">1&#x2003;</span>引言</h4>
 <a id="document-autopage-5"></a>
 <!--
-...... subsection 机器学习的基本问题......
+...... subsection 学习目标与核心概念......
 -->
-<h5 id="autosec-6"><span class="sectionnumber">1.1&#x2003;</span>机器学习的基本问题</h5>
+<h5 id="autosec-6"><span class="sectionnumber">1.1&#x2003;</span>学习目标与核心概念</h5>
 <a id="document-autopage-6"></a>
 
 
 
 <p>
-在深入探讨计算图、反向传播和梯度下降之前，我们首先需要理解机器学习的基本问题。机器学习的目标是让计算机从数据中学习模式，而不需要明确编程每一个规则。这种学习过程的核心在于如何自动调整模型的参数，使其能够
-更好地拟合数据并做出准确的预测。
+在深入探讨计算图、反向传播和梯度下降之前，让我们明确本章节的学习目标：
 </p>
 
 
@@ -840,7 +500,94 @@ Anson, 深度学习社 &#x2003;Cooperated with <kbd>Kimi K2 0905</kbd>
 >
 
 <p>
-机器学习的核心挑战
+<b> 学习目标 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 理解计算图：</b> 掌握如何将复杂的数学表达式表示为图结构
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 掌握反向传播：</b> 理解基于链式法则的梯度计算机制
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 应用梯度下降：</b> 学会使用梯度信息优化模型参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 实践自动微分：</b> 能够在 PyTorch 中实现和调试这些概念
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 解决实际问题：</b> 通过 MNIST 实例理解这些技术的实际应用
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 机器学习的基本问题......
+-->
+<h5 id="autosec-7"><span class="sectionnumber">1.2&#x2003;</span>机器学习的基本问题</h5>
+<a id="document-autopage-7"></a>
+
+
+
+<p>
+机器学习的目标是让计算机从数据中学习模式，而不需要明确编程每一个规则。这种学习过程的核心在于如何自动调整模型的参数，使其能够更好地拟合数据并做出准确的预测。
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 机器学习的核心挑战 </b>
 </p>
 </div>
 
@@ -894,8 +641,8 @@ Anson, 深度学习社 &#x2003;Cooperated with <kbd>Kimi K2 0905</kbd>
 <!--
 ...... subsection 为什么需要计算图、反向传播和梯度下降？......
 -->
-<h5 id="autosec-7"><span class="sectionnumber">1.2&#x2003;</span>为什么需要计算图、反向传播和梯度下降？</h5>
-<a id="document-autopage-7"></a>
+<h5 id="autosec-8"><span class="sectionnumber">1.3&#x2003;</span>为什么需要计算图、反向传播和梯度下降？</h5>
+<a id="document-autopage-8"></a>
 
 
 
@@ -946,7 +693,7 @@ Anson, 深度学习社 &#x2003;Cooperated with <kbd>Kimi K2 0905</kbd>
 >
 
 <p>
-历史背景
+<b> 历史背景 </b>
 </p>
 </div>
 
@@ -1003,13 +750,13 @@ Anson, 深度学习社 &#x2003;Cooperated with <kbd>Kimi K2 0905</kbd>
 <!--
 ...... section 计算图基础......
 -->
-<h4 id="autosec-8"><span class="sectionnumber">2&#x2003;</span>计算图基础</h4>
-<a id="document-autopage-8"></a>
+<h4 id="autosec-9"><span class="sectionnumber">2&#x2003;</span>计算图基础</h4>
+<a id="document-autopage-9"></a>
 <!--
 ...... subsection 什么是计算图？......
 -->
-<h5 id="autosec-9"><span class="sectionnumber">2.1&#x2003;</span>什么是计算图？</h5>
-<a id="document-autopage-9"></a>
+<h5 id="autosec-10"><span class="sectionnumber">2.1&#x2003;</span>什么是计算图？</h5>
+<a id="document-autopage-10"></a>
 
 
 
@@ -1032,7 +779,7 @@ Anson, 深度学习社 &#x2003;Cooperated with <kbd>Kimi K2 0905</kbd>
 >
 
 <p>
-计算图的正式定义
+<b> 计算图的正式定义 </b>
 </p>
 </div>
 
@@ -1114,8 +861,8 @@ Anson, 深度学习社 &#x2003;Cooperated with <kbd>Kimi K2 0905</kbd>
 <!--
 ...... subsection 计算图的基本元素......
 -->
-<h5 id="autosec-10"><span class="sectionnumber">2.2&#x2003;</span>计算图的基本元素</h5>
-<a id="document-autopage-10"></a>
+<h5 id="autosec-11"><span class="sectionnumber">2.2&#x2003;</span>计算图的基本元素</h5>
+<a id="document-autopage-11"></a>
 
 
 
@@ -1156,8 +903,8 @@ x       y       y
 <!--
 ...... subsubsection 节点类型......
 -->
-<h6 id="autosec-14"><span class="sectionnumber">2.2.1&#x2003;</span>节点类型</h6>
-<a id="document-autopage-14"></a>
+<h6 id="autosec-15"><span class="sectionnumber">2.2.1&#x2003;</span>节点类型</h6>
+<a id="document-autopage-15"></a>
 
 
 
@@ -1175,7 +922,7 @@ x       y       y
 >
 
 <p>
-输入节点（Input Nodes）
+<b> 输入节点（Input Nodes）</b>
 </p>
 </div>
 
@@ -1242,7 +989,7 @@ x       y       y
 >
 
 <p>
-操作节点（Operation Nodes）
+<b> 操作节点（Operation Nodes）</b>
 </p>
 </div>
 
@@ -1296,8 +1043,8 @@ x       y       y
 <!--
 ...... subsubsection 边的语义......
 -->
-<h6 id="autosec-15"><span class="sectionnumber">2.2.2&#x2003;</span>边的语义</h6>
-<a id="document-autopage-15"></a>
+<h6 id="autosec-16"><span class="sectionnumber">2.2.2&#x2003;</span>边的语义</h6>
+<a id="document-autopage-16"></a>
 
 
 
@@ -1344,8 +1091,8 @@ x       y       y
 <!--
 ...... subsection 计算图的构建规则......
 -->
-<h5 id="autosec-16"><span class="sectionnumber">2.3&#x2003;</span>计算图的构建规则</h5>
-<a id="document-autopage-16"></a>
+<h5 id="autosec-17"><span class="sectionnumber">2.3&#x2003;</span>计算图的构建规则</h5>
+<a id="document-autopage-17"></a>
 
 
 
@@ -1368,7 +1115,7 @@ x       y       y
 >
 
 <p>
-构建原则
+<b> 构建原则 </b>
 </p>
 </div>
 
@@ -1422,8 +1169,8 @@ x       y       y
 <!--
 ...... subsection 复杂模型的表示......
 -->
-<h5 id="autosec-17"><span class="sectionnumber">2.4&#x2003;</span>复杂模型的表示</h5>
-<a id="document-autopage-17"></a>
+<h5 id="autosec-18"><span class="sectionnumber">2.4&#x2003;</span>复杂模型的表示</h5>
+<a id="document-autopage-18"></a>
 
 
 
@@ -1502,13 +1249,13 @@ b
 <!--
 ...... section 前向传播......
 -->
-<h4 id="autosec-21"><span class="sectionnumber">3&#x2003;</span>前向传播</h4>
-<a id="document-autopage-21"></a>
+<h4 id="autosec-22"><span class="sectionnumber">3&#x2003;</span>前向传播</h4>
+<a id="document-autopage-22"></a>
 <!--
 ...... subsection 前向传播的基本概念......
 -->
-<h5 id="autosec-22"><span class="sectionnumber">3.1&#x2003;</span>前向传播的基本概念</h5>
-<a id="document-autopage-22"></a>
+<h5 id="autosec-23"><span class="sectionnumber">3.1&#x2003;</span>前向传播的基本概念</h5>
+<a id="document-autopage-23"></a>
 
 
 
@@ -1531,7 +1278,7 @@ b
 >
 
 <p>
-前向传播的数学定义
+<b> 前向传播的数学定义 </b>
 </p>
 </div>
 
@@ -1585,8 +1332,8 @@ b
 <!--
 ...... subsection 拓扑排序的重要性......
 -->
-<h5 id="autosec-23"><span class="sectionnumber">3.2&#x2003;</span>拓扑排序的重要性</h5>
-<a id="document-autopage-23"></a>
+<h5 id="autosec-24"><span class="sectionnumber">3.2&#x2003;</span>拓扑排序的重要性</h5>
+<a id="document-autopage-24"></a>
 
 
 
@@ -1609,7 +1356,7 @@ b
 >
 
 <p>
-拓扑排序示例
+<b> 拓扑排序示例 </b>
 </p>
 </div>
 
@@ -1648,8 +1395,8 @@ b
 <!--
 ...... subsection 前向传播的详细步骤......
 -->
-<h5 id="autosec-24"><span class="sectionnumber">3.3&#x2003;</span>前向传播的详细步骤</h5>
-<a id="document-autopage-24"></a>
+<h5 id="autosec-25"><span class="sectionnumber">3.3&#x2003;</span>前向传播的详细步骤</h5>
+<a id="document-autopage-25"></a>
 
 
 
@@ -1672,7 +1419,7 @@ b
 >
 
 <p>
-详细计算
+<b> 详细计算 </b>
 </p>
 </div>
 
@@ -1759,8 +1506,8 @@ x=3         y=2              y=2
 <!--
 ...... subsection 前向传播的计算复杂度......
 -->
-<h5 id="autosec-29"><span class="sectionnumber">3.4&#x2003;</span>前向传播的计算复杂度</h5>
-<a id="document-autopage-29"></a>
+<h5 id="autosec-30"><span class="sectionnumber">3.4&#x2003;</span>前向传播的计算复杂度</h5>
+<a id="document-autopage-30"></a>
 
 
 
@@ -1836,13 +1583,13 @@ x=3         y=2              y=2
 <!--
 ...... section 反向传播......
 -->
-<h4 id="autosec-32"><span class="sectionnumber">4&#x2003;</span>反向传播</h4>
-<a id="document-autopage-32"></a>
+<h4 id="autosec-33"><span class="sectionnumber">4&#x2003;</span>反向传播</h4>
+<a id="document-autopage-33"></a>
 <!--
 ...... subsection 为什么需要反向传播？......
 -->
-<h5 id="autosec-33"><span class="sectionnumber">4.1&#x2003;</span>为什么需要反向传播？</h5>
-<a id="document-autopage-33"></a>
+<h5 id="autosec-34"><span class="sectionnumber">4.1&#x2003;</span>为什么需要反向传播？</h5>
+<a id="document-autopage-34"></a>
 
 
 
@@ -1865,7 +1612,7 @@ x=3         y=2              y=2
 >
 
 <p>
-梯度计算的重要性
+<b> 梯度计算的重要性 </b>
 </p>
 </div>
 
@@ -1919,8 +1666,8 @@ x=3         y=2              y=2
 <!--
 ...... subsection 链式法则：反向传播的数学基础......
 -->
-<h5 id="autosec-34"><span class="sectionnumber">4.2&#x2003;</span>链式法则：反向传播的数学基础</h5>
-<a id="document-autopage-34"></a>
+<h5 id="autosec-35"><span class="sectionnumber">4.2&#x2003;</span>链式法则：反向传播的数学基础</h5>
+<a id="document-autopage-35"></a>
 
 
 
@@ -1943,7 +1690,7 @@ x=3         y=2              y=2
 >
 
 <p>
-链式法则（Chain Rule）
+<b> 链式法则（Chain Rule）</b>
 </p>
 </div>
 
@@ -1976,8 +1723,8 @@ x=3         y=2              y=2
 <!--
 ...... subsection 反向传播的直观理解......
 -->
-<h5 id="autosec-35"><span class="sectionnumber">4.3&#x2003;</span>反向传播的直观理解</h5>
-<a id="document-autopage-35"></a>
+<h5 id="autosec-36"><span class="sectionnumber">4.3&#x2003;</span>反向传播的直观理解</h5>
+<a id="document-autopage-36"></a>
 
 
 
@@ -2000,7 +1747,7 @@ x=3         y=2              y=2
 >
 
 <p>
-责任分配类比
+<b> 责任分配类比 </b>
 </p>
 </div>
 
@@ -2057,8 +1804,8 @@ x=3         y=2              y=2
 <!--
 ...... subsection 反向传播的直观理解......
 -->
-<h5 id="autosec-36"><span class="sectionnumber">4.4&#x2003;</span>反向传播的直观理解</h5>
-<a id="document-autopage-36"></a>
+<h5 id="autosec-37"><span class="sectionnumber">4.4&#x2003;</span>反向传播的直观理解</h5>
+<a id="document-autopage-37"></a>
 
 
 
@@ -2081,7 +1828,7 @@ x=3         y=2              y=2
 >
 
 <p>
-责任分配类比
+<b> 责任分配类比 </b>
 </p>
 </div>
 
@@ -2138,8 +1885,8 @@ x=3         y=2              y=2
 <!--
 ...... subsection 反向传播的算法步骤......
 -->
-<h5 id="autosec-37"><span class="sectionnumber">4.5&#x2003;</span>反向传播的算法步骤</h5>
-<a id="document-autopage-37"></a>
+<h5 id="autosec-38"><span class="sectionnumber">4.5&#x2003;</span>反向传播的算法步骤</h5>
+<a id="document-autopage-38"></a>
 
 
 
@@ -2162,7 +1909,7 @@ x=3         y=2              y=2
 >
 
 <p>
-反向传播算法
+<b> 反向传播算法 </b>
 </p>
 </div>
 
@@ -2226,8 +1973,8 @@ x=3         y=2              y=2
 <!--
 ...... subsection 详细计算示例......
 -->
-<h5 id="autosec-38"><span class="sectionnumber">4.6&#x2003;</span>详细计算示例</h5>
-<a id="document-autopage-38"></a>
+<h5 id="autosec-39"><span class="sectionnumber">4.6&#x2003;</span>详细计算示例</h5>
+<a id="document-autopage-39"></a>
 
 
 
@@ -2250,7 +1997,7 @@ x=3         y=2              y=2
 >
 
 <p>
-反向传播计算
+<b> 反向传播计算 </b>
 </p>
 </div>
 
@@ -2313,8 +2060,8 @@ x=3         y=2              y=2
 
 
 <p>
-<span class="listmarker">3.</span> 计算 \(\frac {\partial f}{\partial y} = \frac {\partial }{\partial y}(u \times y) + \frac {\partial f}{\partial u} \times \frac {\partial u}{\partial y} = u +
-2 \times 1 = 5 + 2 = 7\)
+<span class="listmarker">3.</span> 计算 \(\frac {\partial f}{\partial y} = \frac {\partial }{\partial y}(u \times y) + \frac {\partial f}{\partial u} \times \frac {\partial u}{\partial y} = u + 2 \times 1
+= 5 + 2 = 7\)
 </p>
 
 
@@ -2337,8 +2084,8 @@ x=3         y=2              y=2
 <!--
 ...... subsection 计算图可视化：前向传播与反向传播对比......
 -->
-<h5 id="autosec-39"><span class="sectionnumber">4.7&#x2003;</span>计算图可视化：前向传播与反向传播对比</h5>
-<a id="document-autopage-39"></a>
+<h5 id="autosec-40"><span class="sectionnumber">4.7&#x2003;</span>计算图可视化：前向传播与反向传播对比</h5>
+<a id="document-autopage-40"></a>
 
 
 
@@ -2424,8 +2171,8 @@ x=3     y1 = 2      y2 = 2
 <!--
 ...... subsection 常见操作的梯度计算规则......
 -->
-<h5 id="autosec-45"><span class="sectionnumber">4.8&#x2003;</span>常见操作的梯度计算规则</h5>
-<a id="document-autopage-45"></a>
+<h5 id="autosec-46"><span class="sectionnumber">4.8&#x2003;</span>常见操作的梯度计算规则</h5>
+<a id="document-autopage-46"></a>
 
 
 
@@ -2504,13 +2251,13 @@ x=3     y1 = 2      y2 = 2
 <!--
 ...... section 梯度下降......
 -->
-<h4 id="autosec-48"><span class="sectionnumber">5&#x2003;</span>梯度下降</h4>
-<a id="document-autopage-48"></a>
+<h4 id="autosec-49"><span class="sectionnumber">5&#x2003;</span>梯度下降</h4>
+<a id="document-autopage-49"></a>
 <!--
 ...... subsection 优化问题的数学表述......
 -->
-<h5 id="autosec-49"><span class="sectionnumber">5.1&#x2003;</span>优化问题的数学表述</h5>
-<a id="document-autopage-49"></a>
+<h5 id="autosec-50"><span class="sectionnumber">5.1&#x2003;</span>优化问题的数学表述</h5>
+<a id="document-autopage-50"></a>
 
 
 
@@ -2533,7 +2280,7 @@ x=3     y1 = 2      y2 = 2
 >
 
 <p>
-机器学习优化问题
+<b> 机器学习优化问题 </b>
 </p>
 </div>
 
@@ -2561,8 +2308,8 @@ x=3     y1 = 2      y2 = 2
 <!--
 ...... subsection 梯度下降的基本思想......
 -->
-<h5 id="autosec-50"><span class="sectionnumber">5.2&#x2003;</span>梯度下降的基本思想</h5>
-<a id="document-autopage-50"></a>
+<h5 id="autosec-51"><span class="sectionnumber">5.2&#x2003;</span>梯度下降的基本思想</h5>
+<a id="document-autopage-51"></a>
 
 
 
@@ -2585,7 +2332,7 @@ x=3     y1 = 2      y2 = 2
 >
 
 <p>
-梯度下降的直观理解
+<b> 梯度下降的直观理解 </b>
 </p>
 </div>
 
@@ -2642,8 +2389,8 @@ x=3     y1 = 2      y2 = 2
 <!--
 ...... subsection 梯度下降的数学表达......
 -->
-<h5 id="autosec-51"><span class="sectionnumber">5.3&#x2003;</span>梯度下降的数学表达</h5>
-<a id="document-autopage-51"></a>
+<h5 id="autosec-52"><span class="sectionnumber">5.3&#x2003;</span>梯度下降的数学表达</h5>
+<a id="document-autopage-52"></a>
 
 
 
@@ -2661,7 +2408,7 @@ x=3     y1 = 2      y2 = 2
 >
 
 <p>
-梯度下降算法
+<b> 梯度下降算法 </b>
 </p>
 </div>
 
@@ -2717,8 +2464,8 @@ x=3     y1 = 2      y2 = 2
 <!--
 ...... subsection 学习率的重要性......
 -->
-<h5 id="autosec-52"><span class="sectionnumber">5.4&#x2003;</span>学习率的重要性</h5>
-<a id="document-autopage-52"></a>
+<h5 id="autosec-53"><span class="sectionnumber">5.4&#x2003;</span>学习率的重要性</h5>
+<a id="document-autopage-53"></a>
 
 
 
@@ -2742,7 +2489,7 @@ x=3     y1 = 2      y2 = 2
 >
 
 <p>
-学习率太小
+<b> 学习率太小 </b>
 </p>
 </div>
 
@@ -2816,7 +2563,7 @@ x=3     y1 = 2      y2 = 2
 >
 
 <p>
-学习率太大
+<b> 学习率太大 </b>
 </p>
 </div>
 
@@ -2892,7 +2639,7 @@ x=3     y1 = 2      y2 = 2
 >
 
 <p>
-选择合适的学习率
+<b> 选择合适的学习率 </b>
 </p>
 </div>
 
@@ -2946,8 +2693,8 @@ x=3     y1 = 2      y2 = 2
 <!--
 ...... subsection 梯度下降的变体......
 -->
-<h5 id="autosec-60"><span class="sectionnumber">5.5&#x2003;</span>梯度下降的变体</h5>
-<a id="document-autopage-60"></a>
+<h5 id="autosec-61"><span class="sectionnumber">5.5&#x2003;</span>梯度下降的变体</h5>
+<a id="document-autopage-61"></a>
 
 
 
@@ -3012,8 +2759,8 @@ x=3     y1 = 2      y2 = 2
 <!--
 ...... subsection 梯度下降的收敛性分析......
 -->
-<h5 id="autosec-63"><span class="sectionnumber">5.6&#x2003;</span>梯度下降的收敛性分析</h5>
-<a id="document-autopage-63"></a>
+<h5 id="autosec-64"><span class="sectionnumber">5.6&#x2003;</span>梯度下降的收敛性分析</h5>
+<a id="document-autopage-64"></a>
 
 
 
@@ -3036,7 +2783,7 @@ x=3     y1 = 2      y2 = 2
 >
 
 <p>
-收敛性条件
+<b> 收敛性条件 </b>
 </p>
 </div>
 
@@ -3063,19 +2810,18 @@ x=3     y1 = 2      y2 = 2
 </div>
 
 <p>
-对于非凸函数（如神经网络）
-            ，梯度下降只能保证收敛到局部最优解或鞍点。
+对于非凸函数（如神经网络），梯度下降只能保证收敛到局部最优解或鞍点。
 </p>
 <!--
 ...... section 综合实例：训练线性回归模型......
 -->
-<h4 id="autosec-64"><span class="sectionnumber">6&#x2003;</span>综合实例：训练线性回归模型</h4>
-<a id="document-autopage-64"></a>
+<h4 id="autosec-65"><span class="sectionnumber">6&#x2003;</span>综合实例：训练线性回归模型</h4>
+<a id="document-autopage-65"></a>
 <!--
 ...... subsection 问题设定......
 -->
-<h5 id="autosec-65"><span class="sectionnumber">6.1&#x2003;</span>问题设定</h5>
-<a id="document-autopage-65"></a>
+<h5 id="autosec-66"><span class="sectionnumber">6.1&#x2003;</span>问题设定</h5>
+<a id="document-autopage-66"></a>
 
 
 
@@ -3098,7 +2844,7 @@ x=3     y1 = 2      y2 = 2
 >
 
 <p>
-线性回归模型
+<b> 线性回归模型 </b>
 </p>
 </div>
 
@@ -3118,8 +2864,8 @@ x=3     y1 = 2      y2 = 2
 <!--
 ...... subsection 计算图表示......
 -->
-<h5 id="autosec-66"><span class="sectionnumber">6.2&#x2003;</span>计算图表示</h5>
-<a id="document-autopage-66"></a>
+<h5 id="autosec-67"><span class="sectionnumber">6.2&#x2003;</span>计算图表示</h5>
+<a id="document-autopage-67"></a>
 
 
 
@@ -3158,8 +2904,8 @@ b                真实值 y = 5
 <!--
 ...... subsection 详细训练过程......
 -->
-<h5 id="autosec-70"><span class="sectionnumber">6.3&#x2003;</span>详细训练过程</h5>
-<a id="document-autopage-70"></a>
+<h5 id="autosec-71"><span class="sectionnumber">6.3&#x2003;</span>详细训练过程</h5>
+<a id="document-autopage-71"></a>
 
 
 
@@ -3177,7 +2923,7 @@ b                真实值 y = 5
 >
 
 <p>
-第 1 轮迭代详细计算
+<b> 第 1 轮迭代详细计算 </b>
 </p>
 </div>
 
@@ -3285,8 +3031,8 @@ b                真实值 y = 5
 <!--
 ...... subsection 多轮迭代的收敛过程......
 -->
-<h5 id="autosec-71"><span class="sectionnumber">6.4&#x2003;</span>多轮迭代的收敛过程</h5>
-<a id="document-autopage-71"></a>
+<h5 id="autosec-72"><span class="sectionnumber">6.4&#x2003;</span>多轮迭代的收敛过程</h5>
+<a id="document-autopage-72"></a>
 
 
 
@@ -3365,13 +3111,13 @@ b                真实值 y = 5
 <!--
 ...... section 现代深度学习框架的实现......
 -->
-<h4 id="autosec-74"><span class="sectionnumber">7&#x2003;</span>现代深度学习框架的实现</h4>
-<a id="document-autopage-74"></a>
+<h4 id="autosec-75"><span class="sectionnumber">7&#x2003;</span>现代深度学习框架的实现</h4>
+<a id="document-autopage-75"></a>
 <!--
 ...... subsection 自动微分系统......
 -->
-<h5 id="autosec-75"><span class="sectionnumber">7.1&#x2003;</span>自动微分系统</h5>
-<a id="document-autopage-75"></a>
+<h5 id="autosec-76"><span class="sectionnumber">7.1&#x2003;</span>自动微分系统</h5>
+<a id="document-autopage-76"></a>
 
 
 
@@ -3394,7 +3140,7 @@ b                真实值 y = 5
 >
 
 <p>
-自动微分的关键特性
+<b> 自动微分的关键特性 </b>
 </p>
 </div>
 
@@ -3446,11 +3192,16 @@ b                真实值 y = 5
 
 </div>
 <!--
-...... subsection PyTorch 实现示例......
+...... subsection PyTorch 实现：手动构建计算图......
 -->
-<h5 id="autosec-76"><span class="sectionnumber">7.2&#x2003;</span>PyTorch 实现示例</h5>
-<a id="document-autopage-76"></a>
+<h5 id="autosec-77"><span class="sectionnumber">7.2&#x2003;</span>PyTorch 实现：手动构建计算图</h5>
+<a id="document-autopage-77"></a>
 
+
+
+<p>
+让我们通过 PyTorch 来手动实现计算图、反向传播和梯度下降，深入理解这些概念的实际应用：
+</p>
 
 
 
@@ -3467,7 +3218,7 @@ b                真实值 y = 5
 >
 
 <p>
-PyTorch 中的自动微分
+<b> 手动实现计算图和反向传播 </b>
 </p>
 </div>
 
@@ -3486,35 +3237,1256 @@ PyTorch 中的自动微分
 </p>
 <pre class="programlisting">
 1    import torch
-2
-3    # 定义参数（启用梯度追踪）
-4    w = torch . tensor (1.0,     requires_grad =True)
-5    b = torch . tensor (0.0,     requires_grad =True)
-6    x = torch . tensor (2.0)
-7     y_true = torch . tensor (5.0)
-8
-9    # 前向传播
-10    y_pred = w * x + b
-11     loss = ( y_pred − y_true ) ** 2
-12
-13    # 反向传播（自动计算梯度）
-14     loss . backward()
-15
-16    print ( f”梯度: dL/dw = {w.grad }, dL/db = {b. grad }”)
-17    # 输出 : 梯度 : dL/dw = −12.0, dL/db = −6.0
+2    import torch . nn as nn
+3    import matplotlib . pyplot as plt
+4
+5     class ManualComputationalGraph:
+6         ”””手动实现计算图和反向传播”””
+7
+8         def __init__ ( self ) :
+9             # 初始化参数
+10              self . w = torch . tensor (1.0,    requires_grad =True)
+11              self . b = torch . tensor (0.0,    requires_grad =True)
+12              self . learning_rate = 0.1
+13
+14         def forward_pass ( self , x) :
+15              ”””前向传播：计算预测值和损失”””
+16              # 线性模型：y_pred = w * x + b
+17              y_pred = self . w * x + self . b
 18
-19    # 手动更新参数（模拟梯度下降）
-20    with torch . no_grad () :
-21         w −= 0.1 * w.grad
-22         b −= 0.1 * b. grad
-23         # 清空梯度
-24         w.grad . zero_ ()
-25         b. grad . zero_ ()
+19              # 均方误差损失：L = ( y_pred − y_true )^2
+20              loss = ( y_pred − y_true ) ** 2
+21
+22              return y_pred , loss
+23
+24         def backward_pass( self , x , y_true , y_pred ) :
+25              ”””反向传播：手动计算梯度”””
+26              # 清空之前的梯度
+27              if   self . w.grad is not None:
+28                    self . w.grad . zero_ ()
+29              if   self . b. grad is not None:
+30                    self . b. grad . zero_ ()
+31
+32              # 反向传播计算梯度
+33              loss = ( y_pred − y_true ) ** 2
+34              loss . backward()
+35
+36              return self . w.grad . item () , self . b. grad . item ()
+37
+38         def update_parameters ( self ) :
+39              ”””梯度下降：更新参数”””
+40              with torch . no_grad () :
+41                    self . w −= self . learning_rate    * self . w.grad
+42                    self . b −= self . learning_rate    * self . b. grad
+43
+44    # 训练数据：风格的简单线性回归MNIST
+45     x_train = torch . tensor (2.0)       # 输入：图像像素值（简化）
+46     y_true = torch . tensor (5.0)       # 输出：对应的数字标签（简化）
+47
+48    # 创建模型
+49    model = ManualComputationalGraph()
+50
+51    # 训练过程可视化
+52     losses = []
+53    weights = []
+54     biases = []
+55
+56    print (”=== 手动计算图训练过程 ===”)
+57    for epoch in range (10) :
+58         # 前向传播
+59         y_pred , loss = model.forward_pass ( x_train )
+60
+61         # 记录训练过程
+62         losses . append( loss . item () )
+63         weights . append(model.w.item () )
+64         biases . append(model.b.item () )
+65
+66         # 反向传播
+67         dw, db = model.backward_pass( x_train , y_true , y_pred )
+68
+69         # 参数更新
+70         model.update_parameters ()
+71
+72         if epoch &percnt; 2 == 0:
+73              print ( f”Epoch {epoch}: Loss = { loss . item () :.4 f }, ”
+74                      f”w = {model.w.item () :.3 f }, b = {model.b.item () :.3 f }, ”
+75                      f”dw = {dw:.3 f }, db = {db :.3 f }”)
+76
+77    print ( f”\最终预测：n{y_pred . item () :.3 f，真实值： }{ y_true . item () }”)
 </pre>
 
 
-           <div class="figurecaption">
+      <div class="figurecaption">
 </div>
+
+</div>
+
+</div>
+<!--
+...... subsection 现代优化器的工作机制与对比......
+-->
+<h5 id="autosec-79"><span class="sectionnumber">7.3&#x2003;</span>现代优化器的工作机制与对比</h5>
+<a id="document-autopage-79"></a>
+
+
+
+<p>
+现代深度学习框架提供了多种优化算法，每种算法都有其独特的工作机制。让我们通过流程图和数学表达式来深入理解这些优化器的工作原理。
+</p>
+<!--
+...... subsubsection 优化器的基本框架......
+-->
+<h6 id="autosec-80"><span class="sectionnumber">7.3.1&#x2003;</span>优化器的基本框架</h6>
+<a id="document-autopage-80"></a>
+
+
+
+<p>
+所有优化器都遵循相似的基本框架，但在梯度处理和参数更新策略上有所不同。
+</p>
+
+<figure id="autoid-9" class="figure ">
+<div class="center">
+
+<p>
+<span
+      id="lateximage-document-9"
+      class="lateximagesource"
+><!--
+         开始
+
+
+
+     初始化参数 θ0
+
+
+
+ 计算梯度 gt = ∇θ L(θt )
+          否
+
+    优化器处理梯度
+
+
+
+更新参数 θt+1 = θt − η · gt
+
+
+
+
+         收敛？
+
+
+        是
+
+         结束
+--><img
+   src="./Assets//image-9.svg"
+   alt="(-tikz-&nbsp;diagram)"
+   style=""
+   class="lateximage"
+></span>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;5: 优化器通用工作流程
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... subsubsection 随机梯度下降（SGD）......
+-->
+<h6 id="autosec-84"><span class="sectionnumber">7.3.2&#x2003;</span>随机梯度下降（SGD）</h6>
+<a id="document-autopage-84"></a>
+
+
+
+<p>
+SGD 是最基础的优化器，直接使用计算出的梯度进行参数更新。
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b>SGD 数学原理 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 梯度计算：</b> \(g_t = \nabla _{\theta } \mathcal {L}(\theta _t)\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 参数更新：</b> \(\theta _{t+1} = \theta _t - \eta \cdot g_t\)
+</p>
+</li>
+</ul>
+
+<p>
+其中：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> \(g_t\)：第\(t\) 步的梯度（gradient）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\theta _t\)：第\(t\) 步的参数（parameters）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\eta \)：学习率（learning rate）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\mathcal {L}\)：损失函数（loss function）
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<figure id="autoid-10" class="figure ">
+<div class="center">
+
+<p>
+<span
+      id="lateximage-document-10"
+      class="lateximagesource"
+><!--
+     计算梯度 gt
+
+
+直接更新 θt+1 = θt − ηgt
+--><img
+      src="./Assets//image-10.svg"
+      alt="(-tikz-&nbsp;diagram)"
+      style=""
+      class="lateximage"
+></span>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;6: SGD 优化器工作流程
+
+</div>
+
+</div>
+
+</figure>
+
+<p>
+<b>SGD 特点：</b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 简单直接，无额外计算
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 可能震荡，收敛不稳定
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 容易陷入局部最优
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 对学习率敏感
+</p>
+</li>
+</ul>
+<!--
+...... subsubsection 带动量的 SGD（SGD+Momentum）......
+-->
+<h6 id="autosec-88"><span class="sectionnumber">7.3.3&#x2003;</span>带动量的 SGD（SGD+Momentum）</h6>
+<a id="document-autopage-88"></a>
+
+
+
+<p>
+动量法通过累积之前的梯度信息来加速收敛并减少震荡。
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 动量法数学原理 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 动量累积：</b> \(m_t = \beta \cdot m_{t-1} + (1-\beta ) \cdot g_t\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 参数更新：</b> \(\theta _{t+1} = \theta _t - \eta \cdot m_t\)
+</p>
+</li>
+</ul>
+
+<p>
+其中：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> \(m_t\)：第\(t\) 步的动量（momentum）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(m_{t-1}\)：上一步的动量
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\beta \)：动量系数，通常设为 0.9
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(g_t\)：当前梯度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\eta \)：学习率
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<figure id="autoid-11" class="figure ">
+<div class="center">
+
+<p>
+<span
+      id="lateximage-document-11"
+      class="lateximagesource"
+><!--
+        计算梯度 gt               震荡
+
+
+更新动量 mt = βmt−1 + (1 − β)gt   动量平滑
+
+
+   参数更新 θt+1 = θt − ηmt
+--><img
+   src="./Assets//image-11.svg"
+   alt="(-tikz-&nbsp;diagram)"
+   style=""
+   class="lateximage"
+></span>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;7: 动量法工作流程与效果
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... subsubsection RMSprop 优化器......
+-->
+<h6 id="autosec-92"><span class="sectionnumber">7.3.4&#x2003;</span>RMSprop 优化器</h6>
+<a id="document-autopage-92"></a>
+
+
+
+<p>
+RMSprop 通过自适应调整每个参数的学习率来解决学习率选择问题。
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b>RMSprop 数学原理 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 平方梯度累积：</b> \(v_t = \beta \cdot v_{t-1} + (1-\beta ) \cdot g_t^2\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 自适应学习率：</b> \(\eta _t = \frac {\eta }{\sqrt {v_t + \epsilon }}\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 参数更新：</b> \(\theta _{t+1} = \theta _t - \eta _t \cdot g_t\)
+</p>
+</li>
+</ul>
+
+<p>
+其中：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> \(v_t\)：第\(t\) 步的平方梯度累积（second moment）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(v_{t-1}\)：上一步的平方梯度累积
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\beta \)：衰减系数，通常设为 0.999
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(g_t^2\)：当前梯度的平方（element‑wise）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\epsilon \)：小常数，防止除零（通常\(10^{-8}\)）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\eta _t\)：自适应学习率
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<figure id="autoid-12" class="figure ">
+<div class="center">
+
+<p>
+<span
+      id="lateximage-document-12"
+      class="lateximagesource"
+><!--
+       计算梯度 gt
+
+
+       平方梯度 gt2
+
+
+累积 vt = βvt−1 + (1 − β)gt2
+
+
+   自适应率 ηt = √vηt +ϵ
+
+
+        参数更新
+--><img
+      src="./Assets//image-12.svg"
+      alt="(-tikz-&nbsp;diagram)"
+      style=""
+      class="lateximage"
+></span>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;8: RMSprop 优化器工作流程
+
+</div>
+
+</div>
+
+</figure>
+
+<p>
+<b>RMSprop 特点：</b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 为每个参数分配不同学习率
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 对频繁更新的参数减小学习率
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 对稀疏更新的参数保持学习率
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 适合处理非平稳目标
+</p>
+</li>
+</ul>
+<!--
+...... subsubsection Adam 优化器......
+-->
+<h6 id="autosec-96"><span class="sectionnumber">7.3.5&#x2003;</span>Adam 优化器</h6>
+<a id="document-autopage-96"></a>
+
+
+
+<p>
+Adam（Adaptive Moment Estimation）结合了一阶动量和二阶动量，是目前最流行的优化器之一。
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b>Adam 数学原理 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 一阶动量（均值）：</b> \(m_t = \beta _1 \cdot m_{t-1} + (1-\beta _1) \cdot g_t\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 二阶动量（方差）：</b> \(v_t = \beta _2 \cdot v_{t-1} + (1-\beta _2) \cdot g_t^2\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 偏差校正：</b> \(\hat {m}_t = \frac {m_t}{1-\beta _1^t}\), \(\hat {v}_t = \frac {v_t}{1-\beta _2^t}\)
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 参数更新：</b> \(\theta _{t+1} = \theta _t - \eta \cdot \frac {\hat {m}_t}{\sqrt {\hat {v}_t} + \epsilon }\)
+</p>
+</li>
+</ul>
+
+<p>
+其中：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> \(m_t\)：一阶动量（梯度均值）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(v_t\)：二阶动量（梯度方差）
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\beta _1\)：一阶衰减系数，通常设为 0.9
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\beta _2\)：二阶衰减系数，通常设为 0.999
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(\hat {m}_t\), \(\hat {v}_t\)：偏差校正后的动量
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> \(t\)：当前时间步（用于偏差校正）
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+<figure id="autoid-13" class="figure ">
+<div class="center">
+
+<p>
+<span
+      id="lateximage-document-13"
+      class="lateximagesource"
+><!--
+                      梯度 gt
+
+mt = β1 mt−1 + (1 − βvt1 )g
+                         =t β2 vt−1 + (1 − β2 )gt2
+
+               mt                      vt
+        m̂t = 1−β t             v̂t = 1−β t
+                  1                       2
+
+
+
+                      √m̂t
+                       v̂t +ϵ
+
+
+                      参数更新
+--><img
+      src="./Assets//image-13.svg"
+      alt="(-tikz-&nbsp;diagram)"
+      style=""
+      class="lateximage"
+></span>
+</p>
+
+
+
+<div class="figurecaption">
+
+
+图&nbsp;9: Adam 优化器完整工作流程
+
+</div>
+
+</div>
+
+</figure>
+
+<p>
+<b>Adam 优势：</b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 结合动量法和自适应学习率的优点
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 偏差校正解决冷启动问题
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 对超参数相对不敏感
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 适合大多数深度学习任务
+</p>
+</li>
+</ul>
+<!--
+...... subsubsection 优化器对比分析......
+-->
+<h6 id="autosec-100"><span class="sectionnumber">7.3.6&#x2003;</span>优化器对比分析</h6>
+<a id="document-autopage-100"></a>
+
+
+
+<p>
+不同优化器在收敛速度、稳定性和适用场景方面各有特点。
+</p>
+
+<figure id="autoid-14" class="table ">
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+
+<tr class="hline">
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+<b> 优化器 </b>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<b> 核心思想 </b>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<b> 主要优势 </b>
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+<b> 适用场景 </b>
+</p>
+</td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+SGD
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+简单直接
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+收敛慢
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+易实现
+</p>
+</td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+SGD+Momentum
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+加速收敛
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+减少震荡
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+通用性好
+</p>
+</td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+RMSprop
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+自适应学习率
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+适合稀疏数据
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+非平稳目标
+</p>
+</td>
+</tr>
+
+
+<tr class="hline">
+<td class="tdp tvertbarl tvertbarr" style="border-left: 1px solid black; border-right: 1px solid black">
+
+<p>
+Adam
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+结合动量和自适应
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+鲁棒性强
+</p>
+</td>
+<td class="tdp tvertbarr" style="border-right: 1px solid black">
+
+<p>
+最常用
+</p>
+</td>
+</tr>
+
+
+<tr class="hline" aria-hidden="true">
+<td class="tdp">
+
+</td>
+<td class="tdp">
+
+</td>
+<td class="tdp">
+
+</td>
+<td class="tdp">
+
+</td>
+</tr>
+</table>
+
+
+
+<div class="figurecaption">
+
+
+表&nbsp;5: 主流优化器特性对比
+
+</div>
+
+</div>
+
+</figure>
+<!--
+...... subsubsection 优化器选择指导......
+-->
+<h6 id="autosec-103"><span class="sectionnumber">7.3.7&#x2003;</span>优化器选择指导</h6>
+<a id="document-autopage-103"></a>
+
+
+
+<p>
+选择合适的优化器需要考虑多个因素：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 选择优化器的实用建议 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 对于简单问题：</b> 使用 SGD 或 SGD+Momentum
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 对于深度学习：</b> 优先尝试 Adam
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 对于稀疏数据：</b> 考虑 RMSprop 或 Adam
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 对于非平稳目标：</b> 使用 RMSprop 或 Adam
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b> 对于资源受限场景：</b> 使用 SGD（计算量最小）
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 重要提醒 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<p>
+优化器的选择并非一成不变，应该：
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 根据具体任务和数据特点进行实验对比
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 考虑计算资源和时间成本
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 注意不同优化器对学习率的敏感性差异
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 可以结合学习率调度策略获得更好效果
+</p>
+</li>
+</ul>
 
 </div>
 
@@ -3522,8 +4494,8 @@ PyTorch 中的自动微分
 <!--
 ...... subsection 优化器的抽象......
 -->
-<h5 id="autosec-78"><span class="sectionnumber">7.3&#x2003;</span>优化器的抽象</h5>
-<a id="document-autopage-78"></a>
+<h5 id="autosec-104"><span class="sectionnumber">7.4&#x2003;</span>优化器的抽象</h5>
+<a id="document-autopage-104"></a>
 
 
 
@@ -3546,7 +4518,7 @@ PyTorch 中的自动微分
 >
 
 <p>
-使用优化器
+<b> 使用优化器 </b>
 </p>
 </div>
 
@@ -3568,15 +4540,15 @@ PyTorch 中的自动微分
 2
 3    # 定义模型和优化器
 4    model = torch . nn. Linear (1, 1)   # 线性回归模型
-5    optimizer = optim.SGD(model.parameters () , lr =0.1)
+5     optimizer = optim.SGD(model.parameters () , lr =0.1)
 6
 7    # 训练循环
-8    for epoch in range (100) :
-9        # 前向传播
-10        y_pred = model(x)
+8     for epoch in range (100) :
+9         # 前向传播
+10         y_pred = model(x)
 11         loss = ( y_pred − y_true ) ** 2
 12
-13        # 反向传播
+13         # 反向传播
 14         optimizer . zero_grad ()   # 清空梯度
 15         loss . backward()          # 计算梯度
 16         optimizer . step ()        # 更新参数
@@ -3590,15 +4562,10 @@ PyTorch 中的自动微分
 
 </div>
 <!--
-...... section 高级主题与优化策略......
--->
-<h4 id="autosec-80"><span class="sectionnumber">8&#x2003;</span>高级主题与优化策略</h4>
-<a id="document-autopage-80"></a>
-<!--
 ...... subsection 梯度消失与梯度爆炸......
 -->
-<h5 id="autosec-81"><span class="sectionnumber">8.1&#x2003;</span>梯度消失与梯度爆炸</h5>
-<a id="document-autopage-81"></a>
+<h5 id="autosec-106"><span class="sectionnumber">7.5&#x2003;</span>梯度消失与梯度爆炸</h5>
+<a id="document-autopage-106"></a>
 
 
 
@@ -3621,7 +4588,7 @@ PyTorch 中的自动微分
 >
 
 <p>
-梯度消失（Vanishing Gradient）
+<b> 梯度消失（Vanishing Gradient）</b>
 </p>
 </div>
 
@@ -3679,7 +4646,7 @@ PyTorch 中的自动微分
 >
 
 <p>
-梯度爆炸（Exploding Gradient）
+<b> 梯度爆炸（Exploding Gradient）</b>
 </p>
 </div>
 
@@ -3724,8 +4691,8 @@ PyTorch 中的自动微分
 <!--
 ...... subsection 二阶优化方法......
 -->
-<h5 id="autosec-82"><span class="sectionnumber">8.2&#x2003;</span>二阶优化方法</h5>
-<a id="document-autopage-82"></a>
+<h5 id="autosec-107"><span class="sectionnumber">7.6&#x2003;</span>二阶优化方法</h5>
+<a id="document-autopage-107"></a>
 
 
 
@@ -3733,7 +4700,7 @@ PyTorch 中的自动微分
 除了梯度下降，还有基于二阶导数的优化方法：
 </p>
 
-<figure id="autoid-9" class="table ">
+<figure id="autoid-15" class="table ">
 <div class="center">
 <table>
 
@@ -3787,7 +4754,7 @@ PyTorch 中的自动微分
 <div class="figurecaption">
 
 
-表&nbsp;5: 二阶优化方法对比
+表&nbsp;6: 二阶优化方法对比
 
 </div>
 
@@ -3797,8 +4764,8 @@ PyTorch 中的自动微分
 <!--
 ...... subsection 自适应优化算法......
 -->
-<h5 id="autosec-85"><span class="sectionnumber">8.3&#x2003;</span>自适应优化算法</h5>
-<a id="document-autopage-85"></a>
+<h5 id="autosec-110"><span class="sectionnumber">7.7&#x2003;</span>自适应优化算法</h5>
+<a id="document-autopage-110"></a>
 
 
 
@@ -3821,7 +4788,7 @@ PyTorch 中的自动微分
 >
 
 <p>
-Adam 优化器
+<b>Adam 优化器 </b>
 </p>
 </div>
 
@@ -3875,17 +4842,17 @@ Adam（Adaptive Moment Estimation）结合了动量法和 RMSProp 的优点：
 
 
 
-                                                                                       mt = β1 mt−1 + (1 − β1 )gt                                                                              (1)
-                                                                                        vt = β2 vt−1 + (1 − β2 )gt2                                                                            (2)
-                                                                                                mt
-                                                                                       m̂t =                                                                                                   (3)
-                                                                                              1 − β1t
-                                                                                                vt
-                                                                                        v̂t =                                                                                                  (4)
-                                                                                              1 − β2t
-                                                                                                       m̂t
-                                                                                      θt+1 = θt − α √                                                                                          (5)
-                                                                                                      v̂t + ϵ
+                                                                                             mt = β1 mt−1 + (1 − β1 )gt                                                                                 (1)
+                                                                                            vt = β2 vt−1 + (1 − β2 )gt2                                                                                 (2)
+                                                                                                    mt
+                                                                                           m̂t =                                                                                                        (3)
+                                                                                                  1 − β1t
+                                                                                                    vt
+                                                                                            v̂t =                                                                                                       (4)
+                                                                                                  1 − β2t
+                                                                                                           m̂t
+                                                                                          θt+1 = θt − α √                                                                                               (5)
+                                                                                                          v̂t + ϵ
 
 
 
@@ -3897,8 +4864,8 @@ Adam（Adaptive Moment Estimation）结合了动量法和 RMSProp 的优点：
 
 
 \begin{align}
-m_t &amp;= \beta _1 m_{t-1} + (1 - \beta _1) g_t \\ v_t &amp;= \beta _2 v_{t-1} + (1 - \beta _2) g_t^2 \\ \hat {m}_t &amp;= \frac {m_t}{1 - \beta _1^t} \\ \hat {v}_t &amp;= \frac {v_t}{1 -
-\beta _2^t} \\ \theta _{t+1} &amp;= \theta _t - \alpha \frac {\hat {m}_t}{\sqrt {\hat {v}_t} + \epsilon }
+m_t &amp;= \beta _1 m_{t-1} + (1 - \beta _1) g_t \\ v_t &amp;= \beta _2 v_{t-1} + (1 - \beta _2) g_t^2 \\ \hat {m}_t &amp;= \frac {m_t}{1 - \beta _1^t} \\ \hat {v}_t &amp;= \frac {v_t}{1 - \beta _2^t} \\
+\theta _{t+1} &amp;= \theta _t - \alpha \frac {\hat {m}_t}{\sqrt {\hat {v}_t} + \epsilon }
 \end{align}
 
 
@@ -3907,20 +4874,20 @@ m_t &amp;= \beta _1 m_{t-1} + (1 - \beta _1) g_t \\ v_t &amp;= \beta _2 v_{t-1} 
 
 </div>
 <!--
-...... section 结论与展望......
+...... section 结论与实践指导......
 -->
-<h4 id="autosec-86"><span class="sectionnumber">9&#x2003;</span>结论与展望</h4>
-<a id="document-autopage-86"></a>
+<h4 id="autosec-111"><span class="sectionnumber">8&#x2003;</span>结论与实践指导</h4>
+<a id="document-autopage-111"></a>
 <!--
-...... subsection 核心概念总结......
+...... subsection 核心概念总结与学习成果......
 -->
-<h5 id="autosec-87"><span class="sectionnumber">9.1&#x2003;</span>核心概念总结</h5>
-<a id="document-autopage-87"></a>
+<h5 id="autosec-112"><span class="sectionnumber">8.1&#x2003;</span>核心概念总结与学习成果</h5>
+<a id="document-autopage-112"></a>
 
 
 
 <p>
-本文系统性地介绍了深度学习中三个核心数学概念：
+通过本章节的学习，我们系统性地掌握了深度学习中的三个核心数学基础：
 </p>
 
 
@@ -3938,7 +4905,7 @@ m_t &amp;= \beta _1 m_{t-1} + (1 - \beta _1) g_t \\ v_t &amp;= \beta _2 v_{t-1} 
 >
 
 <p>
-计算图：数学表达式的可视化表示
+<b> 计算图：数学表达式的可视化表示 </b>
 </p>
 </div>
 
@@ -3949,6 +4916,9 @@ m_t &amp;= \beta _1 m_{t-1} + (1 - \beta _1) g_t \\ v_t &amp;= \beta _2 v_{t-1} 
       style=" color: #000000; "
 >
 
+<p>
+<b> 核心理解：</b>
+</p>
 <ul class="itemize" style="list-style-type:none">
 
 
@@ -3977,6 +4947,37 @@ m_t &amp;= \beta _1 m_{t-1} + (1 - \beta _1) g_t \\ v_t &amp;= \beta _2 v_{t-1} 
 </li>
 </ul>
 
+<p>
+<b> 实践技能：</b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 能够手动构建简单模型的计算图
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 理解 PyTorch 中动态计算图的工作原理
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 掌握计算图的拓扑排序和依赖关系分析
+</p>
+</li>
+</ul>
+
 </div>
 
 </div>
@@ -3996,7 +4997,7 @@ m_t &amp;= \beta _1 m_{t-1} + (1 - \beta _1) g_t \\ v_t &amp;= \beta _2 v_{t-1} 
 >
 
 <p>
-反向传播：高效的梯度计算算法
+<b> 反向传播：高效的梯度计算算法 </b>
 </p>
 </div>
 
@@ -4007,6 +5008,9 @@ m_t &amp;= \beta _1 m_{t-1} + (1 - \beta _1) g_t \\ v_t &amp;= \beta _2 v_{t-1} 
       style=" color: #000000; "
 >
 
+<p>
+<b> 核心理解：</b>
+</p>
 <ul class="itemize" style="list-style-type:none">
 
 
@@ -4035,6 +5039,37 @@ m_t &amp;= \beta _1 m_{t-1} + (1 - \beta _1) g_t \\ v_t &amp;= \beta _2 v_{t-1} 
 </li>
 </ul>
 
+<p>
+<b> 实践技能：</b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 能够手动推导简单函数的梯度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 理解反向传播中的梯度累积机制
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 掌握常见操作的梯度计算规则
+</p>
+</li>
+</ul>
+
 </div>
 
 </div>
@@ -4054,7 +5089,7 @@ m_t &amp;= \beta _1 m_{t-1} + (1 - \beta _1) g_t \\ v_t &amp;= \beta _2 v_{t-1} 
 >
 
 <p>
-梯度下降：参数优化的基本方法
+<b> 梯度下降：参数优化的基本方法 </b>
 </p>
 </div>
 
@@ -4065,6 +5100,9 @@ m_t &amp;= \beta _1 m_{t-1} + (1 - \beta _1) g_t \\ v_t &amp;= \beta _2 v_{t-1} 
       style=" color: #000000; "
 >
 
+<p>
+<b> 核心理解：</b>
+</p>
 <ul class="itemize" style="list-style-type:none">
 
 
@@ -4093,16 +5131,334 @@ m_t &amp;= \beta _1 m_{t-1} + (1 - \beta _1) g_t \\ v_t &amp;= \beta _2 v_{t-1} 
 </li>
 </ul>
 
+<p>
+<b> 实践技能：</b>
+</p>
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> 能够实现基本的梯度下降算法
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 理解不同优化器的优缺点和适用场景
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> 掌握学习率调优的基本方法
+</p>
+</li>
+</ul>
+
 </div>
 
 </div>
 <!--
-...... subsection 技术发展历程......
+...... subsection 实践应用指南......
 -->
-<h5 id="autosec-88"><span class="sectionnumber">9.2&#x2003;</span>技术发展历程</h5>
-<a id="document-autopage-88"></a>
+<h5 id="autosec-113"><span class="sectionnumber">8.2&#x2003;</span>实践应用指南</h5>
+<a id="document-autopage-113"></a>
 
 
+
+<p>
+基于我们的学习经验，以下是实际应用中的关键指导原则：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 模型开发流程 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 问题分析：</b> 明确任务类型（分类、回归等）和数据特征
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 架构设计：</b> 根据问题复杂度选择合适的网络结构
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 计算图构建：</b> 设计前向传播的计算流程
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 损失函数选择：</b> 根据任务类型选择合适的损失函数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b> 优化器配置：</b> 选择适当的优化算法和超参数
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">6.</span> <b> 训练监控：</b> 实时监控损失和性能指标
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">7.</span> <b> 调试优化：</b> 分析梯度流，调整网络结构和超参数
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #BF0040; background: #FFFFFF; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #BF0040; border-bottom: 1px solid #BF0040; background: #BF0040; color: #FFFFFF; "
+>
+
+<p>
+<b> 常见陷阱与解决方案 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 梯度消失：</b> 使用 ReLU 激活函数、残差连接、适当的权重初始化
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 梯度爆炸：</b> 实施梯度裁剪、减小学习率、使用批量归一化
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 过拟合：</b> 应用 Dropout、L2 正则化、数据增强、早停法
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 欠拟合：</b> 增加模型复杂度、延长训练时间、调整学习率
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 收敛缓慢：</b> 尝试自适应优化器（Adam、RMSprop）、调整批量大小
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+<!--
+...... subsection 从理论到实践的进阶路径......
+-->
+<h5 id="autosec-114"><span class="sectionnumber">8.3&#x2003;</span>从理论到实践的进阶路径</h5>
+<a id="document-autopage-114"></a>
+
+
+
+<p>
+掌握这些基础概念后，读者可以沿着以下路径继续深入学习：
+</p>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 进阶学习建议 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
+
+<ul class="enumerate" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">1.</span> <b> 深入数学理论：</b> 学习更优化理论、凸优化、数值分析
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">2.</span> <b> 复杂架构设计：</b> 研究 CNN、RNN、Transformer 等不同架构的计算图特点
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">3.</span> <b> 高级优化技术：</b> 探索二阶优化方法、元学习、自适应学习率调度
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">4.</span> <b> 分布式训练：</b> 理解数据并行、模型并行的梯度聚合机制
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">5.</span> <b> 实际项目应用：</b> 在计算机视觉、自然语言处理等领域实践这些概念
+</p>
+</li>
+</ul>
+
+</div>
+
+</div>
+
+
+
+<div
+      class="tcolorbox"
+      style=" border: 1px solid #404040; background: #F2F2F2; "
+>
+
+
+
+<div
+      class="tcolorboxtitle"
+      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
+>
+
+<p>
+<b> 技术发展历程与前沿趋势 </b>
+</p>
+</div>
+
+
+
+<div
+      class="tcolorboxupper"
+      style=" color: #000000; "
+>
 
 <p>
 这些概念的发展体现了深度学习领域的演进：
@@ -4151,53 +5507,6 @@ m_t &amp;= \beta _1 m_{t-1} + (1 - \beta _1) g_t \\ v_t &amp;= \beta _2 v_{t-1} 
 <p>
 <span class="listmarker">‧</span> <b>2010s 至今：</b> 成为所有现代 AI 系统的标准组件
 </p>
-</li>
-</ul>
-<!--
-...... subsection 未来发展方向......
--->
-<h5 id="autosec-89"><span class="sectionnumber">9.3&#x2003;</span>未来发展方向</h5>
-<a id="document-autopage-89"></a>
-
-
-
-<p>
-随着深度学习技术的不断发展，这些基础概念也在持续演进：
-</p>
-
-
-
-<div
-      class="tcolorbox"
-      style=" border: 1px solid #404040; background: #F2F2F2; "
->
-
-
-
-<div
-      class="tcolorboxtitle"
-      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
->
-
-<p>
-计算图的扩展
-</p>
-</div>
-
-
-
-<div
-      class="tcolorboxupper"
-      style=" color: #000000; "
->
-
-<ul class="itemize" style="list-style-type:none">
-
-
-<li>
-<p>
-<span class="listmarker">‧</span> <b> 动态计算图：</b> 支持条件分支和循环结构
-</p>
 
 
 </li>
@@ -4205,16 +5514,7 @@ m_t &amp;= \beta _1 m_{t-1} + (1 - \beta _1) g_t \\ v_t &amp;= \beta _2 v_{t-1} 
 
 
 <p>
-<span class="listmarker">‧</span> <b> 分布式计算：</b> 在多个设备上并行执行计算图
-</p>
-
-
-</li>
-<li>
-
-
-<p>
-<span class="listmarker">‧</span> <b> 符号微分：</b> 结合符号计算和自动微分
+<span class="listmarker">‧</span> <b> 当前前沿：</b> 神经架构搜索、自动机器学习、量子机器学习
 </p>
 </li>
 </ul>
@@ -4222,170 +5522,6 @@ m_t &amp;= \beta _1 m_{t-1} + (1 - \beta _1) g_t \\ v_t &amp;= \beta _2 v_{t-1} 
 </div>
 
 </div>
-
-
-
-<div
-      class="tcolorbox"
-      style=" border: 1px solid #404040; background: #F2F2F2; "
->
-
-
-
-<div
-      class="tcolorboxtitle"
-      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
->
-
-<p>
-反向传播的优化
-</p>
-</div>
-
-
-
-<div
-      class="tcolorboxupper"
-      style=" color: #000000; "
->
-
-<ul class="itemize" style="list-style-type:none">
-
-
-<li>
-<p>
-<span class="listmarker">‧</span> <b> 内存优化：</b> 减少中间结果的存储需求
-</p>
-
-
-</li>
-<li>
-
-
-<p>
-<span class="listmarker">‧</span> <b> 计算优化：</b> 利用硬件特性加速梯度计算
-</p>
-
-
-</li>
-<li>
-
-
-<p>
-<span class="listmarker">‧</span> <b> 稀疏梯度：</b> 处理大规模稀疏数据
-</p>
-</li>
-</ul>
-
-</div>
-
-</div>
-
-
-
-<div
-      class="tcolorbox"
-      style=" border: 1px solid #404040; background: #F2F2F2; "
->
-
-
-
-<div
-      class="tcolorboxtitle"
-      style=" border-top: 1px solid #404040; border-bottom: 1px solid #404040; background: #404040; color: #FFFFFF; "
->
-
-<p>
-优化算法的创新
-</p>
-</div>
-
-
-
-<div
-      class="tcolorboxupper"
-      style=" color: #000000; "
->
-
-<ul class="itemize" style="list-style-type:none">
-
-
-<li>
-<p>
-<span class="listmarker">‧</span> <b> 元学习：</b> 学习优化算法本身
-</p>
-
-
-</li>
-<li>
-
-
-<p>
-<span class="listmarker">‧</span> <b> 联邦学习：</b> 在分布式环境中优化模型
-</p>
-
-
-</li>
-<li>
-
-
-<p>
-<span class="listmarker">‧</span> <b> 量子优化：</b> 利用量子计算加速优化过程
-</p>
-</li>
-</ul>
-
-</div>
-
-</div>
-<!--
-...... subsection 实际应用建议......
--->
-<h5 id="autosec-90"><span class="sectionnumber">9.4&#x2003;</span>实际应用建议</h5>
-<a id="document-autopage-90"></a>
-
-
-
-<p>
-对于实践者，我们建议：
-</p>
-
-<ul class="enumerate" style="list-style-type:none">
-
-
-<li>
-<p>
-<span class="listmarker">1.</span> <b> 理解原理：</b> 深入理解这些基础概念，而不仅仅是调用 API
-</p>
-
-
-</li>
-<li>
-
-
-<p>
-<span class="listmarker">2.</span> <b> 掌握调试：</b> 学会使用计算图可视化工具调试模型
-</p>
-
-
-</li>
-<li>
-
-
-<p>
-<span class="listmarker">3.</span> <b> 优化策略：</b> 根据具体问题选择合适的优化算法和超参数
-</p>
-
-
-</li>
-<li>
-
-
-<p>
-<span class="listmarker">4.</span> <b> 持续学习：</b> 关注最新研究成果和技术发展
-</p>
-</li>
-</ul>
 
 
 
@@ -4402,7 +5538,7 @@ m_t &amp;= \beta _1 m_{t-1} + (1 - \beta _1) g_t \\ v_t &amp;= \beta _2 v_{t-1} 
 >
 
 <p>
-重要启示
+<b> 重要启示 </b>
 </p>
 </div>
 
@@ -4414,7 +5550,48 @@ m_t &amp;= \beta _1 m_{t-1} + (1 - \beta _1) g_t \\ v_t &amp;= \beta _2 v_{t-1} 
 >
 
 <p>
-计算图、反向传播和梯度下降不仅是技术工具，更是理解深度学习本质的钥匙。掌握这些基础概念，能够帮助我们更好地设计模型、调试问题和推动技术创新。
+计算图、反向传播和梯度下降不仅是技术工具，更是理解深度学习本质的钥匙。掌握这些基础概念，能够帮助我们：
+</p>
+
+<ul class="itemize" style="list-style-type:none">
+
+
+<li>
+<p>
+<span class="listmarker">‧</span> <b> 设计更好的模型：</b> 理解如何构建高效的神经网络架构
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 调试训练问题：</b> 快速定位和解决训练过程中的各种问题
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 推动技术创新：</b> 基于这些原理开发新的算法和技术
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+<span class="listmarker">‧</span> <b> 跨领域应用：</b> 将这些概念应用到不同的机器学习任务中
+</p>
+</li>
+</ul>
+
+<p>
+正如我们在 MNIST 实例中看到的，这些看似抽象的数学概念，实际上是解决实际问题的强大工具。
 </p>
 </div>
 
@@ -4422,8 +5599,8 @@ m_t &amp;= \beta _1 m_{t-1} + (1 - \beta _1) g_t \\ v_t &amp;= \beta _2 v_{t-1} 
 <!--
 ...... section 参考文献......
 -->
-<h4 id="autosec-91">参考文献</h4>
-<a id="document-autopage-91"></a>
+<h4 id="autosec-115">参考文献</h4>
+<a id="document-autopage-115"></a>
 
 
 
@@ -4483,8 +5660,8 @@ Research</i>, 18(1), 5595‑5637.
 
 
 <p>
-<span class="listmarker">[8]&#x2003;</span> Sutskever, I., Martens, J., Dahl, G., &amp; Hinton, G. (2013). On the importance of initialization and momentum in deep learning. In <i>International conference
-on machine learning</i> (pp. 1139‑1147).
+<span class="listmarker">[8]&#x2003;</span> Sutskever, I., Martens, J., Dahl, G., &amp; Hinton, G. (2013). On the importance of initialization and momentum in deep learning. In <i>International conference on
+machine learning</i> (pp. 1139‑1147).
 </p>
 <p>
 
