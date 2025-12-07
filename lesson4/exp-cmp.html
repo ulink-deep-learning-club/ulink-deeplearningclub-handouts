@@ -1,0 +1,924 @@
+
+<!DOCTYPE html>
+
+
+<html lang="zh-CN" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>实验与比较 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=eb1cd0b9"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/translations.js?v=beaddf03"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'lesson4/exp-cmp';</script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="神经网络缩放定律" href="scaling-law.html" />
+    <link rel="prev" title="LeNet-5架构详解" href="le-net.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="zh-CN"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Deep Learning Club Lectures</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">搜索</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../lesson2/index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../lesson2/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson2/computational-graph.html">计算图基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson2/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson2/gradient-decent.html">梯度下降优化</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson2/mnist.html">MNIST实例：完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson2/the-end.html">总结</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">MNIST数字识别：从全连接网络到卷积神经网络</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neutral-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fc-layer-basics.html">全连接神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">实验与比较</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scaling-law.html">神经网络缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../lesson5/index.html">U-Net架构：生物医学图像分割的革命性方法</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../lesson5/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson5/u-net.html">U-Net架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson5/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson5/core-impl.html">核心组件实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson5/full-impl.html">完整U-Net实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson5/data-enhance.html">数据增强策略</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson5/techniques-best-practices.html">训练技巧与最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson5/application.html">应用领域</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson5/variation.html">U-Net变体与改进</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson5/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../lesson6/index.html">CNN中的注意力机制：从 SE-Net 到 CBAM</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../lesson6/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson6/se-net.html">Squeeze-and-Excitation Networks (SE-Net)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson6/spatial-attn.html">空间注意力机制</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson6/cbam.html">Convolutional Block Attention Module (CBAM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson6/channel-spatial-attm-cmp.html">通道与空间注意力的比较</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson6/experiments.html">实验与性能分析</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson6/attn-math.html">注意力机制的数学基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson6/practical-guide.html">实际应用指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson6/extensions-variations.html">扩展与变体</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson6/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../lesson7/index.html">PyTorch基础教程：从NumPy到深度学习</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../lesson7/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson7/from-numpy-to-pytorch.html">从NumPy到PyTorch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson7/tensor-ops.html">张量操作详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson7/auto-grad.html">自动微分</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson7/optimiser.html">优化器</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson7/neural-network-module.html">神经网络模块</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson7/best-practices.html">最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson7/debug-and-visualise.html">调试与可视化</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson7/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson7/the-end.html">总结</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../lesson8/index.html">CNN消融研究：理解卷积神经网络各组件的作用</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../lesson8/introduction.html">引言：什么是消融研究？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson8/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lesson8/implementation.html">PyTorch实现</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/yourusername/deep-learning-club-lecture-material" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="源码库"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/yourusername/deep-learning-club-lecture-material/edit/main/lesson4/exp-cmp.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/yourusername/deep-learning-club-lecture-material/issues/new?title=Issue%20on%20page%20%2Flesson4/exp-cmp.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="创建议题"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="下载此页面">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/lesson4/exp-cmp.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="下载源文件"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="列印成 PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="全屏模式"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>实验与比较</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> 目录 </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">为什么需要对比分析？</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">信息处理方式的对比</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">全连接网络的信息处理</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn">CNN的信息处理</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">参数效率的数学分析</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">什么是归纳偏置？</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">归纳偏置的深层分析</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">全连接网络的归纳偏置</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">CNN的归纳偏置</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">实际性能对比实验</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">训练设置</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">性能比较</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">结果分析</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">何时选择哪种架构？</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">结论</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="id1">
+<h1>实验与比较<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
+<section id="id2">
+<h2>为什么需要对比分析？<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>在深度学习的发展历程中，理解不同架构的优劣对于选择合适的模型至关重要。MNIST数据集为我们提供了一个理想的实验平台，因为它足够简单，可以让我们清晰地看到不同架构的本质差异。</p>
+<div class="admonition warning">
+<p class="admonition-title">警告</p>
+<p><strong>核心问题</strong></p>
+<ul class="simple">
+<li><p>为什么CNN在图像任务上表现更好？</p></li>
+<li><p>全连接网络的局限性在哪里？</p></li>
+<li><p>参数数量与性能之间的关系是什么？</p></li>
+<li><p>如何根据任务需求选择合适的架构？</p></li>
+</ul>
+</div>
+</section>
+<section id="id3">
+<h2>信息处理方式的对比<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<section id="id4">
+<h3>全连接网络的信息处理<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p>全连接网络将图像视为一个长向量，完全忽略了像素之间的空间关系：</p>
+<figure class="align-center" id="id16">
+<a class="reference internal image-reference" href="../_static/images/fc-info-processing.png"><img alt="../_static/images/fc-info-processing.png" src="../_static/images/fc-info-processing.png" style="width: 80%;" />
+</a>
+<figcaption>
+<p><span class="caption-text">全连接网络的信息处理方式</span><a class="headerlink" href="#id16" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<p><strong>问题：</strong></p>
+<ul class="simple">
+<li><p>空间结构信息完全丢失</p></li>
+<li><p>相邻像素关系被破坏</p></li>
+<li><p>需要从头学习所有模式</p></li>
+</ul>
+</section>
+<section id="cnn">
+<h3>CNN的信息处理<a class="headerlink" href="#cnn" title="Link to this heading">#</a></h3>
+<p>CNN通过局部感受野和参数共享，保留了图像的空间结构：</p>
+<figure class="align-center" id="id17">
+<a class="reference internal image-reference" href="../_static/images/cnn-info-processing.png"><img alt="../_static/images/cnn-info-processing.png" src="../_static/images/cnn-info-processing.png" style="width: 80%;" />
+</a>
+<figcaption>
+<p><span class="caption-text">CNN的分层特征提取</span><a class="headerlink" href="#id17" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<p><strong>优势：</strong></p>
+<ul class="simple">
+<li><p>分层特征提取</p></li>
+<li><p>空间结构保留</p></li>
+<li><p>参数共享</p></li>
+</ul>
+</section>
+</section>
+<section id="id5">
+<h2>参数效率的数学分析<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<p>让我们通过一个具体的例子来比较两种架构的参数效率：</p>
+<div class="example admonition">
+<p class="admonition-title">参数数量对比实例</p>
+<p><strong>全连接网络方案：</strong></p>
+<ul class="simple">
+<li><p>输入层：784个神经元（28×28）</p></li>
+<li><p>隐藏层1：256个神经元</p></li>
+<li><p>隐藏层2：128个神经元</p></li>
+<li><p>输出层：10个神经元</p></li>
+</ul>
+<p><strong>参数计算：</strong></p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+\text{Layer 1} &amp;: 784 \times 256 + 256 = 200,960 \\
+\text{Layer 2} &amp;: 256 \times 128 + 128 = 32,896 \\
+\text{Layer 3} &amp;: 128 \times 10 + 10 = 1,290 \\
+\text{Total} &amp;: 235,146 \text{ 参数}
+\end{align}\end{split}\]</div>
+</div>
+<p><strong>LeNet方案：</strong></p>
+<ul class="simple">
+<li><p>C1：6个5×5卷积核 → 156参数</p></li>
+<li><p>C3：16个5×5卷积核 → 2,416参数</p></li>
+<li><p>FC1：16×5×5 → 120 → 48,120参数</p></li>
+<li><p>FC2：120 → 84 → 10,164参数</p></li>
+<li><p>FC3：84 → 10 → 850参数</p></li>
+</ul>
+<p><strong>总参数：</strong> 61,706参数</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+```{warning}
+**关键发现**
+
+LeNet的参数数量仅为全连接网络的**26%**，但在准确率上表现出色。这证明了：
+- 参数共享的有效性
+- 归纳偏置的价值
+- 架构设计的重要性
+</pre></div>
+</div>
+</section>
+<section id="id6">
+<h2>什么是归纳偏置？<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<p>在深入比较两种架构的归纳偏置之前，我们需要先理解什么是归纳偏置以及为什么它如此重要。</p>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>归纳偏置的定义</strong></p>
+<p>归纳偏置（Inductive Bias）是指学习算法对可能解空间所做的假设集合。换句话说，它是模型在没有任何数据之前，对学习问题所做的先验假设。</p>
+<p><strong>关键特征：</strong></p>
+<ul class="simple">
+<li><p><strong>先验性：</strong> 在学习开始之前就存在的假设</p></li>
+<li><p><strong>限制性：</strong> 限制了模型可以考虑的解空间</p></li>
+<li><p><strong>引导性：</strong> 帮助模型从有限数据中推广到未见情况</p></li>
+<li><p><strong>权衡性：</strong> 更强的偏置意味着需要更少的数据，但可能错过真实解</p></li>
+</ul>
+</div>
+<div class="example admonition">
+<p class="admonition-title">直观的类比</p>
+<p>想象你在学习识别动物：</p>
+<p><strong>没有归纳偏置的情况：</strong> 你需要看到所有可能的狗的照片才能识别狗，包括各种角度、光照、品种等。</p>
+<p><strong>有归纳偏置的情况：</strong> 你假设&quot;有四条腿、有尾巴、有特定面部特征的动物可能是狗&quot;。这个假设帮助你从少量例子中学习识别狗。</p>
+<p>神经网络的归纳偏置就是类似的假设，只是它们体现在网络结构和连接方式中。</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">警告</p>
+<p><strong>为什么归纳偏置至关重要？</strong></p>
+<ol class="arabic simple">
+<li><p><strong>解决欠定问题：</strong> 从有限数据中学习需要额外的约束</p></li>
+<li><p><strong>提高泛化能力：</strong> 帮助模型在未见数据上表现良好</p></li>
+<li><p><strong>减少样本复杂度：</strong> 需要更少的训练数据</p></li>
+<li><p><strong>加速收敛：</strong> 让学习过程更加高效</p></li>
+</ol>
+<p><strong>没有归纳偏置的机器学习方法往往：</strong></p>
+<ul class="simple">
+<li><p>需要海量数据才能学习</p></li>
+<li><p>容易过拟合训练数据</p></li>
+<li><p>泛化能力差</p></li>
+<li><p>训练时间长</p></li>
+</ul>
+</div>
+</section>
+<section id="id7">
+<h2>归纳偏置的深层分析<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<section id="id8">
+<h3>全连接网络的归纳偏置<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<p>全连接网络的基本假设是：所有输入特征都是同等重要的，且可以任意组合。这种假设：</p>
+<ul class="simple">
+<li><p><strong>优点：</strong> 通用性强，不依赖于特定的数据结构</p></li>
+<li><p><strong>缺点：</strong> 对于图像等具有空间结构的数据，需要从零开始学习所有空间关系</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>数学表达</strong></p>
+<p>对于图像分类任务，全连接网络需要学习映射：</p>
+<div class="math notranslate nohighlight">
+\[f: \mathbb{R}^{784} \rightarrow \mathbb{R}^{10}\]</div>
+</div>
+<p>其中所有784个像素都被视为独立的特征，没有利用像素间的空间相关性。</p>
+</section>
+<section id="id9">
+<h3>CNN的归纳偏置<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<p>CNN引入了三个关键的归纳偏置：</p>
+<ol class="arabic simple">
+<li><p><strong>局部性（Locality）：</strong> 附近的像素更可能相关</p></li>
+<li><p><strong>平移不变性（Translation Invariance）：</strong> 相同的特征可以在不同位置出现</p></li>
+<li><p><strong>组合性（Compositionality）：</strong> 复杂特征可以由简单特征组合而成</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>数学表达</strong></p>
+<p>CNN通过卷积操作实现这些偏置：</p>
+<div class="math notranslate nohighlight">
+\[Y[i,j] = \sum_{u=-k}^{k}\sum_{v=-k}^{k} X[i+u, j+v] \cdot K[u,v] + b\]</div>
+</div>
+<p>其中<span class="math notranslate nohighlight">\(k\)</span>定义了局部感受野的大小，相同的核<span class="math notranslate nohighlight">\(K\)</span>在整个图像上共享。</p>
+</section>
+</section>
+<section id="id10">
+<h2>实际性能对比实验<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
+<p>让我们通过一个具体的实验来对比两种架构的性能。这种对比分析方法受到了现代深度学习研究的启发：</p>
+<div class="example admonition">
+<p class="admonition-title">实验设置</p>
+<ul class="simple">
+<li><p>训练轮数：10 epochs</p></li>
+<li><p>优化器：AdamW，学习率0.001</p></li>
+<li><p>批大小：64</p></li>
+<li><p>硬件：单个GPU（CPU也行）</p></li>
+<li><p>数据增强：无</p></li>
+</ul>
+</div>
+<section id="id11">
+<h3>训练设置<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.optim</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">optim</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataLoader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torchvision</span><span class="w"> </span><span class="kn">import</span> <span class="n">datasets</span><span class="p">,</span> <span class="n">transforms</span>
+
+<span class="c1"># 超参数配置</span>
+<span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;batch_size&#39;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
+    <span class="s1">&#39;learning_rate&#39;</span><span class="p">:</span> <span class="mf">0.001</span><span class="p">,</span>
+    <span class="s1">&#39;num_epochs&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="s1">&#39;device&#39;</span><span class="p">:</span> <span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span>
+<span class="p">}</span>
+
+<span class="c1"># 数据加载</span>
+<span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.1307</span><span class="p">,),</span> <span class="p">(</span><span class="mf">0.3081</span><span class="p">,))</span>
+<span class="p">])</span>
+
+<span class="n">train_dataset</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">MNIST</span><span class="p">(</span><span class="s1">&#39;./data&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">)</span>
+<span class="n">test_dataset</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">MNIST</span><span class="p">(</span><span class="s1">&#39;./data&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">)</span>
+
+<span class="n">train_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">test_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># 创建模型</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fc_layer_basics</span><span class="w"> </span><span class="kn">import</span> <span class="n">FullyConnectedNet</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">le_net</span><span class="w"> </span><span class="kn">import</span> <span class="n">LeNetMNIST</span>
+
+<span class="n">fcn_model</span> <span class="o">=</span> <span class="n">FullyConnectedNet</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;device&#39;</span><span class="p">])</span>
+<span class="n">cnn_model</span> <span class="o">=</span> <span class="n">LeNetMNIST</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;device&#39;</span><span class="p">])</span>
+
+<span class="c1"># 优化器</span>
+<span class="n">fcn_optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">fcn_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">])</span>
+<span class="n">cnn_optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">cnn_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">])</span>
+
+<span class="c1"># 损失函数</span>
+<span class="n">criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="id12">
+<h3>性能比较<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table" id="id18">
+<caption><span class="caption-text">模型性能比较</span><a class="headerlink" href="#id18" title="Link to this table">#</a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>模型</strong></p></th>
+<th class="head"><p><strong>参数数量</strong></p></th>
+<th class="head"><p><strong>训练准确率</strong></p></th>
+<th class="head"><p><strong>测试准确率</strong></p></th>
+<th class="head"><p><strong>训练时间</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>全连接网络</p></td>
+<td><p>235,146</p></td>
+<td><p>98.5%</p></td>
+<td><p>97.8%</p></td>
+<td><p>45分钟</p></td>
+</tr>
+<tr class="row-odd"><td><p>LeNet-5</p></td>
+<td><p>61,706</p></td>
+<td><p>99.2%</p></td>
+<td><p>98.9%</p></td>
+<td><p>30分钟</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id13">
+<h3>结果分析<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<p>从实验结果可以看出：</p>
+<ol class="arabic simple">
+<li><p><strong>CNN参数更少但性能更好</strong>：得益于参数共享和局部连接</p></li>
+<li><p><strong>训练效率更高</strong>：CNN训练时间更短</p></li>
+<li><p><strong>泛化能力更强</strong>：CNN在测试集上表现更好，过拟合程度更低</p></li>
+</ol>
+</section>
+</section>
+<section id="id14">
+<h2>何时选择哪种架构？<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
+<p>基于我们的分析，选择架构时应考虑：</p>
+<div class="pst-scrollable-table-container"><table class="table" id="id19">
+<caption><span class="caption-text">架构选择指南</span><a class="headerlink" href="#id19" title="Link to this table">#</a></caption>
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>选择全连接网络</strong></p></th>
+<th class="head"><p><strong>选择CNN</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>数据量较小</p></td>
+<td><p>数据量充足</p></td>
+</tr>
+<tr class="row-odd"><td><p>特征间无明显空间关系</p></td>
+<td><p>数据具有空间结构</p></td>
+</tr>
+<tr class="row-even"><td><p>需要快速原型开发</p></td>
+<td><p>追求最高性能</p></td>
+</tr>
+<tr class="row-odd"><td><p>计算资源极其有限</p></td>
+<td><p>可以接受更长的训练时间</p></td>
+</tr>
+<tr class="row-even"><td><p>简单的分类任务</p></td>
+<td><p>复杂的视觉任务</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这些原则不仅适用于计算机视觉，也适用于其他深度学习领域。</p>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>归纳偏置总结</strong></p>
+<p><strong>全连接网络的归纳偏置：</strong></p>
+<ul class="simple">
+<li><p>所有像素同等重要</p></li>
+<li><p>不考虑空间局部性</p></li>
+<li><p>需要从头学习所有关系</p></li>
+</ul>
+<p><strong>卷积网络的归纳偏置：</strong></p>
+<ul class="simple">
+<li><p>局部连接：附近的像素相关性强</p></li>
+<li><p>平移不变性：特征位置不重要</p></li>
+<li><p>参数共享：相同特征可在不同位置复用</p></li>
+</ul>
+</div>
+</section>
+<section id="id15">
+<h2>结论<a class="headerlink" href="#id15" title="Link to this heading">#</a></h2>
+<p>通过MNIST手写数字识别任务，我们深入比较了全连接神经网络和卷积神经网络的原理、实现和性能。主要结论如下：</p>
+<ol class="arabic simple">
+<li><p><strong>架构选择的重要性</strong>：合适的架构能显著提升性能并减少参数数量</p></li>
+<li><p><strong>归纳偏置的价值</strong>：CNN的空间归纳偏置使其在图像任务上具有天然优势</p></li>
+<li><p><strong>参数效率</strong>：LeNet通过参数共享实现了更高的参数效率</p></li>
+<li><p><strong>实践指导</strong>：根据任务需求和数据特性选择合适的架构</p></li>
+</ol>
+<p>我们看到了从简单的全连接网络到复杂的CNN架构的演进。然而，基本的原理和思想——如参数共享、分层特征提取和适当的归纳偏置——至今仍然适用。理解这些基础概念，对于设计和应用现代神经网络具有重要意义。</p>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="le-net.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">上一页</p>
+        <p class="prev-next-title">LeNet-5架构详解</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="scaling-law.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">下一页</p>
+        <p class="prev-next-title">神经网络缩放定律</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> 目录
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">为什么需要对比分析？</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">信息处理方式的对比</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">全连接网络的信息处理</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn">CNN的信息处理</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">参数效率的数学分析</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">什么是归纳偏置？</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">归纳偏置的深层分析</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">全连接网络的归纳偏置</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">CNN的归纳偏置</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">实际性能对比实验</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">训练设置</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">性能比较</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">结果分析</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">何时选择哪种架构？</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">结论</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+作者： UCS Deep Learning Club
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, UCS Deep Learning Club.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
