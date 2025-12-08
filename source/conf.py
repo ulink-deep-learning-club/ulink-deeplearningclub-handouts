@@ -42,6 +42,12 @@ tikz_latex_preamble = r'''
 \usetikzlibrary{shapes,arrows,positioning,calc,decorations.pathreplacing}
 \usepackage{amsmath}
 \usepackage{amssymb}
+
+\usepackage[CJKspace]{xeCJK}
+
+\setCJKmainfont{Noto Serif CJK SC}
+\setCJKsansfont{Noto Sans CJK SC}
+\setCJKmonofont{Noto Sans Mono CJK SC}
 \renewcommand{\familydefault}{\sfdefault}
 '''
 
