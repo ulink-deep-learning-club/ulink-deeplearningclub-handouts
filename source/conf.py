@@ -5,6 +5,10 @@
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path('../exts').resolve()))
 
 project = 'Deep Learning Club Lectures'
 copyright = '2025, UCS Deep Learning Club'
@@ -22,7 +26,10 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
+    'contributors'
 ]
+
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.cache']
 
 # TikZ configuration
 tikz_proc_suite = 'Ghostscript'
