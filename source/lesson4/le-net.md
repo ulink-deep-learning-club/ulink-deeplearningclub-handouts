@@ -4,12 +4,12 @@
 
 LeNet-5由Yann LeCun等人于1998年提出，是卷积神经网络发展史上的里程碑工作。
 
-```{note}
-**LeNet-5架构**
+```{admonition} LeNet-5架构
+:class: note
 
-```{math}
+$$
 \text{INPUT} \rightarrow \text{CONV} \rightarrow \text{POOL} \rightarrow \text{CONV} \rightarrow \text{POOL} \rightarrow \text{FC} \rightarrow \text{FC} \rightarrow \text{OUTPUT}
-```
+$$
 ```
 
 具体参数配置：
@@ -236,9 +236,9 @@ LeNet的参数分布：
 
 特征图的语义演化可以通过特征复杂度来量化：
 
-```{math}
+$$
 \text{特征复杂度} = \frac{\text{高层特征响应}}{\text{低层特征响应}} \times \text{空间不变性程度}
-```
+$$
 
 随着网络深度增加：
 - 低层：高空间分辨率，低语义复杂度
@@ -246,8 +246,8 @@ LeNet的参数分布：
 - 高层：低空间分辨率，高语义复杂度
 ```
 
-```{warning}
-**为什么这种分层特征提取有效？**
+```{admonition} 为什么这种分层特征提取有效？
+:class: warning
 
 这种从低层到高层的语义演化之所以有效，是因为：
 
@@ -257,11 +257,43 @@ LeNet的参数分布：
 4. **生物学启发：** 类似于人类视觉系统的信息处理机制，先局部后整体
 ```
 
-```{figure} ../../_static/images/lenet-feature-evolution.png
-:width: 80%
-:align: center
-
-LeNet中特征图的语义演化过程
+```{tikz} LeNet中特征图的语义演化过程
+\begin{tikzpicture}[scale=0.8]
+    % 输入图像
+    \node at (-0.5, 2.5) {[MNIST]};
+    \node at (-0.5, 1.5) {\small 输入图像};
+    
+    % C1层特征图
+    \draw[step=0.15cm, green!70!black, very thin] (2.39,0.29) grid (3.6,3.6);
+    \node at (3.1, 4.2) {\scriptsize C1: 边缘特征};
+    \node at (3.1, -0.4) {\scriptsize 6个特征图};
+    
+    % C3层特征图
+    \draw[step=0.15cm, blue!50, very thin] (5.39,0.59) grid (6.3,3.3);
+    \node at (5.9, 4.2) {\scriptsize C3: 形状特征};
+    \node at (5.9, -0.4) {\scriptsize 16个特征图};
+    
+    % 全连接层
+    \foreach \i in {1,2,3,4,5}
+        \node[circle, draw=orange!70, fill=orange!20, minimum size=0.2cm] (fc1\i) at (8.5, 3.2-0.4*\i) {};
+    
+    \foreach \i in {1,2,3}
+        \node[circle, draw=red!70, fill=red!20, minimum size=0.2cm] (fc2\i) at (10.5, 2.4-0.4*\i) {};
+    
+    \node at (9.5, 4.2) {\scriptsize FC: 语义特征};
+    \node at (9.5, -0.4) {\scriptsize 120 → 84 → 10};
+    
+    % 箭头连接
+    \draw[->, thick] (1.2, 2.5) -- (2.3, 2.5);
+    \draw[->, thick] (4, 2.5) -- (5.3, 2.5);
+    \draw[->, thick] (6.5, 2.5) -- (8.2, 2.5);
+    
+    % 语义复杂度标注
+    \node[text width=2cm, align=center] at (-0.5, -1.5) {\scriptsize 像素级\\高空间分辨率};
+    \node[text width=2cm, align=center] at (3.1, -1.5) {\scriptsize 边缘纹理\\中等分辨率};
+    \node[text width=2cm, align=center] at (5.9, -1.5) {\scriptsize 形状部件\\较低分辨率};
+    \node[text width=2cm, align=center] at (9.5, -1.5) {\scriptsize 语义概念\\最低分辨率};
+\end{tikzpicture}
 ```
 
 这种从具体到抽象、从局部到整体的特征演化过程，使得卷积神经网络能够有效地理解图像内容，并在MNIST等视觉任务上取得优异的性能。

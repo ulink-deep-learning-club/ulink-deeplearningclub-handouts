@@ -22,6 +22,7 @@ extensions = [
     'myst_parser',
     'sphinx_design',
     'sphinxcontrib.tikz',
+    'sphinxcontrib.mermaid',
     'sphinx.ext.mathjax',
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
@@ -32,12 +33,16 @@ extensions = [
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.cache']
 
 # TikZ configuration
-tikz_proc_suite = 'Ghostscript'
+tikz_proc_suite = 'pdf2svg'
+tikz_resolution = 92
 tikz_latex_preamble = r'''
 \usepackage{tikz}
+\usepackage[UTF8]{ctex}
+\usepackage{fontspec, xeCJK}
 \usetikzlibrary{shapes,arrows,positioning,calc,decorations.pathreplacing}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\renewcommand{\familydefault}{\sfdefault}
 '''
 
 # MyST configuration
@@ -70,7 +75,7 @@ html_static_path = ['_static']
 
 # Sphinx Book Theme configuration
 html_theme_options = {
-    'repository_url': 'https://github.com/yourusername/deep-learning-club-lecture-material',
+    'repository_url': 'https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts',
     'use_repository_button': True,
     'use_issues_button': True,
     'use_edit_page_button': True,

@@ -4,11 +4,26 @@
 
 全连接层（Fully Connected Layer），也称为线性层或密集层，是神经网络中最基本的构建块。其核心思想是每个输入节点都与每个输出节点相连接。
 
-```{figure} ../../_static/images/fc-layer.png
-:width: 60%
-:align: center
+```{tikz} 全连接层结构示意图
 
-全连接层结构示意图
+\begin{tikzpicture}[scale=0.8]
+    % 输入层
+    \foreach \i in {1,2,3,4,5}
+        \node[circle, draw=blue!50, fill=blue!20, minimum size=0.6cm] (in\i) at (0,\i) {};
+    
+    % 输出层
+    \foreach \i in {1,2,3}
+        \node[circle, draw=red!50, fill=red!20, minimum size=0.6cm] (out\i) at (4,\i+1) {};
+    
+    % 全连接
+    \foreach \i in {1,2,3,4,5}
+        \foreach \j in {1,2,3}
+            \draw[->, gray!50] (in\i) -- (out\j);
+    
+    \node at (-1, -0.5) {输入层 (5个神经元)};
+    \node at (5, -0.5) {输出层 (3个神经元)};
+    \node at (2, -1.5) {每个输入都连接到每个输出};
+\end{tikzpicture}
 ```
 
 ```{note}
@@ -16,9 +31,9 @@
 
 对于输入向量 $\mathbf{x} \in \mathbb{R}^n$ 和输出向量 $\mathbf{y} \in \mathbb{R}^m$，全连接层的变换为：
 
-```{math}
+$$
 \mathbf{y} = \mathbf{W}\mathbf{x} + \mathbf{b}
-```
+$$
 
 其中 $\mathbf{W} \in \mathbb{R}^{m \times n}$ 是权重矩阵，$\mathbf{b} \in \mathbb{R}^m$ 是偏置向量。
 ```

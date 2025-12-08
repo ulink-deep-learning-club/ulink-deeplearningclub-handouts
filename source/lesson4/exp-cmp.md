@@ -19,11 +19,23 @@
 
 全连接网络将图像视为一个长向量，完全忽略了像素之间的空间关系：
 
-```{figure} ../../_static/images/fc-info-processing.png
-:width: 80%
-:align: center
-
-全连接网络的信息处理方式
+```{tikz}
+\begin{tikzpicture}[scale=0.8]
+    % 输入图像
+    \draw[step=0.4cm, gray, very thin] (0,0) grid (2.8,2.8);
+    \node at (1.4, -0.5) {28×28图像};
+    
+    % 展平过程
+    \draw[->, thick, red] (3,1.4) -- (5,1.4);
+    \node[red] at (4, 2) {Flatten};
+    
+    % 展平后的向量
+    \draw[->, thick, blue] (5.5,1.4) -- (8.5,1.4);
+    \node[blue] at (7, 1) {784维向量};
+    
+    % 信息丢失示意
+    \node[red, text width=5cm] at (3, -3.2) {\textbf{问题：}\\空间结构信息完全丢失\\相邻像素关系被破坏\\需要从头学习所有模式};
+\end{tikzpicture}
 ```
 
 **问题：**
@@ -35,11 +47,37 @@
 
 CNN通过局部感受野和参数共享，保留了图像的空间结构：
 
-```{figure} ../../_static/images/cnn-info-processing.png
-:width: 80%
-:align: center
-
-CNN的分层特征提取
+```{tikz} CNN的分层特征提取
+\begin{tikzpicture}[scale=0.8]
+    % 原始图像
+    \draw[step=0.4cm, gray, very thin] (0,0) grid (2.8,2.8);
+    \node at (1.4, -0.5) {原始图像};
+    
+    % 第一层特征图
+    \draw[step=0.4cm, green!70!black, very thin] (3.99,0.39) grid (6,2.4);
+    \node[green!70!black] at (5, -0.2) {边缘特征};
+    
+    % 第二层特征图
+    \draw[step=0.4cm, blue!50, very thin] (7.99,0.79) grid (9.6,2.4);
+    \node[blue!70] at (8.8, 0.2) {形状特征};
+    
+    % 第三层特征图
+    \draw[step=0.4cm, orange!50, very thin] (11.19,0.79) grid (12.41,2);
+    \node[orange!70] at (11.6, 0.2) {高级特征};
+    
+    % 箭头连接
+    \draw[->, thick] (2.9,1.4) -- (3.9,1.4);
+    \draw[->, thick] (6.1,1.4) -- (7.9,1.4);
+    \draw[->, thick] (9.7,1.4) -- (10.9,1.4);
+    
+    % 层次说明
+    \node at (3.5, 3.2) {Conv1};
+    \node at (7, 3.2) {Conv2};
+    \node at (10.5, 3.2) {Conv3};
+    
+    % 优势说明
+    \node[green!70!black, text width=3cm] at (2, -3) {\textbf{优势：}\\分层特征提取\\空间结构保留\\参数共享};
+\end{tikzpicture}
 ```
 
 **优势：**
@@ -61,14 +99,15 @@ CNN的分层特征提取
 - 输出层：10个神经元
 
 **参数计算：**
-```{math}
+
+$$
 \begin{align}
 \text{Layer 1} &: 784 \times 256 + 256 = 200,960 \\
 \text{Layer 2} &: 256 \times 128 + 128 = 32,896 \\
 \text{Layer 3} &: 128 \times 10 + 10 = 1,290 \\
 \text{Total} &: 235,146 \text{ 参数}
 \end{align}
-```
+$$
 
 **LeNet方案：**
 - C1：6个5×5卷积核 → 156参数
@@ -145,11 +184,13 @@ LeNet的参数数量仅为全连接网络的**26%**，但在准确率上表现�
 **数学表达**
 
 对于图像分类任务，全连接网络需要学习映射：
-```{math}
-f: \mathbb{R}^{784} \rightarrow \mathbb{R}^{10}
-```
-其中所有784个像素都被视为独立的特征，没有利用像素间的空间相关性。
 
+$$
+f: \mathbb{R}^{784} \rightarrow \mathbb{R}^{10}
+$$
+
+其中所有784个像素都被视为独立的特征，没有利用像素间的空间相关性。
+```
 
 ### CNN的归纳偏置
 
@@ -163,10 +204,13 @@ CNN引入了三个关键的归纳偏置：
 **数学表达**
 
 CNN通过卷积操作实现这些偏置：
-```{math}
+
+$$
 Y[i,j] = \sum_{u=-k}^{k}\sum_{v=-k}^{k} X[i+u, j+v] \cdot K[u,v] + b
-```
+$$
+
 其中$k$定义了局部感受野的大小，相同的核$K$在整个图像上共享。
+```
 
 
 ## 实际性能对比实验

@@ -42,9 +42,9 @@
 
 对于MNIST手写数字识别这样的10类分类任务，我们使用**分类交叉熵损失函数**：
 
-```{math}
+$$
 \mathcal{L} = -\sum_{c=1}^{10} y_c \log(p_c)
-```
+$$
 
 其中：
 - $y_c$：真实标签的one-hot编码（0或1）
@@ -125,6 +125,24 @@
 
 在神经网络中，正则化就是帮助我们训练出“聪明”而不是“死记硬背”的模型的技术。
 
+```{tikz} 正则化的直观理解
+\begin{tikzpicture}[scale=0.8]
+    % Student learning analogy
+    \node at (0,3) {\textbf{学生学习}};
+    \draw[->] (-1,2.3) -- (1,2.3);
+    \node at (0,1.7) {理解概念};
+    \node at (0,1) {举一反三};
+    
+    \node at (6,3) {\textbf{神经网络训练}};
+    \draw[->] (5,2.3) -- (7,2.3);
+    \node at (6,1.7) {学习通用特征};
+    \node at (6,1) {泛化到新数据};
+    
+    \draw[->, thick, blue!70] (2,2.5) -- (4,2.5);
+    \node[blue!70] at (3,2.8) {正则化};
+\end{tikzpicture}
+```
+
 ### L1和L2正则化：最简单的正则化方法
 
 **核心思想：** 让模型的权重不要变得太大
@@ -143,7 +161,7 @@
 - 具有特征选择功能，自动选择重要特征
 - 对异常值相对鲁棒
 - 不可导，需要特殊优化方法
-```
+
 
 ```{admonition} L2正则化（Ridge回归）
 :class: note
@@ -157,7 +175,7 @@
 - 数学处理更简单，可导
 - 对异常值敏感
 - 是最常用的正则化形式
-```
+
 
 ```{admonition} 类比
 :class: example
@@ -189,17 +207,40 @@ optimizer = torch.optim.Adam(
 ```
 
 **实践建议：** 从0.0001开始尝试，根据验证效果调整
-```
 
 ### Dropout：随机“失忆”技术
 
 **核心思想：** 训练时随机让一些神经元“罢工”，迫使网络学习冗余的特征
 
-```{figure} ../../_static/images/dropout.png
-:width: 80%
-:align: center
-
-Dropout机制示意图
+```{tikz} Dropout：随机让部分神经元“罢工”
+\begin{tikzpicture}[scale=0.8]
+    % Input layer
+    \foreach \i in {1,2,3,4}
+        \node[circle, draw=blue!50, fill=blue!20, minimum size=0.6cm] (in\i) at (0,\i) {};
+    
+    % Hidden layer with dropout
+    \foreach \i in {1,2,3,4,5}
+        \node[circle, draw=red!50, minimum size=0.6cm] (hid\i) at (2,\i-0.5) {};
+    
+    % Some nodes crossed out (dropout)
+    \foreach \i in {3,5}
+        \draw[thick, red!70] (1.5,\i-1) -- (2.5,\i);
+    \foreach \i in {3,5}
+        \draw[thick, red!70] (1.5,\i) -- (2.5,\i-1);
+    
+    % Output layer
+    \foreach \i in {1,2,3}
+        \node[circle, draw=green!40!black, fill=green!20, minimum size=0.6cm] (out\i) at (4,\i+0.5) {};
+    
+    % Connections
+    \foreach \i in {1,2,3,4}
+        \foreach \j in {1,3,5}
+            \draw[->, gray!50] (in\i) -- (hid\j);
+    
+    \foreach \j in {1,3,5}
+        \foreach \k in {1,2,3}
+            \draw[->, gray!50] (hid\j) -- (out\k);
+\end{tikzpicture}
 ```
 
 ```{admonition} 直观的理解
@@ -236,17 +277,34 @@ class SimpleNet(nn.Module):
 - 输入层：通常不用dropout（0%）
 - 隐藏层：0.3-0.5（30%-50%）
 - 输出层：不用dropout
-```
 
 ### 早停法：聪明的“刹车”技术
 
 **核心思想：** 看到验证效果开始变差时就停止训练
 
-```{figure} ../../_static/images/early_stopping.png
-:width: 80%
-:align: center
-
-早停法示意图
+```{tikz} 早停法示意图
+\begin{tikzpicture}[scale=0.9]
+    % Axes
+    \draw[->] (0,0) -- (8,0) node[right] {训练时间};
+    \draw[->] (0,0) -- (0,5) node[left] {准确率};
+    
+    % Training accuracy curve (improving)
+    \draw[thick, blue, domain=0:7, smooth] plot ({\x}, {0.2 + 0.2*\x + 0.03*\x*\x});
+    
+    % Validation accuracy curve (plateau then drop)
+    \draw[thick, red, domain=0:7, smooth] plot ({\x}, {0.3 + 0.4*\x - 0.05*\x*\x});
+    
+    % Optimal stopping point
+    \draw[dashed, green!70!black] (4,0) -- (4,5);
+    
+    % Labels
+    \node[blue] at (1.5,3.5) {训练准确率};
+    \node[red] at (5.5,3.5) {验证准确率};
+    \node[green!70!black] at (4,-0.3) {最佳停止点};
+    
+    % Overfitting indication
+    \node[text width=3cm, align=center] at (8.5,2) {开始过拟合\\验证效果下降};
+\end{tikzpicture}
 ```
 
 ```{warning}
@@ -299,7 +357,6 @@ train_transform = transforms.Compose([
 # 应用到训练数据
 train_dataset = MNIST(root='./data', train=True,
                      transform=train_transform, download=True)
-```
 ```
 
 ### 如何选择正则化方法？
@@ -395,7 +452,7 @@ train_dataset = MNIST(root='./data', train=True,
   ```{math}
   \text{F1} = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}
   ```
-```
+
 
 ```{admonition} MNIST评价指标选择
 :class: example
@@ -404,3 +461,4 @@ train_dataset = MNIST(root='./data', train=True,
 - 10个类别的样本数量大致相等
 - 每个类别的重要性相同
 - 易于理解和解释
+```
