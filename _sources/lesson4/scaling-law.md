@@ -53,11 +53,31 @@ N_{opt} \propto C^{\frac{\alpha}{\alpha + \beta}}, \quad D_{opt} \propto C^{\fra
 - **数据限制：** MNIST数据集相对较小，限制了大规模模型的效果
 - **任务复杂度：** 对于简单的10类分类任务，过大的模型反而容易过拟合
 
-```{figure} ../../_static/images/scaling-saturation.png
-:width: 80%
-:align: center
+```{tikz} MNIST任务上的性能饱和现象
+\begin{tikzpicture}[scale=0.8]
+    \fill[orange!20] (0,3.7) rectangle (12,6);
+    \node at (6, 5) {性能饱和区};
+    \draw[dashed] (0,3.7) -- (12,3.7);
 
-MNIST任务上的性能饱和现象
+    % 绘制性能随模型规模变化的曲线
+    \draw[->] (0,0) -- (12,0) node[below] {模型规模（参数数量）};
+    \draw[->] (0,0) -- (0,6) node[above] {测试准确率};
+    
+    % 绘制饱和曲线
+    \draw[thick, blue, domain=0.5:12, smooth] plot ({\x}, {1 + 3 * (1 - exp(-\x/4))});
+    
+    % 添加关键点
+    \fill[red] (1,1.7) circle (3pt);
+    \fill[red] (6,3.32) circle (3pt);
+    \fill[red] (11,3.83) circle (3pt);
+    
+    % 添加解释文字
+    \node[text width=4cm, align=left] at (2.7, 1.7) {\small 小模型:\\快速训练，参数效率高};
+    
+    \node[text width=4cm, align=left] at (7.5, 3.3) {\small 适中模型:\\计算效率平衡};
+    
+    \node[text width=4cm, align=left] at (12.7, 3.8) {\small 大模型:\\性能饱和，容易过拟合};
+\end{tikzpicture}
 ```
 
 ```{warning}

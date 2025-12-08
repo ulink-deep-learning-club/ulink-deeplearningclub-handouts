@@ -5,7 +5,7 @@
 卷积操作是CNN的核心，它通过滑动窗口的方式在输入图像上应用（通过点积）滤波器（卷积核）来提取特征。这种思想最早由LeCun等人在1989年提出，并在后续的LeNet-5工作中得到完善。
 
 ```{figure} ../../_static/images/conv-process.png
-:width: 80%
+:width: 50%
 :align: center
 
 卷积操作示意图
@@ -14,15 +14,15 @@
 ```{note}
 **卷积操作的数学定义**
 
-```{math}
+$$
 (f * g)[m,n] = \sum_{i=-\infty}^{\infty}\sum_{j=-\infty}^{\infty} f[i,j] \cdot g[m-i, n-j]
-```
+$$
 
 在离散图像处理中，卷积操作可以表示为：
 
-```{math}
+$$
 Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
-```
+$$
 
 其中：
 - $X$：输入特征图
