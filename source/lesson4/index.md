@@ -10,15 +10,16 @@
 
 ```{admonition} 目录
 :class: note
-```{toctree}
-:maxdepth: 2
+   ~~~{toctree}
+   :maxdepth: 2
 
-introduction
-neutral-training-basics
-fc-layer-basics
-cnn-basics
-le-net
-exp-cmp
-scaling-law
-the-end
+   introduction
+   neural-training-basics
+   fc-layer-basics
+   cnn-basics
+   le-net
+   exp-cmp
+   scaling-law
+   the-end
+   ~~~
 ```

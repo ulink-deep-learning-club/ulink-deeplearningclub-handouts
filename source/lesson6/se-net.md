@@ -80,7 +80,7 @@ SE模块的计算开销主要来自全连接层：
 ## SE-ResNet集成
 
 ```{figure} ../../_static/images/se-resnet.png
-:width: 80%
+:width: 60%
 :align: center
 
 SE模块在ResNet中的集成方式

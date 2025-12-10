@@ -93,9 +93,10 @@ o_i = \sum_{j=1}^m \alpha_{ij} v_j
 
 根据链式法则：
 
-```{math}
+~~~
+{math}
 \frac{\partial O}{\partial V} = A^T
-```
+~~~
 
 ```{math}
 \frac{\partial O}{\partial A} = V^T

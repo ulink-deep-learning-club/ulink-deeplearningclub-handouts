@@ -11,15 +11,14 @@
 
 ```{admonition} 目录
 :class: note
-```
+   ~~~{toctree}
+   :maxdepth: 2
 
-```{toctree}
-:maxdepth: 2
-
-introduction
-computational-graph
-back-propagation
-gradient-decent
-mnist
-the-end
+   introduction
+   computational-graph
+   back-propagation
+   gradient-decent
+   mnist
+   the-end
+   ~~~
 ```

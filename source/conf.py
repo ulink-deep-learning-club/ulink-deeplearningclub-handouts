@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.append(str(Path('../exts').resolve()))
 
 project = 'Deep Learning Club Lectures'
-copyright = '2025, UCS Deep Learning Club'
+copyright = '2025, UCS Deep Learning Club and Contributors'
 author = 'UCS Deep Learning Club'
 release = '0.0.1'
 
