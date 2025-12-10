@@ -50,7 +50,7 @@
 
 这是CBAM（Convolutional Block Attention Module）中采用的方法，通过平均池化和最大池化获取通道统计信息，然后通过卷积层生成注意力图。
 
-```{literalinclude} ../code/spatial_attention.py
+```{literalinclude} ./code/spatial_attention.py
 :language: python
 :linenos:
 :lines: 1-40
@@ -60,7 +60,7 @@
 
 直接使用卷积层从特征图学习注意力图，通常采用 $1 \times 1$ 卷积降维后接 $3 \times 3$ 卷积。
 
-```{literalinclude} ../code/conv_spatial_attention.py
+```{literalinclude} ./code/conv_spatial_attention.py
 :language: python
 :linenos:
 :lines: 1-40
@@ -70,7 +70,7 @@
 
 利用自注意力机制捕捉长距离空间依赖。
 
-```{literalinclude} ../code/self_attention_spatial.py
+```{literalinclude} ./code/self_attention_spatial.py
 :language: python
 :linenos:
 :lines: 1-52
@@ -102,7 +102,7 @@
 
 ### 示例：空间注意力ResNet块
 
-```{literalinclude} ../code/spatial_attention_res_block.py
+```{literalinclude} ./code/spatial_attention_res_block.py
 :language: python
 :linenos:
 :lines: 1-86

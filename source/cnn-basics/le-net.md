@@ -60,18 +60,65 @@ $$
 
 LeNet-5的经典架构包含以下层：
 
-```{mermaid}
-flowchart LR
-    Input["输入\n(1×28×28)"]
-    C1["卷积 C1\n(6×24×24)"]
-    S2["池化 S2\n(6×12×12)"]
-    C3["卷积 C3\n(16×8×8)"]
-    S4["池化 S4\n(16×4×4)"]
-    F5["全连接 F5\n(120)"]
-    F6["全连接 F6\n(84)"]
-    Out["输出\n(10)"]
+```{tikz} LeNet-5 架构
+\begin{tikzpicture}[
+    % Define styles for the nodes
+    io/.style={
+        rectangle,
+        draw,
+        fill=green!30, % Light green for Input/Output
+        text centered,
+        inner sep=5pt,
+        rounded corners,
+    },
+    convpool/.style={
+        rectangle,
+        draw,
+        fill=blue!30, % Light blue for Convolutional and Pooling layers
+        text centered,
+        inner sep=5pt,
+    },
+    fc/.style={
+        rectangle,
+        draw,
+        fill=red!30, % Light red/pink for Fully Connected layers
+        text centered,
+        inner sep=5pt,
+    },
+    arrow/.style={
+        -latex, % Arrow tip style
+        thick,
+        draw=black!80 % Slightly darker arrow color
+    }
+]
 
-    Input --> C1 --> S2 --> C3 --> S4 --> F5 --> F6 --> Out
+% Define the nodes (layers) in a vertical sequence
+% 'below=of' is used to stack the nodes vertically
+\node[io] (Input) {输入\\ (1$\times$28$\times$28)};
+
+\node[convpool, below=1cm of Input] (C1) {卷积 C1\\ (6$\times$24$\times$24)};
+
+\node[convpool, below=1cm of C1] (S2) {池化 S2\\ (6$\times$12$\times$12)};
+
+\node[convpool, below=1cm of S2] (C3) {卷积 C3\\ (16$\times$8$\times$8)};
+
+\node[convpool, below=1cm of C3] (S4) {池化 S4\\ (16$\times$4$\times$4)};
+
+\node[fc, below=1cm of S4] (F5) {全连接 F5\\ (120)};
+
+\node[fc, below=1cm of F5] (F6) {全连接 F6\\ (84)};
+
+\node[io, below=1cm of F6] (Out) {输出\\ (10)};
+
+% Draw the arrows (connections)
+\draw[arrow] (Input) -- (C1);
+\draw[arrow] (C1) -- (S2);
+\draw[arrow] (S2) -- (C3);
+\draw[arrow] (C3) -- (S4);
+\draw[arrow] (S4) -- (F5);
+\draw[arrow] (F5) -- (F6);
+\draw[arrow] (F6) -- (Out);
+\end{tikzpicture}
 ```
 
 ## PyTorch实现

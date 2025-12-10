@@ -11,7 +11,7 @@
 
 ```{admonition} 目录
 :class: note
-```{toctree}
+~~~{toctree}
 :maxdepth: 2
 
 introduction
@@ -24,4 +24,5 @@ best-practices
 debug-and-visualise
 train-workflow
 the-end
+~~~
 ```

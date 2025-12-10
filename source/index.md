@@ -5,16 +5,18 @@
 
 ```{admonition} 目录
 :class: note
-```{toctree}
+~~~{toctree}
 :maxdepth: 1
 
-lesson2/index
-lesson4/index
-lesson5/index
-lesson6/index
-lesson7/index
-lesson8/index
+math-fundamentals/index
+neural-network-basics/index
+cnn-basics/index
+attention-mechanisms/index
+unet-image-segmentation/index
+pytorch-practice/index
+cnn-ablation-study/index
 postscript
+~~~
 ```
 
 ## 📚 关于本材料库

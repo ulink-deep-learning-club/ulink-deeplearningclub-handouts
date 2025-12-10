@@ -5,7 +5,7 @@
 卷积操作是CNN的核心，它通过滑动窗口的方式在输入图像上应用（通过点积）滤波器（卷积核）来提取特征。这种思想最早由LeCun等人在1989年提出，并在后续的LeNet-5工作中得到完善。
 
 ```{figure} ../../_static/images/conv-process.png
-:width: 50%
+:width: 40%
 :align: center
 
 卷积操作示意图

@@ -8,15 +8,11 @@ import requests
 from pathlib import Path
 from typing import List, Dict
 from sphinx.util import logging
-from sphinx.util.fileutil import copy_asset
 
 logger = logging.getLogger(__name__)
 
-# --- 你原本的工具函数 (略微优化) ---
-
 def get_mime_type_from_url(url):
     try:
-        # 增加 User-Agent 避免被某些防火墙拦截
         headers = {'User-Agent': 'Sphinx-Contributor-Extension'}
         response = requests.head(url, timeout=5, allow_redirects=True, headers=headers)
         response.raise_for_status()

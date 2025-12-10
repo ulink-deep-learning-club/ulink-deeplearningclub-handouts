@@ -10,7 +10,7 @@
 
 ```{admonition} 目录
 :class: note
-```{toctree}
+~~~{toctree}
 :maxdepth: 2
 
 introduction
@@ -23,4 +23,5 @@ attn-math
 practical-guide
 extensions-variations
 the-end
+~~~
 ```

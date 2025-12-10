@@ -11,7 +11,7 @@ U-Net是一种专为生物医学图像分割设计的深度神经网络架构，
 
 ```{admonition} 目录
 :class: note
-```{toctree}
+~~~{toctree}
 :maxdepth: 2
 
 introduction
@@ -24,4 +24,5 @@ techniques-best-practices
 application
 variation
 the-end
+~~~
 ```

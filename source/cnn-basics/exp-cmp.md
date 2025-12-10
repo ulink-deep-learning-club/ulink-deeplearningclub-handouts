@@ -32,16 +32,15 @@
     % 展平后的向量
     \draw[->, thick, blue] (5.5,1.4) -- (8.5,1.4);
     \node[blue] at (7, 1) {784维向量};
-    
-    % 信息丢失示意
-    \node[red, text width=5cm] at (3, -3.2) {\textbf{问题：}\\空间结构信息完全丢失\\相邻像素关系被破坏\\需要从头学习所有模式};
 \end{tikzpicture}
 ```
 
-**问题：**
+```{admonition} 问题
+:class: warning
 - 空间结构信息完全丢失
 - 相邻像素关系被破坏
 - 需要从头学习所有模式
+```
 
 ### CNN的信息处理
 
@@ -74,16 +73,16 @@ CNN通过局部感受野和参数共享，保留了图像的空间结构：
     \node at (3.5, 3.2) {Conv1};
     \node at (7, 3.2) {Conv2};
     \node at (10.5, 3.2) {Conv3};
-    
-    % 优势说明
-    \node[green!70!black, text width=3cm] at (2, -3) {\textbf{优势：}\\分层特征提取\\空间结构保留\\参数共享};
 \end{tikzpicture}
 ```
 
-**优势：**
+```{admonition} 优势
+:class: note
+
 - 分层特征提取
 - 空间结构保留
 - 参数共享
+```
 
 ## 参数效率的数学分析
 

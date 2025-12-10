@@ -11,10 +11,11 @@
 
 ```{admonition} 目录
 :class: note
-```{toctree}
+~~~{toctree}
 :maxdepth: 2
 
 introduction
 experiment-design
 implementation
+~~~
 ```

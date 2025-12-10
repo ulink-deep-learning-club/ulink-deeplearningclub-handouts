@@ -2,7 +2,7 @@
 
 ## 什么是计算图？
 
-计算图（Computational Graph）是一种将数学表达式表示为有向图的数据结构。图中的节点代表变量或操作，边代表数据流动的方向。这种表示方法不仅直观，而且为自动微分提供了数学基础。
+计算图（Computational Graph）是一种用图来表示数学表达式的方法。图中的节点代表变量或运算，边代表数据流动的方向。这种表示既直观，又为自动微分（automatic differentiation）打下了数学基础。
 
 ```{admonition} 计算图的正式定义
 :class: note
@@ -10,7 +10,7 @@
 计算图 $G = (V, E)$ 是一个有向图，其中：
 
 - $V$ 是节点集合，包括：
-  - **输入节点**：表示变量或常数
+  - **输入节点**：表示变量或常数（如 $x$, $y$）
   - **操作节点**：表示数学运算（加法、乘法、函数等）
   - **输出节点**：表示最终计算结果
 - $E$ 是边集合，表示数据依赖关系
@@ -20,11 +20,28 @@
 
 ## 计算图的基本元素
 
-```{figure} ../../_static/images/computational_diagram.png
-:width: 80%
-:align: center
+```{tikz} 计算图示例：$f(x,y) = (x+y) \times y$
+\begin{tikzpicture}[scale=1.2]
+    % Nodes
+    \node[circle, draw=blue!50, fill=blue!20, minimum size=0.8cm] (x) at (0,2) {$x$};
+    \node[circle, draw=blue!50, fill=blue!20, minimum size=0.8cm] (y1) at (2,2) {$y$};
+    \node[circle, draw=blue!50, fill=blue!20, minimum size=0.8cm] (y2) at (4,2) {$y$};
+    
+    % Operation nodes
+    \node[circle, draw=red!50, fill=red!20, minimum size=0.8cm] (plus) at (1,0) {$+$};
+    \node[circle, draw=red!50, fill=red!20, minimum size=0.8cm] (times) at (3,0) {$\times$};
+    
+     % Result
+    \node[circle, draw=green!50, fill=green!20, minimum size=1cm] (result) at (6,0) {$f(x,y)$};
 
-计算图示例：$f(x,y) = (x+y) \times y$
+    % Edges
+    \draw[->, thick] (x) -- (plus);
+    \draw[->, thick] (y1) -- (plus);
+    \draw[->, thick] (plus) -- (times);
+    \draw[->, thick] (y2) -- (times);
+    \draw[->, thick] (times) -- (result);
+   
+\end{tikzpicture}
 ```
 
 ### 节点类型
@@ -51,10 +68,10 @@
 
 边在计算图中承载着重要的语义信息：
 
-- **数据流**：表示数值从源节点流向目标节点
+- **数据流**：数值从源节点流向目标节点
 - **依赖关系**：显示计算过程中的依赖关系
-- **梯度传播**：在反向传播中，梯度沿着边反向流动
-- **计算顺序**：边的方向决定了计算的拓扑顺序
+- **梯度传播**：反向传播时，梯度沿着边反向流动
+- **计算顺序**：边的方向决定了计算的先后顺序
 
 ## 计算图的构建规则
 
@@ -116,11 +133,11 @@ def forward_pass(graph):
 
 ### 1. 可视化复杂表达式
 
-计算图将复杂的数学表达式分解为简单的操作，使得表达式结构一目了然。
+计算图把复杂的数学表达式拆成简单的操作，让结构一目了然。
 
 ### 2. 支持自动微分
 
-计算图为反向传播算法提供了数据结构基础，使得梯度计算可以自动化。
+计算图为反向传播算法提供了数据结构，让梯度计算自动化。
 
 ### 3. 优化计算顺序
 
@@ -128,7 +145,7 @@ def forward_pass(graph):
 
 ### 4. 并行计算
 
-计算图可以分析操作之间的依赖关系，识别可以并行执行的操作。
+计算图能分析操作之间的依赖关系，找出可以并行执行的操作。
 
 ## 实际应用：PyTorch中的计算图
 
