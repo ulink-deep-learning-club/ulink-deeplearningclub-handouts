@@ -1,0 +1,1386 @@
+
+<!DOCTYPE html>
+
+
+<html lang="zh-CN" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>损失函数 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=eb1cd0b9"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/translations.js?v=beaddf03"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("True" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll(".mermaid svg");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("True" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'math-fundamentals/loss-functions';</script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="激活函数" href="activation-functions.html" />
+    <link rel="prev" title="梯度下降优化" href="gradient-decent.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="zh-CN"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Deep Learning Club Lectures</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">搜索</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="computational-graph.html">计算图基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gradient-decent.html">梯度下降优化</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../cnn-basics/index.html">卷积神经网络基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-basics/exp-cmp.html">实验与比较</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-basics/scaling-law.html">神经网络缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-basics/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../attention-mechanisms/index.html">CNN中的注意力机制：从 SE-Net 到 CBAM</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/se-net.html">Squeeze-and-Excitation Networks (SE-Net)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/spatial-attn.html">空间注意力机制</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/cbam.html">Convolutional Block Attention Module (CBAM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/channel-spatial-attm-cmp.html">通道与空间注意力的比较</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/experiments.html">实验与性能分析</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/attn-math.html">注意力机制的数学基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/practical-guide.html">实际应用指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/extensions-variations.html">扩展与变体</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net架构：生物医学图像分割的革命性方法</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U-Net架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">核心组件实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/full-impl.html">完整U-Net实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/data-enhance.html">数据增强策略</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/techniques-best-practices.html">训练技巧与最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/application.html">应用领域</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/variation.html">U-Net变体与改进</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch基础教程：从NumPy到深度学习</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从NumPy到PyTorch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">张量操作详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">自动微分</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">总结</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN消融研究：理解卷积神经网络各组件的作用</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：什么是消融研究？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="源码库"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/math-fundamentals/loss-functions.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/issues/new?title=Issue%20on%20page%20%2Fmath-fundamentals/loss-functions.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="创建议题"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="下载此页面">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/math-fundamentals/loss-functions.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="下载源文件"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="列印成 PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="全屏模式"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>损失函数</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> 目录 </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">基本概念</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">直观理解</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">损失函数的几何意义</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">不同损失函数的形状</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">示例：回归问题的损失函数比较</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">常见损失函数</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mean-squared-error-mse">1. 均方误差（Mean Squared Error, MSE）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mean-absolute-error-mae">2. 平均绝对误差（Mean Absolute Error, MAE）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cross-entropy-loss">3. 交叉熵损失（Cross-Entropy Loss）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#negative-log-likelihood-loss-nll">4. 负对数似然损失（Negative Log-Likelihood Loss, NLL）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#huber-smooth-l1">5. Huber损失（Smooth L1损失）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kl-kullback-leibler-divergence">6. KL散度（Kullback-Leibler Divergence）</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">损失函数的选择原则</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">损失函数的数学性质</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">凸性</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">可导性</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">利普希茨连续性</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">正则化损失</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#l1-lasso">L1正则化（Lasso）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#l2-ridge">L2正则化（Ridge）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#elastic-net">Elastic Net</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">损失函数的梯度计算</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mse">MSE梯度</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">交叉熵梯度</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mae">MAE次梯度</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">实践建议</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">1. 损失函数缩放</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">2. 自定义损失函数</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">3. 损失函数监控</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">总结</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="id1">
+<h1>损失函数<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
+<section id="id2">
+<h2>基本概念<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>损失函数（Loss Function）是机器学习中用于衡量模型预测值与真实值之间差异的函数。它是优化算法的目标函数，梯度下降等优化算法通过最小化损失函数来调整模型参数。</p>
+<div class="note admonition">
+<p class="admonition-title">损失函数的作用</p>
+<ul class="simple">
+<li><p><strong>量化误差</strong>：将预测误差转化为可计算的数值</p></li>
+<li><p><strong>指导优化</strong>：提供梯度方向，指导参数更新</p></li>
+<li><p><strong>评估模型</strong>：作为模型性能的评估指标</p></li>
+<li><p><strong>正则化</strong>：通过添加正则项控制模型复杂度</p></li>
+</ul>
+</div>
+</section>
+<section id="id3">
+<h2>直观理解<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<section id="id4">
+<h3>损失函数的几何意义<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p>损失函数可以看作是一个“误差曲面”，模型参数对应于曲面上的点，损失值对应于该点的高度。优化过程就是寻找曲面的最低点（全局最小值）。</p>
+<pre  class="mermaid">
+        graph TD
+    A[输入数据] --&gt; B[模型预测]
+    B --&gt; C[&quot;计算损失 L(y, ŷ)&quot;]
+    C --&gt; D{损失是否可接受？}
+    D --&gt;|是| E[训练完成]
+    D --&gt;|否| F[计算梯度 ∇L]
+    F --&gt; G[更新参数]
+    G --&gt; B
+    </pre></section>
+<section id="id5">
+<h3>不同损失函数的形状<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<p>不同的损失函数对应不同的误差曲面形状：</p>
+<ul class="simple">
+<li><p><strong>MSE</strong>：平滑的二次曲面，有唯一最小值</p></li>
+<li><p><strong>MAE</strong>：V形曲面，在零点不可导</p></li>
+<li><p><strong>交叉熵</strong>：复杂的非线性曲面，但梯度计算稳定</p></li>
+</ul>
+</section>
+<section id="id6">
+<h3>示例：回归问题的损失函数比较<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p>假设真实值 <span class="math notranslate nohighlight">\(y=0\)</span>，预测值 <span class="math notranslate nohighlight">\(\hat{y}\)</span> 在区间 <span class="math notranslate nohighlight">\([-3, 3]\)</span> 内变化，我们可以比较不同损失函数的值：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">y</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">y_hat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">mse</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_hat</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+<span class="n">mae</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_hat</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">huber</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_hat</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">y_hat</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_hat</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">mse</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;MSE&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">mae</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;MAE&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">huber</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Huber (δ=1)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;预测值 $\hat</span><span class="si">{y}</span><span class="s1">$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;损失值&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;不同损失函数对比&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>该图展示了不同损失函数如何惩罚预测误差。MSE对大误差惩罚更重，MAE线性惩罚，Huber在误差较小时类似MSE，较大时类似MAE。</p>
+</section>
+</section>
+<section id="id7">
+<h2>常见损失函数<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<section id="mean-squared-error-mse">
+<h3>1. 均方误差（Mean Squared Error, MSE）<a class="headerlink" href="#mean-squared-error-mse" title="Link to this heading">#</a></h3>
+<p>均方误差是回归问题中最常用的损失函数，计算预测值与真实值之差的平方的平均值：</p>
+<div class="math notranslate nohighlight">
+\[\text{MSE} = \frac{1}{n} \sum_{i=1}^n (y_i - \hat{y}_i)^2\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(y_i\)</span> 是真实值，<span class="math notranslate nohighlight">\(\hat{y}_i\)</span> 是预测值，<span class="math notranslate nohighlight">\(n\)</span> 是样本数量。</p>
+<p><strong>特点</strong>：</p>
+<ul class="simple">
+<li><p>对异常值敏感（因为平方项放大了大误差）</p></li>
+<li><p>可导，便于梯度计算</p></li>
+<li><p>假设误差服从高斯分布</p></li>
+</ul>
+<p><strong>PyTorch实现</strong>：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+
+<span class="n">mse_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">MSELoss</span><span class="p">()</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<span class="n">loss</span> <span class="o">=</span> <span class="n">mse_loss</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="mean-absolute-error-mae">
+<h3>2. 平均绝对误差（Mean Absolute Error, MAE）<a class="headerlink" href="#mean-absolute-error-mae" title="Link to this heading">#</a></h3>
+<p>平均绝对误差计算预测值与真实值之差的绝对值的平均值：</p>
+<div class="math notranslate nohighlight">
+\[\text{MAE} = \frac{1}{n} \sum_{i=1}^n |y_i - \hat{y}_i|\]</div>
+<p><strong>特点</strong>：</p>
+<ul class="simple">
+<li><p>对异常值不敏感（比MSE更鲁棒）</p></li>
+<li><p>在零点不可导（但实际应用中可通过次梯度处理）</p></li>
+<li><p>假设误差服从拉普拉斯分布</p></li>
+</ul>
+<p><strong>PyTorch实现</strong>：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mae_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">L1Loss</span><span class="p">()</span>
+<span class="n">loss</span> <span class="o">=</span> <span class="n">mae_loss</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="cross-entropy-loss">
+<h3>3. 交叉熵损失（Cross-Entropy Loss）<a class="headerlink" href="#cross-entropy-loss" title="Link to this heading">#</a></h3>
+<p>交叉熵损失是分类问题中最常用的损失函数，特别适用于多分类问题：</p>
+<div class="math notranslate nohighlight">
+\[\text{CE} = -\frac{1}{n} \sum_{i=1}^n \sum_{c=1}^C y_{i,c} \log(\hat{y}_{i,c})\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(C\)</span> 是类别数，<span class="math notranslate nohighlight">\(y_{i,c}\)</span> 是样本 <span class="math notranslate nohighlight">\(i\)</span> 属于类别 <span class="math notranslate nohighlight">\(c\)</span> 的真实概率（通常为 one-hot 编码），<span class="math notranslate nohighlight">\(\hat{y}_{i,c}\)</span> 是模型预测的概率。</p>
+<p>对于二分类问题，交叉熵损失简化为：</p>
+<div class="math notranslate nohighlight">
+\[\text{BCE} = -\frac{1}{n} \sum_{i=1}^n \left[ y_i \log(\hat{y}_i) + (1-y_i) \log(1-\hat{y}_i) \right]\]</div>
+<p><strong>特点</strong>：</p>
+<ul class="simple">
+<li><p>与 softmax 激活函数配合使用效果最佳</p></li>
+<li><p>梯度计算稳定，适合深度网络</p></li>
+<li><p>对错误分类的惩罚较大</p></li>
+</ul>
+<p><strong>PyTorch实现</strong>：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 多分类交叉熵损失（包含softmax）</span>
+<span class="n">ce_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
+<span class="n">loss</span> <span class="o">=</span> <span class="n">ce_loss</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+
+<span class="c1"># 二分类交叉熵损失</span>
+<span class="n">bce_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BCELoss</span><span class="p">()</span>
+<span class="n">loss</span> <span class="o">=</span> <span class="n">bce_loss</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="negative-log-likelihood-loss-nll">
+<h3>4. 负对数似然损失（Negative Log-Likelihood Loss, NLL）<a class="headerlink" href="#negative-log-likelihood-loss-nll" title="Link to this heading">#</a></h3>
+<p>负对数似然损失通常与 log-softmax 结合使用：</p>
+<div class="math notranslate nohighlight">
+\[\text{NLL} = -\frac{1}{n} \sum_{i=1}^n \log(\hat{y}_{i, y_i})\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\hat{y}_{i, y_i}\)</span> 是模型对真实类别 <span class="math notranslate nohighlight">\(y_i\)</span> 的预测概率。</p>
+<p><strong>PyTorch实现</strong>：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">nll_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">NLLLoss</span><span class="p">()</span>
+<span class="c1"># 输入需要先经过 log-softmax</span>
+<span class="n">log_probs</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LogSoftmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">output</span><span class="p">)</span>
+<span class="n">loss</span> <span class="o">=</span> <span class="n">nll_loss</span><span class="p">(</span><span class="n">log_probs</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="huber-smooth-l1">
+<h3>5. Huber损失（Smooth L1损失）<a class="headerlink" href="#huber-smooth-l1" title="Link to this heading">#</a></h3>
+<p>Huber损失结合了MSE和MAE的优点，在误差较小时使用平方项，误差较大时使用线性项：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}L_\delta(a) = \begin{cases}
+\frac{1}{2}a^2 &amp; \text{for } |a| \le \delta \\
+\delta(|a| - \frac{1}{2}\delta) &amp; \text{otherwise}
+\end{cases}\end{split}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(a = y - \hat{y}\)</span>，<span class="math notranslate nohighlight">\(\delta\)</span> 是超参数。</p>
+<p><strong>特点</strong>：</p>
+<ul class="simple">
+<li><p>对异常值比MSE更鲁棒</p></li>
+<li><p>处处可导</p></li>
+<li><p>常用于回归问题，特别是目标检测</p></li>
+</ul>
+<p><strong>PyTorch实现</strong>：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">huber_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">SmoothL1Loss</span><span class="p">(</span><span class="n">beta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>  <span class="c1"># beta对应δ</span>
+<span class="n">loss</span> <span class="o">=</span> <span class="n">huber_loss</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="kl-kullback-leibler-divergence">
+<h3>6. KL散度（Kullback-Leibler Divergence）<a class="headerlink" href="#kl-kullback-leibler-divergence" title="Link to this heading">#</a></h3>
+<p>KL散度用于衡量两个概率分布之间的差异：</p>
+<div class="math notranslate nohighlight">
+\[D_{KL}(P \| Q) = \sum_{i} P(i) \log \frac{P(i)}{Q(i)}\]</div>
+<p><strong>应用</strong>：</p>
+<ul class="simple">
+<li><p>变分自编码器（VAE）</p></li>
+<li><p>知识蒸馏</p></li>
+<li><p>强化学习</p></li>
+</ul>
+<p><strong>PyTorch实现</strong>：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">kl_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">KLDivLoss</span><span class="p">(</span><span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;batchmean&#39;</span><span class="p">)</span>
+<span class="n">loss</span> <span class="o">=</span> <span class="n">kl_loss</span><span class="p">(</span><span class="n">log_input</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id8">
+<h2>损失函数的选择原则<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table" id="id21">
+<caption><span class="caption-text">损失函数选择指南</span><a class="headerlink" href="#id21" title="Link to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 35.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>问题类型</strong></p></th>
+<th class="head"><p><strong>推荐损失函数</strong></p></th>
+<th class="head"><p><strong>注意事项</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>回归问题</p></td>
+<td><p>MSE、MAE、Huber</p></td>
+<td><p>MSE对异常值敏感，MAE在零点不可导</p></td>
+</tr>
+<tr class="row-odd"><td><p>二分类问题</p></td>
+<td><p>二元交叉熵（BCE）</p></td>
+<td><p>输出需经过sigmoid激活</p></td>
+</tr>
+<tr class="row-even"><td><p>多分类问题</p></td>
+<td><p>交叉熵（CE）</p></td>
+<td><p>输出需经过softmax激活</p></td>
+</tr>
+<tr class="row-odd"><td><p>多标签分类</p></td>
+<td><p>二元交叉熵（BCE）</p></td>
+<td><p>每个类别独立计算损失</p></td>
+</tr>
+<tr class="row-even"><td><p>概率分布匹配</p></td>
+<td><p>KL散度、JS散度</p></td>
+<td><p>确保输入为概率分布</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id9">
+<h2>损失函数的数学性质<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
+<section id="id10">
+<h3>凸性<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<p>凸损失函数保证梯度下降能找到全局最优解。常见凸损失函数包括：</p>
+<ul class="simple">
+<li><p>均方误差（MSE）</p></li>
+<li><p>逻辑损失（Logistic Loss）</p></li>
+<li><p>Huber损失（当 <span class="math notranslate nohighlight">\(\delta &gt; 0\)</span> 时）</p></li>
+</ul>
+</section>
+<section id="id11">
+<h3>可导性<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<p>损失函数需要在参数空间上可导（或次可导），以便使用梯度下降优化：</p>
+<ul class="simple">
+<li><p>MSE、交叉熵处处可导</p></li>
+<li><p>MAE在零点不可导，但可使用次梯度</p></li>
+<li><p>ReLU等激活函数引入的非光滑点可通过次梯度处理</p></li>
+</ul>
+</section>
+<section id="id12">
+<h3>利普希茨连续性<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
+<p>利普希茨连续的损失函数具有有界梯度，有利于优化稳定性：</p>
+<ul class="simple">
+<li><p>交叉熵损失是利普希茨连续的</p></li>
+<li><p>MSE在有限域上是利普希茨连续的</p></li>
+</ul>
+</section>
+</section>
+<section id="id13">
+<h2>正则化损失<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<p>为了防止过拟合，常在损失函数中添加正则化项：</p>
+<section id="l1-lasso">
+<h3>L1正则化（Lasso）<a class="headerlink" href="#l1-lasso" title="Link to this heading">#</a></h3>
+<div class="math notranslate nohighlight">
+\[L_{\text{total}} = L_{\text{data}} + \lambda \sum_{i} |w_i|\]</div>
+<p><strong>效果</strong>：产生稀疏权重，可用于特征选择。</p>
+</section>
+<section id="l2-ridge">
+<h3>L2正则化（Ridge）<a class="headerlink" href="#l2-ridge" title="Link to this heading">#</a></h3>
+<div class="math notranslate nohighlight">
+\[L_{\text{total}} = L_{\text{data}} + \lambda \sum_{i} w_i^2\]</div>
+<p><strong>效果</strong>：限制权重大小，提高泛化能力。</p>
+</section>
+<section id="elastic-net">
+<h3>Elastic Net<a class="headerlink" href="#elastic-net" title="Link to this heading">#</a></h3>
+<div class="math notranslate nohighlight">
+\[L_{\text{total}} = L_{\text{data}} + \lambda_1 \sum_{i} |w_i| + \lambda_2 \sum_{i} w_i^2\]</div>
+<p>结合L1和L2正则化的优点。</p>
+<p><strong>PyTorch实现</strong>：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 手动添加L2正则化</span>
+<span class="n">l2_lambda</span> <span class="o">=</span> <span class="mf">0.01</span>
+<span class="n">l2_reg</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+    <span class="n">l2_reg</span> <span class="o">+=</span> <span class="n">torch</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+
+<span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span> <span class="o">+</span> <span class="n">l2_lambda</span> <span class="o">*</span> <span class="n">l2_reg</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id14">
+<h2>损失函数的梯度计算<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
+<section id="mse">
+<h3>MSE梯度<a class="headerlink" href="#mse" title="Link to this heading">#</a></h3>
+<div class="math notranslate nohighlight">
+\[\frac{\partial \text{MSE}}{\partial \hat{y}_i} = \frac{2}{n} (\hat{y}_i - y_i)\]</div>
+</section>
+<section id="id15">
+<h3>交叉熵梯度<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<p>对于softmax输出后的交叉熵损失，梯度具有简洁形式：</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial \text{CE}}{\partial z_i} = \hat{y}_i - y_i\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(z_i\)</span> 是softmax层的输入。</p>
+</section>
+<section id="mae">
+<h3>MAE次梯度<a class="headerlink" href="#mae" title="Link to this heading">#</a></h3>
+<div class="math notranslate nohighlight">
+\[\begin{split}\frac{\partial \text{MAE}}{\partial \hat{y}_i} = \begin{cases}
+1 &amp; \text{if } \hat{y}_i &gt; y_i \\
+-1 &amp; \text{if } \hat{y}_i &lt; y_i \\
+[-1, 1] &amp; \text{if } \hat{y}_i = y_i
+\end{cases}\end{split}\]</div>
+</section>
+</section>
+<section id="id16">
+<h2>实践建议<a class="headerlink" href="#id16" title="Link to this heading">#</a></h2>
+<section id="id17">
+<h3>1. 损失函数缩放<a class="headerlink" href="#id17" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 多任务学习中的损失加权</span>
+<span class="n">total_loss</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">loss1</span> <span class="o">+</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">loss2</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">loss3</span>
+</pre></div>
+</div>
+</section>
+<section id="id18">
+<h3>2. 自定义损失函数<a class="headerlink" href="#id18" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CustomLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+        <span class="c1"># 自定义损失计算</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">output</span> <span class="o">-</span> <span class="n">target</span><span class="p">)</span> <span class="o">**</span> <span class="mf">1.5</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss</span>
+</pre></div>
+</div>
+</section>
+<section id="id19">
+<h3>3. 损失函数监控<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">monitor_losses</span><span class="p">(</span><span class="n">loss_dict</span><span class="p">,</span> <span class="n">epoch</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;监控多个损失分量&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">loss_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># 可视化</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">loss_history</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id20">
+<h2>总结<a class="headerlink" href="#id20" title="Link to this heading">#</a></h2>
+<p>损失函数是深度学习的核心组件，它连接了模型预测和参数优化。选择合适的损失函数需要考虑问题类型、数据特性和模型结构。理解不同损失函数的数学性质和梯度行为，有助于设计更有效的训练策略和解决实际问题。</p>
+<div class="tip admonition">
+<p class="admonition-title">关键要点</p>
+<ol class="arabic simple">
+<li><p><strong>回归问题</strong>：优先考虑MSE，对异常值敏感时使用MAE或Huber损失</p></li>
+<li><p><strong>分类问题</strong>：交叉熵损失是标准选择，配合适当的激活函数</p></li>
+<li><p><strong>正则化</strong>：通过L1/L2正则化防止过拟合，提高泛化能力</p></li>
+<li><p><strong>多任务学习</strong>：合理加权不同任务的损失函数</p></li>
+<li><p><strong>自定义损失</strong>：根据特定问题设计专用损失函数</p></li>
+</ol>
+</div>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">0c291d7</code>
+                2025-12-10 - <strong>Heyan Zhu</strong>: docs: restructure course materials and add new content
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="gradient-decent.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">上一页</p>
+        <p class="prev-next-title">梯度下降优化</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="activation-functions.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">下一页</p>
+        <p class="prev-next-title">激活函数</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> 目录
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">基本概念</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">直观理解</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">损失函数的几何意义</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">不同损失函数的形状</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">示例：回归问题的损失函数比较</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">常见损失函数</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mean-squared-error-mse">1. 均方误差（Mean Squared Error, MSE）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mean-absolute-error-mae">2. 平均绝对误差（Mean Absolute Error, MAE）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cross-entropy-loss">3. 交叉熵损失（Cross-Entropy Loss）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#negative-log-likelihood-loss-nll">4. 负对数似然损失（Negative Log-Likelihood Loss, NLL）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#huber-smooth-l1">5. Huber损失（Smooth L1损失）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kl-kullback-leibler-divergence">6. KL散度（Kullback-Leibler Divergence）</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">损失函数的选择原则</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">损失函数的数学性质</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">凸性</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">可导性</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">利普希茨连续性</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">正则化损失</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#l1-lasso">L1正则化（Lasso）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#l2-ridge">L2正则化（Ridge）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#elastic-net">Elastic Net</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">损失函数的梯度计算</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mse">MSE梯度</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">交叉熵梯度</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mae">MAE次梯度</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">实践建议</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">1. 损失函数缩放</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">2. 自定义损失函数</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">3. 损失函数监控</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">总结</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+作者： UCS Deep Learning Club
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, UCS Deep Learning Club and Contributors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

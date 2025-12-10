@@ -1,0 +1,1080 @@
+
+<!DOCTYPE html>
+
+
+<html lang="zh-CN" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>数据增强策略 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=eb1cd0b9"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/translations.js?v=beaddf03"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'unet-image-segmentation/data-enhance';</script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="训练技巧与最佳实践" href="techniques-best-practices.html" />
+    <link rel="prev" title="完整U-Net实现" href="full-impl.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="zh-CN"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Deep Learning Club Lectures</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">搜索</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../math-fundamentals/index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/computational-graph.html">计算图基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/gradient-decent.html">梯度下降优化</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/the-end.html">总结</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../cnn-basics/index.html">卷积神经网络基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-basics/exp-cmp.html">实验与比较</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-basics/scaling-law.html">神经网络缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-basics/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../attention-mechanisms/index.html">CNN中的注意力机制：从 SE-Net 到 CBAM</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/se-net.html">Squeeze-and-Excitation Networks (SE-Net)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/spatial-attn.html">空间注意力机制</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/cbam.html">Convolutional Block Attention Module (CBAM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/channel-spatial-attm-cmp.html">通道与空间注意力的比较</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/experiments.html">实验与性能分析</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/attn-math.html">注意力机制的数学基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/practical-guide.html">实际应用指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/extensions-variations.html">扩展与变体</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">U-Net架构：生物医学图像分割的革命性方法</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="u-net.html">U-Net架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-impl.html">核心组件实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="full-impl.html">完整U-Net实现</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">数据增强策略</a></li>
+<li class="toctree-l2"><a class="reference internal" href="techniques-best-practices.html">训练技巧与最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="application.html">应用领域</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variation.html">U-Net变体与改进</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch基础教程：从NumPy到深度学习</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从NumPy到PyTorch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">张量操作详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">自动微分</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">总结</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN消融研究：理解卷积神经网络各组件的作用</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：什么是消融研究？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="源码库"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/unet-image-segmentation/data-enhance.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/issues/new?title=Issue%20on%20page%20%2Funet-image-segmentation/data-enhance.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="创建议题"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="下载此页面">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/unet-image-segmentation/data-enhance.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="下载源文件"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="列印成 PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="全屏模式"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>数据增强策略</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> 目录 </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">数据增强的重要性</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">医学图像数据的特点</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">数据增强的作用</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">医学图像特定的增强技术</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">几何变换</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elastic-deformation">1. 弹性变形（Elastic Deformation）</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">2. 随机旋转和翻转</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">3. 缩放和裁剪</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">强度变换</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">1. 亮度对比度调整</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">2. 噪声添加</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">3. 模糊和锐化</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">医学图像特定变换</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#ct">1. 窗宽窗位调整（CT图像）</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">2. 仿射变换模拟不同扫描角度</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">增强策略设计</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">训练阶段增强</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">验证/测试阶段增强</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tta">测试时增强（TTA）</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">增强对分割掩码的处理</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">同步变换</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">掩码特定处理</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">增强效果可视化</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">可视化函数</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">增强参数调优</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">实践建议</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">增强策略选择</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id26">常见错误避免</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id27">性能优化</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id28">总结</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="id1">
+<h1>数据增强策略<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
+<p>数据增强是深度学习中的关键技术，特别是在医学图像分割任务中，由于标注数据稀缺，数据增强可以显著提高模型的泛化能力。U-Net原始论文中特别强调了数据增强的重要性，尤其是弹性变形（elastic deformation）在生物医学图像分割中的有效性。</p>
+<section id="id2">
+<h2>数据增强的重要性<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<section id="id3">
+<h3>医学图像数据的特点<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>样本数量有限</strong>：医学图像标注需要领域专家，成本高昂，数据集通常只有几十到几百个样本。</p></li>
+<li><p><strong>类别不平衡</strong>：目标区域（如肿瘤、器官）通常只占图像的一小部分。</p></li>
+<li><p><strong>形态多样性</strong>：同一器官在不同患者、不同成像条件下形态差异很大。</p></li>
+<li><p><strong>边界模糊</strong>：医学图像中的边界往往不清晰，对比度低。</p></li>
+</ol>
+</section>
+<section id="id4">
+<h3>数据增强的作用<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>增加训练样本</strong>：通过对有限样本进行变换，生成大量新样本。</p></li>
+<li><p><strong>提高泛化能力</strong>：使模型对旋转、缩放、形变等变化具有不变性。</p></li>
+<li><p><strong>防止过拟合</strong>：减少模型对训练数据特定细节的依赖。</p></li>
+<li><p><strong>改善类别平衡</strong>：通过对少数类样本进行增强，缓解类别不平衡问题。</p></li>
+</ol>
+</section>
+</section>
+<section id="id5">
+<h2>医学图像特定的增强技术<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<section id="id6">
+<h3>几何变换<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<section id="elastic-deformation">
+<h4>1. 弹性变形（Elastic Deformation）<a class="headerlink" href="#elastic-deformation" title="Link to this heading">#</a></h4>
+<p>弹性变形是U-Net论文中特别强调的增强技术，能有效模拟生物组织的自然形变。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">albumentations</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">A</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_elastic_transform</span><span class="p">(</span><span class="n">sigma</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">alpha_affine</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;弹性变形增强&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">A</span><span class="o">.</span><span class="n">ElasticTransform</span><span class="p">(</span>
+        <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+        <span class="n">alpha_affine</span><span class="o">=</span><span class="n">alpha_affine</span><span class="p">,</span>
+        <span class="n">p</span><span class="o">=</span><span class="n">p</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>原理</strong>：通过生成随机位移场并对图像进行插值来实现形变。位移场通常由高斯滤波平滑的随机噪声生成。</p>
+<p><strong>参数说明</strong>：</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sigma</span></code>：控制形变强度的标准差，值越大形变越平滑</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">alpha</span></code>：缩放因子，控制形变幅度</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">alpha_affine</span></code>：仿射变换的强度</p></li>
+</ul>
+</section>
+<section id="id7">
+<h4>2. 随机旋转和翻转<a class="headerlink" href="#id7" title="Link to this heading">#</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_geometric_transforms</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;几何变换组合&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">A</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">RandomRotate90</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">Flip</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">Transpose</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">RandomRotate</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>  <span class="c1"># ±15度随机旋转</span>
+    <span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="id8">
+<h4>3. 缩放和裁剪<a class="headerlink" href="#id8" title="Link to this heading">#</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_scale_crop_transforms</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;缩放和裁剪变换&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">A</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">RandomScale</span><span class="p">(</span><span class="n">scale_limit</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>  <span class="c1"># 随机缩放±20%</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">RandomCrop</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">Resize</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">256</span><span class="p">),</span>  <span class="c1"># 统一尺寸</span>
+    <span class="p">])</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id9">
+<h3>强度变换<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<section id="id10">
+<h4>1. 亮度对比度调整<a class="headerlink" href="#id10" title="Link to this heading">#</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_intensity_transforms</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;强度变换&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">A</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">RandomBrightnessContrast</span><span class="p">(</span>
+            <span class="n">brightness_limit</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+            <span class="n">contrast_limit</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+            <span class="n">p</span><span class="o">=</span><span class="mf">0.5</span>
+        <span class="p">),</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">RandomGamma</span><span class="p">(</span><span class="n">gamma_limit</span><span class="o">=</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">120</span><span class="p">),</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>  <span class="c1"># gamma校正</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">CLAHE</span><span class="p">(</span><span class="n">clip_limit</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">tile_grid_size</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>  <span class="c1"># 对比度受限自适应直方图均衡</span>
+    <span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="id11">
+<h4>2. 噪声添加<a class="headerlink" href="#id11" title="Link to this heading">#</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_noise_transforms</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;噪声添加&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">A</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">GaussNoise</span><span class="p">(</span><span class="n">var_limit</span><span class="o">=</span><span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">50.0</span><span class="p">),</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.3</span><span class="p">),</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">ISONoise</span><span class="p">(</span><span class="n">color_shift</span><span class="o">=</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">),</span> <span class="n">intensity</span><span class="o">=</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.3</span><span class="p">),</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">MultiplicativeNoise</span><span class="p">(</span><span class="n">multiplier</span><span class="o">=</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">),</span> <span class="n">per_channel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.3</span><span class="p">),</span>
+    <span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="id12">
+<h4>3. 模糊和锐化<a class="headerlink" href="#id12" title="Link to this heading">#</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_blur_sharpen_transforms</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;模糊和锐化&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">A</span><span class="o">.</span><span class="n">OneOf</span><span class="p">([</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">MotionBlur</span><span class="p">(</span><span class="n">blur_limit</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.2</span><span class="p">),</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">MedianBlur</span><span class="p">(</span><span class="n">blur_limit</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.2</span><span class="p">),</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">GaussianBlur</span><span class="p">(</span><span class="n">blur_limit</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.2</span><span class="p">),</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">Sharpen</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">lightness</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.2</span><span class="p">),</span>
+    <span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id13">
+<h3>医学图像特定变换<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<section id="ct">
+<h4>1. 窗宽窗位调整（CT图像）<a class="headerlink" href="#ct" title="Link to this heading">#</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">window_transform</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">window_center</span><span class="p">,</span> <span class="n">window_width</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CT窗宽窗位调整&quot;&quot;&quot;</span>
+    <span class="n">window_min</span> <span class="o">=</span> <span class="n">window_center</span> <span class="o">-</span> <span class="n">window_width</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="n">window_max</span> <span class="o">=</span> <span class="n">window_center</span> <span class="o">+</span> <span class="n">window_width</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">window_min</span><span class="p">,</span> <span class="n">window_max</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="p">(</span><span class="n">image</span> <span class="o">-</span> <span class="n">window_min</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">window_max</span> <span class="o">-</span> <span class="n">window_min</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">image</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_ct_transforms</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CT图像特定变换&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">A</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">Lambda</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;window_transform&#39;</span><span class="p">,</span>
+            <span class="n">image</span><span class="o">=</span><span class="k">lambda</span> <span class="n">image</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">window_transform</span><span class="p">(</span>
+                <span class="n">image</span><span class="p">,</span> 
+                <span class="n">window_center</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="mi">400</span><span class="p">),</span>
+                <span class="n">window_width</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">800</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="n">p</span><span class="o">=</span><span class="mf">0.5</span>
+        <span class="p">),</span>
+    <span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="id14">
+<h4>2. 仿射变换模拟不同扫描角度<a class="headerlink" href="#id14" title="Link to this heading">#</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_affine_transforms</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;仿射变换模拟不同扫描角度&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">A</span><span class="o">.</span><span class="n">Affine</span><span class="p">(</span>
+        <span class="n">scale</span><span class="o">=</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">),</span>  <span class="c1"># 缩放</span>
+        <span class="n">translate_percent</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span>  <span class="c1"># 平移</span>
+        <span class="n">rotate</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">),</span>  <span class="c1"># 旋转</span>
+        <span class="n">shear</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>  <span class="c1"># 剪切</span>
+        <span class="n">p</span><span class="o">=</span><span class="mf">0.5</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="id15">
+<h2>增强策略设计<a class="headerlink" href="#id15" title="Link to this heading">#</a></h2>
+<section id="id16">
+<h3>训练阶段增强<a class="headerlink" href="#id16" title="Link to this heading">#</a></h3>
+<p>训练阶段使用强增强，提高模型鲁棒性：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_train_transforms</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;训练阶段数据增强&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">A</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+        <span class="c1"># 几何变换</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">RandomRotate90</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">Flip</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">Transpose</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">RandomRotate</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+        
+        <span class="c1"># 弹性变形（医学图像关键增强）</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">ElasticTransform</span><span class="p">(</span>
+            <span class="n">sigma</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+            <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">alpha_affine</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+            <span class="n">p</span><span class="o">=</span><span class="mf">0.3</span>
+        <span class="p">),</span>
+        
+        <span class="c1"># 强度变换</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">RandomBrightnessContrast</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.2</span><span class="p">),</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">RandomGamma</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.2</span><span class="p">),</span>
+        
+        <span class="c1"># 噪声和模糊</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">OneOf</span><span class="p">([</span>
+            <span class="n">A</span><span class="o">.</span><span class="n">GaussNoise</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.2</span><span class="p">),</span>
+            <span class="n">A</span><span class="o">.</span><span class="n">MotionBlur</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.2</span><span class="p">),</span>
+        <span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.2</span><span class="p">),</span>
+        
+        <span class="c1"># 标准化</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="p">[</span><span class="mf">0.485</span><span class="p">],</span> <span class="n">std</span><span class="o">=</span><span class="p">[</span><span class="mf">0.229</span><span class="p">]),</span>
+        <span class="n">ToTensorV2</span><span class="p">(),</span>
+    <span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="id17">
+<h3>验证/测试阶段增强<a class="headerlink" href="#id17" title="Link to this heading">#</a></h3>
+<p>验证和测试阶段通常只进行标准化和尺寸调整：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_val_transforms</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;验证阶段数据增强&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">A</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">Resize</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">256</span><span class="p">),</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="p">[</span><span class="mf">0.485</span><span class="p">],</span> <span class="n">std</span><span class="o">=</span><span class="p">[</span><span class="mf">0.229</span><span class="p">]),</span>
+        <span class="n">ToTensorV2</span><span class="p">(),</span>
+    <span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="tta">
+<h3>测试时增强（TTA）<a class="headerlink" href="#tta" title="Link to this heading">#</a></h3>
+<p>测试时增强通过对测试图像进行多次变换并平均预测结果，提高模型性能：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">tta_predict</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">transforms_list</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;测试时增强预测&quot;&quot;&quot;</span>
+    <span class="n">predictions</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">for</span> <span class="n">transform</span> <span class="ow">in</span> <span class="n">transforms_list</span><span class="p">:</span>
+        <span class="c1"># 应用变换</span>
+        <span class="n">transformed</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="n">image</span><span class="p">)[</span><span class="s1">&#39;image&#39;</span><span class="p">]</span>
+        <span class="n">transformed</span> <span class="o">=</span> <span class="n">transformed</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        
+        <span class="c1"># 预测</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">transformed</span><span class="p">)</span>
+            <span class="n">pred</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">pred</span><span class="p">)</span> <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">n_classes</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">predictions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pred</span><span class="o">.</span><span class="n">cpu</span><span class="p">())</span>
+    
+    <span class="c1"># 平均预测结果</span>
+    <span class="n">avg_prediction</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">predictions</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">avg_prediction</span>
+
+<span class="c1"># 定义TTA变换</span>
+<span class="n">tta_transforms</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">A</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">A</span><span class="o">.</span><span class="n">HorizontalFlip</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">A</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(),</span> <span class="n">ToTensorV2</span><span class="p">()]),</span>
+    <span class="n">A</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">A</span><span class="o">.</span><span class="n">VerticalFlip</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">A</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(),</span> <span class="n">ToTensorV2</span><span class="p">()]),</span>
+    <span class="n">A</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">A</span><span class="o">.</span><span class="n">Rotate</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">A</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(),</span> <span class="n">ToTensorV2</span><span class="p">()]),</span>
+    <span class="n">A</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">A</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(),</span> <span class="n">ToTensorV2</span><span class="p">()]),</span>  <span class="c1"># 原始图像</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id18">
+<h2>增强对分割掩码的处理<a class="headerlink" href="#id18" title="Link to this heading">#</a></h2>
+<section id="id19">
+<h3>同步变换<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
+<p>图像和分割掩码必须应用相同的几何变换：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Albumentations自动处理图像和掩码的同步变换</span>
+<span class="n">transform</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+    <span class="n">A</span><span class="o">.</span><span class="n">RandomRotate90</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+    <span class="n">A</span><span class="o">.</span><span class="n">Flip</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+<span class="p">],</span> <span class="n">additional_targets</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;mask&#39;</span><span class="p">:</span> <span class="s1">&#39;image&#39;</span><span class="p">})</span>
+
+<span class="c1"># 应用变换</span>
+<span class="n">transformed</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="n">image</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+<span class="n">transformed_image</span> <span class="o">=</span> <span class="n">transformed</span><span class="p">[</span><span class="s1">&#39;image&#39;</span><span class="p">]</span>
+<span class="n">transformed_mask</span> <span class="o">=</span> <span class="n">transformed</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="id20">
+<h3>掩码特定处理<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
+<p>某些增强只应用于图像，不应用于掩码：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 强度变换只应用于图像</span>
+<span class="n">transform</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+    <span class="c1"># 几何变换（图像和掩码都应用）</span>
+    <span class="n">A</span><span class="o">.</span><span class="n">RandomRotate90</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+    
+    <span class="c1"># 强度变换（只应用于图像）</span>
+    <span class="n">A</span><span class="o">.</span><span class="n">RandomBrightnessContrast</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+    
+    <span class="c1"># 噪声（只应用于图像）</span>
+    <span class="n">A</span><span class="o">.</span><span class="n">GaussNoise</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.3</span><span class="p">),</span>
+<span class="p">],</span> <span class="n">additional_targets</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;mask&#39;</span><span class="p">:</span> <span class="s1">&#39;image&#39;</span><span class="p">})</span>
+
+<span class="c1"># 需要自定义处理：先应用几何变换，再单独对图像应用强度变换</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id21">
+<h2>增强效果可视化<a class="headerlink" href="#id21" title="Link to this heading">#</a></h2>
+<section id="id22">
+<h3>可视化函数<a class="headerlink" href="#id22" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">visualize_augmentations</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;可视化数据增强效果&quot;&quot;&quot;</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">num_samples</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="o">*</span><span class="n">num_samples</span><span class="p">))</span>
+    
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_samples</span><span class="p">):</span>
+        <span class="c1"># 获取原始样本</span>
+        <span class="n">image</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        
+        <span class="c1"># 应用增强</span>
+        <span class="n">augmented</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="n">image</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+        <span class="n">aug_image</span> <span class="o">=</span> <span class="n">augmented</span><span class="p">[</span><span class="s1">&#39;image&#39;</span><span class="p">]</span>
+        <span class="n">aug_mask</span> <span class="o">=</span> <span class="n">augmented</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">]</span>
+        
+        <span class="c1"># 显示</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;原始图像&#39;</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+        
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">aug_image</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;增强后图像&#39;</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+    
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="id23">
+<h3>增强参数调优<a class="headerlink" href="#id23" title="Link to this heading">#</a></h3>
+<p>通过可视化选择适当的增强参数：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">tune_augmentation_parameters</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;调整增强参数&quot;&quot;&quot;</span>
+    <span class="n">test_image</span> <span class="o">=</span> <span class="n">load_test_image</span><span class="p">()</span>
+    <span class="n">test_mask</span> <span class="o">=</span> <span class="n">load_test_mask</span><span class="p">()</span>
+    
+    <span class="c1"># 测试不同参数</span>
+    <span class="n">sigmas</span> <span class="o">=</span> <span class="p">[</span><span class="mi">25</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">]</span>
+    <span class="n">alphas</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+    
+    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sigmas</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">alphas</span><span class="p">),</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+    
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sigma</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sigmas</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">alpha</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">alphas</span><span class="p">):</span>
+            <span class="n">transform</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">ElasticTransform</span><span class="p">(</span>
+                <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                <span class="n">alpha_affine</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+                <span class="n">p</span><span class="o">=</span><span class="mf">1.0</span>
+            <span class="p">)</span>
+            
+            <span class="n">augmented</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="n">test_image</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">test_mask</span><span class="p">)</span>
+            <span class="n">aug_image</span> <span class="o">=</span> <span class="n">augmented</span><span class="p">[</span><span class="s1">&#39;image&#39;</span><span class="p">]</span>
+            
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">aug_image</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;sigma=</span><span class="si">{</span><span class="n">sigma</span><span class="si">}</span><span class="s1">, alpha=</span><span class="si">{</span><span class="n">alpha</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+    
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id24">
+<h2>实践建议<a class="headerlink" href="#id24" title="Link to this heading">#</a></h2>
+<section id="id25">
+<h3>增强策略选择<a class="headerlink" href="#id25" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>根据数据类型选择</strong>：</p>
+<ul class="simple">
+<li><p>CT/MRI图像：窗宽窗位调整、弹性变形</p></li>
+<li><p>X光图像：对比度增强、噪声添加</p></li>
+<li><p>显微镜图像：弹性变形、旋转翻转</p></li>
+</ul>
+</li>
+<li><p><strong>根据任务难度调整</strong>：</p>
+<ul class="simple">
+<li><p>简单任务：轻度增强（旋转、翻转）</p></li>
+<li><p>困难任务：强增强（弹性变形、复杂组合）</p></li>
+</ul>
+</li>
+<li><p><strong>根据数据量调整</strong>：</p>
+<ul class="simple">
+<li><p>数据量少：强增强</p></li>
+<li><p>数据量多：轻度增强</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="id26">
+<h3>常见错误避免<a class="headerlink" href="#id26" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>泄露信息</strong>：增强时确保图像和掩码同步变换</p></li>
+<li><p><strong>过度增强</strong>：过强的增强可能破坏图像语义信息</p></li>
+<li><p><strong>计算开销</strong>：复杂的增强可能显著增加训练时间</p></li>
+<li><p><strong>内存问题</strong>：在线增强可能增加内存使用，考虑预增强或缓存</p></li>
+</ol>
+</section>
+<section id="id27">
+<h3>性能优化<a class="headerlink" href="#id27" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>预增强</strong>：对训练数据预先进行增强并保存，减少训练时开销</p></li>
+<li><p><strong>并行增强</strong>：使用多进程进行数据增强</p></li>
+<li><p><strong>GPU加速</strong>：使用GPU进行增强（如DALI库）</p></li>
+</ol>
+</section>
+</section>
+<section id="id28">
+<h2>总结<a class="headerlink" href="#id28" title="Link to this heading">#</a></h2>
+<p>数据增强是医学图像分割成功的关键因素之一。U-Net原始论文通过弹性变形等增强技术，在有限数据上取得了优异性能。在实际应用中，需要根据具体任务和数据特性设计合适的增强策略，并通过实验验证增强效果。合理的增强不仅能提高模型性能，还能改善模型的鲁棒性和泛化能力。</p>
+<p>建议在实践中：</p>
+<ol class="arabic simple">
+<li><p>从基础增强开始，逐步增加复杂度</p></li>
+<li><p>通过可视化确认增强效果</p></li>
+<li><p>监控增强对训练稳定性和收敛速度的影响</p></li>
+<li><p>在验证集上评估增强策略的有效性</p></li>
+<li><p>考虑计算开销和实现复杂度的平衡</p></li>
+</ol>
+<p>通过精心设计的数据增强策略，即使在小规模医学图像数据集上，也能训练出高性能的分割模型。</p>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">0c291d7</code>
+                2025-12-10 - <strong>Heyan Zhu</strong>: docs: restructure course materials and add new content
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="full-impl.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">上一页</p>
+        <p class="prev-next-title">完整U-Net实现</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="techniques-best-practices.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">下一页</p>
+        <p class="prev-next-title">训练技巧与最佳实践</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> 目录
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">数据增强的重要性</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">医学图像数据的特点</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">数据增强的作用</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">医学图像特定的增强技术</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">几何变换</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#elastic-deformation">1. 弹性变形（Elastic Deformation）</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">2. 随机旋转和翻转</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">3. 缩放和裁剪</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">强度变换</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">1. 亮度对比度调整</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">2. 噪声添加</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">3. 模糊和锐化</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">医学图像特定变换</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#ct">1. 窗宽窗位调整（CT图像）</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">2. 仿射变换模拟不同扫描角度</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">增强策略设计</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">训练阶段增强</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">验证/测试阶段增强</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tta">测试时增强（TTA）</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">增强对分割掩码的处理</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">同步变换</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">掩码特定处理</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">增强效果可视化</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">可视化函数</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">增强参数调优</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">实践建议</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">增强策略选择</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id26">常见错误避免</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id27">性能优化</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id28">总结</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+作者： UCS Deep Learning Club
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, UCS Deep Learning Club and Contributors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
