@@ -83,8 +83,9 @@ chrome_path = find_browser_executable()
 if not chrome_path:
     logger.warning("Chrome not found, Mermaid diagram rendering will get switched to raw mode.")
 else:
-    logger.info("Using Chrome at: ", chrome_path)
+    print("Using Chrome at: ", chrome_path)
     os.environ["PUPPETEER_EXECUTABLE_PATH"] = str(chrome_path)
+
 sys.path.append(str(Path('../exts').resolve()))
 
 project = 'Deep Learning Club Lectures'
