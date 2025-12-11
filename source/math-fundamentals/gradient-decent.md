@@ -1,4 +1,4 @@
-# 梯度下降优化
+# 梯度下降与优化算法
 
 ## 基本概念
 
@@ -24,10 +24,31 @@
 - **步长**：学习率 $\eta$
 - **目标**：到达山谷（最小值点）
 
-```{figure} ../../_static/images/gradient_descent.png
-:width: 60%
-:align: center
-:caption: 梯度下降示意图：从初始点沿着梯度方向逐步逼近最小值点。
+```{tikz} 梯度下降示意图：从初始点沿着梯度方向逐步逼近最小值点。
+\begin{tikzpicture}[scale=1.2]
+    % Axes
+    \draw[->] (-0.5,0) -- (4,0) node[right] {$\theta$};
+    \draw[->] (0,-0.5) -- (0,3.5) node[above] {$J(\theta)$};
+    
+    % Parabola (loss function)
+    \draw[thick, blue] plot[domain=-0.3:3.5, samples=100] (\x, {0.5*(\x-2)^2 + 0.3});
+    
+    % Minimum point
+    \fill[red] (2, 0.3) circle (3pt) node[above right] {最小值};
+    
+    % Gradient descent steps
+    \fill[orange] (3.2, {0.5*(3.2-2)^2 + 0.3}) circle (2.5pt) node[above] {$\theta_0$};
+    \draw[->, thick, orange] (3.2, {0.5*(3.2-2)^2 + 0.3}) -- (2.8, {0.5*(2.8-2)^2 + 0.3});
+    
+    \fill[orange] (2.8, {0.5*(2.8-2)^2 + 0.3}) circle (2.5pt);
+    \draw[->, thick, orange] (2.8, {0.5*(2.8-2)^2 + 0.3}) -- (2.4, {0.5*(2.4-2)^2 + 0.3});
+    
+    \fill[orange] (2.4, {0.5*(2.4-2)^2 + 0.3}) circle (2.5pt);
+    \draw[->, thick, orange] (2.4, {0.5*(2.4-2)^2 + 0.3}) -- (2.1, {0.5*(2.1-2)^2 + 0.3});
+    
+    % Labels
+    \node[orange] at (3.5, 1.8) {梯度下降步};
+\end{tikzpicture}
 ```
 
 ### 学习率的影响

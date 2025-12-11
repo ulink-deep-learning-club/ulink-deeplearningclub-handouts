@@ -30,8 +30,8 @@ def fix_mermaid_svg(file_path: Path) -> bool:
     height = viewbox_match.group(2)
     
     # Round to integers for width/height attributes
-    width_int = int(float(width) + 0.5)
-    height_int = int(float(height) + 0.5)
+    width_int = int(float(width) * 0.8 + 0.5)
+    height_int = int(float(height) * 0.8 + 0.5)
     
     # Remove width="100%"
     content = content.replace('width="100%"', '', 1)

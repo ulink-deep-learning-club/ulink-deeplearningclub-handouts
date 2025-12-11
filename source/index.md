@@ -10,11 +10,10 @@
 
 math-fundamentals/index
 neural-network-basics/index
-cnn-basics/index
-attention-mechanisms/index
-unet-image-segmentation/index
 pytorch-practice/index
 cnn-ablation-study/index
+attention-mechanisms/index
+unet-image-segmentation/index
 postscript
 ~~~
 ```

@@ -11,21 +11,21 @@ The complete lecture materials are available online at:
 
 - **`source/`** - Main documentation source files in Markdown format
   - `source/index.md` - Main homepage with table of contents
-  - `source/lesson2/` - Computational Graphs, Backpropagation, and Gradient Descent
-  - `source/lesson4/` - MNIST Digit Recognition: From FC Networks to CNN
-  - `source/lesson5/` - UNet: Image Segmentation Architecture
-  - `source/lesson6/` - Attention Mechanisms in CNN: From SE-Net to CBAM
-  - `source/lesson7/` - PyTorch Basics Tutorial
-  - `source/lesson8/` - CNN Ablation Study
+  - `source/math-fundamentals/` - Computational Graphs, Backpropagation, Gradient Descent, Loss Functions, Activation Functions
+  - `source/neural-network-basics/` - Fully Connected Layers, CNN Basics, LeNet, Neural Training Basics, Scaling Laws
+  - `source/attention-mechanisms/` - SE-Net, CBAM, Spatial Attention, Channel Attention, Extensions
+  - `source/unet-image-segmentation/` - UNet Architecture, Implementation, Loss Functions, Data Augmentation
+  - `source/pytorch-practice/` - PyTorch Basics, Tensor Operations, Autograd, Training Workflow, Best Practices
+  - `source/cnn-ablation-study/` - Experiment Design, Implementation, Results Analysis
   - `source/postscript.md` - Project background and development notes
 
-- **`legacy-doc/`** - Original LaTeX source files (being migrated)
+- **`legacy-doc/`** - Original LaTeX source files (archived for reference)
 - **`build/`** - Generated HTML documentation
 - **`_static/`** - Static assets (images, stylesheets)
 
 ## 🚧 Migration Status
 
-**Note**: We are currently migrating from LaTeX to a modern Sphinx-based documentation system. The migration is still in progress, and many TikZ diagrams and images may have rendering issues in the new format.
+**Note**: The migration from LaTeX to a modern Sphinx-based documentation system is now complete. All lecture materials have been refactored into a modular Markdown structure with improved navigation and code integration. The legacy LaTeX sources are kept in `legacy-doc/` for reference.
 
 ## 🛠 Build Instructions
 

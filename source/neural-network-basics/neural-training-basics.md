@@ -108,11 +108,32 @@ $$
 - 模型在训练集上表现很好，但在新数据上表现差
 - 解决方法：增加训练数据、使用正则化、早停法、降低模型复杂度
 
-```{figure} ../../_static/images/gradient_descent.png
-:width: 80%
-:align: center
-
-模型复杂度与损失的关系（示意图）
+```{tikz} 模型复杂度与损失的关系（示意图）
+\begin{tikzpicture}[scale=1.1]
+  % Axes
+  \draw[->] (0,0) -- (7,0) node[right] {模型复杂度};
+  \draw[->] (0,0) -- (0,4) node[above] {损失};
+  
+  % Training loss curve (decreasing)
+  \draw[thick, blue, domain=0.5:6.5, smooth] plot ({\x}, {2.8/(0.7*\x+1)});
+  \node[blue] at (5.5,1.1) {训练损失};
+  
+  % Validation loss curve (U-shape)
+  \draw[thick, red, domain=0.5:6.5, smooth] plot ({\x}, {1.2 + 0.2*\x - 0.25*exp(-0.5*(\x-3)^2)});
+  \node[red] at (1.5,2.8) {验证损失};
+  
+  % Overfitting region
+  \draw[dashed, gray] (4.5,0) -- (4.5,4);
+  \node[gray] at (5.2,3.5) {过拟合区域};
+  
+  % Underfitting region
+  \draw[dashed, gray] (1.5,0) -- (1.5,4);
+  \node[gray] at (0.9,3.5) {欠拟合区域};
+  
+  % Optimal point
+  \fill[green!70!black] (3,1.5) circle (0.08);
+  \node[green!70!black] at (3,1.8) {最佳复杂度};
+\end{tikzpicture}
 ```
 
 ```{note}
@@ -125,22 +146,18 @@ $$
 
 在神经网络中，正则化就是帮助我们训练出“聪明”而不是“死记硬背”的模型的技术。
 
-```{tikz} 正则化的直观理解
-\begin{tikzpicture}[scale=0.8]
-    % Student learning analogy
-    \node at (0,3) {\textbf{学生学习}};
-    \draw[->] (-1,2.3) -- (1,2.3);
-    \node at (0,1.7) {理解概念};
-    \node at (0,1) {举一反三};
-    
-    \node at (6,3) {\textbf{神经网络训练}};
-    \draw[->] (5,2.3) -- (7,2.3);
-    \node at (6,1.7) {学习通用特征};
-    \node at (6,1) {泛化到新数据};
-    
-    \draw[->, thick, blue!70] (2,2.5) -- (4,2.5);
-    \node[blue!70] at (3,2.8) {正则化};
-\end{tikzpicture}
+```{list-table} 正则化的直观理解
+:header-rows: 1
+:widths: 50 50
+
+* - **学生学习**
+  - **神经网络训练**
+* - 理解概念
+  - 学习通用特征
+* - 举一反三
+  - 泛化到新数据
+* - 正则化帮助学生避免死记硬背
+  - 正则化帮助模型避免过拟合
 ```
 
 ### L1和L2正则化：最简单的正则化方法
