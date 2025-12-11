@@ -1,5 +1,16 @@
 # 张量操作详解
 
+## 什么是张量
+
+张量是PyTorch中的基本数据结构，是多维数组的推广。标量（0维）、向量（1维）、矩阵（2维）都是张量（$n$维）的特例。张量可以在CPU或GPU上运行，支持自动微分，是构建深度学习模型的核心组件。与NumPy数组不同，PyTorch张量可以利用GPU加速计算，并能够跟踪梯度用于反向传播。
+
+```{figure} ../../_static/images/scalar-to-tensor.png
+:width: 80%
+:align: center
+
+从标量到张量
+```
+
 ## 创建张量
 
 ```python
@@ -87,9 +98,3 @@ C = A + B  # B被广播为(3, 2, 4)
 B_expanded = B.unsqueeze(0).expand(3, 2, 4)
 ```
 
-```{figure} ../../_static/images/scalar-to-tensor.png
-:width: 80%
-:align: center
-
-标量到张量的广播机制示意图
-```
