@@ -25,21 +25,25 @@ The complete lecture materials are available online at:
 
 ## 🚧 Migration Status
 
-**Note**: The migration from LaTeX to a modern Sphinx-based documentation system is now complete. All lecture materials have been refactored into a modular Markdown structure with improved navigation and code integration. The legacy LaTeX sources are kept in `legacy-doc/` for reference.
+**Note**: The migration from LaTeX to a modern Sphinx-based documentation system is almost complete. All lecture materials have been refactored into a modular Markdown structure with improved navigation and code integration. The legacy LaTeX sources are kept in `legacy-doc/` for reference. The migration of TikZ diagrams is incomplete.
 
 ## 🛠 Build Instructions
 
 To build the documentation locally:
 
 ```bash
+# Venv preparation
+uv venv
+source .venv/bin/activate
+
 # Install dependencies
 uv sync
 
 # Build HTML documentation
-python -m sphinx source build/html
+make build
 
 # View the documentation
-open build/html/index.html
+cd build/html && python3 -m http.server 1200 & open "http://localhost:1200"
 ```
 
 ## 📝 About This Project
