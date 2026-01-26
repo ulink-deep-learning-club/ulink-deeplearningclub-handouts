@@ -128,9 +128,10 @@ tikz_resolution = 92
 tikz_latex_preamble = r'''
 \usepackage[UTF8]{ctex}
 \usepackage{fontspec}
-\usetikzlibrary{shapes,arrows,arrows.meta,positioning,shapes.geometric,calc,decorations.pathreplacing}
+\usetikzlibrary{shapes,arrows,arrows.meta,positioning,shapes.geometric,calc,decorations.pathreplacing,trees}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{xcolor}
 
 \setCJKmainfont{Noto Serif CJK SC}
 \setCJKsansfont{Noto Sans CJK SC}

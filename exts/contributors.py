@@ -245,8 +245,24 @@ def generate_html(contributors, logs, pagename: str):
     """
     return html
 
+def is_git_available():
+    """Check if git is installed and accessible"""
+    try:
+        result = subprocess.run(
+            ['git', '--version'],
+            capture_output=True,
+            timeout=5
+        )
+        return result.returncode == 0
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+
 def html_page_context(app, pagename, _, context, doctree):
     if not doctree:
+        return
+    
+    if not is_git_available():
+        logger.warning("Git is not available, contributors will not be shown.")
         return
 
     # get source path (.rst or .md)

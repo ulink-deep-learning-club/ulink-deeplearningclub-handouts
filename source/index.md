@@ -9,6 +9,7 @@
 :maxdepth: 1
 
 math-fundamentals/index
+
 neural-network-basics/index
 pytorch-practice/index
 cnn-ablation-study/index

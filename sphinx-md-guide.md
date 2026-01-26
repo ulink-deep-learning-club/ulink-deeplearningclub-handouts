@@ -105,6 +105,20 @@ $$
 
 Both styles produce properly rendered equations.
 
+## Coloured Box
+
+To generate a coloured box to indicate the purpose or the nature of a paragraph, an `admonition` can be used.
+Admonition have following classes: `attention`, `caution`, `danger`, `error`, `hint`, `important`, `note`, `tip` and `warning`
+
+Example:
+
+```{admonition}
+:class: tip
+
+This is a tip
+```
+
+
 ## Table of Contents
 
 To generate a table of contents within an admonition, combine the `admonition` and `toctree` directives. The `toctree` directive must be nested using tildes as described in the Nested Directives section.
