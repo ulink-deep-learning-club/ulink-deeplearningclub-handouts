@@ -17,7 +17,7 @@ def get_potential_paths():
     Returns a list of potential browser paths based on the operating system.
     """
     system = platform.system()
-    
+
     if system == "Windows":
         # Windows paths (System and User installs)
         return [
@@ -31,15 +31,15 @@ def get_potential_paths():
             # Chromium
             os.path.expandvars(r"%LOCALAPPDATA%\Chromium\Application\chrome.exe"),
         ]
-        
+
     elif system == "Darwin":  # macOS
         return [
             "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
             "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
             "/Applications/Chromium.app/Contents/MacOS/Chromium",
-            "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" 
+            "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
         ]
-        
+
     elif system == "Linux":
         # On Linux, we primarily look for binaries in the global PATH
         return [
@@ -51,7 +51,7 @@ def get_potential_paths():
             "chromium-browser",
             "/usr/bin/google-chrome" # Fallback explicit path
         ]
-        
+
     return []
 
 def find_browser_executable():
@@ -59,7 +59,7 @@ def find_browser_executable():
     Iterates through potential paths and checks if they exist/are executable.
     """
     potential_paths = get_potential_paths()
-    
+
     print(f"[*] Detecting OS: {platform.system()}")
     print("[*] Searching for Chromium-based browsers...")
 
@@ -73,7 +73,7 @@ def find_browser_executable():
             cmd_path = shutil.which(path)
             if cmd_path:
                 return cmd_path
-                
+
     return None
 
 
@@ -110,7 +110,8 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'contributors',
-    'fix_mermaid_svgs'
+    'fix_mermaid_svgs',
+    'sphinxcontrib.bibtex'
 ]
 
 mermaid_output_format = 'svg'
@@ -187,3 +188,7 @@ mathjax3_config = {
         'displayMath': [['$$', '$$'], ['\\[', '\\]']],
     }
 }
+
+bibtex_bibfiles = [
+    "./transfer-learning/references.bib"
+]

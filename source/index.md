@@ -9,10 +9,10 @@
 :maxdepth: 1
 
 math-fundamentals/index
-
 neural-network-basics/index
 pytorch-practice/index
 cnn-ablation-study/index
+transfer-learning/index
 attention-mechanisms/index
 unet-image-segmentation/index
 postscript
