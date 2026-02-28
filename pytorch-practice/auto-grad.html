@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>自动微分 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+    <title>4. 自动微分：PyTorch的核心机制 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
   
   
   
@@ -31,7 +31,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=fdd39664" />
+    <link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=d3093717" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -44,11 +44,377 @@
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script src="../_static/translations.js?v=beaddf03"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'pytorch-practice/auto-grad';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
     <link rel="next" title="优化器" href="optimiser.html" />
-    <link rel="prev" title="张量操作详解" href="tensor-ops.html" />
+    <link rel="prev" title="3. 张量操作详解：PyTorch的核心数据结构" href="tensor-ops.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
   </head>
@@ -175,10 +541,10 @@
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">PyTorch基础教程：从NumPy到深度学习</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">1. 引言：PyTorch的设计哲学与学习路径</a></li>
 <li class="toctree-l2"><a class="reference internal" href="from-numpy-to-pytorch.html">从NumPy到PyTorch</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tensor-ops.html">张量操作详解</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">自动微分</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tensor-ops.html">3. 张量操作详解：PyTorch的核心数据结构</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">4. 自动微分：PyTorch的核心机制</a></li>
 <li class="toctree-l2"><a class="reference internal" href="optimiser.html">优化器</a></li>
 <li class="toctree-l2"><a class="reference internal" href="neural-network-module.html">神经网络模块</a></li>
 <li class="toctree-l2"><a class="reference internal" href="best-practices.html">最佳实践</a></li>
@@ -191,6 +557,13 @@
 <li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：什么是消融研究？</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../transfer-learning/index.html">深度学习中的迁移学习</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part1-intro.html">第一部分：导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part2-taxonomy.html">第二部分：迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part3-model-transfer.html">第三部分：基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part4-practical-guide.html">第四部分：实操指南</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../attention-mechanisms/index.html">CNN中的注意力机制：从 SE-Net 到 CBAM</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -422,7 +795,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>自动微分</h1>
+    <h1>4. 自动微分：PyTorch的核心机制</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -432,10 +805,31 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">计算图基础</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">梯度计算规则</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">梯度累积与控制</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">禁用梯度计算</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">4.1 计算图基础</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">4.1.1 什么是计算图？</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">4.1.2 动态计算图示例</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">4.2 梯度计算规则</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">4.2.1 基本梯度计算</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">4.2.2 梯度计算原理</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">4.3 梯度累积与控制</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">4.3.1 梯度累积技巧</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">4.3.2 梯度累积的应用场景</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">4.4 禁用梯度计算</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">4.4.1 禁用梯度的方法</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">4.4.2 何时禁用梯度？</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">4.5 高级主题</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">4.5.1 自定义自动微分</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">4.5.2 梯度检查</a></li>
+</ul>
+</li>
 </ul>
             </nav>
         </div>
@@ -447,13 +841,48 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="id1">
-<h1>自动微分<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="pytorch">
+<h1>4. 自动微分：PyTorch的核心机制<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h1>
+<div class="important admonition">
+<p class="admonition-title">本章要点</p>
+<ul class="simple">
+<li><p>理解动态计算图的工作原理</p></li>
+<li><p>掌握梯度计算的基本规则</p></li>
+<li><p>学习梯度累积与控制技巧</p></li>
+<li><p>了解何时以及如何禁用梯度计算</p></li>
+<li><p>应用自动微分解决实际问题</p></li>
+</ul>
+</div>
+<section id="id1">
+<h2>4.1 计算图基础<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<p>PyTorch使用<strong>动态计算图</strong>记录张量操作。计算图是深度学习框架的核心，它跟踪所有操作并自动计算梯度。</p>
 <section id="id2">
-<h2>计算图基础<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>PyTorch使用动态计算图记录张量操作：</p>
-<div class="literal-block-wrapper docutils container" id="id6">
-<div class="code-block-caption"><span class="caption-text">动态计算图</span><a class="headerlink" href="#id6" title="Link to this code">#</a></div>
+<h3>4.1.1 什么是计算图？<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
+<p>计算图是有向无环图（DAG），其中：</p>
+<ul class="simple">
+<li><p><strong>节点</strong>：表示张量或操作</p></li>
+<li><p><strong>边</strong>：表示数据依赖关系</p></li>
+<li><p><strong>叶子节点</strong>：用户创建的张量（<code class="docutils literal notranslate"><span class="pre">requires_grad=True</span></code>）</p></li>
+<li><p><strong>非叶子节点</strong>：通过操作生成的张量</p></li>
+</ul>
+<object data="../_images/mermaid-3cb3bc50285327031cbffe1ee4e8f77fee84a773.svg" type="image/svg+xml">
+            <p class="warning">flowchart TD
+    A[x: requires_grad=True] --&gt; C[乘法]
+    B[y: requires_grad=True] --&gt; C
+    C --&gt; D[z = x * y]
+    D --&gt; E[加法]
+    F[常数 2] --&gt; E
+    E --&gt; G[result = z + 2]
+    
+    style A fill:#e1f5fe
+    style B fill:#e1f5fe
+    style F fill:#f3e5f5
+    style G fill:#e8f5e8</p></object>
+</section>
+<section id="id3">
+<h3>4.1.2 动态计算图示例<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<div class="literal-block-wrapper docutils container" id="id16">
+<div class="code-block-caption"><span class="caption-text">动态计算图构建与可视化</span><a class="headerlink" href="#id16" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="linenos"> 2</span>
 <span class="linenos"> 3</span><span class="c1"># 创建需要梯度的张量</span>
@@ -471,33 +900,134 @@ document.write(`
 </pre></div>
 </div>
 </div>
+<div class="note admonition">
+<p class="admonition-title">动态计算图的优势</p>
+<ol class="arabic simple">
+<li><p><strong>灵活性</strong>：图结构在运行时动态构建</p></li>
+<li><p><strong>易调试</strong>：可以随时检查中间结果</p></li>
+<li><p><strong>Python集成</strong>：与Python控制流无缝结合</p></li>
+<li><p><strong>内存效率</strong>：可以释放不再需要的中间结果</p></li>
+</ol>
+</div>
 </section>
-<section id="id3">
-<h2>梯度计算规则<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
-<div class="literal-block-wrapper docutils container" id="id7">
-<div class="code-block-caption"><span class="caption-text">梯度计算</span><a class="headerlink" href="#id7" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="linenos"> 2</span>
-<span class="linenos"> 3</span><span class="c1"># 复杂函数的梯度</span>
-<span class="linenos"> 4</span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="linenos"> 5</span><span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">],</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="linenos"> 6</span>
-<span class="linenos"> 7</span><span class="c1"># 向量运算</span>
-<span class="linenos"> 8</span><span class="n">z</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
-<span class="linenos"> 9</span>
-<span class="linenos">10</span><span class="c1"># 计算梯度</span>
-<span class="linenos">11</span><span class="n">z</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-<span class="linenos">12</span>
-<span class="linenos">13</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x.grad = </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># y + 2x</span>
-<span class="linenos">14</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;y.grad = </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># x</span>
+</section>
+<section id="id4">
+<h2>4.2 梯度计算规则<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p>PyTorch使用反向传播算法自动计算梯度。当调用<code class="docutils literal notranslate"><span class="pre">.backward()</span></code>时，框架会沿着计算图反向传播，计算所有叶子节点的梯度。</p>
+<section id="id5">
+<h3>4.2.1 基本梯度计算<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<div class="literal-block-wrapper docutils container" id="id17">
+<div class="code-block-caption"><span class="caption-text">复杂函数的梯度计算与验证</span><a class="headerlink" href="#id17" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 2</span><span class="sd">自动微分梯度计算示例</span>
+<span class="linenos"> 3</span>
+<span class="linenos"> 4</span><span class="sd">本示例演示PyTorch如何自动计算复杂函数的梯度。</span>
+<span class="linenos"> 5</span><span class="sd">函数：z = x·y + ||x||²</span>
+<span class="linenos"> 6</span><span class="sd">理论梯度：∂z/∂x = y + 2x, ∂z/∂y = x</span>
+<span class="linenos"> 7</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 8</span>
+<span class="linenos"> 9</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="linenos">10</span>
+<span class="linenos">11</span><span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="linenos">12</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;主函数：演示自动微分梯度计算&quot;&quot;&quot;</span>
+<span class="linenos">13</span>    
+<span class="linenos">14</span>    <span class="c1"># 创建需要梯度的张量</span>
+<span class="linenos">15</span>    <span class="c1"># requires_grad=True 告诉PyTorch跟踪这些张量的操作历史</span>
+<span class="linenos">16</span>    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="linenos">17</span>    <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">],</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="linenos">18</span>    
+<span class="linenos">19</span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+<span class="linenos">20</span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;自动微分梯度计算示例&quot;</span><span class="p">)</span>
+<span class="linenos">21</span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+<span class="linenos">22</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;输入张量 x: </span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">23</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;输入张量 y: </span><span class="si">{</span><span class="n">y</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">24</span>    <span class="nb">print</span><span class="p">()</span>
+<span class="linenos">25</span>    
+<span class="linenos">26</span>    <span class="c1"># 定义复杂函数：z = x·y + ||x||²</span>
+<span class="linenos">27</span>    <span class="c1"># torch.dot(x, y): 向量点积</span>
+<span class="linenos">28</span>    <span class="c1"># torch.norm(x): 向量范数（L2范数）</span>
+<span class="linenos">29</span>    <span class="n">z</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+<span class="linenos">30</span>    
+<span class="linenos">31</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;计算函数值 z = x·y + ||x||²&quot;</span><span class="p">)</span>
+<span class="linenos">32</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;z = </span><span class="si">{</span><span class="n">z</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">33</span>    <span class="nb">print</span><span class="p">()</span>
+<span class="linenos">34</span>    
+<span class="linenos">35</span>    <span class="c1"># 计算梯度</span>
+<span class="linenos">36</span>    <span class="c1"># backward() 方法自动计算所有requires_grad=True的张量的梯度</span>
+<span class="linenos">37</span>    <span class="n">z</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="linenos">38</span>    
+<span class="linenos">39</span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;梯度计算结果：&quot;</span><span class="p">)</span>
+<span class="linenos">40</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;∂z/∂x (x.grad) = </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 理论值：y + 2x = [4,5,6] + 2*[1,2,3] = [6,9,12]</span>
+<span class="linenos">41</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;∂z/∂y (y.grad) = </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 理论值：x = [1,2,3]</span>
+<span class="linenos">42</span>    <span class="nb">print</span><span class="p">()</span>
+<span class="linenos">43</span>    
+<span class="linenos">44</span>    <span class="c1"># 验证梯度计算正确性</span>
+<span class="linenos">45</span>    <span class="n">expected_x_grad</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span>
+<span class="linenos">46</span>    <span class="n">expected_y_grad</span> <span class="o">=</span> <span class="n">x</span>
+<span class="linenos">47</span>    
+<span class="linenos">48</span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;梯度验证：&quot;</span><span class="p">)</span>
+<span class="linenos">49</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;理论 ∂z/∂x: </span><span class="si">{</span><span class="n">expected_x_grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">50</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;理论 ∂z/∂y: </span><span class="si">{</span><span class="n">expected_y_grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">51</span>    <span class="nb">print</span><span class="p">()</span>
+<span class="linenos">52</span>    
+<span class="linenos">53</span>    <span class="c1"># 检查梯度计算是否正确</span>
+<span class="linenos">54</span>    <span class="n">x_grad_correct</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="p">,</span> <span class="n">expected_x_grad</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span>
+<span class="linenos">55</span>    <span class="n">y_grad_correct</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">grad</span><span class="p">,</span> <span class="n">expected_y_grad</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span>
+<span class="linenos">56</span>    
+<span class="linenos">57</span>    <span class="k">if</span> <span class="n">x_grad_correct</span> <span class="ow">and</span> <span class="n">y_grad_correct</span><span class="p">:</span>
+<span class="linenos">58</span>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✅ 梯度计算正确！&quot;</span><span class="p">)</span>
+<span class="linenos">59</span>    <span class="k">else</span><span class="p">:</span>
+<span class="linenos">60</span>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;❌ 梯度计算有误！&quot;</span><span class="p">)</span>
+<span class="linenos">61</span>    
+<span class="linenos">62</span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+<span class="linenos">63</span>    
+<span class="linenos">64</span>    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span>
+<span class="linenos">65</span>
+<span class="linenos">66</span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="linenos">67</span>    <span class="c1"># 运行示例</span>
+<span class="linenos">68</span>    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">main</span><span class="p">()</span>
+<span class="linenos">69</span>    
+<span class="linenos">70</span>    <span class="c1"># 额外信息：展示计算图相关信息</span>
+<span class="linenos">71</span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">计算图信息：&quot;</span><span class="p">)</span>
+<span class="linenos">72</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;z.grad_fn: </span><span class="si">{</span><span class="n">z</span><span class="o">.</span><span class="n">grad_fn</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">73</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;z.is_leaf: </span><span class="si">{</span><span class="n">z</span><span class="o">.</span><span class="n">is_leaf</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">74</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x.is_leaf: </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">is_leaf</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">75</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;y.is_leaf: </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">is_leaf</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">76</span>    
+<span class="linenos">77</span>    <span class="c1"># 清理梯度（在实际训练中很重要）</span>
+<span class="linenos">78</span>    <span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
+<span class="linenos">79</span>    <span class="n">y</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
+<span class="linenos">80</span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">梯度已清零，准备下一次计算。&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </section>
-<section id="id4">
-<h2>梯度累积与控制<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
-<div class="literal-block-wrapper docutils container" id="id8">
-<div class="code-block-caption"><span class="caption-text">梯度累积与控制</span><a class="headerlink" href="#id8" title="Link to this code">#</a></div>
+<section id="id6">
+<h3>4.2.2 梯度计算原理<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p>对于标量输出 <span class="math notranslate nohighlight">\(L\)</span>，PyTorch计算每个叶子节点 <span class="math notranslate nohighlight">\(x_i\)</span> 的梯度：</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{\partial L}{\partial x_i} = \sum_{j \in \text{路径}} \frac{\partial L}{\partial y_j} \cdot \frac{\partial y_j}{\partial x_i}
+\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(y_j\)</span> 是计算图中的中间变量。</p>
+<div class="caution admonition">
+<p class="admonition-title">梯度计算注意事项</p>
+<ol class="arabic simple">
+<li><p><strong>标量输出</strong>：默认情况下，<code class="docutils literal notranslate"><span class="pre">.backward()</span></code> 只适用于标量输出</p></li>
+<li><p><strong>梯度累积</strong>：多次调用 <code class="docutils literal notranslate"><span class="pre">.backward()</span></code> 会累积梯度</p></li>
+<li><p><strong>梯度清零</strong>：训练循环中需要手动清零梯度</p></li>
+<li><p><strong>内存管理</strong>：计算图会占用内存，及时释放</p></li>
+</ol>
+</div>
+</section>
+</section>
+<section id="id7">
+<h2>4.3 梯度累积与控制<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<p>在实际训练中，我们经常需要控制梯度的计算和累积。</p>
+<section id="id8">
+<h3>4.3.1 梯度累积技巧<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<div class="literal-block-wrapper docutils container" id="id18">
+<div class="code-block-caption"><span class="caption-text">梯度累积与控制策略</span><a class="headerlink" href="#id18" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="linenos"> 2</span>
 <span class="linenos"> 3</span><span class="c1"># 梯度累积问题</span>
@@ -523,10 +1053,26 @@ document.write(`
 </div>
 </div>
 </section>
-<section id="id5">
-<h2>禁用梯度计算<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
-<div class="literal-block-wrapper docutils container" id="id9">
-<div class="code-block-caption"><span class="caption-text">禁用梯度计算</span><a class="headerlink" href="#id9" title="Link to this code">#</a></div>
+<section id="id9">
+<h3>4.3.2 梯度累积的应用场景<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<div class="important admonition">
+<p class="admonition-title">何时使用梯度累积？</p>
+<ol class="arabic simple">
+<li><p><strong>大批次训练</strong>：当GPU内存不足时，使用小批次累积梯度</p></li>
+<li><p><strong>稳定训练</strong>：累积多个小批次的梯度，减少噪声</p></li>
+<li><p><strong>模拟大批次</strong>：用小批次模拟大批次的效果</p></li>
+<li><p><strong>分布式训练</strong>：在多个设备间同步梯度</p></li>
+</ol>
+</div>
+</section>
+</section>
+<section id="id10">
+<h2>4.4 禁用梯度计算<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
+<p>在某些情况下，我们不需要计算梯度，这时可以禁用自动微分以提高性能。</p>
+<section id="id11">
+<h3>4.4.1 禁用梯度的方法<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<div class="literal-block-wrapper docutils container" id="id19">
+<div class="code-block-caption"><span class="caption-text">禁用梯度计算的多种方法</span><a class="headerlink" href="#id19" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="linenos"> 2</span>
 <span class="linenos"> 3</span><span class="c1"># 方法1：torch.no_grad()上下文管理器</span>
@@ -549,13 +1095,72 @@ document.write(`
 </div>
 </div>
 </section>
+<section id="id12">
+<h3>4.4.2 何时禁用梯度？<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
+<div class="note admonition">
+<p class="admonition-title">禁用梯度的场景</p>
+<ol class="arabic simple">
+<li><p><strong>模型推理</strong>：预测阶段不需要梯度</p></li>
+<li><p><strong>特征提取</strong>：仅使用预训练模型提取特征</p></li>
+<li><p><strong>冻结参数</strong>：训练部分层时冻结其他层</p></li>
+<li><p><strong>性能优化</strong>：减少内存占用和计算时间</p></li>
+<li><p><strong>数值稳定性</strong>：避免梯度计算中的数值问题</p></li>
+</ol>
+</div>
+</section>
+</section>
+<section id="id13">
+<h2>4.5 高级主题<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<section id="id14">
+<h3>4.5.1 自定义自动微分<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
+<p>PyTorch允许定义自定义函数的梯度计算规则：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CustomFunction</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">Function</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
+        <span class="c1"># 前向传播计算</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">save_for_backward</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">input</span> <span class="o">*</span> <span class="mi">2</span>
+    
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">backward</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">grad_output</span><span class="p">):</span>
+        <span class="c1"># 反向传播计算梯度</span>
+        <span class="nb">input</span><span class="p">,</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">saved_tensors</span>
+        <span class="k">return</span> <span class="n">grad_output</span> <span class="o">*</span> <span class="mi">2</span>
+</pre></div>
+</div>
+</section>
+<section id="id15">
+<h3>4.5.2 梯度检查<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<p>使用<code class="docutils literal notranslate"><span class="pre">torch.autograd.gradcheck</span></code>验证梯度计算的正确性：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">test_function</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">3</span> <span class="o">+</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">x</span>
+
+<span class="c1"># 验证梯度计算是否正确</span>
+<span class="n">test_input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">test</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">gradcheck</span><span class="p">(</span><span class="n">test_function</span><span class="p">,</span> <span class="n">test_input</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;梯度检查结果: </span><span class="si">{</span><span class="n">test</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="success admonition">
+<p class="admonition-title">本章总结</p>
+<p>自动微分是PyTorch的核心特性，它使得深度学习模型的训练变得简单高效。通过本章学习，您应该能够：</p>
+<ol class="arabic simple">
+<li><p>理解动态计算图的工作原理</p></li>
+<li><p>正确使用梯度计算和累积</p></li>
+<li><p>在适当的时候禁用梯度计算</p></li>
+<li><p>验证梯度计算的正确性</p></li>
+</ol>
+<p>在下一章中，我们将学习优化器，了解如何使用梯度来更新模型参数。</p>
+</div>
+</section>
+</section>
 </section>
 
     <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -563,6 +1168,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">dcecce4</code>
+                2026-01-26 - <strong>Heyan Zhu</strong>: docs: enrich math fundamentals documentation with code captions and TikZ visualizations
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">0c291d7</code>
                 2025-12-10 - <strong>Heyan Zhu</strong>: docs: restructure course materials and add new content
@@ -589,7 +1199,7 @@ document.write(`
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">上一页</p>
-        <p class="prev-next-title">张量操作详解</p>
+        <p class="prev-next-title">3. 张量操作详解：PyTorch的核心数据结构</p>
       </div>
     </a>
     <a class="right-next"
@@ -617,10 +1227,31 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">计算图基础</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">梯度计算规则</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">梯度累积与控制</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">禁用梯度计算</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">4.1 计算图基础</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">4.1.1 什么是计算图？</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">4.1.2 动态计算图示例</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">4.2 梯度计算规则</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">4.2.1 基本梯度计算</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">4.2.2 梯度计算原理</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">4.3 梯度累积与控制</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">4.3.1 梯度累积技巧</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">4.3.2 梯度累积的应用场景</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">4.4 禁用梯度计算</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">4.4.1 禁用梯度的方法</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">4.4.2 何时禁用梯度？</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">4.5 高级主题</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">4.5.1 自定义自动微分</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">4.5.2 梯度检查</a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 

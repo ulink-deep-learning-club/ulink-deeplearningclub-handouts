@@ -31,7 +31,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=fdd39664" />
+    <link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=d3093717" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -46,6 +46,370 @@
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'math-fundamentals/activation-functions';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
@@ -177,10 +541,10 @@
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch基础教程：从NumPy到深度学习</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">1. 引言：PyTorch的设计哲学与学习路径</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从NumPy到PyTorch</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">张量操作详解</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">自动微分</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">3. 张量操作详解：PyTorch的核心数据结构</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">4. 自动微分：PyTorch的核心机制</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">最佳实践</a></li>
@@ -193,6 +557,13 @@
 <li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：什么是消融研究？</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../transfer-learning/index.html">深度学习中的迁移学习</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part1-intro.html">第一部分：导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part2-taxonomy.html">第二部分：迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part3-model-transfer.html">第三部分：基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part4-practical-guide.html">第四部分：实操指南</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../attention-mechanisms/index.html">CNN中的注意力机制：从 SE-Net 到 CBAM</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -450,32 +821,36 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">1. 隐藏层激活函数</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">2. 输出层激活函数</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">3. 特殊考虑</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">4. 激活函数选择决策树</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">5. 实验建议</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">激活函数的梯度分析</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">梯度消失与爆炸</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">梯度计算优化</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">激活函数的梯度分析</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">1. 梯度消失问题</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">2. 梯度爆炸问题</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">3. 梯度流动可视化</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">4. 梯度检查实践</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">激活函数的初始化配合</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">激活函数的初始化配合</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#xavier">Xavier初始化</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#he">He初始化</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">对比与选择建议</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">对比与选择建议</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">实践建议</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">1. 激活函数组合</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">2. 激活函数可视化</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">3. 激活函数性能测试</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">实践建议</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">1. 激活函数组合</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">2. 激活函数可视化</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">3. 激活函数性能测试</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">高级主题</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">1. 自适应激活函数</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">2. 注意力机制中的激活函数</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">3. 激活函数归一化</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">高级主题</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">1. 自适应激活函数</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">2. 注意力机制中的激活函数</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">3. 激活函数归一化</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id26">总结</a></li>
 </ul>
             </nav>
         </div>
@@ -492,13 +867,19 @@ document.write(`
 <section id="id2">
 <h2>基本概念<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
 <p>激活函数（Activation Function）是神经网络中的非线性变换函数，它决定了神经元是否被激活以及激活的程度。激活函数引入了非线性因素，使得神经网络能够学习和表示复杂模式。</p>
+<p>从生物神经元的角度理解，激活函数模拟了生物神经元中&quot;动作电位&quot;的触发机制——当输入信号超过某个阈值时，神经元被激活并产生输出信号。人工神经网络中的激活函数正是这一生物学原理的数学抽象。</p>
+<p>神经网络如果没有激活函数，无论堆叠多少层，都只能学习线性变换。这是因为多个线性变换的组合仍然是一个线性变换：</p>
+<div class="math notranslate nohighlight">
+\[f(W_2(W_1x)) = W_2W_1x = W'x\]</div>
+<p>激活函数通过引入非线性，使得神经网络能够逼近任意复杂的函数（根据通用近似定理），这是深度学习能够处理图像、语音、自然语言等复杂任务的基础。</p>
 <div class="note admonition">
-<p class="admonition-title">激活函数的作用</p>
+<p class="admonition-title">激活函数的核心作用</p>
 <ul class="simple">
-<li><p><strong>引入非线性</strong>：使神经网络能够逼近任意复杂函数</p></li>
-<li><p><strong>决定输出范围</strong>：控制神经元输出的数值范围</p></li>
-<li><p><strong>影响梯度流动</strong>：影响反向传播中梯度的计算和流动</p></li>
-<li><p><strong>稀疏激活</strong>：某些激活函数可以产生稀疏激活，提高计算效率</p></li>
+<li><p><strong>引入非线性</strong>：使神经网络能够逼近任意复杂函数，这是深度学习强大表达能力的根本来源</p></li>
+<li><p><strong>决定输出范围</strong>：控制神经元输出的数值范围，影响后续层的输入分布</p></li>
+<li><p><strong>影响梯度流动</strong>：反向传播中梯度的计算和流动直接由激活函数的导数决定</p></li>
+<li><p><strong>稀疏激活</strong>：某些激活函数（如ReLU）可以产生稀疏激活，提高计算效率和特征选择性</p></li>
+<li><p><strong>特征映射</strong>：将输入空间映射到新的特征空间，帮助网络提取有用特征</p></li>
 </ul>
 </div>
 </section>
@@ -506,206 +887,610 @@ document.write(`
 <h2>常见激活函数<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
 <section id="sigmoid">
 <h3>1. Sigmoid函数<a class="headerlink" href="#sigmoid" title="Link to this heading">#</a></h3>
-<p>Sigmoid函数将输入压缩到(0,1)区间，常用于二分类问题的输出层：</p>
+<p><strong>历史背景与设计动机</strong></p>
+<p>Sigmoid函数（又称Logistic函数）是最早被广泛使用的激活函数之一，其历史可以追溯到19世纪的逻辑回归模型。设计之初，Sigmoid函数的目的是：</p>
+<ol class="arabic simple">
+<li><p><strong>概率建模</strong>：将任意实数映射到(0,1)区间，自然地解释为概率值，这在二分类问题中尤为重要</p></li>
+<li><p><strong>平滑阈值</strong>：提供一个连续可微的近似来模拟生物神经元的&quot;全或无&quot;发放机制</p></li>
+<li><p><strong>梯度传递</strong>：在当时计算资源有限的背景下，其导数计算简单，便于反向传播</p></li>
+</ol>
+<p><strong>数学定义与推导</strong></p>
+<p>Sigmoid函数的数学表达式为：</p>
 <div class="math notranslate nohighlight">
-\[\sigma(x) = \frac{1}{1 + e^{-x}}\]</div>
-<p><strong>导数</strong>：</p>
+\[ \sigma(x) = \frac{1}{1 + e^{-x}} = \frac{e^x}{e^x + 1} \]</div>
+<p>这个函数可以从统计学中的Logistic分布导出，其累积分布函数（CDF）正是Sigmoid函数。Logistic分布的CDF为：</p>
 <div class="math notranslate nohighlight">
-\[\sigma'(x) = \sigma(x)(1 - \sigma(x))\]</div>
-<p><strong>特点</strong>：</p>
+\[ F(x) = \frac{1}{1 + e^{-\frac{x-\mu}{s}}} \]</div>
+<p>当位置参数<span class="math notranslate nohighlight">\(\mu=0\)</span>、尺度参数<span class="math notranslate nohighlight">\(s=1\)</span>时，即得到标准的Sigmoid函数。</p>
+<p><strong>导数特性与数学之美</strong></p>
+<p>Sigmoid函数的导数具有优雅的形式：</p>
+<div class="math notranslate nohighlight">
+\[ \sigma'(x) = \sigma(x)(1 - \sigma(x)) \]</div>
+<p>这个性质意味着在反向传播时，只需要知道前向传播的输出值<span class="math notranslate nohighlight">\(\sigma(x)\)</span>，就可以直接计算梯度，无需额外的指数运算，大大提高了计算效率。</p>
+<p><strong>设计目标的实现</strong></p>
+<ol class="arabic simple">
+<li><p><strong>概率解释</strong>：输出值域(0,1)使得<span class="math notranslate nohighlight">\(\sigma(x)\)</span>可以解释为&quot;激活的概率&quot;，在二分类问题中，<span class="math notranslate nohighlight">\(P(y=1|x) = \sigma(w^Tx + b)\)</span></p></li>
+<li><p><strong>非线性转换</strong>：将<span class="math notranslate nohighlight">\((-\infty, +\infty)\)</span>的输入压缩到(0,1)的输出，引入非线性变换</p></li>
+<li><p><strong>单调性</strong>：函数是单调递增的，保持了输入的序关系，便于优化</p></li>
+</ol>
+<p><strong>优点与局限性</strong></p>
+<p>优点：</p>
 <ul class="simple">
-<li><p>输出范围(0,1)，可解释为概率</p></li>
-<li><p>平滑可导，适合梯度下降</p></li>
-<li><p>容易导致梯度消失（当输入绝对值较大时梯度接近0）</p></li>
-<li><p>输出不是零中心的，可能导致优化困难</p></li>
+<li><p>输出范围(0,1)，可解释为概率，这在二分类的输出层仍然广泛使用</p></li>
+<li><p>函数平滑可导，处处可微，适合梯度下降优化</p></li>
+<li><p>导数形式简单，计算效率高</p></li>
+<li><p>历史上解决了神经网络从线性到非线性的关键转变</p></li>
+</ul>
+<p>局限性：</p>
+<ul class="simple">
+<li><p><strong>梯度消失问题</strong>：当<span class="math notranslate nohighlight">\(|x|\)</span>较大时，<span class="math notranslate nohighlight">\(\sigma'(x) \approx 0\)</span>，导致深层网络的梯度几乎无法传递到前层</p></li>
+<li><p><strong>非零中心输出</strong>：输出始终为正，导致后续层的输入分布偏置，可能减缓收敛速度</p></li>
+<li><p><strong>计算成本</strong>：相对于后来的ReLU，需要计算指数函数</p></li>
 </ul>
 <p><strong>PyTorch实现</strong>：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
-
-<span class="n">sigmoid</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()</span>
-<span class="n">output</span> <span class="o">=</span> <span class="n">sigmoid</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<div class="literal-block-wrapper docutils container" id="id27">
+<div class="code-block-caption"><span class="caption-text">Sigmoid函数的PyTorch实现</span><a class="headerlink" href="#id27" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="linenos">2</span>
+<span class="linenos">3</span><span class="n">sigmoid</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()</span>
+<span class="linenos">4</span><span class="n">output</span> <span class="o">=</span> <span class="n">sigmoid</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>  <span class="c1"># input: [batch_size, features]</span>
 </pre></div>
 </div>
+</div>
 <p><strong>可视化</strong>：</p>
-<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-0f393b58bb695d7c8a8ee9838b863a19b45005c5.svg" alt="Figure made with TikZ" /></p>
-</div></section>
+<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-4e9f82db8d79116b760c1c316b2c16049ce614fd.svg" alt="Figure made with TikZ" /></p>
+</div><p><strong>饱和区间的直观理解</strong>：当输入<span class="math notranslate nohighlight">\(x\)</span>远离原点时，Sigmoid函数进入饱和区间（输出接近0或1），此时无论输入如何变化，输出几乎不变，导致梯度接近零。这是Sigmoid函数导致梯度消失的根本原因。</p>
+</section>
 <section id="tanh">
 <h3>2. Tanh函数（双曲正切）<a class="headerlink" href="#tanh" title="Link to this heading">#</a></h3>
-<p>Tanh函数将输入压缩到(-1,1)区间，是零中心的：</p>
+<p><strong>历史背景与设计动机</strong></p>
+<p>双曲正切函数（Hyperbolic Tangent，Tanh）可以看作是Sigmoid函数的&quot;零中心&quot;版本。设计Tanh的主要动机是解决Sigmoid函数的两个根本问题：</p>
+<ol class="arabic simple">
+<li><p><strong>零中心化</strong>：Sigmoid的输出范围是(0,1)，始终为正；Tanh将其扩展到(-1,1)，使得输出可以是负数</p></li>
+<li><p><strong>更强的梯度</strong>：在零点附近，Tanh的导数最大值是1（<span class="math notranslate nohighlight">\(\tanh'(0) = 1\)</span>），而Sigmoid的导数最大值只有0.25（<span class="math notranslate nohighlight">\(\sigma'(0) = 0.25\)</span>）</p></li>
+<li><p><strong>对称性</strong>：Tanh是奇函数（<span class="math notranslate nohighlight">\(\tanh(-x) = -\tanh(x)\)</span>），保持了输入的对称性质</p></li>
+</ol>
+<p>Tanh函数与Sigmoid函数之间存在简洁的数学关系，这反映了它们设计理念的连贯性：</p>
 <div class="math notranslate nohighlight">
-\[\tanh(x) = \frac{e^x - e^{-x}}{e^x + e^{-x}} = 2\sigma(2x) - 1\]</div>
-<p><strong>导数</strong>：</p>
+\[ \tanh(x) = 2\sigma(2x) - 1 \]</div>
+<p>这个关系表明，Tanh可以看作是将Sigmoid函数先缩放2倍，再平移-1，从而将输出中心移到零点。</p>
+<p><strong>数学定义与推导</strong></p>
+<p>Tanh函数的数学表达式为：</p>
 <div class="math notranslate nohighlight">
-\[\tanh'(x) = 1 - \tanh^2(x)\]</div>
-<p><strong>特点</strong>：</p>
+\[ \tanh(x) = \frac{e^x - e^{-x}}{e^x + e^{-x}} = \frac{\sinh(x)}{\cosh(x)} \]</div>
+<p>其中<span class="math notranslate nohighlight">\(\sinh(x) = \frac{e^x - e^{-x}}{2}\)</span>是双曲正弦，<span class="math notranslate nohighlight">\(\cosh(x) = \frac{e^x + e^{-x}}{2}\)</span>是双曲余弦。</p>
+<p><strong>导数特性</strong></p>
+<p>Tanh函数的导数为：</p>
+<div class="math notranslate nohighlight">
+\[ \tanh'(x) = 1 - \tanh^2(x) \]</div>
+<p>与Sigmoid类似，导数可以用函数值本身来表示，但值得注意的是，Tanh的导数在<span class="math notranslate nohighlight">\(|x| &lt; 1\)</span>时较大，最大值1出现在<span class="math notranslate nohighlight">\(x=0\)</span>处。</p>
+<p><strong>设计目标的实现</strong></p>
+<ol class="arabic simple">
+<li><p><strong>零中心输出</strong>：输出范围(-1,1)是关于原点对称的，这使得后续层的输入分布更加平衡，有助于梯度流动</p></li>
+<li><p><strong>更强的梯度信号</strong>：在零点附近，Tanh的导数接近1，比Sigmoid的0.25大得多，这意味着更陡峭的梯度信号</p></li>
+<li><p><strong>归一化效果</strong>：无论输入多大，输出始终被限制在(-1,1)范围内，具有一定的归一化效果</p></li>
+</ol>
+<p><strong>优点与局限性</strong></p>
+<p>优点：</p>
 <ul class="simple">
-<li><p>输出范围(-1,1)，零中心</p></li>
-<li><p>梯度消失问题比sigmoid稍好</p></li>
-<li><p>常用于循环神经网络（RNN）的隐藏层</p></li>
+<li><p>输出范围(-1,1)，零中心，有助于优化过程的收敛</p></li>
+<li><p>在零点附近梯度更强，训练初期收敛更快</p></li>
+<li><p>导数计算简单，只需函数值</p></li>
+<li><p>是奇函数，保持了输入的对称性</p></li>
 </ul>
+<p>局限性：</p>
+<ul class="simple">
+<li><p>仍然存在梯度消失问题，当<span class="math notranslate nohighlight">\(|x|\)</span>较大时梯度接近0</p></li>
+<li><p>计算复杂度与Sigmoid相当，比ReLU高</p></li>
+<li><p>在循环神经网络中，Tanh仍然可能导致梯度消失</p></li>
+</ul>
+<p><strong>与Sigmoid的比较</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>特性</p></th>
+<th class="head"><p>Sigmoid</p></th>
+<th class="head"><p>Tanh</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>输出范围</p></td>
+<td><p>(0,1)</p></td>
+<td><p>(-1,1)</p></td>
+</tr>
+<tr class="row-odd"><td><p>零中心</p></td>
+<td><p>否</p></td>
+<td><p>是</p></td>
+</tr>
+<tr class="row-even"><td><p>导数最大值</p></td>
+<td><p>0.25</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p>对称性</p></td>
+<td><p>非对称</p></td>
+<td><p>奇函数</p></td>
+</tr>
+<tr class="row-even"><td><p>常用位置</p></td>
+<td><p>输出层（二分类）</p></td>
+<td><p>隐藏层、RNN</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <p><strong>PyTorch实现</strong>：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tanh</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">()</span>
-<span class="n">output</span> <span class="o">=</span> <span class="n">tanh</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<div class="literal-block-wrapper docutils container" id="id28">
+<div class="code-block-caption"><span class="caption-text">Tanh函数的PyTorch实现</span><a class="headerlink" href="#id28" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="n">tanh</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">()</span>
+<span class="linenos">2</span><span class="n">output</span> <span class="o">=</span> <span class="n">tanh</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
 </pre></div>
 </div>
+</div>
 <p><strong>可视化</strong>：</p>
-<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-bb5dd4a6d31a42cbe2f11d60a07efce9c87e3bdf.svg" alt="Figure made with TikZ" /></p>
-</div></section>
+<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-c45a543d3c6cd2d3bffc29f9f1eae10eebb5ef81.svg" alt="Figure made with TikZ" /></p>
+</div><p><strong>直观理解</strong>：Tanh函数可以看作是将Sigmoid函数&quot;拉伸&quot;并&quot;平移&quot;到以原点为中心的位置。这不仅解决了输出非零中心的问题，还使得函数在原点附近更加&quot;陡峭&quot;，从而在训练初期能够传递更强的梯度信号。</p>
+</section>
 <section id="relu-rectified-linear-unit">
 <h3>3. ReLU函数（Rectified Linear Unit）<a class="headerlink" href="#relu-rectified-linear-unit" title="Link to this heading">#</a></h3>
-<p>ReLU是目前最常用的激活函数，计算简单且能缓解梯度消失问题：</p>
+<p><strong>历史背景与设计动机</strong></p>
+<p>ReLU（Rectified Linear Unit，整流线性单元）于2010年由Xavier Glorot等人提出，并在2012年AlexNet的成功中发挥了关键作用。ReLU的设计动机直接针对Sigmoid和Tanh的根本缺陷：</p>
+<ol class="arabic simple">
+<li><p><strong>梯度消失问题的终结</strong>：Sigmoid和Tanh在<span class="math notranslate nohighlight">\(|x|\)</span>较大时梯度接近0，而ReLU在正区间梯度恒为1，从根本上解决了深层网络的梯度消失问题</p></li>
+<li><p><strong>计算效率</strong>：ReLU只需要一个简单的max操作，没有任何指数运算，计算速度比Sigmoid/Tanh快得多</p></li>
+<li><p><strong>稀疏激活</strong>：ReLU在负区间输出为0，这自然地产生了稀疏表示（大约50%的神经元在任意时刻是&quot;关闭&quot;的）</p></li>
+<li><p><strong>生物学合理性</strong>：研究表明生物神经元也具有类似的&quot;整流&quot;特性</p></li>
+</ol>
+<p>ReLU的设计哲学是&quot;简单而有效&quot;——通过最少的计算开销获得最大的性能提升。</p>
+<p><strong>数学定义与推导</strong></p>
+<p>ReLU函数的数学表达式为：
+$<span class="math notranslate nohighlight">\( \text{ReLU}(x) = \max(0, x) = \begin{cases} x &amp; \text{if } x &gt; 0 \\ 0 &amp; \text{otherwise} \end{cases} \)</span>$</p>
+<p>这个函数可以看作是&quot;半波整流&quot;——只保留正半轴的信号，将负半轴的信号&quot;整流&quot;为零。</p>
+<p><strong>导数特性</strong></p>
+<p>ReLU函数的导数为：</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\text{ReLU}(x) = \max(0, x) = \begin{cases}
-x &amp; \text{if } x &gt; 0 \\
-0 &amp; \text{otherwise}
-\end{cases}\end{split}\]</div>
-<p><strong>导数</strong>：</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}\text{ReLU}'(x) = \begin{cases}
-1 &amp; \text{if } x &gt; 0 \\
-0 &amp; \text{otherwise}
-\end{cases}\end{split}\]</div>
-<p><strong>特点</strong>：</p>
+\[\begin{split} \text{ReLU}'(x) = \begin{cases} 1 &amp; \text{if } x &gt; 0 \\ 0 &amp; \text{if } x &lt; 0 \\ \text{未定义} &amp; \text{if } x = 0 \end{cases} \end{split}\]</div>
+<p>在<span class="math notranslate nohighlight">\(x=0\)</span>处，ReLU的次梯度（subgradient）是[0,1]区间的任意值，通常实践中取0或1。</p>
+<p><strong>设计目标的实现</strong></p>
+<ol class="arabic simple">
+<li><p><strong>梯度传递</strong>：对于正输入，梯度恒为1，可以无损地传递到前层；对于负输入，梯度为0</p></li>
+<li><p><strong>稀疏性</strong>：当输入为负时，神经元完全&quot;关闭&quot;，产生稀疏激活</p></li>
+<li><p><strong>计算简单</strong>：只有比较操作，没有任何非线性运算（指数、对数等）</p></li>
+</ol>
+<p><strong>优点与局限性</strong></p>
+<p>优点：</p>
 <ul class="simple">
-<li><p>计算高效，只有比较和乘法操作</p></li>
-<li><p>缓解梯度消失问题（正区间梯度为1）</p></li>
-<li><p>可能产生&quot;死亡神经元&quot;（输入始终为负时梯度为0）</p></li>
-<li><p>输出不是零中心的</p></li>
+<li><p><strong>彻底解决梯度消失</strong>：在正区间梯度恒为1，深度网络可以正常训练</p></li>
+<li><p><strong>计算极其高效</strong>：只有简单的max和乘法操作，比Sigmoid快6-10倍</p></li>
+<li><p><strong>稀疏表示</strong>：自然产生约50%的稀疏激活，有助于特征选择和泛化</p></li>
+<li><p><strong>收敛速度快</strong>：由于强梯度信号，训练收敛速度比Sigmoid/Tanh快得多</p></li>
+</ul>
+<p>局限性：</p>
+<ul class="simple">
+<li><p><strong>&quot;死亡神经元&quot;问题</strong>：如果某神经元的输入始终为负，其梯度永远为0，该神经元永久&quot;死亡&quot;</p></li>
+<li><p><strong>非零中心输出</strong>：输出范围[0,∞)，仍然存在输出偏置问题</p></li>
+<li><p><strong>无界输出</strong>：输出可以无限增大，可能导致数值不稳定</p></li>
+<li><p><strong>不可导</strong>：在x=0处不可导，需要用次梯度处理</p></li>
+</ul>
+<p><strong>&quot;死亡神经元&quot;的深入分析</strong></p>
+<p>&quot;死亡神经元&quot;是ReLU的一个独特问题。假设一个神经元的输出为<span class="math notranslate nohighlight">\(a = \text{ReLU}(Wx + b)\)</span>，其梯度为：</p>
+<div class="math notranslate nohighlight">
+\[ \frac{\partial L}{\partial W} = \frac{\partial L}{\partial a} \cdot \frac{\partial a}{\partial W} = \frac{\partial L}{\partial a} \cdot \mathbf{1}_{\{Wx + b &gt; 0\}} \]</div>
+<p>如果<span class="math notranslate nohighlight">\(Wx + b\)</span>在训练过程中始终小于等于0，则<span class="math notranslate nohighlight">\(\mathbf{1}_{\{Wx + b &gt; 0\}} = 0\)</span>，梯度为0，权重<span class="math notranslate nohighlight">\(W\)</span>和偏置<span class="math notranslate nohighlight">\(b\)</span>永远不会更新，神经元永久死亡。</p>
+<p>死亡神经元通常发生在以下情况：</p>
+<ul class="simple">
+<li><p>学习率过大，导致权重更新跳过了正区间</p></li>
+<li><p>初始化不当，初始权重使大多数输入为负</p></li>
+<li><p>梯度累积，使权重移入负区间</p></li>
 </ul>
 <p><strong>PyTorch实现</strong>：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">relu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
-<span class="n">output</span> <span class="o">=</span> <span class="n">relu</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<div class="literal-block-wrapper docutils container" id="id29">
+<div class="code-block-caption"><span class="caption-text">ReLU函数的PyTorch实现</span><a class="headerlink" href="#id29" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="n">relu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+<span class="linenos">2</span><span class="n">output</span> <span class="o">=</span> <span class="n">relu</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<span class="linenos">3</span>
+<span class="linenos">4</span><span class="c1"># 也可以使用 inplace 模式节省内存（但可能影响梯度计算）</span>
+<span class="linenos">5</span><span class="n">relu_inplace</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
+</div>
 <p><strong>可视化</strong>：</p>
-<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-92f3923a7b0a15dcd5988a383b1448e84ff60ac3.svg" alt="Figure made with TikZ" /></p>
-</div></section>
+<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-bb8dbbea8439d9ef1af00616c199c7407e8de615.svg" alt="Figure made with TikZ" /></p>
+</div><p><strong>直观理解</strong>：ReLU的图像是一个&quot;斜坡&quot;（ramp）函数，正区间是斜率为1的直线，负区间是值为0的水平线。这个简单的几何形状蕴含着深刻的洞察：神经元应该&quot;选择性地&quot;响应——对正信号做出线性响应，对负信号完全不响应。</p>
+</section>
 <section id="leaky-relu">
 <h3>4. Leaky ReLU<a class="headerlink" href="#leaky-relu" title="Link to this heading">#</a></h3>
-<p>Leaky ReLU是ReLU的改进版本，在负区间引入一个小的斜率：</p>
+<p><strong>历史背景与设计动机</strong></p>
+<p>Leaky ReLU是ReLU最成功的变体之一，由He等人于2015年提出。其设计动机直接针对ReLU的&quot;死亡神经元&quot;问题：</p>
+<ol class="arabic simple">
+<li><p><strong>解决死亡神经元</strong>：通过给负区间一个小的非零斜率，确保即使输入为负，神经元也能获得梯度并&quot;复活&quot;</p></li>
+<li><p><strong>保持稀疏性</strong>：虽然负区间有梯度，但幅度很小，主要的稀疏性仍然保留</p></li>
+<li><p><strong>零中心化改进</strong>：负输出使得整体输出分布更接近零中心</p></li>
+<li><p><strong>无额外超参数负担</strong>：负斜率是一个简单的小常数，不需要复杂的调参</p></li>
+</ol>
+<p>Leaky ReLU的设计哲学是&quot;在保持ReLU优点的同时，修复其主要缺陷&quot;。</p>
+<p><strong>数学定义与推导</strong></p>
+<p>Leaky ReLU函数的数学表达式为：</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\text{LeakyReLU}(x) = \begin{cases}
-x &amp; \text{if } x &gt; 0 \\
-\alpha x &amp; \text{otherwise}
-\end{cases}\end{split}\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(\alpha\)</span> 是一个小的正数（通常取0.01）。</p>
-<p><strong>导数</strong>：</p>
+\[\begin{split} \text{LeakyReLU}(x) = \begin{cases} x &amp; \text{if } x &gt; 0 \\ \alpha x &amp; \text{otherwise} \end{cases} \end{split}\]</div>
+<p>其中<span class="math notranslate nohighlight">\(\alpha\)</span>是一个小的正数，通常取0.01，因此得名&quot;Leaky&quot;（泄漏）。</p>
+<p><strong>导数特性</strong></p>
+<p>Leaky ReLU函数的导数为：</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\text{LeakyReLU}'(x) = \begin{cases}
-1 &amp; \text{if } x &gt; 0 \\
-\alpha &amp; \text{otherwise}
-\end{cases}\end{split}\]</div>
-<p><strong>特点</strong>：</p>
+\[\begin{split} \text{LeakyReLU}'(x) = \begin{cases} 1 &amp; \text{if } x &gt; 0 \\ \alpha &amp; \text{otherwise} \end{cases} \end{split}\]</div>
+<p><strong>设计目标的实现</strong></p>
+<ol class="arabic simple">
+<li><p><strong>负区间梯度</strong>：即使输入为负，也有非零梯度<span class="math notranslate nohighlight">\(\alpha\)</span>，防止神经元永久死亡</p></li>
+<li><p><strong>稀疏性保留</strong>：负斜率很小，负输出相对正输出仍然很小，主要激活仍然是稀疏的</p></li>
+<li><p><strong>零中心化</strong>：负输出使分布更平衡，有助于收敛</p></li>
+</ol>
+<p><strong>关于<span class="math notranslate nohighlight">\(\alpha\)</span>的选择</strong></p>
+<p><span class="math notranslate nohighlight">\(\alpha\)</span>的选择是一个经验性问题：</p>
 <ul class="simple">
-<li><p>解决了&quot;死亡神经元&quot;问题</p></li>
-<li><p>保持了ReLU的计算效率</p></li>
-<li><p>需要选择超参数 <span class="math notranslate nohighlight">\(\alpha\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\alpha = 0.01\)</span>：最常用的值，源于对ReLU死亡问题的保守估计</p></li>
+<li><p><span class="math notranslate nohighlight">\(\alpha = 0.1\)</span>或<span class="math notranslate nohighlight">\(\alpha = 0.2\)</span>：在某些任务上表现更好</p></li>
+<li><p><span class="math notranslate nohighlight">\(\alpha = 0\)</span>：退化为ReLU</p></li>
+<li><p><span class="math notranslate nohighlight">\(\alpha\)</span>可学习：将<span class="math notranslate nohighlight">\(\alpha\)</span>作为可学习参数，让网络自动学习最优斜率（Parametric ReLU, PReLU）</p></li>
 </ul>
+<p><strong>优点与局限性</strong></p>
+<p>优点：</p>
+<ul class="simple">
+<li><p>彻底解决&quot;死亡神经元&quot;问题</p></li>
+<li><p>保持ReLU的计算效率</p></li>
+<li><p>改善输出分布的零中心性</p></li>
+<li><p>在大多数任务上与ReLU表现相当或更好</p></li>
+</ul>
+<p>局限性：</p>
+<ul class="simple">
+<li><p>引入了超参数<span class="math notranslate nohighlight">\(\alpha\)</span>需要调优</p></li>
+<li><p>负区间有梯度，可能降低稀疏性</p></li>
+<li><p>对于某些任务（如音频处理），负输出可能不符合直觉</p></li>
+</ul>
+<p><strong>参数化ReLU（PReLU）</strong></p>
+<p>PReLU将<span class="math notranslate nohighlight">\(\alpha\)</span>作为可学习参数：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split} \text{PReLU}(x) = \begin{cases} x &amp; \text{if } x &gt; 0 \\ \alpha_i x &amp; \text{otherwise} \end{cases} \end{split}\]</div>
+<p>其中<span class="math notranslate nohighlight">\(\alpha_i\)</span>是每个通道独立的可学习参数。</p>
 <p><strong>PyTorch实现</strong>：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">leaky_relu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LeakyReLU</span><span class="p">(</span><span class="n">negative_slope</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
-<span class="n">output</span> <span class="o">=</span> <span class="n">leaky_relu</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<div class="literal-block-wrapper docutils container" id="id30">
+<div class="code-block-caption"><span class="caption-text">Leaky ReLU和PReLU的PyTorch实现</span><a class="headerlink" href="#id30" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="c1"># 标准Leaky ReLU</span>
+<span class="linenos"> 2</span><span class="n">leaky_relu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LeakyReLU</span><span class="p">(</span><span class="n">negative_slope</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="linenos"> 3</span><span class="n">output</span> <span class="o">=</span> <span class="n">leaky_relu</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<span class="linenos"> 4</span>
+<span class="linenos"> 5</span><span class="c1"># PReLU（可学习参数）</span>
+<span class="linenos"> 6</span><span class="n">prelu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">PReLU</span><span class="p">()</span>  <span class="c1"># 默认negative_slope=0.25，可学习</span>
+<span class="linenos"> 7</span><span class="n">output</span> <span class="o">=</span> <span class="n">prelu</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<span class="linenos"> 8</span>
+<span class="linenos"> 9</span><span class="c1"># 带参数的PReLU</span>
+<span class="linenos">10</span><span class="n">prelu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">PReLU</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>  <span class="c1"># 初始化斜率为0.2</span>
 </pre></div>
 </div>
+</div>
 <p><strong>可视化</strong>：</p>
-<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-8f70172edb65c9bd22dd9e6b57812a0c240d8644.svg" alt="Figure made with TikZ" /></p>
-</div></section>
+<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-41eecc066474f33e099fee512b3cddee1cf8abc4.svg" alt="Figure made with TikZ" /></p>
+</div><p><strong>直观理解</strong>：Leaky ReLU给负输入一个&quot;泄漏&quot;通道——即使信号是负的，也能&quot;泄漏&quot;出一点梯度，保持神经元的&quot;生命力&quot;。这就像给一个可能干涸的水渠开一个小的旁路，确保即使在最坏的情况下也有水流通过。</p>
+</section>
 <section id="elu-exponential-linear-unit">
 <h3>5. ELU函数（Exponential Linear Unit）<a class="headerlink" href="#elu-exponential-linear-unit" title="Link to this heading">#</a></h3>
-<p>ELU在负区间使用指数函数，使得输出均值接近零：</p>
+<p><strong>历史背景与设计动机</strong></p>
+<p>ELU（Exponential Linear Unit，指数线性单元）由Clevert等人于2015年提出。与Leaky ReLU不同，ELU在负区间使用指数函数而非线性函数，其设计动机更为精细：</p>
+<ol class="arabic simple">
+<li><p><strong>均值零激活</strong>：通过平滑的负输出，使激活的均值接近零，加速收敛</p></li>
+<li><p><strong>负值的鲁棒性</strong>：指数函数对负输入有更&quot;柔和&quot;的响应，对噪声更鲁棒</p></li>
+<li><p><strong>更快的收敛</strong>：实验表明ELU在某些任务上比ReLU收敛更快</p></li>
+<li><p><strong>有界的负输出</strong>：负输出有下界（当<span class="math notranslate nohighlight">\(x \to -\infty\)</span>时，<span class="math notranslate nohighlight">\(\text{ELU}(x) \to -\alpha\)</span>），避免无界问题</p></li>
+</ol>
+<p>ELU的设计哲学是&quot;通过数学上的精细设计，获得更好的训练动态&quot;。</p>
+<p><strong>数学定义与推导</strong></p>
+<p>ELU函数的数学表达式为：</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\text{ELU}(x) = \begin{cases}
-x &amp; \text{if } x &gt; 0 \\
-\alpha(e^x - 1) &amp; \text{otherwise}
-\end{cases}\end{split}\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(\alpha\)</span> 是超参数（通常取1.0）。</p>
-<p><strong>导数</strong>：</p>
+\[\begin{split} \text{ELU}(x) = \begin{cases} x &amp; \text{if } x &gt; 0 \\ \alpha(e^x - 1) &amp; \text{otherwise} \end{cases} \end{split}\]</div>
+<p>其中<span class="math notranslate nohighlight">\(\alpha\)</span>是超参数（通常取1.0）。当<span class="math notranslate nohighlight">\(x \to -\infty\)</span>时，<span class="math notranslate nohighlight">\(\text{ELU}(x) \to -\alpha\)</span>，是有界的。</p>
+<p><strong>导数特性</strong></p>
+<p>ELU函数的导数为：</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\text{ELU}'(x) = \begin{cases}
-1 &amp; \text{if } x &gt; 0 \\
-\text{ELU}(x) + \alpha &amp; \text{otherwise}
-\end{cases}\end{split}\]</div>
-<p><strong>特点</strong>：</p>
+\[\begin{split} \text{ELU}'(x) = \begin{cases} 1 &amp; \text{if } x &gt; 0 \\ \text{ELU}(x) + \alpha &amp; \text{otherwise} \end{cases} \end{split}\]</div>
+<p>有趣的是，ELU的导数在负区间也依赖于函数值本身，这使得梯度在负区间能够根据输入的&quot;负程度&quot;自适应调整。</p>
+<p><strong>设计目标的实现</strong></p>
+<ol class="arabic simple">
+<li><p><strong>均值零激活</strong>：负输出的平滑性使得激活均值接近零，这改善了梯度流动</p></li>
+<li><p><strong>有界性</strong>：负输出有下界<span class="math notranslate nohighlight">\((-\alpha, 0)\)</span>，避免了数值无界的问题</p></li>
+<li><p><strong>平滑性</strong>：负区间使用指数函数，是<span class="math notranslate nohighlight">\(C^\infty\)</span>光滑的，比Leaky ReLU更平滑</p></li>
+</ol>
+<p><strong>关于<span class="math notranslate nohighlight">\(\alpha\)</span>的选择</strong></p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\alpha = 1.0\)</span>：最常用的默认值</p></li>
+<li><p><span class="math notranslate nohighlight">\(\alpha\)</span>越大：负输出范围越大，均值零中心效果越明显</p></li>
+<li><p><span class="math notranslate nohighlight">\(\alpha\)</span>越小：越接近ReLU</p></li>
+</ul>
+<p><strong>ELU vs Leaky ReLU</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>特性</p></th>
+<th class="head"><p>ELU</p></th>
+<th class="head"><p>Leaky ReLU</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>负区间函数</p></td>
+<td><p>指数函数</p></td>
+<td><p>线性函数</p></td>
+</tr>
+<tr class="row-odd"><td><p>平滑性</p></td>
+<td><p><span class="math notranslate nohighlight">\(C^\infty\)</span>光滑</p></td>
+<td><p>仅连续</p></td>
+</tr>
+<tr class="row-even"><td><p>有界性</p></td>
+<td><p>有界<span class="math notranslate nohighlight">\((-\alpha, \infty)\)</span></p></td>
+<td><p>无界<span class="math notranslate nohighlight">\((-\infty, \infty)\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>计算复杂度</p></td>
+<td><p>需要指数运算</p></td>
+<td><p>仅乘法</p></td>
+</tr>
+<tr class="row-even"><td><p>收敛速度</p></td>
+<td><p>通常更快</p></td>
+<td><p>与ReLU相当</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>优点与局限性</strong></p>
+<p>优点：</p>
 <ul class="simple">
 <li><p>输出均值接近零，加速收敛</p></li>
 <li><p>负区间平滑，对噪声更鲁棒</p></li>
-<li><p>计算比ReLU稍复杂</p></li>
+<li><p>有界负输出，数值更稳定</p></li>
+<li><p>在某些任务上收敛更快</p></li>
 </ul>
+<p>局限性：</p>
+<ul class="simple">
+<li><p>计算比ReLU复杂（需要计算指数）</p></li>
+<li><p>推理延迟略高</p></li>
+<li><p><span class="math notranslate nohighlight">\(\alpha\)</span>需要调参</p></li>
+</ul>
+<p><strong>SELU（Scaled ELU）</strong></p>
+<p>SELU是ELU的缩放版本，专门设计用于自归一化神经网络（SNN）：</p>
+<div class="math notranslate nohighlight">
+\[ \text{SELU}(x) = \lambda \cdot \text{ELU}(x, \alpha=1.6733) \]</div>
+<p>其中<span class="math notranslate nohighlight">\(\lambda \approx 1.0507\)</span>，<span class="math notranslate nohighlight">\(\alpha \approx 1.6733\)</span>。</p>
+<p>SELU的设计使得在特定初始化和网络结构下，激活值能够自动归一化到零均值、单位方差。</p>
 <p><strong>PyTorch实现</strong>：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">elu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ELU</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
-<span class="n">output</span> <span class="o">=</span> <span class="n">elu</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<div class="literal-block-wrapper docutils container" id="id31">
+<div class="code-block-caption"><span class="caption-text">ELU和SELU的PyTorch实现</span><a class="headerlink" href="#id31" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="c1"># 标准ELU</span>
+<span class="linenos">2</span><span class="n">elu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ELU</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="linenos">3</span><span class="n">output</span> <span class="o">=</span> <span class="n">elu</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<span class="linenos">4</span>
+<span class="linenos">5</span><span class="c1"># SELU</span>
+<span class="linenos">6</span><span class="n">selu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">SELU</span><span class="p">()</span>  <span class="c1"># 使用默认的alpha和lambda</span>
+<span class="linenos">7</span><span class="n">output</span> <span class="o">=</span> <span class="n">selu</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
 </pre></div>
 </div>
+</div>
 <p><strong>可视化</strong>：</p>
-<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-7a46bd556bbeee691212fc6a866dbabbf66c8127.svg" alt="Figure made with TikZ" /></p>
-</div></section>
+<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-8cb43db48154ffba75f649e9ada92d4cf311b4da.svg" alt="Figure made with TikZ" /></p>
+</div><p><strong>直观理解</strong>：ELU在正区间保持线性（与ReLU相同），在负区间使用指数曲线。这意味着负信号被&quot;柔和地&quot;压缩，而不是被硬切断。这种平滑性使得负值也能携带信息，同时保持均值的稳定。</p>
+</section>
 <section id="softmax">
 <h3>6. Softmax函数<a class="headerlink" href="#softmax" title="Link to this heading">#</a></h3>
-<p>Softmax函数将向量转换为概率分布，常用于多分类问题的输出层：</p>
+<p><strong>历史背景与设计动机</strong></p>
+<p>Softmax函数是处理多分类问题的标准输出层激活函数。其设计动机源于概率论的基本原理：</p>
+<ol class="arabic simple">
+<li><p><strong>概率分布建模</strong>：多分类问题需要输出一个概率分布，表示每个类别的&quot;置信度&quot;</p></li>
+<li><p><strong>归一化要求</strong>：概率分布必须满足所有概率之和为1</p></li>
+<li><p><strong>竞争机制</strong>：类别之间应该是&quot;竞争&quot;的，一个类别的概率增加意味着其他类别概率降低</p></li>
+<li><p><strong>温度控制</strong>：Softmax允许通过温度参数调节输出的&quot;锐利度&quot;</p></li>
+</ol>
+<p>Softmax的独特之处在于它不是逐元素操作的，而是对整个向量进行归一化处理。</p>
+<p><strong>数学定义与推导</strong></p>
+<p>对于<span class="math notranslate nohighlight">\(C\)</span>个类别的分类问题，Softmax函数定义为：</p>
 <div class="math notranslate nohighlight">
-\[\text{softmax}(x_i) = \frac{e^{x_i}}{\sum_{j=1}^C e^{x_j}}\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(C\)</span> 是类别数。</p>
-<p><strong>导数</strong>：</p>
+\[ \text{softmax}(x_i) = \frac{e^{x_i}}{\sum_{j=1}^C e^{x_j}} \]</div>
+<p>其中<span class="math notranslate nohighlight">\(x_i\)</span>是第<span class="math notranslate nohighlight">\(i\)</span>个类别的&quot;得分&quot;（logit）。</p>
+<p><strong>Softmax的数学性质</strong></p>
+<ol class="arabic simple">
+<li><p><strong>归一化</strong>：<span class="math notranslate nohighlight">\(\sum_{i=1}^C \text{softmax}(x_i) = 1\)</span></p></li>
+<li><p><strong>非负性</strong>：<span class="math notranslate nohighlight">\(\text{softmax}(x_i) &gt; 0\)</span> for all <span class="math notranslate nohighlight">\(i\)</span></p></li>
+<li><p><strong>单调性</strong>：如果<span class="math notranslate nohighlight">\(x_i &gt; x_j\)</span>，则<span class="math notranslate nohighlight">\(\text{softmax}(x_i) &gt; \text{softmax}(x_j)\)</span></p></li>
+<li><p><strong>平移不变性</strong>：<span class="math notranslate nohighlight">\(\text{softmax}(x + c) = \text{softmax}(x)\)</span> for any constant<span class="math notranslate nohighlight">\(c\)</span>，这个性质使得Softmax对logit的平移不敏感</p></li>
+</ol>
+<p><strong>导数特性（重要！）</strong></p>
+<p>Softmax的导数比较特殊，因为它是一个向量函数。其雅可比矩阵为：</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\frac{\partial \text{softmax}(x_i)}{\partial x_j} = \begin{cases}
+\[\begin{split} \frac{\partial \text{softmax}(x)_i}{\partial x_j} = \begin{cases}
 \text{softmax}(x_i)(1 - \text{softmax}(x_i)) &amp; \text{if } i = j \\
 -\text{softmax}(x_i)\text{softmax}(x_j) &amp; \text{if } i \neq j
-\end{cases}\end{split}\]</div>
-<p><strong>特点</strong>：</p>
+\end{cases} \end{split}\]</div>
+<p>这个形式表明：</p>
 <ul class="simple">
-<li><p>输出为概率分布，总和为1</p></li>
-<li><p>通常与交叉熵损失配合使用</p></li>
-<li><p>对输入数值范围敏感（容易导致数值不稳定）</p></li>
+<li><p>对角元素（<span class="math notranslate nohighlight">\(i=j\)</span>）是正的，梯度会增强该类别的概率</p></li>
+<li><p>非对角元素（<span class="math notranslate nohighlight">\(i \neq j\)</span>）是负的，梯度会减小其他类别的概率</p></li>
+</ul>
+<p><strong>与交叉熵损失的结合</strong></p>
+<p>Softmax通常与交叉熵损失（Cross-Entropy Loss）配合使用：</p>
+<div class="math notranslate nohighlight">
+\[ L = -\sum_{i=1}^C y_i \log(\text{softmax}(x_i)) \]</div>
+<p>其中<span class="math notranslate nohighlight">\(y_i\)</span>是真实标签的one-hot编码。</p>
+<p>Softmax + 交叉熵的梯度有一个简洁的形式：</p>
+<div class="math notranslate nohighlight">
+\[ \frac{\partial L}{\partial x_i} = \text{softmax}(x_i) - y_i \]</div>
+<p>这个性质使得梯度计算非常高效，不需要分别计算Softmax和交叉熵的梯度。</p>
+<p><strong>设计目标的实现</strong></p>
+<ol class="arabic simple">
+<li><p><strong>概率解释</strong>：输出在(0,1)之间且和为1，可以直接解释为概率分布</p></li>
+<li><p><strong>归一化</strong>：通过分母的求和实现全局归一化</p></li>
+<li><p><strong>竞争机制</strong>：指数函数放大差异，让大的得分更大、小的得分更小</p></li>
+</ol>
+<p><strong>温度参数</strong></p>
+<p>Softmax可以引入温度参数<span class="math notranslate nohighlight">\(T\)</span>来控制输出的&quot;锐利度&quot;：</p>
+<div class="math notranslate nohighlight">
+\[ \text{softmax}(x_i/T) = \frac{e^{x_i/T}}{\sum_{j=1}^C e^{x_j/T}} \]</div>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(T \to 0\)</span>：趋近于&quot;硬&quot;最大值（one-hot）</p></li>
+<li><p><span class="math notranslate nohighlight">\(T = 1\)</span>：标准Softmax</p></li>
+<li><p><span class="math notranslate nohighlight">\(T \to \infty\)</span>：趋近于均匀分布</p></li>
+</ul>
+<p>温度参数在知识蒸馏、模型校准等场景中很有用。</p>
+<p><strong>数值稳定性</strong></p>
+<p>Softmax的一个主要问题是数值稳定性。当<span class="math notranslate nohighlight">\(z_i\)</span>很大时，<span class="math notranslate nohighlight">\(e^{z_i}\)</span>会溢出；当<span class="math notranslate nohighlight">\(z_i\)</span>很负时，<span class="math notranslate nohighlight">\(e^{z_i}\)</span>会下溢到0。</p>
+<p>解决方案是使用&quot;log-sum-exp&quot;技巧：</p>
+<div class="math notranslate nohighlight">
+\[ \text{softmax}(x)_i = \frac{e^{x_i - M}}{\sum_{j=1}^C e^{x_j - M}} \]</div>
+<p>其中<span class="math notranslate nohighlight">\(M = \max(x_1, ..., x_C)\)</span>是最大值。</p>
+<p>或者直接使用log-Softmax：</p>
+<div class="math notranslate nohighlight">
+\[ \log(\text{softmax}(x)_i) = x_i - \log(\sum_{j=1}^C e^{x_j}) = x_i - \text{LSE}(x) \]</div>
+<p>其中LSE是对数求和指数函数。</p>
+<p><strong>优点与局限性</strong></p>
+<p>优点：</p>
+<ul class="simple">
+<li><p>输出为有效的概率分布</p></li>
+<li><p>与交叉熵损失配合完美</p></li>
+<li><p>梯度形式简洁高效</p></li>
+<li><p>支持温度控制调节</p></li>
+</ul>
+<p>局限性：</p>
+<ul class="simple">
+<li><p>对输入数值范围敏感（需要数值稳定技巧）</p></li>
+<li><p>输出不是稀疏的（所有类别都有非零概率）</p></li>
+<li><p>类别之间存在依赖关系，不适合独立预测</p></li>
 </ul>
 <p><strong>PyTorch实现</strong>：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">softmax</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Softmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># dim指定计算softmax的维度</span>
-<span class="n">output</span> <span class="o">=</span> <span class="n">softmax</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<div class="literal-block-wrapper docutils container" id="id32">
+<div class="code-block-caption"><span class="caption-text">Softmax函数的PyTorch实现</span><a class="headerlink" href="#id32" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="linenos"> 2</span>
+<span class="linenos"> 3</span><span class="c1"># 标准Softmax</span>
+<span class="linenos"> 4</span><span class="n">softmax</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Softmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># dim指定计算softmax的维度</span>
+<span class="linenos"> 5</span><span class="n">output</span> <span class="o">=</span> <span class="n">softmax</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<span class="linenos"> 6</span>
+<span class="linenos"> 7</span><span class="c1"># Log-Softmax（数值更稳定）</span>
+<span class="linenos"> 8</span><span class="n">log_softmax</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LogSoftmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="linenos"> 9</span><span class="n">output</span> <span class="o">=</span> <span class="n">log_softmax</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<span class="linenos">10</span>
+<span class="linenos">11</span><span class="c1"># 带温度的Softmax（手动实现）</span>
+<span class="linenos">12</span><span class="n">temperature</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="linenos">13</span><span class="n">output</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="nb">input</span> <span class="o">/</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
+</div>
 </div>
 <p><strong>可视化</strong>：</p>
 <div class="figure" style="text-align: center"><p><img  src="../_images/tikz-d49ea394a2089137b8b2a4ffd67ae69276a15225.svg" alt="Figure made with TikZ" /></p>
-</div></section>
+</div><p><strong>Softmax vs Sigmoid</strong></p>
+<p>在二分类问题中，Softmax可以简化为Sigmoid：</p>
+<div class="math notranslate nohighlight">
+\[ \text{softmax}([x, 0])_0 = \frac{e^x}{e^x + 1} = \sigma(x) \]</div>
+<div class="math notranslate nohighlight">
+\[ \text{softmax}([x, 0])_1 = \frac{1}{e^x + 1} = 1 - \sigma(x) \]</div>
+<p>因此，二分类问题中Sigmoid和Softmax是等价的。但对于多分类（&gt;2），必须使用Softmax。</p>
+<p><strong>直观理解</strong>：Softmax本质上是一个&quot;软化&quot;的竞争机制。它让所有的候选者都有&quot;获胜&quot;的可能，但得分高的候选者概率更大，得分低的候选者概率更小。这就像民主选举——每个候选人都得到一些&quot;选票&quot;，但得票多的候选人最终获胜。</p>
+</section>
 <section id="swish">
 <h3>7. Swish函数<a class="headerlink" href="#swish" title="Link to this heading">#</a></h3>
-<p>Swish函数是Google提出的自门控激活函数：</p>
+<p><strong>历史背景与设计动机</strong></p>
+<p>Swish函数由Google Brain团队的Prajit Ramachandran等人于2017年通过神经架构搜索发现。其设计动机体现了深度学习研究的新趋势——<strong>通过自动化方法发现新的激活函数</strong>：</p>
+<ol class="arabic simple">
+<li><p><strong>自门控机制</strong>：Swish将输入<span class="math notranslate nohighlight">\(x\)</span>作为&quot;门&quot;，将<span class="math notranslate nohighlight">\(\sigma(\beta x)\)</span>作为&quot;门控信号&quot;，实现<span class="math notranslate nohighlight">\(x\)</span>与<span class="math notranslate nohighlight">\(\sigma(\beta x)\)</span>的逐元素相乘</p></li>
+<li><p><strong>平滑非单调</strong>：与ReLU不同，Swish是非单调的，在负区间有小的负值</p></li>
+<li><p><strong>可学习参数</strong>：<span class="math notranslate nohighlight">\(\beta\)</span>可以设置为可学习的参数，让网络自动调整门控强度</p></li>
+<li><p><strong>实验验证</strong>：通过大规模实验验证，Swish在多个任务上优于ReLU</p></li>
+</ol>
+<p>Swish的发现标志着激活函数设计从&quot;人工设计&quot;转向&quot;自动搜索&quot;的新范式。</p>
+<p><strong>数学定义与推导</strong></p>
+<p>Swish函数的数学表达式为：</p>
 <div class="math notranslate nohighlight">
-\[\text{swish}(x) = x \cdot \sigma(\beta x) = \frac{x}{1 + e^{-\beta x}}\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(\beta\)</span> 是可学习参数或固定值（通常取1.0）。</p>
-<p><strong>导数</strong>：</p>
+\[ \text{Swish}(x) = x \cdot \sigma(\beta x) = \frac{x}{1 + e^{-\beta x}} \]</div>
+<p>其中<span class="math notranslate nohighlight">\(\beta\)</span>是可选的可学习参数（通常取1.0）。</p>
+<p><strong>与ReLU的关系</strong></p>
+<p>当<span class="math notranslate nohighlight">\(\beta \to \infty\)</span>时，<span class="math notranslate nohighlight">\(\sigma(\beta x) \to \text{step}(x)\)</span>，Swish趋近于ReLU：</p>
 <div class="math notranslate nohighlight">
-\[\text{swish}'(x) = \text{swish}(x) + \sigma(\beta x)(1 - \text{swish}(x))\]</div>
-<p><strong>特点</strong>：</p>
+\[\begin{split} \lim_{\beta \to \infty} \frac{x}{1 + e^{-\beta x}} = \begin{cases} x &amp; \text{if } x &gt; 0 \\ 0 &amp; \text{otherwise} \end{cases} \end{split}\]</div>
+<p>当<span class="math notranslate nohighlight">\(\beta = 0\)</span>时，<span class="math notranslate nohighlight">\(\sigma(\beta x) = 0.5\)</span>，Swish变为线性的缩放：</p>
+<div class="math notranslate nohighlight">
+\[ \text{Swish}(x) = 0.5x \]</div>
+<p><strong>导数特性</strong></p>
+<p>Swish函数的导数为：</p>
+<div class="math notranslate nohighlight">
+\[ \text{Swish}'(x) = \text{Swish}(x) + \sigma(\beta x)(1 - \text{Swish}(x)) \]</div>
+<p>这个导数形式比较复杂，但保证了梯度始终存在（没有&quot;死区&quot;）。</p>
+<p><strong>设计目标的实现</strong></p>
+<ol class="arabic simple">
+<li><p><strong>自门控</strong>：<span class="math notranslate nohighlight">\(x \cdot \sigma(\beta x)\)</span>的结构让输入<span class="math notranslate nohighlight">\(x\)</span>自己控制自己的激活程度</p></li>
+<li><p><strong>非单调性</strong>：在负区间有小的负输出，可能保留一些负信息</p></li>
+<li><p><strong>平滑性</strong>：处处可导，优化更加稳定</p></li>
+</ol>
+<p><strong><span class="math notranslate nohighlight">\(\beta\)</span>的选择</strong></p>
 <ul class="simple">
-<li><p>平滑、非单调</p></li>
-<li><p>在某些任务上表现优于ReLU</p></li>
-<li><p>计算成本较高（需要sigmoid计算）</p></li>
+<li><p><span class="math notranslate nohighlight">\(\beta = 1\)</span>（固定）：默认设置，在大多数任务上表现良好</p></li>
+<li><p><span class="math notranslate nohighlight">\(\beta\)</span>可学习：让网络自动学习最优的<span class="math notranslate nohighlight">\(\beta\)</span>值</p></li>
+<li><p><span class="math notranslate nohighlight">\(\beta &gt; 1\)</span>：门控更&quot;尖锐&quot;，更接近ReLU</p></li>
+<li><p><span class="math notranslate nohighlight">\(0 &lt; \beta &lt; 1\)</span>：门控更&quot;平缓&quot;，更接近线性</p></li>
+</ul>
+<p><strong>SiLU（Sigmoid Linear Unit）</strong></p>
+<p>SiLU（有时也称为Swish-1）是Swish的特殊情况，即<span class="math notranslate nohighlight">\(\beta = 1\)</span>：</p>
+<div class="math notranslate nohighlight">
+\[ \text{SiLU}(x) = x \cdot \sigma(x) = \frac{x}{1 + e^{-x}} \]</div>
+<p>SiLU是Swish的流行变体，在PyTorch中实现为<code class="docutils literal notranslate"><span class="pre">nn.SiLU()</span></code>。</p>
+<p><strong>优点与局限性</strong></p>
+<p>优点：</p>
+<ul class="simple">
+<li><p>平滑、非单调，在某些任务上优于ReLU</p></li>
+<li><p>可学习参数提供灵活性</p></li>
+<li><p>没有&quot;死亡神经元&quot;问题</p></li>
+<li><p>导数处处存在，优化更稳定</p></li>
+</ul>
+<p>局限性：</p>
+<ul class="simple">
+<li><p>计算成本较高（需要计算Sigmoid）</p></li>
+<li><p>实际增益在某些任务上可能不明显</p></li>
+<li><p>超参数<span class="math notranslate nohighlight">\(\beta\)</span>需要调优</p></li>
 </ul>
 <p><strong>PyTorch实现</strong>：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Swish</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
-    
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span>
-
-<span class="n">swish</span> <span class="o">=</span> <span class="n">Swish</span><span class="p">()</span>
-<span class="n">output</span> <span class="o">=</span> <span class="n">swish</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<div class="literal-block-wrapper docutils container" id="id33">
+<div class="code-block-caption"><span class="caption-text">Swish和SiLU的PyTorch实现</span><a class="headerlink" href="#id33" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="c1"># 固定beta的Swish</span>
+<span class="linenos"> 2</span><span class="k">class</span><span class="w"> </span><span class="nc">Swish</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="linenos"> 3</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<span class="linenos"> 4</span>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+<span class="linenos"> 5</span>        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
+<span class="linenos"> 6</span>    
+<span class="linenos"> 7</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="linenos"> 8</span>        <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span>
+<span class="linenos"> 9</span>
+<span class="linenos">10</span><span class="n">swish</span> <span class="o">=</span> <span class="n">Swish</span><span class="p">(</span><span class="n">beta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="linenos">11</span><span class="n">output</span> <span class="o">=</span> <span class="n">swish</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<span class="linenos">12</span>
+<span class="linenos">13</span><span class="c1"># SiLU（beta=1.0的Swish）</span>
+<span class="linenos">14</span><span class="n">silu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">SiLU</span><span class="p">()</span>
+<span class="linenos">15</span><span class="n">output</span> <span class="o">=</span> <span class="n">silu</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<span class="linenos">16</span>
+<span class="linenos">17</span><span class="c1"># 可学习参数的Swish</span>
+<span class="linenos">18</span><span class="k">class</span><span class="w"> </span><span class="nc">LearnableSwish</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="linenos">19</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">20</span>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+<span class="linenos">21</span>        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">1.0</span><span class="p">))</span>
+<span class="linenos">22</span>    
+<span class="linenos">23</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="linenos">24</span>        <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span>
 </pre></div>
 </div>
+</div>
 <p><strong>可视化</strong>：</p>
-<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-c98aaade944b4a1e48f7ec059bc618ec27190178.svg" alt="Figure made with TikZ" /></p>
-</div></section>
+<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-02e9bfe93d4fd832ab599d8901bc4cce3ecb0cd0.svg" alt="Figure made with TikZ" /></p>
+</div><p><strong>直观理解</strong>：Swish的自门控机制可以理解为&quot;信息选择&quot;——<span class="math notranslate nohighlight">\(\sigma(\beta x)\)</span>决定了<span class="math notranslate nohighlight">\(x\)</span>中有多少信息应该被&quot;传递&quot;出去。当<span class="math notranslate nohighlight">\(x\)</span>为正且较大时，<span class="math notranslate nohighlight">\(\sigma(\beta x)\)</span>接近1，大部分信息被保留；当<span class="math notranslate nohighlight">\(x\)</span>为负时，<span class="math notranslate nohighlight">\(\sigma(\beta x)\)</span>接近0，负信息被抑制但不会完全消失。这种&quot;软门控&quot;比ReLU的&quot;硬切断&quot;更加精细。</p>
+</section>
 </section>
 <section id="id4">
 <h2>激活函数比较<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="table" id="id23">
-<caption><span class="caption-text">激活函数特性比较</span><a class="headerlink" href="#id23" title="Link to this table">#</a></caption>
+<p>选择合适的激活函数需要权衡多个因素，包括梯度流动特性、计算效率、任务类型等。</p>
+<div class="pst-scrollable-table-container"><table class="table" id="id34">
+<caption><span class="caption-text">激活函数特性综合比较</span><a class="headerlink" href="#id34" title="Link to this table">#</a></caption>
 <colgroup>
-<col style="width: 20.0%" />
-<col style="width: 20.0%" />
-<col style="width: 20.0%" />
-<col style="width: 20.0%" />
-<col style="width: 20.0%" />
+<col style="width: 16.7%" />
+<col style="width: 16.7%" />
+<col style="width: 16.7%" />
+<col style="width: 16.7%" />
+<col style="width: 16.7%" />
+<col style="width: 16.7%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>激活函数</strong></p></th>
@@ -713,6 +1498,7 @@ x &amp; \text{if } x &gt; 0 \\
 <th class="head"><p><strong>是否零中心</strong></p></th>
 <th class="head"><p><strong>梯度消失风险</strong></p></th>
 <th class="head"><p><strong>计算复杂度</strong></p></th>
+<th class="head"><p><strong>典型应用</strong></p></th>
 </tr>
 </thead>
 <tbody>
@@ -721,36 +1507,98 @@ x &amp; \text{if } x &gt; 0 \\
 <td><p>否</p></td>
 <td><p>高</p></td>
 <td><p>中</p></td>
+<td><p>二分类输出</p></td>
 </tr>
 <tr class="row-odd"><td><p>Tanh</p></td>
 <td><p>(-1,1)</p></td>
 <td><p>是</p></td>
 <td><p>中</p></td>
 <td><p>中</p></td>
+<td><p>RNN隐藏层</p></td>
 </tr>
 <tr class="row-even"><td><p>ReLU</p></td>
 <td><p>[0,∞)</p></td>
 <td><p>否</p></td>
 <td><p>低</p></td>
 <td><p>低</p></td>
+<td><p>CNN默认</p></td>
 </tr>
 <tr class="row-odd"><td><p>Leaky ReLU</p></td>
 <td><p>(-∞,∞)</p></td>
 <td><p>否</p></td>
 <td><p>低</p></td>
 <td><p>低</p></td>
+<td><p>替代ReLU</p></td>
 </tr>
 <tr class="row-even"><td><p>ELU</p></td>
 <td><p>(-α,∞)</p></td>
 <td><p>近似是</p></td>
 <td><p>低</p></td>
 <td><p>中</p></td>
+<td><p>追求收敛速度</p></td>
 </tr>
 <tr class="row-odd"><td><p>Softmax</p></td>
 <td><p>(0,1)</p></td>
 <td><p>否</p></td>
 <td><p>中</p></td>
 <td><p>高</p></td>
+<td><p>多分类输出</p></td>
+</tr>
+<tr class="row-even"><td><p>Swish</p></td>
+<td><p>(-0.28,∞)</p></td>
+<td><p>否</p></td>
+<td><p>低</p></td>
+<td><p>中</p></td>
+<td><p>现代网络</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>关键指标解读</strong></p>
+<ol class="arabic simple">
+<li><p><strong>梯度消失风险</strong>：评估激活函数在深度网络中导致梯度消失的可能性。Sigmoid和Tanh在<span class="math notranslate nohighlight">\(|x|\)</span>较大时梯度接近0，风险较高；ReLU及其变体风险较低。</p></li>
+<li><p><strong>计算复杂度</strong>：考虑前向传播和反向传播的计算开销。ReLU只有比较操作，复杂度最低；Softmax需要对整个向量归一化，复杂度最高。</p></li>
+<li><p><strong>零中心性</strong>：输出的均值是否接近零。零中心输出有助于梯度流动和收敛速度。Tanh是严格的零中心；ReLU的输出均值大于0。</p></li>
+</ol>
+<p><strong>梯度流动对比</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>激活函数</p></th>
+<th class="head"><p>正区间梯度</p></th>
+<th class="head"><p>负区间梯度</p></th>
+<th class="head"><p>饱和区间</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Sigmoid</p></td>
+<td><p>较小（≤0.25）</p></td>
+<td><p>极小（≤0.25）</p></td>
+<td><p>大部分区域</p></td>
+</tr>
+<tr class="row-odd"><td><p>Tanh</p></td>
+<td><p>较大（≤1）</p></td>
+<td><p>极小（≤0.25）</p></td>
+<td><p>$</p></td>
+</tr>
+<tr class="row-even"><td><p>ReLU</p></td>
+<td><p>恒为1</p></td>
+<td><p>0</p></td>
+<td><p>无（正区间）</p></td>
+</tr>
+<tr class="row-odd"><td><p>Leaky ReLU</p></td>
+<td><p>恒为1</p></td>
+<td><p><span class="math notranslate nohighlight">\(\alpha\)</span>（小常数）</p></td>
+<td><p>无</p></td>
+</tr>
+<tr class="row-even"><td><p>ELU</p></td>
+<td><p>恒为1</p></td>
+<td><p><span class="math notranslate nohighlight">\(\alpha + \text{ELU}(x)\)</span></p></td>
+<td><p>无（平滑过渡）</p></td>
+</tr>
+<tr class="row-odd"><td><p>Swish</p></td>
+<td><p>变化</p></td>
+<td><p>变化</p></td>
+<td><p>无（非单调）</p></td>
 </tr>
 </tbody>
 </table>
@@ -758,60 +1606,274 @@ x &amp; \text{if } x &gt; 0 \\
 </section>
 <section id="id5">
 <h2>激活函数的选择原则<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<p>选择激活函数是深度学习模型设计中的关键决策，需要综合考虑网络深度、任务类型、计算资源等因素。以下是系统化的选择框架：</p>
 <section id="id6">
 <h3>1. 隐藏层激活函数<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p>隐藏层激活函数的选择直接影响网络的表达能力和训练动态。</p>
+<p><strong>默认选择：ReLU及其变体</strong></p>
+<p>对于大多数深度学习任务，ReLU是隐藏层的默认选择：</p>
 <ul class="simple">
-<li><p><strong>默认选择</strong>：ReLU及其变体（Leaky ReLU、ELU）</p></li>
-<li><p><strong>深层网络</strong>：考虑使用Swish或Mish</p></li>
-<li><p><strong>循环神经网络</strong>：Tanh或Sigmoid</p></li>
+<li><p>计算效率最高</p></li>
+<li><p>在正区间梯度恒为1，有效避免梯度消失</p></li>
+<li><p>产生稀疏激活，有助于特征选择</p></li>
+</ul>
+<p><strong>遇到&quot;死亡神经元&quot;时</strong></p>
+<p>如果观察到大量神经元梯度为0（通过监控梯度分布），尝试：</p>
+<ul class="simple">
+<li><p><strong>Leaky ReLU</strong>：给负区间小的斜率（如0.01或0.1）</p></li>
+<li><p><strong>ELU</strong>：使用平滑的负值，但计算成本略高</p></li>
+<li><p><strong>PReLU</strong>：让网络自动学习最优的负斜率</p></li>
+</ul>
+<p><strong>深层网络（&gt;50层）</strong></p>
+<p>对于非常深的网络，ReLU可能仍然存在问题：</p>
+<ul class="simple">
+<li><p><strong>Swish</strong>：Google提出的平滑激活函数，在深层网络上表现优秀</p></li>
+<li><p><strong>Mish</strong>：类似于Swish的平滑激活函数，数学形式为<span class="math notranslate nohighlight">\(\text{mish}(x) = x \cdot \tanh(\text{softplus}(x))\)</span></p></li>
+<li><p><strong>SELU</strong>：专为自归一化设计，适合很深的全连接网络</p></li>
+</ul>
+<p><strong>循环神经网络（RNN）</strong></p>
+<p>RNN有独特的梯度流动问题：</p>
+<ul class="simple">
+<li><p><strong>Tanh</strong>：RNN的经典选择，对长序列有较好的梯度保持</p></li>
+<li><p><strong>Sigmoid</strong>：用于门控机制（如LSTM的门）</p></li>
+<li><p><strong>Hard Tanh</strong>：计算更高效的Tanh近似</p></li>
 </ul>
 </section>
 <section id="id7">
 <h3>2. 输出层激活函数<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<p>输出层激活函数需要与损失函数配合，直接影响模型的预测格式。</p>
+<p><strong>二分类问题</strong></p>
+<p>使用Sigmoid激活函数，输出表示&quot;正类的概率&quot;：</p>
+<div class="math notranslate nohighlight">
+\[ P(y=1|x) = \sigma(w^Tx + b) \]</div>
+<p>配合二元交叉熵损失（Binary Cross-Entropy）：</p>
+<div class="math notranslate nohighlight">
+\[ L = -[y \log(p) + (1-y) \log(1-p)] \]</div>
+<p><strong>多分类问题</strong></p>
+<p>使用Softmax激活函数，输出表示&quot;各类别的概率分布&quot;：</p>
+<div class="math notranslate nohighlight">
+\[ P(y=k|x) = \frac{e^{z_k}}{\sum_{j=1}^C e^{z_j}} \]</div>
+<p>配合分类交叉熵损失（Categorical Cross-Entropy）：</p>
+<div class="math notranslate nohighlight">
+\[ L = -\sum_{k=1}^C y_k \log(p_k) \]</div>
+<p><strong>多标签分类</strong></p>
+<p>当每个样本可以属于多个类别时，使用Sigmoid（独立预测每个类别）：</p>
+<div class="math notranslate nohighlight">
+\[ P(y_k=1|x) = \sigma(z_k) \quad \forall k \]</div>
+<p>配合二元交叉熵损失。</p>
+<p><strong>回归问题</strong></p>
+<p>通常不使用激活函数（或使用线性激活）：</p>
+<div class="math notranslate nohighlight">
+\[ \hat{y} = w^Tx + b \]</div>
+<p>如果输出有特定范围（如[0,1]），可以：</p>
 <ul class="simple">
-<li><p><strong>二分类</strong>：Sigmoid</p></li>
-<li><p><strong>多分类</strong>：Softmax</p></li>
-<li><p><strong>回归</strong>：线性激活（无激活函数）或根据输出范围选择</p></li>
+<li><p>使用Sigmoid并缩放输出：<span class="math notranslate nohighlight">\(\hat{y} = \sigma(w^Tx + b)\)</span></p></li>
+<li><p>使用截断的ReLU：<span class="math notranslate nohighlight">\(\hat{y} = \max(0, \min(1, w^Tx + b))\)</span></p></li>
 </ul>
 </section>
 <section id="id8">
 <h3>3. 特殊考虑<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<p><strong>梯度流动问题</strong></p>
 <ul class="simple">
-<li><p><strong>梯度流动</strong>：避免使用容易导致梯度消失的激活函数（如Sigmoid）在深层网络</p></li>
-<li><p><strong>计算效率</strong>：在计算资源受限时选择ReLU</p></li>
-<li><p><strong>稀疏性</strong>：ReLU能产生稀疏激活，有利于特征选择</p></li>
+<li><p>避免在深层网络中使用Sigmoid/Tanh作为隐藏层激活</p></li>
+<li><p>如果必须使用，尝试残差连接（Residual Connection）</p></li>
+<li><p>使用BatchNorm可以缓解部分梯度问题</p></li>
 </ul>
-</section>
+<p><strong>计算资源受限</strong></p>
+<ul class="simple">
+<li><p>优先选择ReLU（计算最简单）</p></li>
+<li><p>避免使用Softmax（需要指数运算）</p></li>
+<li><p>考虑量化感知训练</p></li>
+</ul>
+<p><strong>稀疏性要求</strong></p>
+<ul class="simple">
+<li><p>ReLU天然产生稀疏激活（约50%）</p></li>
+<li><p>需要更强的稀疏性时，使用正则化（如L1正则）</p></li>
+<li><p>Elastic Net结合L1和L2正则化</p></li>
+</ul>
+<p><strong>实时系统要求</strong></p>
+<ul class="simple">
+<li><p>ReLU延迟最低（单一比较操作）</p></li>
+<li><p>Leaky ReLU几乎无额外开销</p></li>
+<li><p>避免使用Swish、ELU等需要指数运算的激活函数</p></li>
+</ul>
 </section>
 <section id="id9">
-<h2>激活函数的梯度分析<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
+<h3>4. 激活函数选择决策树<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<object data="../_images/mermaid-ec93214d59d78fe87f5bd30b9acc8d140a22dc93.svg" type="image/svg+xml">
+            <p class="warning">graph TD
+    A[开始] --&gt; B{是否为输出层？}
+    
+    B --&gt;|是| C{二分类？}
+    B --&gt;|否| D{隐藏层}
+    
+    C --&gt;|是| E[Sigmoid]
+    C --&gt;|否| F{多分类？}
+    F --&gt;|是| G[Softmax]
+    F --&gt;|否| H[无/线性激活]
+    
+    D --&gt; I{深层网络？}
+    D --&gt; J{RNN？}
+    D --&gt; K{CNN/MLP？}
+    
+    I --&gt;|是| L[Swish/Mish]
+    J --&gt;|是| M[Tanh]
+    K --&gt;|是| N[ReLU]
+    
+    N --&gt; O{有死亡神经元？}
+    N --&gt; P{追求极限性能？}
+    
+    O --&gt;|是| Q[Leaky ReLU/ELU]
+    P --&gt;|是| R[Swish]
+    O --&gt;|否| N
+    P --&gt;|否| N</p></object>
+</section>
 <section id="id10">
-<h3>梯度消失与爆炸<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
-<ul class="simple">
-<li><p><strong>Sigmoid/Tanh</strong>：当输入绝对值较大时梯度接近0，容易导致梯度消失</p></li>
-<li><p><strong>ReLU</strong>：正区间梯度为1，缓解梯度消失；但负区间梯度为0可能导致&quot;死亡神经元&quot;</p></li>
-<li><p><strong>Leaky ReLU/ELU</strong>：负区间有非零梯度，缓解&quot;死亡神经元&quot;问题</p></li>
-</ul>
+<h3>5. 实验建议<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<p>在实践中，建议：</p>
+<ol class="arabic simple">
+<li><p><strong>基准测试</strong>：首先使用ReLU建立基准</p></li>
+<li><p><strong>对比实验</strong>：尝试2-3种替代激活函数</p></li>
+<li><p><strong>监控指标</strong>：观察训练损失、验证准确率、梯度分布</p></li>
+<li><p><strong>消融研究</strong>：系统地比较不同激活函数的效果</p></li>
+<li><p><strong>任务适配</strong>：根据具体任务特点选择最合适的激活函数</p></li>
+</ol>
+</section>
 </section>
 <section id="id11">
-<h3>梯度计算优化<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">check_activation_gradients</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">input_data</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;检查激活函数的梯度&quot;&quot;&quot;</span>
-    <span class="n">model</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
-    <span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
-    <span class="n">loss</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-    
-    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">grad_mean</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: gradient mean = </span><span class="si">{</span><span class="n">grad_mean</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<h2>激活函数的梯度分析<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
+<p>理解激活函数的梯度特性对于设计高效训练的神经网络至关重要。梯度消失和梯度爆炸是深度学习中最核心的训练挑战之一。</p>
+<section id="id12">
+<h3>1. 梯度消失问题<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
+<p><strong>问题本质</strong></p>
+<p>在反向传播过程中，梯度需要从输出层逐层传回输入层。如果每一层的梯度都小于1，梯度会指数级衰减，导致前几层的权重几乎无法更新，这就是梯度消失。</p>
+<p>对于<span class="math notranslate nohighlight">\(n\)</span>层的线性网络，假设每层的增益为<span class="math notranslate nohighlight">\(g_i\)</span>（激活函数导数的某种度量），则：</p>
+<div class="math notranslate nohighlight">
+\[ \frac{\partial L}{\partial x_1} = \frac{\partial L}{\partial x_n} \cdot \prod_{i=1}^{n-1} g_i \]</div>
+<p>如果所有<span class="math notranslate nohighlight">\(g_i &lt; 1\)</span>，则<span class="math notranslate nohighlight">\(\frac{\partial L}{\partial x_1}\)</span>会指数级衰减。</p>
+<p><strong>各激活函数的梯度消失风险</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>激活函数</p></th>
+<th class="head"><p>正区间导数</p></th>
+<th class="head"><p>负区间导数</p></th>
+<th class="head"><p>饱和区间</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Sigmoid</p></td>
+<td><p>0-0.25</p></td>
+<td><p>0-0.25</p></td>
+<td><p>大部分</p></td>
+</tr>
+<tr class="row-odd"><td><p>Tanh</p></td>
+<td><p>0-1</p></td>
+<td><p>0-0.25</p></td>
+<td><p><span class="math notranslate nohighlight">\(|x| &gt; 2\)</span>时</p></td>
+</tr>
+<tr class="row-even"><td><p>ReLU</p></td>
+<td><p>1</p></td>
+<td><p>0</p></td>
+<td><p>无</p></td>
+</tr>
+<tr class="row-odd"><td><p>Leaky ReLU</p></td>
+<td><p>1</p></td>
+<td><p><span class="math notranslate nohighlight">\(\alpha &gt; 0\)</span></p></td>
+<td><p>无</p></td>
+</tr>
+<tr class="row-even"><td><p>ELU</p></td>
+<td><p>1</p></td>
+<td><p><span class="math notranslate nohighlight">\(\alpha + \text{ELU}(x)\)</span></p></td>
+<td><p>无</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Sigmoid的梯度消失分析</strong></p>
+<p>Sigmoid函数的导数为<span class="math notranslate nohighlight">\(\sigma'(x) = \sigma(x)(1 - \sigma(x))\)</span>，最大值在<span class="math notranslate nohighlight">\(x=0\)</span>处为0.25。当<span class="math notranslate nohighlight">\(x\)</span>远离0时：</p>
+<ul class="simple">
+<li><p>如果<span class="math notranslate nohighlight">\(x = 5\)</span>，<span class="math notranslate nohighlight">\(\sigma'(5) \approx 0.0066\)</span></p></li>
+<li><p>如果<span class="math notranslate nohighlight">\(x = 10\)</span>，<span class="math notranslate nohighlight">\(\sigma'(10) \approx 0.000045\)</span></p></li>
+</ul>
+<p>对于10层使用Sigmoid的网络，梯度会衰减约<span class="math notranslate nohighlight">\(0.25^{10} \approx 10^{-6}\)</span>，几乎无法学习。</p>
+<p><strong>ReLU如何缓解梯度消失</strong></p>
+<p>ReLU在正区间的导数恒为1，这意味着梯度可以无损地传递到前层。理论上，ReLU网络可以训练任意深度的网络（只要正区间有足够的信号）。</p>
+<p><strong>Leaky ReLU的改进</strong></p>
+<p>Leaky ReLU在负区间也有非零梯度<span class="math notranslate nohighlight">\(\alpha\)</span>，确保即使输入为负，神经元也能获得梯度更新。这从根本上解决了&quot;死亡神经元&quot;问题。</p>
+</section>
+<section id="id13">
+<h3>2. 梯度爆炸问题<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<p><strong>问题本质</strong></p>
+<p>与梯度消失相反，如果每层的梯度都大于1，梯度会指数级增长，导致权重更新过大，模型无法收敛。</p>
+<p><strong>解决方案</strong></p>
+<ol class="arabic">
+<li><p><strong>梯度裁剪（Gradient Clipping）</strong>：限制梯度的最大范数</p>
+<div class="literal-block-wrapper docutils container" id="id35">
+<div class="code-block-caption"><span class="caption-text">梯度裁剪的PyTorch实现</span><a class="headerlink" href="#id35" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">clip_grad_norm_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">max_norm</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</li>
+<li><p><strong>合理的权重初始化</strong>：确保各层激活值和梯度的方差稳定</p>
+<ul class="simple">
+<li><p>Xavier初始化：适用于Sigmoid/Tanh</p></li>
+<li><p>He初始化：适用于ReLU</p></li>
+</ul>
+</li>
+<li><p><strong>使用ReLU</strong>：ReLU的梯度有上界（1），不会无限增长</p></li>
+</ol>
+</section>
+<section id="id14">
+<h3>3. 梯度流动可视化<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
+<p><strong>反向传播中的梯度流动</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>输出层 ←─── 梯度流动方向 ──── 输入层
+
+Sigmoid:    ████████████░░░░░░░  （大部分梯度消失）
+Tanh:       ██████████████░░░░░  （部分梯度消失）
+ReLU:       ███████████████████  （梯度良好传递）
+LeakyReLU:  ███████████████████  （梯度良好传递）
+ELU:        ███████████████████  （梯度良好传递）
 </pre></div>
 </div>
 </section>
+<section id="id15">
+<h3>4. 梯度检查实践<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<div class="literal-block-wrapper docutils container" id="id36">
+<div class="code-block-caption"><span class="caption-text">激活函数梯度检查的实现</span><a class="headerlink" href="#id36" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="k">def</span><span class="w"> </span><span class="nf">check_activation_gradients</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">input_data</span><span class="p">):</span>
+<span class="linenos"> 2</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;检查激活函数的梯度&quot;&quot;&quot;</span>
+<span class="linenos"> 3</span>    <span class="n">model</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+<span class="linenos"> 4</span>    <span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
+<span class="linenos"> 5</span>    <span class="n">loss</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="linenos"> 6</span>    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="linenos"> 7</span>    
+<span class="linenos"> 8</span>    <span class="n">gradient_stats</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="linenos"> 9</span>    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+<span class="linenos">10</span>        <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<span class="linenos">11</span>            <span class="n">grad</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span>
+<span class="linenos">12</span>            <span class="n">gradient_stats</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos">13</span>                <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="n">grad</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+<span class="linenos">14</span>                <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="n">grad</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+<span class="linenos">15</span>                <span class="s1">&#39;max&#39;</span><span class="p">:</span> <span class="n">grad</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+<span class="linenos">16</span>                <span class="s1">&#39;min&#39;</span><span class="p">:</span> <span class="n">grad</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+<span class="linenos">17</span>                <span class="s1">&#39;zero_ratio&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">grad</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">/</span> <span class="n">grad</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span>
+<span class="linenos">18</span>            <span class="p">}</span>
+<span class="linenos">19</span>    
+<span class="linenos">20</span>    <span class="k">return</span> <span class="n">gradient_stats</span>
+<span class="linenos">21</span>
+<span class="linenos">22</span><span class="c1"># 使用示例</span>
+<span class="linenos">23</span><span class="n">stats</span> <span class="o">=</span> <span class="n">check_activation_gradients</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">input_tensor</span><span class="p">)</span>
+<span class="linenos">24</span><span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">stats</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<span class="linenos">25</span>    <span class="k">if</span> <span class="s1">&#39;weight&#39;</span> <span class="ow">in</span> <span class="n">name</span> <span class="ow">and</span> <span class="s1">&#39;layer1&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+<span class="linenos">26</span>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: mean=</span><span class="si">{</span><span class="n">stat</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">, zero_ratio=</span><span class="si">{</span><span class="n">stat</span><span class="p">[</span><span class="s1">&#39;zero_ratio&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </section>
-<section id="id12">
-<h2>激活函数的初始化配合<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
+</section>
+<section id="id16">
+<h2>激活函数的初始化配合<a class="headerlink" href="#id16" title="Link to this heading">#</a></h2>
 <p>神经网络的权重初始化对训练过程的收敛速度和最终性能有重要影响。不恰当的初始化可能导致梯度消失或爆炸，使得网络难以训练。不同的激活函数具有不同的非线性特性，因此需要匹配的初始化策略来保持前向传播中信号的方差和反向传播中梯度的稳定性。</p>
 <section id="xavier">
 <h3>Xavier初始化<a class="headerlink" href="#xavier" title="Link to this heading">#</a></h3>
@@ -835,14 +1897,17 @@ x &amp; \text{if } x &gt; 0 \\
 <li><p>偏置初始化为零。</p></li>
 </ol>
 <p><strong>PyTorch实现</strong>：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">xavier_init</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>
-        <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">xavier_normal_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">bias</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">zeros_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span>
-
-<span class="n">model</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">xavier_init</span><span class="p">)</span>
+<div class="literal-block-wrapper docutils container" id="id37">
+<div class="code-block-caption"><span class="caption-text">Xavier初始化的PyTorch实现</span><a class="headerlink" href="#id37" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="k">def</span><span class="w"> </span><span class="nf">xavier_init</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+<span class="linenos">2</span>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>
+<span class="linenos">3</span>        <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">xavier_normal_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+<span class="linenos">4</span>        <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">bias</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<span class="linenos">5</span>            <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">zeros_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span>
+<span class="linenos">6</span>
+<span class="linenos">7</span><span class="n">model</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">xavier_init</span><span class="p">)</span>
 </pre></div>
+</div>
 </div>
 </section>
 <section id="he">
@@ -867,15 +1932,18 @@ x &amp; \text{if } x &gt; 0 \\
 <li><p>偏置初始化为零。</p></li>
 </ol>
 <p><strong>PyTorch实现</strong>：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">he_init</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>
-        <span class="c1"># 使用fan_out模式适用于全连接层（默认fan_in也可）</span>
-        <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">kaiming_normal_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;fan_out&#39;</span><span class="p">,</span> <span class="n">nonlinearity</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">bias</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">zeros_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span>
-
-<span class="n">model</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">he_init</span><span class="p">)</span>
+<div class="literal-block-wrapper docutils container" id="id38">
+<div class="code-block-caption"><span class="caption-text">He初始化的PyTorch实现</span><a class="headerlink" href="#id38" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="k">def</span><span class="w"> </span><span class="nf">he_init</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+<span class="linenos">2</span>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>
+<span class="linenos">3</span>        <span class="c1"># 使用fan_out模式适用于全连接层（默认fan_in也可）</span>
+<span class="linenos">4</span>        <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">kaiming_normal_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;fan_out&#39;</span><span class="p">,</span> <span class="n">nonlinearity</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">)</span>
+<span class="linenos">5</span>        <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">bias</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<span class="linenos">6</span>            <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">zeros_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span>
+<span class="linenos">7</span>
+<span class="linenos">8</span><span class="n">model</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">he_init</span><span class="p">)</span>
 </pre></div>
+</div>
 </div>
 <p><strong>变体</strong>：</p>
 <ul class="simple">
@@ -883,11 +1951,11 @@ x &amp; \text{if } x &gt; 0 \\
 <li><p>对于ELU，同样可以使用He初始化，因为其正区间线性，负区间指数，但方差调整类似。</p></li>
 </ul>
 </section>
-<section id="id13">
-<h3>对比与选择建议<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<section id="id17">
+<h3>对比与选择建议<a class="headerlink" href="#id17" title="Link to this heading">#</a></h3>
 <p>Xavier初始化和He初始化各有其适用场景，选择哪种初始化取决于激活函数的特性。</p>
-<div class="pst-scrollable-table-container"><table class="table" id="id24">
-<caption><span class="caption-text">Xavier与He初始化对比</span><a class="headerlink" href="#id24" title="Link to this table">#</a></caption>
+<div class="pst-scrollable-table-container"><table class="table" id="id39">
+<caption><span class="caption-text">Xavier与He初始化对比</span><a class="headerlink" href="#id39" title="Link to this table">#</a></caption>
 <colgroup>
 <col style="width: 30.0%" />
 <col style="width: 35.0%" />
@@ -941,138 +2009,237 @@ x &amp; \text{if } x &gt; 0 \\
 </ol>
 </section>
 </section>
-<section id="id14">
-<h2>实践建议<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
-<section id="id15">
-<h3>1. 激活函数组合<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CustomBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">activation</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
-    
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">x</span>
-</pre></div>
-</div>
-</section>
-<section id="id16">
-<h3>2. 激活函数可视化<a class="headerlink" href="#id16" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">plot_activation_functions</span><span class="p">():</span>
-    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
-    <span class="n">activations</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;Sigmoid&#39;</span><span class="p">:</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="p">)),</span>
-        <span class="s1">&#39;Tanh&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
-        <span class="s1">&#39;ReLU&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span>
-        <span class="s1">&#39;Leaky ReLU&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">x</span><span class="p">),</span>
-        <span class="s1">&#39;ELU&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="p">}</span>
-    
-    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
-    <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="o">.</span><span class="n">flat</span><span class="p">,</span> <span class="n">activations</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-    
-    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</section>
-<section id="id17">
-<h3>3. 激活函数性能测试<a class="headerlink" href="#id17" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">test_activation_performance</span><span class="p">(</span><span class="n">model_class</span><span class="p">,</span> <span class="n">activation_fn</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;测试不同激活函数的性能&quot;&quot;&quot;</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">model_class</span><span class="p">(</span><span class="n">activation_fn</span><span class="p">)</span>
-    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
-    
-    <span class="n">train_losses</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="p">):</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
-        <span class="n">total_loss</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">dataset</span><span class="p">:</span>
-            <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
-            <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-            <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-            <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-            <span class="n">total_loss</span> <span class="o">+=</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-        
-        <span class="n">avg_loss</span> <span class="o">=</span> <span class="n">total_loss</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
-        <span class="n">train_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">avg_loss</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: loss = </span><span class="si">{</span><span class="n">avg_loss</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    
-    <span class="k">return</span> <span class="n">train_losses</span>
-</pre></div>
-</div>
-</section>
-</section>
 <section id="id18">
-<h2>高级主题<a class="headerlink" href="#id18" title="Link to this heading">#</a></h2>
+<h2>实践建议<a class="headerlink" href="#id18" title="Link to this heading">#</a></h2>
 <section id="id19">
-<h3>1. 自适应激活函数<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">AdaptiveActivation</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;可学习参数的激活函数&quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">1.0</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
-    
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span>
+<h3>1. 激活函数组合<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
+<div class="literal-block-wrapper docutils container" id="id40">
+<div class="code-block-caption"><span class="caption-text">激活函数组合模块的实现</span><a class="headerlink" href="#id40" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="k">class</span><span class="w"> </span><span class="nc">CustomBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="linenos"> 2</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span><span class="p">):</span>
+<span class="linenos"> 3</span>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+<span class="linenos"> 4</span>        <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span><span class="p">)</span>
+<span class="linenos"> 5</span>        <span class="bp">self</span><span class="o">.</span><span class="n">activation</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+<span class="linenos"> 6</span>        <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="linenos"> 7</span>    
+<span class="linenos"> 8</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="linenos"> 9</span>        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos">10</span>        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos">11</span>        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos">12</span>        <span class="k">return</span> <span class="n">x</span>
 </pre></div>
+</div>
 </div>
 </section>
 <section id="id20">
-<h3>2. 注意力机制中的激活函数<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
-<p>在注意力机制中，softmax用于计算注意力权重：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">attention</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;缩放点积注意力&quot;&quot;&quot;</span>
-    <span class="n">d_k</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">scores</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d_k</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">scores</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">masked_fill</span><span class="p">(</span><span class="n">mask</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1e9</span><span class="p">)</span>
-    <span class="n">p_attn</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">p_attn</span><span class="p">,</span> <span class="n">value</span><span class="p">),</span> <span class="n">p_attn</span>
+<h3>2. 激活函数可视化<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
+<div class="literal-block-wrapper docutils container" id="id41">
+<div class="code-block-caption"><span class="caption-text">激活函数可视化的实现</span><a class="headerlink" href="#id41" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="linenos"> 3</span>
+<span class="linenos"> 4</span><span class="k">def</span><span class="w"> </span><span class="nf">plot_activation_functions</span><span class="p">():</span>
+<span class="linenos"> 5</span>    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="linenos"> 6</span>    <span class="n">activations</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos"> 7</span>        <span class="s1">&#39;Sigmoid&#39;</span><span class="p">:</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="p">)),</span>
+<span class="linenos"> 8</span>        <span class="s1">&#39;Tanh&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+<span class="linenos"> 9</span>        <span class="s1">&#39;ReLU&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span>
+<span class="linenos">10</span>        <span class="s1">&#39;Leaky ReLU&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">x</span><span class="p">),</span>
+<span class="linenos">11</span>        <span class="s1">&#39;ELU&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+<span class="linenos">12</span>    <span class="p">}</span>
+<span class="linenos">13</span>    
+<span class="linenos">14</span>    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="linenos">15</span>    <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="o">.</span><span class="n">flat</span><span class="p">,</span> <span class="n">activations</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+<span class="linenos">16</span>        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="linenos">17</span>        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+<span class="linenos">18</span>        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="linenos">19</span>        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="linenos">20</span>    
+<span class="linenos">21</span>    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="linenos">22</span>    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
+</div>
 </div>
 </section>
 <section id="id21">
-<h3>3. 激活函数归一化<a class="headerlink" href="#id21" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ActivationNorm</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;激活函数后接归一化&quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">activation</span> <span class="o">=</span> <span class="n">activation</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
-    
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">x</span>
+<h3>3. 激活函数性能测试<a class="headerlink" href="#id21" title="Link to this heading">#</a></h3>
+<div class="literal-block-wrapper docutils container" id="id42">
+<div class="code-block-caption"><span class="caption-text">激活函数性能测试的实现</span><a class="headerlink" href="#id42" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="k">def</span><span class="w"> </span><span class="nf">test_activation_performance</span><span class="p">(</span><span class="n">model_class</span><span class="p">,</span> <span class="n">activation_fn</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="linenos"> 2</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;测试不同激活函数的性能&quot;&quot;&quot;</span>
+<span class="linenos"> 3</span>    <span class="n">model</span> <span class="o">=</span> <span class="n">model_class</span><span class="p">(</span><span class="n">activation_fn</span><span class="p">)</span>
+<span class="linenos"> 4</span>    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+<span class="linenos"> 5</span>    
+<span class="linenos"> 6</span>    <span class="n">train_losses</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="linenos"> 7</span>    <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="p">):</span>
+<span class="linenos"> 8</span>        <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+<span class="linenos"> 9</span>        <span class="n">total_loss</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="linenos">10</span>        <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">dataset</span><span class="p">:</span>
+<span class="linenos">11</span>            <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+<span class="linenos">12</span>            <span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+<span class="linenos">13</span>            <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+<span class="linenos">14</span>            <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="linenos">15</span>            <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+<span class="linenos">16</span>            <span class="n">total_loss</span> <span class="o">+=</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+<span class="linenos">17</span>        
+<span class="linenos">18</span>        <span class="n">avg_loss</span> <span class="o">=</span> <span class="n">total_loss</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+<span class="linenos">19</span>        <span class="n">train_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">avg_loss</span><span class="p">)</span>
+<span class="linenos">20</span>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: loss = </span><span class="si">{</span><span class="n">avg_loss</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">21</span>    
+<span class="linenos">22</span>    <span class="k">return</span> <span class="n">train_losses</span>
 </pre></div>
+</div>
 </div>
 </section>
 </section>
 <section id="id22">
-<h2>总结<a class="headerlink" href="#id22" title="Link to this heading">#</a></h2>
-<p>激活函数是神经网络设计中的关键组件，它决定了网络的表达能力和训练动态。选择合适的激活函数需要考虑网络深度、任务类型和计算资源等因素。在实践中，ReLU及其变体通常是隐藏层的默认选择，而输出层则根据任务类型选择相应的激活函数。</p>
+<h2>高级主题<a class="headerlink" href="#id22" title="Link to this heading">#</a></h2>
+<section id="id23">
+<h3>1. 自适应激活函数<a class="headerlink" href="#id23" title="Link to this heading">#</a></h3>
+<div class="literal-block-wrapper docutils container" id="id43">
+<div class="code-block-caption"><span class="caption-text">自适应激活函数的实现</span><a class="headerlink" href="#id43" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="k">class</span><span class="w"> </span><span class="nc">AdaptiveActivation</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="linenos">2</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;可学习参数的激活函数&quot;&quot;&quot;</span>
+<span class="linenos">3</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">4</span>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+<span class="linenos">5</span>        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">1.0</span><span class="p">))</span>
+<span class="linenos">6</span>        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
+<span class="linenos">7</span>    
+<span class="linenos">8</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="linenos">9</span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="id24">
+<h3>2. 注意力机制中的激活函数<a class="headerlink" href="#id24" title="Link to this heading">#</a></h3>
+<p>在注意力机制中，softmax用于计算注意力权重：</p>
+<div class="literal-block-wrapper docutils container" id="id44">
+<div class="code-block-caption"><span class="caption-text">注意力机制中Softmax的实现</span><a class="headerlink" href="#id44" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="k">def</span><span class="w"> </span><span class="nf">attention</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="linenos">2</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;缩放点积注意力&quot;&quot;&quot;</span>
+<span class="linenos">3</span>    <span class="n">d_k</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="linenos">4</span>    <span class="n">scores</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d_k</span><span class="p">)</span>
+<span class="linenos">5</span>    <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<span class="linenos">6</span>        <span class="n">scores</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">masked_fill</span><span class="p">(</span><span class="n">mask</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1e9</span><span class="p">)</span>
+<span class="linenos">7</span>    <span class="n">p_attn</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+<span class="linenos">8</span>    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">p_attn</span><span class="p">,</span> <span class="n">value</span><span class="p">),</span> <span class="n">p_attn</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="id25">
+<h3>3. 激活函数归一化<a class="headerlink" href="#id25" title="Link to this heading">#</a></h3>
+<div class="literal-block-wrapper docutils container" id="id45">
+<div class="code-block-caption"><span class="caption-text">激活函数归一化的实现</span><a class="headerlink" href="#id45" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="k">class</span><span class="w"> </span><span class="nc">ActivationNorm</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="linenos"> 2</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;激活函数后接归一化&quot;&quot;&quot;</span>
+<span class="linenos"> 3</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()):</span>
+<span class="linenos"> 4</span>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+<span class="linenos"> 5</span>        <span class="bp">self</span><span class="o">.</span><span class="n">activation</span> <span class="o">=</span> <span class="n">activation</span>
+<span class="linenos"> 6</span>        <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+<span class="linenos"> 7</span>    
+<span class="linenos"> 8</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="linenos"> 9</span>        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos">10</span>        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos">11</span>        <span class="k">return</span> <span class="n">x</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+<section id="id26">
+<h2>总结<a class="headerlink" href="#id26" title="Link to this heading">#</a></h2>
+<p>激活函数是神经网络中引入非线性的核心组件，它决定了网络的表达能力、训练动态和最终性能。从Sigmoid到ReLU，从Leaky ReLU到Swish，激活函数的设计不断演进，反映了深度学习领域对训练效率和模型性能的持续追求。</p>
+<p><strong>核心理念回顾</strong></p>
+<ol class="arabic simple">
+<li><p><strong>非线性</strong>：激活函数的首要任务是引入非线性，使神经网络能够逼近任意复杂函数</p></li>
+<li><p><strong>梯度流动</strong>：激活函数的导数特性直接影响反向传播中梯度的传递效率</p></li>
+<li><p><strong>稀疏性</strong>：适度的稀疏激活有助于特征选择和计算效率</p></li>
+<li><p><strong>零中心性</strong>：零中心输出有助于优化过程的收敛</p></li>
+</ol>
+<p><strong>激活函数演进脉络</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>1960s-1980s: 人工神经元模型
+             └─ Step函数 → Sigmoid函数
+
+1990s-2000s: 多层感知机时代
+             └─ Sigmoid, Tanh（梯度消失问题困扰）
+
+2010年: ReLU的突破
+        └─ 计算简单、梯度不消失 → 深度学习爆发
+
+2015年至今: ReLU变体时代
+           ├─ Leaky ReLU（解决死亡神经元）
+           ├─ ELU（更平滑的负区间）
+           ├─ SELU（自归一化）
+           ├─ Swish/Mish（自动搜索发现）
+           └─ 多种变体针对特定问题
+
+未来趋势: 自适应激活函数、可学习激活函数、任务专用激活函数
+</pre></div>
+</div>
+<p><strong>实践中的关键建议</strong></p>
+<ol class="arabic simple">
+<li><p><strong>默认选择</strong>：对于大多数任务，ReLU是隐藏层的可靠默认选择</p></li>
+<li><p><strong>问题诊断</strong>：如果训练困难，检查是否有梯度消失或死亡神经元问题</p></li>
+<li><p><strong>任务适配</strong>：根据任务类型选择输出层激活函数（二分类用Sigmoid，多分类用Softmax）</p></li>
+<li><p><strong>初始化匹配</strong>：使用与激活函数匹配的权重初始化方法（Xavier for Sigmoid/Tanh，He for ReLU）</p></li>
+<li><p><strong>持续实验</strong>：在复杂任务上尝试Swish、Mish等新型激活函数，可能获得性能提升</p></li>
+</ol>
+<p><strong>激活函数选择速查表</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>场景</p></th>
+<th class="head"><p>推荐激活函数</p></th>
+<th class="head"><p>备选</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>CNN隐藏层</p></td>
+<td><p>ReLU</p></td>
+<td><p>Leaky ReLU, Swish</p></td>
+</tr>
+<tr class="row-odd"><td><p>RNN隐藏层</p></td>
+<td><p>Tanh</p></td>
+<td><p>-</p></td>
+</tr>
+<tr class="row-even"><td><p>深层网络</p></td>
+<td><p>Swish, Mish</p></td>
+<td><p>Leaky ReLU</p></td>
+</tr>
+<tr class="row-odd"><td><p>二分类输出</p></td>
+<td><p>Sigmoid</p></td>
+<td><p>-</p></td>
+</tr>
+<tr class="row-even"><td><p>多分类输出</p></td>
+<td><p>Softmax</p></td>
+<td><p>-</p></td>
+</tr>
+<tr class="row-odd"><td><p>回归输出</p></td>
+<td><p>无/线性</p></td>
+<td><p>ReLU（限输出范围）</p></td>
+</tr>
+<tr class="row-even"><td><p>计算资源受限</p></td>
+<td><p>ReLU</p></td>
+<td><p>-</p></td>
+</tr>
+<tr class="row-odd"><td><p>有死亡神经元</p></td>
+<td><p>Leaky ReLU, ELU</p></td>
+<td><p>PReLU</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>激活函数的选择不是一劳永逸的，需要根据具体任务、网络结构和实验结果进行调整。理解每个激活函数的设计动机和特性，有助于在实际项目中做出明智的选择。</p>
 <div class="tip admonition">
-<p class="admonition-title">最佳实践</p>
+<p class="admonition-title">最佳实践清单</p>
 <ol class="arabic simple">
 <li><p><strong>隐藏层</strong>：从ReLU开始，遇到&quot;死亡神经元&quot;问题时尝试Leaky ReLU或ELU</p></li>
 <li><p><strong>输出层</strong>：根据任务选择Sigmoid（二分类）、Softmax（多分类）或线性激活（回归）</p></li>
 <li><p><strong>初始化</strong>：使用与激活函数匹配的初始化方法（Xavier for Sigmoid/Tanh, He for ReLU）</p></li>
-<li><p><strong>监控</strong>：定期检查激活函数的梯度，避免梯度消失或爆炸</p></li>
+<li><p><strong>监控</strong>：定期检查激活函数的梯度分布，避免梯度消失或爆炸</p></li>
 <li><p><strong>实验</strong>：在复杂任务上尝试Swish、Mish等新型激活函数</p></li>
+<li><p><strong>理解</strong>：深入理解每个激活函数的设计动机，而非盲目使用</p></li>
 </ol>
 </div>
 </section>
@@ -1082,7 +2249,7 @@ x &amp; \text{if } x &gt; 0 \\
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -1090,6 +2257,11 @@ x &amp; \text{if } x &gt; 0 \\
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">dcecce4</code>
+                2026-01-26 - <strong>Heyan Zhu</strong>: docs: enrich math fundamentals documentation with code captions and TikZ visualizations
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">0c291d7</code>
                 2025-12-10 - <strong>Heyan Zhu</strong>: docs: restructure course materials and add new content
@@ -1160,32 +2332,36 @@ x &amp; \text{if } x &gt; 0 \\
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">1. 隐藏层激活函数</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">2. 输出层激活函数</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">3. 特殊考虑</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">4. 激活函数选择决策树</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">5. 实验建议</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">激活函数的梯度分析</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">梯度消失与爆炸</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">梯度计算优化</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">激活函数的梯度分析</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">1. 梯度消失问题</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">2. 梯度爆炸问题</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">3. 梯度流动可视化</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">4. 梯度检查实践</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">激活函数的初始化配合</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">激活函数的初始化配合</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#xavier">Xavier初始化</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#he">He初始化</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">对比与选择建议</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">对比与选择建议</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">实践建议</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">1. 激活函数组合</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">2. 激活函数可视化</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">3. 激活函数性能测试</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">实践建议</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">1. 激活函数组合</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">2. 激活函数可视化</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">3. 激活函数性能测试</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">高级主题</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">1. 自适应激活函数</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">2. 注意力机制中的激活函数</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">3. 激活函数归一化</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">高级主题</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">1. 自适应激活函数</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">2. 注意力机制中的激活函数</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">3. 激活函数归一化</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id26">总结</a></li>
 </ul>
   </nav></div>
 
