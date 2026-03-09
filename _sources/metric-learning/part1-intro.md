@@ -691,3 +691,9 @@ timeline
 - 采样策略的基本概念
 
 准备好了吗？让我们继续探索度量学习的世界！
+
+**参考文献**
+
+```{bibliography}
+:filter: docname in docnames
+```

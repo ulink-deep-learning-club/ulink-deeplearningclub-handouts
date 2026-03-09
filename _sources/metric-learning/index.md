@@ -190,7 +190,7 @@ part4-practical-guide
 ```{admonition} 学习路线图
 :class: important
 
-```{mermaid}
+~~~{mermaid}
 ---
 caption: 度量学习学习路径
 align: center
@@ -213,7 +213,7 @@ graph LR
     style C fill:#e8f5e9
     style D fill:#fce4ec
     style E fill:#f3e5f5
-```
+~~~
 
 **预计总学习时间**：6-8周达到实战水平
 ```

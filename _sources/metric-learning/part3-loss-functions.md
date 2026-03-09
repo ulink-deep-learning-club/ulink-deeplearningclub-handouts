@@ -139,8 +139,7 @@ graph LR
 \mathcal{L} = \underbrace{\mathcal{L}_{\text{pull}}}_{\text{拉近正样本}} + \lambda \underbrace{\mathcal{L}_{\text{push}}}_{\text{推远负样本}}
 ```
 
-```{admonition} 损失函数组成
-:class: tip
+**损失函数组成**
 
 | 组成部分 | 作用 | 典型形式 | 特点 |
 |----------|------|----------|------|
@@ -149,7 +148,6 @@ graph LR
 | **$\lambda$** | 平衡系数 | 超参数（通常1.0） | 控制推拉权重 |
 
 **不同的损失函数**在如何定义这两个部分、如何采样样本对方面有所区别。
-```
 
 ## 3.2 对比损失（Contrastive Loss）
 
@@ -165,14 +163,12 @@ graph LR
 - $y_{ij} = 0$：不相似（不同类）
 
 **损失函数**：
-```
 
-```{math}
+~~~{math}
 \mathcal{L}_{\text{contrastive}}(x_i, x_j) = \underbrace{y_{ij} d_{ij}^2}_{\text{正样本对}} + \underbrace{(1 - y_{ij}) \max(0, m - d_{ij})^2}_{\text{负样本对}}
-```
+~~~
 
-```{admonition} 参数说明
-:class: note
+**参数说明**
 
 - **$d_{ij} = \|f_\theta(x_i) - f_\theta(x_j)\|_2$**：嵌入空间中的欧氏距离
 - **$m$**：间隔（margin），通常设置为1.0
@@ -282,7 +278,7 @@ graph LR
 
 % 距离连线：使用 bend (弧线) 避免和坐标轴重叠
 % d_ap (正样本) - 上方弧线
-\draw[<->, thick, blue] (a) to[bend left=45] node[midway, above] {$d_{ap}$} (p);
+\draw[<->, thick, blue] (a) to[bend left=45] node[midway, below] {$d_{ap}$} (p);
 % d_an (普通负样本) - 更高的上方弧线
 \draw[<->, thick, gray] (a) to[bend left=35] node[midway, above] {$d_{an} > d_{ap} + m$} (n1);
 % d_an_hard (困难负样本) - 下方弧线，错开视觉
@@ -346,52 +342,10 @@ graph LR
 
 ### 3.2.5 代码实现示例
 
-```{admonition} Contrastive Loss 完整实现
-:class: important
-
-```python
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
-class ContrastiveLoss(nn.Module):
-    """
-    对比损失实现
-    
-    Args:
-        margin: 间隔参数，默认1.0
-    """
-    def __init__(self, margin=1.0):
-        super(ContrastiveLoss, self).__init__()
-        self.margin = margin
-    
-    def forward(self, output1, output2, label):
-        """
-        Args:
-            output1, output2: 样本对特征 [B, D]
-            label: 相似性标签 [B], 1表示同类, 0表示不同类
-        
-        Returns:
-            loss: 标量损失值
-        """
-        # 计算欧氏距离
-        euclidean_distance = F.pairwise_distance(
-            output1, output2, keepdim=True
-        )  # [B, 1]
-        
-        # 正样本对损失: label * d^2
-        loss_positive = label * torch.pow(euclidean_distance, 2)
-        
-        # 负样本对损失: (1-label) * max(0, m-d)^2
-        loss_negative = (1 - label) * torch.pow(
-            torch.clamp(self.margin - euclidean_distance, min=0.0),
-            2
-        )
-        
-        # 平均损失
-        loss_contrastive = torch.mean(loss_positive + loss_negative)
-        
-        return loss_contrastive
+```{literalinclude} ./code/contrastive_loss.py
+:language: python
+:linenos:
+:caption: Contrastive Loss 完整实现
 ```
 
 **关键实现细节**：
@@ -560,31 +514,10 @@ every node/.style={font=\small}
 
 **策略2：在线难例挖掘（Online Hard Mining）**
 
-**FaceNet原始论文建议**（在每个mini-batch内）：
-
-```python
-def online_hard_negative_mining(anchor, positive, negative):
-    """
-    在线难例挖掘
-    
-    Args:
-        anchor: 锚点特征 [B, D]
-        positive: 正样本特征 [B, D]
-        negative: 负样本特征 [B, D]
-    
-    Returns:
-        hardest_positive_idx: 最难正样本索引
-        hardest_negative_idx: 最难负样本索引
-    """
-    # Hardest positive: 同类别中距离最远
-    d_ap = torch.norm(anchor - positive, dim=1)
-    hardest_positive_idx = torch.argmax(d_ap)
-    
-    # Hardest negative: 不同类别中距离最近
-    d_an = torch.norm(anchor - negative, dim=1)
-    hardest_negative_idx = torch.argmin(d_an)
-    
-    return hardest_positive_idx, hardest_negative_idx
+```{literalinclude} ./code/online_hard_negative_mining.py
+:language: python
+:caption: **FaceNet原始论文建议**（在每个mini-batch内）
+:linenos:
 ```
 
 **优点**：高效，适合大规模训练
@@ -926,4 +859,10 @@ Triplet（采用hard mining时）、Contrastive - 在样本对满足约束时梯
 - **代理损失**：类别代理
 
 选择取决于你的任务需求和数据特点！
+```
+
+**参考文献**
+
+```{bibliography}
+:filter: docname in docnames
 ```

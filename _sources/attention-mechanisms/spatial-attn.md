@@ -53,7 +53,7 @@
 ```{literalinclude} ./code/spatial_attention.py
 :language: python
 :linenos:
-:lines: 1-40
+:lines: 1-34
 ```
 
 ### 2. 卷积生成的空间注意力
@@ -63,7 +63,7 @@
 ```{literalinclude} ./code/conv_spatial_attention.py
 :language: python
 :linenos:
-:lines: 1-40
+:lines: 1-28
 ```
 
 ### 3. 自注意力空间注意力（Non-local Network风格）
@@ -73,7 +73,7 @@
 ```{literalinclude} ./code/self_attention_spatial.py
 :language: python
 :linenos:
-:lines: 1-52
+:lines: 1-44
 ```
 
 ## 性能分析
@@ -105,18 +105,7 @@
 ```{literalinclude} ./code/spatial_attention_res_block.py
 :language: python
 :linenos:
-:lines: 1-86
-```
-
-## 可视化
-
-空间注意力图可以直观显示网络关注哪些区域。在图像分类任务中，空间注意力通常集中在物体主体区域；在目标检测中，注意力可能集中在边界框附近；在图像分割中，注意力可能集中在物体轮廓。
-
-```{figure} ../../_static/images/spatial-attention-vis.png
-:width: 80%
-:align: center
-
-空间注意力可视化示例：原始图像（左）、特征图（中）、空间注意力图（右）
+:lines: 1-77
 ```
 
 ## 总结

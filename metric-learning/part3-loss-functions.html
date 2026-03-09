@@ -999,8 +999,7 @@ document.write(`
 <p>度量学习的损失函数通常包含两部分：</p>
 <div class="math notranslate nohighlight">
 \[\mathcal{L} = \underbrace{\mathcal{L}_{\text{pull}}}_{\text{拉近正样本}} + \lambda \underbrace{\mathcal{L}_{\text{push}}}_{\text{推远负样本}}\]</div>
-<div class="tip admonition">
-<p class="admonition-title">损失函数组成</p>
+<p><strong>损失函数组成</strong></p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>组成部分</p></th>
@@ -1029,7 +1028,6 @@ document.write(`
 </table>
 </div>
 <p><strong>不同的损失函数</strong>在如何定义这两个部分、如何采样样本对方面有所区别。</p>
-</div>
 </section>
 </section>
 <section id="contrastive-loss">
@@ -1038,18 +1036,16 @@ document.write(`
 <h3>3.2.1 基本定义<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
 <div class="important admonition">
 <p class="admonition-title">Contrastive Loss</p>
-<p>度量学习的<strong>奠基性工作<span id="id5">[]</span></strong>，用于Siamese网络。</p>
+<p>度量学习的<strong>奠基性工作<span id="id5">[<a class="reference internal" href="#id48" title="Raia Hadsell, Sumit Chopra, and Yann LeCun. Dimensionality reduction by learning an invariant mapping. In 2006 IEEE computer society conference on computer vision and pattern recognition (CVPR'06), volume 2, 1735–1742. Ieee, 2006.">HCL06</a>]</span></strong>，用于Siamese网络。</p>
 <p><strong>输入</strong>：样本对 <span class="math notranslate nohighlight">\((x_i, x_j)\)</span>，标签 <span class="math notranslate nohighlight">\(y_{ij} \in \{0, 1\}\)</span></p>
 <ul class="simple">
 <li><p><span class="math notranslate nohighlight">\(y_{ij} = 1\)</span>：相似（同类）</p></li>
 <li><p><span class="math notranslate nohighlight">\(y_{ij} = 0\)</span>：不相似（不同类）</p></li>
 </ul>
 <p><strong>损失函数</strong>：</p>
-</div>
 <div class="math notranslate nohighlight">
 \[\mathcal{L}_{\text{contrastive}}(x_i, x_j) = \underbrace{y_{ij} d_{ij}^2}_{\text{正样本对}} + \underbrace{(1 - y_{ij}) \max(0, m - d_{ij})^2}_{\text{负样本对}}\]</div>
-<div class="note admonition">
-<p class="admonition-title">参数说明</p>
+<p><strong>参数说明</strong></p>
 <ul class="simple">
 <li><p><strong><span class="math notranslate nohighlight">\(d_{ij} = \|f_\theta(x_i) - f_\theta(x_j)\|_2\)</span></strong>：嵌入空间中的欧氏距离</p></li>
 <li><p><strong><span class="math notranslate nohighlight">\(m\)</span></strong>：间隔（margin），通常设置为1.0</p></li>
@@ -1142,7 +1138,7 @@ document.write(`
 </ul>
 <p><strong>类比</strong>：想象在房间里放家具，间隔就像是&quot;安全距离&quot;——即使两件家具看起来相似，也要保持足够的距离以便区分。</p>
 </div>
-<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-bfd21f9fe1109272ea4b540c6f81a05d0cfeeecb.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-a1a000b0345ca664e355d4c3518f08ca92a7473d.svg" alt="Figure made with TikZ" /></p>
 </div></section>
 <section id="id9">
 <h3>3.2.4 实践中的挑战<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
@@ -1203,50 +1199,50 @@ document.write(`
 </section>
 <section id="id10">
 <h3>3.2.5 代码实现示例<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
-<div class="important admonition">
-<p class="admonition-title">Contrastive Loss 完整实现</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
-
-<span class="k">class</span><span class="w"> </span><span class="nc">ContrastiveLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    对比损失实现</span>
-<span class="sd">    </span>
-<span class="sd">    Args:</span>
-<span class="sd">        margin: 间隔参数，默认1.0</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">margin</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ContrastiveLoss</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">margin</span> <span class="o">=</span> <span class="n">margin</span>
-    
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output1</span><span class="p">,</span> <span class="n">output2</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Args:</span>
-<span class="sd">            output1, output2: 样本对特征 [B, D]</span>
-<span class="sd">            label: 相似性标签 [B], 1表示同类, 0表示不同类</span>
-<span class="sd">        </span>
-<span class="sd">        Returns:</span>
-<span class="sd">            loss: 标量损失值</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># 计算欧氏距离</span>
-        <span class="n">euclidean_distance</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">pairwise_distance</span><span class="p">(</span>
-            <span class="n">output1</span><span class="p">,</span> <span class="n">output2</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span>
-        <span class="p">)</span>  <span class="c1"># [B, 1]</span>
-        
-        <span class="c1"># 正样本对损失: label * d^2</span>
-        <span class="n">loss_positive</span> <span class="o">=</span> <span class="n">label</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">euclidean_distance</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-        
-        <span class="c1"># 负样本对损失: (1-label) * max(0, m-d)^2</span>
-        <span class="n">loss_negative</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">label</span><span class="p">)</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span>
-            <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">margin</span> <span class="o">-</span> <span class="n">euclidean_distance</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">0.0</span><span class="p">),</span>
-            <span class="mi">2</span>
-        <span class="p">)</span>
-        
-        <span class="c1"># 平均损失</span>
-        <span class="n">loss_contrastive</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">loss_positive</span> <span class="o">+</span> <span class="n">loss_negative</span><span class="p">)</span>
-        
-        <span class="k">return</span> <span class="n">loss_contrastive</span>
+<div class="literal-block-wrapper docutils container" id="id89">
+<div class="code-block-caption"><span class="caption-text">Contrastive Loss 完整实现</span><a class="headerlink" href="#id89" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="linenos"> 3</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+<span class="linenos"> 4</span>
+<span class="linenos"> 5</span><span class="k">class</span><span class="w"> </span><span class="nc">ContrastiveLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="linenos"> 6</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 7</span><span class="sd">    对比损失实现</span>
+<span class="linenos"> 8</span>
+<span class="linenos"> 9</span><span class="sd">    Args:</span>
+<span class="linenos">10</span><span class="sd">        margin: 间隔参数，默认1.0</span>
+<span class="linenos">11</span><span class="sd">    &quot;&quot;&quot;</span>
+<span class="linenos">12</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">margin</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<span class="linenos">13</span>        <span class="nb">super</span><span class="p">(</span><span class="n">ContrastiveLoss</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+<span class="linenos">14</span>        <span class="bp">self</span><span class="o">.</span><span class="n">margin</span> <span class="o">=</span> <span class="n">margin</span>
+<span class="linenos">15</span>
+<span class="linenos">16</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output1</span><span class="p">,</span> <span class="n">output2</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+<span class="linenos">17</span><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos">18</span><span class="sd">        Args:</span>
+<span class="linenos">19</span><span class="sd">            output1, output2: 样本对特征 [B, D]</span>
+<span class="linenos">20</span><span class="sd">            label: 相似性标签 [B], 1表示同类, 0表示不同类</span>
+<span class="linenos">21</span>
+<span class="linenos">22</span><span class="sd">        Returns:</span>
+<span class="linenos">23</span><span class="sd">            loss: 标量损失值</span>
+<span class="linenos">24</span><span class="sd">        &quot;&quot;&quot;</span>
+<span class="linenos">25</span>        <span class="c1"># 计算欧氏距离</span>
+<span class="linenos">26</span>        <span class="n">euclidean_distance</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">pairwise_distance</span><span class="p">(</span>
+<span class="linenos">27</span>            <span class="n">output1</span><span class="p">,</span> <span class="n">output2</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span>
+<span class="linenos">28</span>        <span class="p">)</span>  <span class="c1"># [B, 1]</span>
+<span class="linenos">29</span>
+<span class="linenos">30</span>        <span class="c1"># 正样本对损失: label * d^2</span>
+<span class="linenos">31</span>        <span class="n">loss_positive</span> <span class="o">=</span> <span class="n">label</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">euclidean_distance</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="linenos">32</span>
+<span class="linenos">33</span>        <span class="c1"># 负样本对损失: (1-label) * max(0, m-d)^2</span>
+<span class="linenos">34</span>        <span class="n">loss_negative</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">label</span><span class="p">)</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span>
+<span class="linenos">35</span>            <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">margin</span> <span class="o">-</span> <span class="n">euclidean_distance</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">0.0</span><span class="p">),</span>
+<span class="linenos">36</span>            <span class="mi">2</span>
+<span class="linenos">37</span>        <span class="p">)</span>
+<span class="linenos">38</span>
+<span class="linenos">39</span>        <span class="c1"># 平均损失</span>
+<span class="linenos">40</span>        <span class="n">loss_contrastive</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">loss_positive</span> <span class="o">+</span> <span class="n">loss_negative</span><span class="p">)</span>
+<span class="linenos">41</span>
+<span class="linenos">42</span>        <span class="k">return</span> <span class="n">loss_contrastive</span>
 </pre></div>
 </div>
 </div>
@@ -1262,7 +1258,7 @@ document.write(`
 <h2>3.3 三元组损失（Triplet Loss）<a class="headerlink" href="#triplet-loss" title="Link to this heading">#</a></h2>
 <section id="id11">
 <h3>3.3.1 动机与定义<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
-<p><strong>Triplet Loss</strong> <span id="id12">[]</span></p>
+<p><strong>Triplet Loss</strong> <span id="id12">[<a class="reference internal" href="#id47" title="Florian Schroff, Dmitry Kalenichenko, and James Philbin. Facenet: a unified embedding for face recognition and clustering. In Proceedings of the IEEE conference on computer vision and pattern recognition, 815–823. 2015.">SKP15</a>]</span></p>
 <p>深度度量学习的<strong>里程碑工作</strong>（FaceNet, 2015），通过引入<strong>相对比较</strong>，解决了对比损失&quot;独立优化&quot;的问题。</p>
 <p><strong>输入</strong>：三元组 <span class="math notranslate nohighlight">\((x_a, x_p, x_n)\)</span></p>
 <ul class="simple">
@@ -1368,30 +1364,34 @@ document.write(`
 <strong>缺点</strong>：计算量大，每个epoch需要<span class="math notranslate nohighlight">\(O(N^2)\)</span>距离计算</p>
 <p><strong>适用场景</strong>：小规模数据集，追求最优性能</p>
 <p><strong>策略2：在线难例挖掘（Online Hard Mining）</strong></p>
-<p><strong>FaceNet原始论文建议</strong>（在每个mini-batch内）：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">online_hard_negative_mining</span><span class="p">(</span><span class="n">anchor</span><span class="p">,</span> <span class="n">positive</span><span class="p">,</span> <span class="n">negative</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    在线难例挖掘</span>
-<span class="sd">    </span>
-<span class="sd">    Args:</span>
-<span class="sd">        anchor: 锚点特征 [B, D]</span>
-<span class="sd">        positive: 正样本特征 [B, D]</span>
-<span class="sd">        negative: 负样本特征 [B, D]</span>
-<span class="sd">    </span>
-<span class="sd">    Returns:</span>
-<span class="sd">        hardest_positive_idx: 最难正样本索引</span>
-<span class="sd">        hardest_negative_idx: 最难负样本索引</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Hardest positive: 同类别中距离最远</span>
-    <span class="n">d_ap</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">anchor</span> <span class="o">-</span> <span class="n">positive</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">hardest_positive_idx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">d_ap</span><span class="p">)</span>
-    
-    <span class="c1"># Hardest negative: 不同类别中距离最近</span>
-    <span class="n">d_an</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">anchor</span> <span class="o">-</span> <span class="n">negative</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">hardest_negative_idx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">d_an</span><span class="p">)</span>
-    
-    <span class="k">return</span> <span class="n">hardest_positive_idx</span><span class="p">,</span> <span class="n">hardest_negative_idx</span>
+<div class="literal-block-wrapper docutils container" id="id90">
+<div class="code-block-caption"><span class="caption-text"><strong>FaceNet原始论文建议</strong>（在每个mini-batch内）</span><a class="headerlink" href="#id90" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="linenos"> 2</span>
+<span class="linenos"> 3</span><span class="k">def</span><span class="w"> </span><span class="nf">online_hard_negative_mining</span><span class="p">(</span><span class="n">anchor</span><span class="p">,</span> <span class="n">positive</span><span class="p">,</span> <span class="n">negative</span><span class="p">):</span>
+<span class="linenos"> 4</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 5</span><span class="sd">    在线难例挖掘</span>
+<span class="linenos"> 6</span>
+<span class="linenos"> 7</span><span class="sd">    Args:</span>
+<span class="linenos"> 8</span><span class="sd">        anchor: 锚点特征 [B, D]</span>
+<span class="linenos"> 9</span><span class="sd">        positive: 正样本特征 [B, D]</span>
+<span class="linenos">10</span><span class="sd">        negative: 负样本特征 [B, D]</span>
+<span class="linenos">11</span>
+<span class="linenos">12</span><span class="sd">    Returns:</span>
+<span class="linenos">13</span><span class="sd">        hardest_positive_idx: 最难正样本索引</span>
+<span class="linenos">14</span><span class="sd">        hardest_negative_idx: 最难负样本索引</span>
+<span class="linenos">15</span><span class="sd">    &quot;&quot;&quot;</span>
+<span class="linenos">16</span>    <span class="c1"># Hardest positive: 同类别中距离最远</span>
+<span class="linenos">17</span>    <span class="n">d_ap</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">anchor</span> <span class="o">-</span> <span class="n">positive</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="linenos">18</span>    <span class="n">hardest_positive_idx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">d_ap</span><span class="p">)</span>
+<span class="linenos">19</span>
+<span class="linenos">20</span>    <span class="c1"># Hardest negative: 不同类别中距离最近</span>
+<span class="linenos">21</span>    <span class="n">d_an</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">anchor</span> <span class="o">-</span> <span class="n">negative</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="linenos">22</span>    <span class="n">hardest_negative_idx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">d_an</span><span class="p">)</span>
+<span class="linenos">23</span>
+<span class="linenos">24</span>    <span class="k">return</span> <span class="n">hardest_positive_idx</span><span class="p">,</span> <span class="n">hardest_negative_idx</span>
 </pre></div>
+</div>
 </div>
 <p><strong>优点</strong>：高效，适合大规模训练
 <strong>缺点</strong>：可能过于困难，导致训练不稳定</p>
@@ -1514,7 +1514,7 @@ document.write(`
 <section id="n-pair-loss">
 <h3>3.4.1 N-pair Loss<a class="headerlink" href="#n-pair-loss" title="Link to this heading">#</a></h3>
 <p><strong>动机</strong></p>
-<p>Triplet Loss一次只用一个负样本，效率较低。N-pair Loss <span id="id18">[]</span> 同时使用<span class="math notranslate nohighlight">\(K\)</span>个负样本，更充分利用batch内的样本。</p>
+<p>Triplet Loss一次只用一个负样本，效率较低。N-pair Loss <span id="id18">[<a class="reference internal" href="#id54" title="Kihyuk Sohn. Improved deep metric learning with multi-class n-pair loss objective. In Advances in neural information processing systems, 1857–1865. 2016.">Soh16</a>]</span> 同时使用<span class="math notranslate nohighlight">\(K\)</span>个负样本，更充分利用batch内的样本。</p>
 <p><strong>定义</strong></p>
 <p>给定锚点<span class="math notranslate nohighlight">\(z_a\)</span>，正样本<span class="math notranslate nohighlight">\(z_p\)</span>，负样本集合<span class="math notranslate nohighlight">\(\{z_{n_1}, ..., z_{n_K}\}\)</span>：</p>
 <div class="math notranslate nohighlight">
@@ -1536,7 +1536,7 @@ document.write(`
 <ul class="simple">
 <li><p><strong>几何不变性</strong>：不依赖于特征向量的模长</p></li>
 <li><p><strong>球面聚类</strong>：更自然地在单位球面上形成聚类</p></li>
-<li><p><strong>人脸识别的成功</strong>：ArcFace <span id="id19">[]</span> 和 CosFace <span id="id20">[]</span> 在人脸识别上取得SOTA</p></li>
+<li><p><strong>人脸识别的成功</strong>：ArcFace <span id="id19">[<a class="reference internal" href="#id55" title="Jiankang Deng, Jia Guo, Niannan Xue, and Stefanos Zafeiriou. Arcface: additive angular margin loss for deep face recognition. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, 4690–4699. 2019.">DGXZ19</a>]</span> 和 CosFace <span id="id20">[<a class="reference internal" href="#id56" title="Hao Wang, Yitong Wang, Zheng Zhou, Ji Xing, Dihong Gong Zheng, Zhifeng Li, Wei Liu, and others. Cosface: large margin cosine loss for deep face recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition, 5265–5274. 2018.">WWZ+18</a>]</span> 在人脸识别上取得SOTA</p></li>
 </ul>
 <div class="admonition important">
 <p class="admonition-title">重要</p>
@@ -1565,7 +1565,7 @@ $<span class="math notranslate nohighlight">\(\cos\theta_{y_i} = \frac{W_{y_i} \
 <section id="proxy-loss">
 <h3>3.4.3 Proxy Loss<a class="headerlink" href="#proxy-loss" title="Link to this heading">#</a></h3>
 <p><strong>动机</strong></p>
-<p>当类别数 <span class="math notranslate nohighlight">\(C\)</span> 很大时，使用所有负样本计算损失非常昂贵。Proxy Loss <span id="id21">[]</span> 为每个类别学习一个&quot;代理向量&quot;（proxy），样本只需与代理比较，无需互相比较。</p>
+<p>当类别数 <span class="math notranslate nohighlight">\(C\)</span> 很大时，使用所有负样本计算损失非常昂贵。Proxy Loss <span id="id21">[<a class="reference internal" href="#id57" title="Yair Movshovitz-Attias, Alexander Toshev, Thomas K Leung, Sergey Ioffe, and Saurabh Singh. No fuss distance metric learning using proxies. In International Conference on Computer Vision, 2544–2554. IEEE, 2017.">MATL+17</a>]</span> 为每个类别学习一个&quot;代理向量&quot;（proxy），样本只需与代理比较，无需互相比较。</p>
 <p><strong>定义</strong></p>
 <p>为每类 <span class="math notranslate nohighlight">\(c\)</span> 学习代理向量 <span class="math notranslate nohighlight">\(w_c\)</span>。样本对的损失：</p>
 <div class="math notranslate nohighlight">
@@ -1585,7 +1585,7 @@ $<span class="math notranslate nohighlight">\(\cos\theta_{y_i} = \frac{W_{y_i} \
 </section>
 <section id="center-loss">
 <h3>3.4.4 Center Loss<a class="headerlink" href="#center-loss" title="Link to this heading">#</a></h3>
-<p><strong>动机</strong> <span id="id22">[]</span></p>
+<p><strong>动机</strong> <span id="id22">[<a class="reference internal" href="#id58" title="Yandong Wen, Kaipeng Zhang, Zhifeng Li, and Yu Qiao. A discriminative feature learning approach for deep face recognition. In European conference on computer vision, 499–515. Springer, 2016.">WZLQ16</a>]</span></p>
 <p>Softmax学习判别性特征，但可能忽略类内紧凑性。Center Loss显式优化类内紧凑度。</p>
 <p><strong>定义</strong></p>
 <p>为每类维护一个类中心<span class="math notranslate nohighlight">\(C_y\)</span>：</p>
@@ -1840,6 +1840,39 @@ Triplet（采用hard mining时）、Contrastive - 在样本对满足约束时梯
 </ul>
 <p>选择取决于你的任务需求和数据特点！</p>
 </div>
+<p><strong>参考文献</strong></p>
+<div class="docutils container" id="id28">
+<div role="list" class="citation-list">
+<div class="citation" id="id55" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id19">DGXZ19</a><span class="fn-bracket">]</span></span>
+<p>Jiankang Deng, Jia Guo, Niannan Xue, and Stefanos Zafeiriou. Arcface: additive angular margin loss for deep face recognition. In <em>Proceedings of the IEEE/CVF conference on computer vision and pattern recognition</em>, 4690–4699. 2019.</p>
+</div>
+<div class="citation" id="id48" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">HCL06</a><span class="fn-bracket">]</span></span>
+<p>Raia Hadsell, Sumit Chopra, and Yann LeCun. Dimensionality reduction by learning an invariant mapping. In <em>2006 IEEE computer society conference on computer vision and pattern recognition (CVPR'06)</em>, volume 2, 1735–1742. Ieee, 2006.</p>
+</div>
+<div class="citation" id="id57" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id21">MATL+17</a><span class="fn-bracket">]</span></span>
+<p>Yair Movshovitz-Attias, Alexander Toshev, Thomas K Leung, Sergey Ioffe, and Saurabh Singh. No fuss distance metric learning using proxies. In <em>International Conference on Computer Vision</em>, 2544–2554. IEEE, 2017.</p>
+</div>
+<div class="citation" id="id47" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id12">SKP15</a><span class="fn-bracket">]</span></span>
+<p>Florian Schroff, Dmitry Kalenichenko, and James Philbin. Facenet: a unified embedding for face recognition and clustering. In <em>Proceedings of the IEEE conference on computer vision and pattern recognition</em>, 815–823. 2015.</p>
+</div>
+<div class="citation" id="id54" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id18">Soh16</a><span class="fn-bracket">]</span></span>
+<p>Kihyuk Sohn. Improved deep metric learning with multi-class n-pair loss objective. In <em>Advances in neural information processing systems</em>, 1857–1865. 2016.</p>
+</div>
+<div class="citation" id="id56" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id20">WWZ+18</a><span class="fn-bracket">]</span></span>
+<p>Hao Wang, Yitong Wang, Zheng Zhou, Ji Xing, Dihong Gong Zheng, Zhifeng Li, Wei Liu, and others. Cosface: large margin cosine loss for deep face recognition. In <em>Proceedings of the IEEE conference on computer vision and pattern recognition</em>, 5265–5274. 2018.</p>
+</div>
+<div class="citation" id="id58" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id22">WZLQ16</a><span class="fn-bracket">]</span></span>
+<p>Yandong Wen, Kaipeng Zhang, Zhifeng Li, and Yu Qiao. A discriminative feature learning approach for deep face recognition. In <em>European conference on computer vision</em>, 499–515. Springer, 2016.</p>
+</div>
+</div>
+</div>
 </section>
 </section>
 
@@ -1847,7 +1880,7 @@ Triplet（采用hard mining时）、Contrastive - 在样本对满足约束时梯
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -1855,6 +1888,11 @@ Triplet（采用hard mining时）、Contrastive - 在样本对满足约束时梯
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">4b228f7</code>
+                2026-03-09 - <strong>Heyan Zhu</strong>: Fix tikz diagrams
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">e1bf5e0</code>
                 2026-03-09 - <strong>Heyan Zhu</strong>: Add metric leaning
