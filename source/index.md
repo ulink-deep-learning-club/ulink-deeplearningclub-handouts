@@ -13,6 +13,7 @@ neural-network-basics/index
 pytorch-practice/index
 cnn-ablation-study/index
 transfer-learning/index
+metric-learning/index
 attention-mechanisms/index
 unet-image-segmentation/index
 postscript

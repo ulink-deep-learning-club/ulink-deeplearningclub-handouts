@@ -12,6 +12,22 @@ import logging
 import platform
 import shutil
 
+def list_file_with_extension(directory: Path, extension: str) -> list[Path]:
+    """
+    Lists files in a directory that match the given extension.
+    """
+    if not os.path.isdir(directory):
+        return []
+
+    matching_files = []
+    for item in os.listdir(directory):
+        if os.path.isfile(directory / item) and item.endswith(extension):
+            matching_files.append(directory / item)
+        elif os.path.isdir(directory / item):
+            matching_files += list_file_with_extension(directory / item, extension)
+
+    return matching_files
+
 def get_potential_paths():
     """
     Returns a list of potential browser paths based on the operating system.
@@ -89,7 +105,7 @@ else:
 sys.path.append(str(Path('../exts').resolve()))
 
 project = 'Deep Learning Club Lectures'
-copyright = '2025, UCS Deep Learning Club and Contributors'
+copyright = '2025, UCS Deep Learning Club and Contributors, licensed under CC BY-SA 4.0'
 author = 'UCS Deep Learning Club'
 release = '0.0.1'
 
@@ -177,7 +193,7 @@ html_theme_options = {
     'navigation_depth': 4,
     'show_toc_level': 3,
     'logo': {
-        'text': 'Deep Learning Club Lectures',
+        'text': 'Deep Learning Club',
     },
 }
 
@@ -189,6 +205,4 @@ mathjax3_config = {
     }
 }
 
-bibtex_bibfiles = [
-    "./transfer-learning/references.bib"
-]
+bibtex_bibfiles = list_file_with_extension(Path("./"), "bib")
