@@ -1,0 +1,1513 @@
+
+<!DOCTYPE html>
+
+
+<html lang="zh-CN" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>深度学习中的度量学习 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=3e9436e6" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=eb1cd0b9"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/translations.js?v=beaddf03"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'metric-learning/index';</script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="第一部分：导论与核心概念" href="part1-intro.html" />
+    <link rel="prev" title="第四部分：实操指南" href="../transfer-learning/part4-practical-guide.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="zh-CN"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Deep Learning Club</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">搜索</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../math-fundamentals/index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/computational-graph.html">计算图基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/gradient-decent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/the-end.html">总结</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验与比较</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">神经网络缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch基础教程：从NumPy到深度学习</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">1. 引言：PyTorch的设计哲学与学习路径</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从NumPy到PyTorch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">3. 张量操作详解：PyTorch的核心数据结构</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">4. 自动微分：PyTorch的核心机制</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">总结</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN消融研究：理解卷积神经网络各组件的作用</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：什么是消融研究？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../transfer-learning/index.html">深度学习中的迁移学习</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part1-intro.html">第一部分：导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part2-taxonomy.html">第二部分：迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part3-model-transfer.html">第三部分：基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part4-practical-guide.html">第四部分：实操指南</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">深度学习中的度量学习</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="part1-intro.html">第一部分：导论与核心概念</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part2-taxonomy.html">第二部分：分类体系与网络架构</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part3-loss-functions.html">第三部分：核心损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part4-practical-guide.html">第四部分：实践指南</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../attention-mechanisms/index.html">CNN中的注意力机制：从 SE-Net 到 CBAM</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/se-net.html">Squeeze-and-Excitation Networks (SE-Net)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/spatial-attn.html">空间注意力机制</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/cbam.html">Convolutional Block Attention Module (CBAM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/channel-spatial-attm-cmp.html">通道与空间注意力的比较</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/experiments.html">实验与性能分析</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/attn-math.html">注意力机制的数学基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/practical-guide.html">实际应用指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/extensions-variations.html">扩展与变体</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net架构：生物医学图像分割的革命性方法</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U-Net架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">核心组件实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/full-impl.html">完整U-Net实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/data-enhance.html">数据增强策略</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/techniques-best-practices.html">训练技巧与最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/application.html">应用领域</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/variation.html">U-Net变体与改进</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="源码库"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/metric-learning/index.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/issues/new?title=Issue%20on%20page%20%2Fmetric-learning/index.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="创建议题"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="下载此页面">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/metric-learning/index.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="下载源文件"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="列印成 PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="全屏模式"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>深度学习中的度量学习</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> 目录 </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">摘要</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">学习目标</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">前置要求</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">目录结构</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">课程概览</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">第一部分：导论与核心概念</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">第二部分：分类体系与网络架构</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">第三部分：核心损失函数设计</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">第四部分：实践指南与代码实现</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">为什么学习度量学习？</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">技术价值</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">应用场景</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">与其他主题的关系</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">学习建议</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">实践路线图</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">扩展阅读</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">数学符号说明</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">代码清单</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">反馈与贡献</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="id1">
+<h1>深度学习中的度量学习<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
+<p><strong>作者</strong>：Anson，深度学习社<br />
+<strong>最后更新</strong>：2025-03-07</p>
+<section id="id2">
+<h2>摘要<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>度量学习（Metric Learning）是深度学习中的重要范式，其核心思想是通过学习合适的嵌入空间和距离度量，使相似样本靠近、不相似样本远离。这种方法突破了传统分类方法的封闭集限制，支持开放集识别、小样本学习和增量学习，在人脸识别、图像检索、行人重识别等领域取得了巨大成功。</p>
+<p>本讲义系统介绍度量学习的理论基础与实践技术：阐述度量学习相对于传统分类方法的优势与核心动机；从监督方式、变换性质、局部性等多个维度梳理度量学习的分类体系；深入讲解经典损失函数（对比损失、三元组损失）与现代损失函数（N-pair、ArcFace、Proxy Loss）的设计原理；最后提供完整的PyTorch实现、采样策略、评估方案和常见问题解决方案。</p>
+</section>
+<section id="id3">
+<h2>学习目标<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<div class="important admonition">
+<p class="admonition-title">完成本讲义学习后，你将能够</p>
+<ol class="arabic simple">
+<li><p><strong>理解度量学习的核心思想</strong>：解释为什么需要度量学习，掌握度量空间的数学定义</p></li>
+<li><p><strong>掌握分类体系</strong>：区分监督/非监督、线性/非线性、全局/局部度量学习，理解其适用场景</p></li>
+<li><p><strong>熟练运用损失函数</strong>：理解不同损失函数的设计原理，能够根据任务特点选择合适的损失</p></li>
+<li><p><strong>掌握采样策略</strong>：实现并应用semi-hard mining、在线难例挖掘等采样技术</p></li>
+<li><p><strong>完成实际项目</strong>：使用PyTorch实现完整的度量学习系统，包括数据处理、模型构建、训练评估</p></li>
+</ol>
+</div>
+</section>
+<section id="id4">
+<h2>前置要求<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<div class="caution admonition">
+<p class="admonition-title">必备知识</p>
+<p>本讲义假设你已经熟悉以下内容：</p>
+<ol class="arabic simple">
+<li><p><strong>深度学习基础</strong>：理解神经网络训练流程、反向传播、优化器（SGD、Adam）</p></li>
+<li><p><strong>PyTorch编程</strong>：能够使用nn.Module定义模型，熟悉Dataset和DataLoader</p></li>
+<li><p><strong>损失函数</strong>：理解交叉熵损失、均方误差的基本原理</p></li>
+<li><p><strong>数学基础</strong>：掌握线性代数（向量运算、内积）、概率论基础</p></li>
+<li><p><strong>实践经验</strong>：至少完成过1-2个图像分类任务的完整训练</p></li>
+</ol>
+<p>如果你还没有这些基础，建议先学习本系列的其他章节。</p>
+</div>
+</section>
+<section id="id5">
+<h2>目录结构<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<div class="note admonition">
+<p class="admonition-title">目录</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="part1-intro.html">第一部分：导论与核心概念</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="part1-intro.html#classification-metric-learning">1.0 从 Classification 到 Metric Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part1-intro.html#id5">1.1 为什么需要度量学习？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part1-intro.html#id9">1.2 什么是度量学习？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part1-intro.html#id18">1.3 度量学习与其他学习范式的关系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part1-intro.html#id22">1.4 度量学习的历史发展脉络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part1-intro.html#id28">1.5 度量学习的应用领域</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part1-intro.html#id32">小结</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="part2-taxonomy.html">第二部分：分类体系与网络架构</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="part2-taxonomy.html#id2">2.1 度量学习的方法分类</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part2-taxonomy.html#id9">2.2 传统度量学习方法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part2-taxonomy.html#id18">2.3 深度度量学习的网络架构</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part2-taxonomy.html#id24">2.4 网络架构选择指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part2-taxonomy.html#id35">小结</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="part3-loss-functions.html">第三部分：核心损失函数设计</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="part3-loss-functions.html#cross-entropymetric-learning">3.1 从Cross-Entropy到Metric Learning损失</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part3-loss-functions.html#contrastive-loss">3.2 对比损失（Contrastive Loss）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part3-loss-functions.html#triplet-loss">3.3 三元组损失（Triplet Loss）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part3-loss-functions.html#id17">3.4 高级损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part3-loss-functions.html#id24">3.5 损失函数的比较与权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part3-loss-functions.html#id27">小结</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="part4-practical-guide.html">第四部分：实践指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="part4-practical-guide.html#id2">4.1 快速上手指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part4-practical-guide.html#id5">4.2 关键组件详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part4-practical-guide.html#id8">4.3 训练技巧与最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part4-practical-guide.html#id12">4.4 常见问题诊断</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part4-practical-guide.html#id16">4.5 评估与调试</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part4-practical-guide.html#id19">4.6 特定任务指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part4-practical-guide.html#id22">4.7 高级技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part4-practical-guide.html#id26">小结</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<section id="id6">
+<h2>课程概览<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<div class="important admonition">
+<p class="admonition-title">学习路径总览</p>
+<p>本讲义按照<strong>从理论到实践</strong>的路径组织，建议按顺序学习：</p>
+<p><strong>理论基础</strong> → <strong>方法体系</strong> → <strong>核心算法</strong> → <strong>实战应用</strong></p>
+<p>每个部分都包含理论讲解、可视化图表和代码示例，帮助你全面掌握度量学习。</p>
+</div>
+<section id="id7">
+<h3>第一部分：导论与核心概念<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<p>从&quot;为什么需要度量学习&quot;出发，分析传统分类方法的局限，介绍度量学习的核心思想和数学基础。</p>
+<div class="tip admonition">
+<p class="admonition-title">本部分亮点</p>
+<ul class="simple">
+<li><p><strong>经典方法的困境</strong>：封闭世界假设、类别固定、新类别处理困难</p></li>
+<li><p><strong>度量学习的优势</strong>：开放集识别、相似度推理、增量学习</p></li>
+<li><p><strong>形式化定义</strong>：度量空间公理、嵌入映射、距离度量</p></li>
+<li><p><strong>历史发展</strong>：从线性度量学习到深度度量学习的演进</p></li>
+</ul>
+<p><strong>关键收获</strong>：理解&quot;我们不学’这是什么’，我们学’这两个有多像’&quot;的核心思想。</p>
+</div>
+</section>
+<section id="id8">
+<h3>第二部分：分类体系与网络架构<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<p>系统梳理度量学习的方法分类和网络架构，建立清晰的知识框架。</p>
+<div class="tip admonition">
+<p class="admonition-title">本部分亮点</p>
+<ul class="simple">
+<li><p><strong>传统度量学习</strong>：RCA、LMNN、ITML、KISSME等经典方法</p></li>
+<li><p><strong>深度度量学习</strong>：Siamese网络、Triplet网络、Quadruplet网络</p></li>
+<li><p><strong>采样策略演进</strong>：随机采样、硬负挖掘、Semi-Hard Mining</p></li>
+<li><p><strong>网络架构选择</strong>：ResNet、Inception、Transformer作为主干的选择指南</p></li>
+</ul>
+<p><strong>关键收获</strong>：掌握如何根据任务选择合适的架构和采样策略。</p>
+</div>
+</section>
+<section id="id9">
+<h3>第三部分：核心损失函数设计<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<p>深入理解度量学习最核心的技术——损失函数设计。</p>
+<div class="tip admonition">
+<p class="admonition-title">本部分亮点</p>
+<ul class="simple">
+<li><p><strong>对比损失</strong>：推拉机制、间隔设计、梯度分析</p></li>
+<li><p><strong>三元组损失</strong>：相对约束、在线采样、Semi-Hard Mining</p></li>
+<li><p><strong>高级损失函数</strong>：N-pair Loss、ArcFace、Proxy Loss、Center Loss</p></li>
+<li><p><strong>损失函数对比</strong>：基于距离vs基于角度、计算复杂度、训练稳定性</p></li>
+</ul>
+<p><strong>关键收获</strong>：理解不同损失函数的设计原理，能够根据任务特点选择合适的损失。</p>
+</div>
+</section>
+<section id="id10">
+<h3>第四部分：实践指南与代码实现<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<p>提供完整的实操教程，从零实现度量学习系统。</p>
+<div class="tip admonition">
+<p class="admonition-title">本部分亮点</p>
+<ul class="simple">
+<li><p><strong>数据加载</strong>：类别平衡采样、三元组构造</p></li>
+<li><p><strong>模型定义</strong>：ResNet嵌入网络、Triplet网络包装器</p></li>
+<li><p><strong>训练循环</strong>：完整的训练脚本、学习率调度、检查点保存</p></li>
+<li><p><strong>评估指标</strong>：Recall&#64;K、mAP、t-SNE可视化</p></li>
+<li><p><strong>常见问题</strong>：梯度消失、度量坍缩、过拟合的解决方法</p></li>
+<li><p><strong>应用案例</strong>：人脸识别、行人重识别、图像检索的最佳实践</p></li>
+</ul>
+<p><strong>关键收获</strong>：能够独立完成度量学习项目的开发与部署。</p>
+</div>
+</section>
+</section>
+<section id="id11">
+<h2>为什么学习度量学习？<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
+<section id="id12">
+<h3>技术价值<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
+<div class="tip admonition">
+<p class="admonition-title">度量学习的重要性</p>
+<ol class="arabic simple">
+<li><p><strong>开放集识别能力</strong>：处理训练未见过的类别，实际应用中的常见需求</p></li>
+<li><p><strong>小样本学习潜力</strong>：通过度量迁移，少量样本即可实现高效识别</p></li>
+<li><p><strong>相似度推理基础</strong>：为推荐系统、检索系统提供底层技术支持</p></li>
+<li><p><strong>研究热点持续</strong>：顶级会议（CVPR、ICCV、NeurIPS）每年有大量相关论文</p></li>
+</ol>
+</div>
+</section>
+<section id="id13">
+<h3>应用场景<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<p>度量学习已广泛应用于以下领域：</p>
+<ul class="simple">
+<li><p><strong>计算机视觉</strong>：人脸识别、行人重识别、图像检索、细粒度分类</p></li>
+<li><p><strong>推荐系统</strong>：商品相似度推荐、用户兴趣匹配</p></li>
+<li><p><strong>自然语言处理</strong>：文本相似度、语义检索</p></li>
+<li><p><strong>医学影像</strong>：病灶检索、病例相似性分析</p></li>
+<li><p><strong>生物识别</strong>：指纹、虹膜、步态识别</p></li>
+</ul>
+</section>
+<section id="id14">
+<h3>与其他主题的关系<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
+<p>度量学习并非孤立的知识点，而是与其他深度学习技术紧密关联：</p>
+<ul class="simple">
+<li><p><strong>与迁移学习</strong>：度量学习常利用预训练模型迁移通用视觉知识</p></li>
+<li><p><strong>与对比学习</strong>：两者共享&quot;拉近正样本、推远负样本&quot;的思想，可相互借鉴</p></li>
+<li><p><strong>与注意力机制</strong>：注意力可用于增强度量的判别能力</p></li>
+<li><p><strong>与自监督学习</strong>：对比自监督学习为度量学习提供好的特征初始化</p></li>
+</ul>
+</section>
+</section>
+<section id="id15">
+<h2>学习建议<a class="headerlink" href="#id15" title="Link to this heading">#</a></h2>
+<div class="note admonition">
+<p class="admonition-title">对于初学者</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>步骤</p></th>
+<th class="head"><p>建议</p></th>
+<th class="head"><p>原因</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>1</strong></p></td>
+<td><p><strong>理解直觉先行</strong></p></td>
+<td><p>先理解&quot;拉近正、推远负&quot;的核心直觉，再看数学公式</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>2</strong></p></td>
+<td><p><strong>从小规模开始</strong></p></td>
+<td><p>在CIFAR-10等小数据集上实践，理解训练流程</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>3</strong></p></td>
+<td><p><strong>重点掌握Triplet Loss</strong></p></td>
+<td><p>理解清楚后，再尝试更复杂的损失函数</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>4</strong></p></td>
+<td><p><strong>可视化学习</strong></p></td>
+<td><p>使用t-SNE观察嵌入空间的变化，理解模型在学什么</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>预计时间</strong>：1-2周完成基础入门</p>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">对于有经验的学习者</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>进阶方向</p></th>
+<th class="head"><p>建议</p></th>
+<th class="head"><p>收益</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>采样策略</strong></p></td>
+<td><p>精心设计的采样往往比复杂损失函数更重要</p></td>
+<td><p>显著提升训练效率和最终性能</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>梯度流分析</strong></p></td>
+<td><p>分析不同损失函数的梯度特性</p></td>
+<td><p>深入理解训练行为，解决训练问题</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>组合方法</strong></p></td>
+<td><p>尝试不同损失函数的组合</p></td>
+<td><p>如Softmax + Center Loss，取得更好效果</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>关注前沿</strong></p></td>
+<td><p>arXiv和顶级会议论文</p></td>
+<td><p>了解最新进展，保持技术敏感度</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>推荐会议</strong>：CVPR, ICCV, NeurIPS, ICML</p>
+</div>
+<section id="id16">
+<h3>实践路线图<a class="headerlink" href="#id16" title="Link to this heading">#</a></h3>
+<div class="important admonition">
+<p class="admonition-title">学习路线图</p>
+<figure class="align-center" id="id21">
+<object data="../_images/mermaid-f4bdf6f7c3bafd3521e09d81a58cf6d3b9a4ae30.svg" type="image/svg+xml">
+            <p class="warning">graph LR
+    A[基础理解] --&gt; B[简单实现]
+    B --&gt; C[采样优化]
+    C --&gt; D[高级损失]
+    D --&gt; E[应用部署]
+    
+    A1[阅读part1&lt;br&gt;2-3天] --&gt; A
+    B1[CIFAR-10&lt;br&gt;Triplet Loss&lt;br&gt;1周] --&gt; B
+    C1[Semi-Hard&lt;br&gt;Mining&lt;br&gt;1-2周] --&gt; C
+    D1[ArcFace&lt;br&gt;Proxy Loss&lt;br&gt;2周] --&gt; D
+    E1[人脸识别&lt;br&gt;或Re-ID&lt;br&gt;持续] --&gt; E
+    
+    style A fill:#e3f2fd
+    style B fill:#fff3e0
+    style C fill:#e8f5e9
+    style D fill:#fce4ec
+    style E fill:#f3e5f5</p></object>
+<figcaption>
+<p><span class="caption-text">度量学习学习路径</span><a class="headerlink" href="#id21" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</div>
+<p><strong>预计总学习时间</strong>：6-8周达到实战水平</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+## 常见问题
+
+```{admonition} Q1：度量学习和分类任务有什么区别？
+:class: note
+
+| 维度 | 分类（Classification） | 度量学习（Metric Learning） |
+|------|------------------------|----------------------------|
+| **学习目标** | 预测样本属于哪个预定义类别 | 学习样本间的相对关系 |
+| **输出** | 类别概率分布 | 特征向量 + 距离 |
+| **样本组织** | 单样本 + 类别标签 | 样本对/三元组 + 相似性标签 |
+| **新类别处理** | ❌ 需要重新训练 | ✅ 直接计算距离 |
+| **开放集识别** | ❌ 不支持 | ✅ 支持 |
+
+**核心区别**：分类要求样本靠近类中心；度量学习要求同类样本聚集，但不必重合。
+</pre></div>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">Q2：应该使用什么损失函数？</p>
+<p><strong>初学者路线</strong>：</p>
+<ol class="arabic simple">
+<li><p><strong>Triplet Loss</strong>（首选）</p>
+<ul class="simple">
+<li><p>概念直观，易于理解</p></li>
+<li><p>大多数场景下表现良好</p></li>
+<li><p>配合Semi-Hard Mining使用</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>进阶选择</strong>：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>场景</p></th>
+<th class="head"><p>推荐损失函数</p></th>
+<th class="head"><p>原因</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>数据量小</p></td>
+<td><p>Contrastive Loss</p></td>
+<td><p>简单高效</p></td>
+</tr>
+<tr class="row-odd"><td><p>分类多、每类样本多</p></td>
+<td><p>N-pair Loss</p></td>
+<td><p>充分利用batch内样本</p></td>
+</tr>
+<tr class="row-even"><td><p>大规模多类任务</p></td>
+<td><p>ArcFace</p></td>
+<td><p>角度间隔，性能优异</p></td>
+</tr>
+<tr class="row-odd"><td><p>类别数极大(&gt;10K)</p></td>
+<td><p>Proxy Loss</p></td>
+<td><p>与代理比较，计算高效</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="note admonition">
+<p class="admonition-title">Q3：batch size多大合适？</p>
+<p><strong>基本原则</strong>：</p>
+<ul class="simple">
+<li><p>每类至少<strong>4个样本</strong></p></li>
+<li><p>Batch size建议<strong>32-128</strong></p></li>
+</ul>
+<p><strong>为什么需要大batch？</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Batch Size</p></th>
+<th class="head"><p>负样本数量</p></th>
+<th class="head"><p>效果</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>16</p></td>
+<td><p>12</p></td>
+<td><p>负样本不足，训练不稳定</p></td>
+</tr>
+<tr class="row-odd"><td><p>32</p></td>
+<td><p>28</p></td>
+<td><p>基本可用</p></td>
+</tr>
+<tr class="row-even"><td><p>64</p></td>
+<td><p>60</p></td>
+<td><p>效果良好</p></td>
+</tr>
+<tr class="row-odd"><td><p>128+</p></td>
+<td><p>124+</p></td>
+<td><p>效果最佳，但显存压力大</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>实践建议</strong>：</p>
+<ul class="simple">
+<li><p>显存允许的情况下，越大越好</p></li>
+<li><p>使用P-K采样（P类，每类K个样本）</p></li>
+<li><p>例如：P=16, K=4, Batch=64</p></li>
+</ul>
+</div>
+<div class="important admonition">
+<p class="admonition-title">Q4：如何判断训练是否成功？</p>
+<p><strong>关键指标</strong>：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>指标</p></th>
+<th class="head"><p>健康状态</p></th>
+<th class="head"><p>异常状态</p></th>
+<th class="head"><p>解决方案</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Training Loss</strong></p></td>
+<td><p>逐渐下降</p></td>
+<td><p>不降或震荡</p></td>
+<td><p>检查学习率、采样策略</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Validation Recall&#64;K</strong></p></td>
+<td><p>持续提升</p></td>
+<td><p>停滞或下降</p></td>
+<td><p>可能过拟合，增加正则化</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>hardest_positive</strong></p></td>
+<td><p>逐渐减小</p></td>
+<td><p>增大</p></td>
+<td><p>检查margin设置</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>hardest_negative</strong></p></td>
+<td><p>逐渐增大</p></td>
+<td><p>减小或不变</p></td>
+<td><p>检查采样策略</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>t-SNE可视化诊断</strong>：</p>
+<ul class="simple">
+<li><p>✅ <strong>健康</strong>：同类样本聚集，不同类分离</p></li>
+<li><p>❌ <strong>度量坍缩</strong>：所有点混在一起</p></li>
+<li><p>❌ <strong>欠拟合</strong>：无明显聚类结构</p></li>
+</ul>
+</div>
+</section>
+</section>
+<section id="id17">
+<h2>扩展阅读<a class="headerlink" href="#id17" title="Link to this heading">#</a></h2>
+<p>本讲义涵盖了度量学习的核心内容，但这一方向仍在快速发展。以下主题值得进一步探索：</p>
+<ul class="simple">
+<li><p><strong>跨模态度量学习</strong>：图像-文本、音频-视频等跨模态的相似度学习</p></li>
+<li><p><strong>在线学习</strong>：增量更新度量空间，适应数据分布变化</p></li>
+<li><p><strong>不确定性感知</strong>：在度量学习中建模不确定性</p></li>
+<li><p><strong>可解释性</strong>：理解嵌入空间的结构和决策过程</p></li>
+</ul>
+</section>
+<section id="id18">
+<h2>数学符号说明<a class="headerlink" href="#id18" title="Link to this heading">#</a></h2>
+<p>本讲义使用以下数学符号约定：</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(x\)</span> 或 <span class="math notranslate nohighlight">\(\mathbf{x}\)</span>：输入样本</p></li>
+<li><p><span class="math notranslate nohighlight">\(y\)</span>：类别标签</p></li>
+<li><p><span class="math notranslate nohighlight">\(f_\theta(\cdot)\)</span>：嵌入网络，<span class="math notranslate nohighlight">\(\theta\)</span> 为参数</p></li>
+<li><p><span class="math notranslate nohighlight">\(z = f_\theta(x)\)</span>：嵌入向量（特征）</p></li>
+<li><p><span class="math notranslate nohighlight">\(d(\cdot, \cdot)\)</span>：距离函数</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathcal{L}\)</span>：损失函数</p></li>
+<li><p><span class="math notranslate nohighlight">\(m\)</span> 或 <span class="math notranslate nohighlight">\(\alpha\)</span>：间隔（margin）</p></li>
+<li><p><span class="math notranslate nohighlight">\(B\)</span>：批量大小</p></li>
+<li><p><span class="math notranslate nohighlight">\(N\)</span>：样本总数</p></li>
+<li><p><span class="math notranslate nohighlight">\(C\)</span>：类别数</p></li>
+<li><p><span class="math notranslate nohighlight">\(D\)</span>：嵌入维度</p></li>
+</ul>
+</section>
+<section id="id19">
+<h2>代码清单<a class="headerlink" href="#id19" title="Link to this heading">#</a></h2>
+<p>本讲义包含以下可运行代码示例：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>章节</p></th>
+<th class="head"><p>文件</p></th>
+<th class="head"><p>说明</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Part 4</p></td>
+<td><p>ClassSampler</p></td>
+<td><p>类别平衡采样器</p></td>
+</tr>
+<tr class="row-odd"><td><p>Part 4</p></td>
+<td><p>ResNetEmbedding</p></td>
+<td><p>ResNet嵌入网络</p></td>
+</tr>
+<tr class="row-even"><td><p>Part 4</p></td>
+<td><p>TripletNetwork</p></td>
+<td><p>Triplet网络包装器</p></td>
+</tr>
+<tr class="row-odd"><td><p>Part 4</p></td>
+<td><p>TripletLoss</p></td>
+<td><p>三元组损失（带难例挖掘）</p></td>
+</tr>
+<tr class="row-even"><td><p>Part 4</p></td>
+<td><p>NPairLoss</p></td>
+<td><p>N-pair损失</p></td>
+</tr>
+<tr class="row-odd"><td><p>Part 4</p></td>
+<td><p>ArcFaceLoss</p></td>
+<td><p>ArcFace损失</p></td>
+</tr>
+<tr class="row-even"><td><p>Part 4</p></td>
+<td><p>TrainLoop</p></td>
+<td><p>完整训练循环</p></td>
+</tr>
+<tr class="row-odd"><td><p>Part 4</p></td>
+<td><p>EvaluationMetrics</p></td>
+<td><p>Recall&#64;K和mAP评估</p></td>
+</tr>
+<tr class="row-even"><td><p>Part 4</p></td>
+<td><p>Visualization</p></td>
+<td><p>t-SNE可视化</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>所有代码使用PyTorch编写，兼容Python 3.8+和PyTorch 1.10+。</p>
+</section>
+<section id="id20">
+<h2>反馈与贡献<a class="headerlink" href="#id20" title="Link to this heading">#</a></h2>
+<p>如果你在使用本讲义过程中发现错误或有改进建议，欢迎：</p>
+<ol class="arabic simple">
+<li><p>提交Issue描述问题</p></li>
+<li><p>提交Pull Request完善内容</p></li>
+<li><p>分享你的学习经验和实践案例</p></li>
+</ol>
+<hr class="docutils" />
+<p><strong>祝你学习愉快！</strong> 通过本讲义的学习，你将掌握度量学习的核心技术，能够将这一强大的工具应用于实际项目。</p>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">e1bf5e0</code>
+                2026-03-09 - <strong>Heyan Zhu</strong>: Add metric leaning
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../transfer-learning/part4-practical-guide.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">上一页</p>
+        <p class="prev-next-title">第四部分：实操指南</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="part1-intro.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">下一页</p>
+        <p class="prev-next-title">第一部分：导论与核心概念</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> 目录
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">摘要</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">学习目标</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">前置要求</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">目录结构</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">课程概览</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">第一部分：导论与核心概念</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">第二部分：分类体系与网络架构</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">第三部分：核心损失函数设计</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">第四部分：实践指南与代码实现</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">为什么学习度量学习？</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">技术价值</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">应用场景</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">与其他主题的关系</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">学习建议</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">实践路线图</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">扩展阅读</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">数学符号说明</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">代码清单</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">反馈与贡献</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+作者： UCS Deep Learning Club
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, UCS Deep Learning Club and Contributors, licensed under CC BY-SA 4.0.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

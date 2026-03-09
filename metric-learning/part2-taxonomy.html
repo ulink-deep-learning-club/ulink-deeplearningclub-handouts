@@ -1,0 +1,1691 @@
+
+<!DOCTYPE html>
+
+
+<html lang="zh-CN" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>第二部分：分类体系与网络架构 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=3e9436e6" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=eb1cd0b9"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/translations.js?v=beaddf03"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'metric-learning/part2-taxonomy';</script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="第三部分：核心损失函数设计" href="part3-loss-functions.html" />
+    <link rel="prev" title="第一部分：导论与核心概念" href="part1-intro.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="zh-CN"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Deep Learning Club</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">搜索</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../math-fundamentals/index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/computational-graph.html">计算图基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/gradient-decent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/the-end.html">总结</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验与比较</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">神经网络缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch基础教程：从NumPy到深度学习</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">1. 引言：PyTorch的设计哲学与学习路径</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从NumPy到PyTorch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">3. 张量操作详解：PyTorch的核心数据结构</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">4. 自动微分：PyTorch的核心机制</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">总结</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN消融研究：理解卷积神经网络各组件的作用</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：什么是消融研究？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../transfer-learning/index.html">深度学习中的迁移学习</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part1-intro.html">第一部分：导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part2-taxonomy.html">第二部分：迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part3-model-transfer.html">第三部分：基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part4-practical-guide.html">第四部分：实操指南</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">深度学习中的度量学习</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="part1-intro.html">第一部分：导论与核心概念</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">第二部分：分类体系与网络架构</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part3-loss-functions.html">第三部分：核心损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part4-practical-guide.html">第四部分：实践指南</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../attention-mechanisms/index.html">CNN中的注意力机制：从 SE-Net 到 CBAM</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/se-net.html">Squeeze-and-Excitation Networks (SE-Net)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/spatial-attn.html">空间注意力机制</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/cbam.html">Convolutional Block Attention Module (CBAM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/channel-spatial-attm-cmp.html">通道与空间注意力的比较</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/experiments.html">实验与性能分析</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/attn-math.html">注意力机制的数学基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/practical-guide.html">实际应用指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/extensions-variations.html">扩展与变体</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net架构：生物医学图像分割的革命性方法</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U-Net架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">核心组件实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/full-impl.html">完整U-Net实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/data-enhance.html">数据增强策略</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/techniques-best-practices.html">训练技巧与最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/application.html">应用领域</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/variation.html">U-Net变体与改进</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="源码库"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/metric-learning/part2-taxonomy.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/issues/new?title=Issue%20on%20page%20%2Fmetric-learning/part2-taxonomy.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="创建议题"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="下载此页面">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/metric-learning/part2-taxonomy.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="下载源文件"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="列印成 PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="全屏模式"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>第二部分：分类体系与网络架构</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> 目录 </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">2.1 度量学习的方法分类</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">2.1.1 按学习方式分类</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">2.1.2 按变换性质分类</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">2.1.3 按局部性分类</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">2.2 传统度量学习方法</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">2.2.1 马氏距离学习框架</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">2.2.2 代表性传统方法</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">2.2.3 传统方法的局限与启示</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">2.3 深度度量学习的网络架构</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#siamese">2.3.1 Siamese网络（孪生网络）—— 最基础的架构</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#triplet">2.3.2 Triplet网络（三元组网络）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quadruplet">2.3.3 Quadruplet网络与更高阶架构</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">2.3.4 采样策略的演进</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">2.4 网络架构选择指南</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">2.4.1 不同架构的适用场景</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id30">2.4.2 主干网络选择</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id34">2.4.3 实践建议</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id35">小结</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="id1">
+<h1>第二部分：分类体系与网络架构<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
+<p>本部分系统梳理度量学习的分类方法，从传统线性方法到深度度量学习的网络架构演进，帮助你建立清晰的知识框架。</p>
+<section id="id2">
+<h2>2.1 度量学习的方法分类<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>度量学习方法可以从多个维度进行分类。理解这些分类有助于我们根据具体任务选择合适的方法。</p>
+<figure class="align-center" id="id36">
+<object data="../_images/mermaid-09bbc7327b247f4fdf6693fe8aba16c9fdc92fbe.svg" type="image/svg+xml">
+            <p class="warning">flowchart TB
+    ML[&quot;度量学习方法&quot;]
+    
+    ML --&gt; Learning[&quot;按学习方式&quot;]
+    ML --&gt; Transform[&quot;按变换性质&quot;]
+    ML --&gt; Locality[&quot;按局部性&quot;]
+    
+    Learning --&gt; Supervised[&quot;监督式&lt;br/&gt;• 类别标签&lt;br/&gt;• 成对标签&lt;br/&gt;• 相对标签&quot;]
+    Learning --&gt; Unsupervised[&quot;非监督式&lt;br/&gt;• 流形假设&lt;br/&gt;• 聚类推断&lt;br/&gt;• 重构学习&quot;]
+    Learning --&gt; Semi[&quot;半监督式&lt;br/&gt;• 少量标注&lt;br/&gt;• 大量未标注&quot;]
+    
+    Transform --&gt; Linear[&quot;线性度量学习&lt;br/&gt;• 马氏距离&lt;br/&gt;• RCA, LMNN, ITML&lt;br/&gt;• 高效但表达能力有限&quot;]
+    Transform --&gt; NonLinear[&quot;非线性度量学习&lt;br/&gt;• 核方法&lt;br/&gt;• 深度网络&lt;br/&gt;• 流形学习&quot;]
+    
+    Locality --&gt; Global[&quot;全局度量学习&lt;br/&gt;• 统一度量&lt;br/&gt;• RCA, ITML&lt;br/&gt;• 适合均匀分布&quot;]
+    Locality --&gt; Local[&quot;局部度量学习&lt;br/&gt;• 局部自适应&lt;br/&gt;• LMNN, PLML&lt;br/&gt;• 适合多模态分布&quot;]
+    
+    style Supervised fill:#e3f2fd
+    style Unsupervised fill:#fff3e0
+    style Semi fill:#f3e5f5
+    style Linear fill:#e8f5e9
+    style NonLinear fill:#fce4ec
+    style Global fill:#e0f2f1
+    style Local fill:#fff9c4</p></object>
+<figcaption>
+<p><span class="caption-text">度量学习方法分类体系</span><a class="headerlink" href="#id36" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<section id="id3">
+<h3>2.1.1 按学习方式分类<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<p><strong>监督式度量学习（Supervised Metric Learning）</strong></p>
+<p>这是最常用的形式，假设我们有标注数据指示哪些样本应该相似、哪些应该不同。监督信号可以呈现为：</p>
+<ul class="simple">
+<li><p><strong>类别标签</strong>：同一类别的样本相似，不同类别不相似</p></li>
+<li><p><strong>成对标签</strong>：显式标注样本对是否相似（must-link vs cannot-link）</p></li>
+<li><p><strong>相对标签</strong>：三元组形式（<span class="math notranslate nohighlight">\(x_i\)</span> 与 <span class="math notranslate nohighlight">\(x_j\)</span> 比 <span class="math notranslate nohighlight">\(x_i\)</span> 与 <span class="math notranslate nohighlight">\(x_k\)</span> 更相似）</p></li>
+</ul>
+<p>监督式方法的优势在于可以明确优化目标，缺点是需要大量标注数据。深度度量学习通常采用监督式学习。</p>
+<p><strong>非监督式度量学习（Unsupervised Metric Learning）</strong></p>
+<p>在没有显式相似性标签的情况下，方法必须从未标注数据中发现结构。常见策略包括：</p>
+<ul class="simple">
+<li><p><strong>基于流形假设</strong>：假设数据位于低维流形上，学习保持流形结构的度量</p></li>
+<li><p><strong>基于聚类</strong>：通过聚类结果推断相似性，迭代优化度量</p></li>
+<li><p><strong>基于重构</strong>：自编码器等方式学习特征，隐式定义度量</p></li>
+</ul>
+<p>非监督方法的挑战在于难以定义&quot;正确&quot;的相似度，因为相似性本身是任务相关的。</p>
+<p><strong>半监督式度量学习（Semi-supervised Metric Learning）</strong></p>
+<p>结合少量标注数据和大量未标注数据。利用未标注数据的分布信息辅助度量学习，在标注数据稀缺时特别有用。</p>
+</section>
+<section id="id4">
+<h3>2.1.2 按变换性质分类<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p><strong>线性度量学习</strong></p>
+<p>假设存在一个线性变换可以将数据映射到合适的度量空间。数学上，这等价于学习一个马氏距离矩阵 <span class="math notranslate nohighlight">\(M\)</span>：</p>
+<div class="math notranslate nohighlight">
+\[d_M(x_i, x_j) = \sqrt{(x_i - x_j)^T M (x_i - x_j)}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(M\)</span> 必须是半正定矩阵（<span class="math notranslate nohighlight">\(M \succeq 0\)</span>），以确保满足度量公理。</p>
+<p><strong>线性方法的优势：</strong></p>
+<ul class="simple">
+<li><p>计算高效，尤其在高维数据上</p></li>
+<li><p>具有凸性，优化过程稳定</p></li>
+<li><p>可解释性强，可以分析哪些特征维度被赋予更高权重</p></li>
+</ul>
+<p><strong>线性方法的局限：</strong></p>
+<ul class="simple">
+<li><p>无法捕捉复杂的非线性关系</p></li>
+<li><p>在数据分布复杂的真实场景中表现受限</p></li>
+</ul>
+<p><strong>非线性度量学习</strong></p>
+<p>通过非线性变换学习度量，包括：</p>
+<ul class="simple">
+<li><p><strong>核方法</strong>：将数据映射到高维特征空间，在高维空间学习线性度量</p></li>
+<li><p><strong>深度网络</strong>：使用神经网络学习复杂的非线性映射</p></li>
+<li><p><strong>流形学习方法</strong>：假设数据位于低维流形，学习保持流形结构的度量</p></li>
+</ul>
+<p>非线性方法虽然更强大，但也更难以优化，容易过拟合，需要更多的训练数据和正则化技术。</p>
+</section>
+<section id="id5">
+<h3>2.1.3 按局部性分类<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<p><strong>全局度量学习（Global Metric Learning）</strong></p>
+<p>学习一个适用于整个数据集的全局度量。这意味着所有样本对使用相同的距离计算方式。全局方法的假设是数据具有统一的几何结构。</p>
+<p><strong>典型方法：</strong></p>
+<ul class="simple">
+<li><p><strong>RCA</strong> <span id="id6">[]</span>：利用等价约束学习全局度量</p></li>
+<li><p><strong>ITML</strong> <span id="id7">[]</span>：在信息论框架下学习度量</p></li>
+<li><p><strong>MCML</strong>（Mahalanobis Metric for Clustering）：针对聚类任务优化</p></li>
+</ul>
+<p><strong>局部度量学习（Local Metric Learning）</strong></p>
+<p>认识到数据的不同区域可能需要不同的度量。例如在人脸识别中，不同种族、年龄段的人脸可能适合不同的度量标准。</p>
+<p>局部方法通常：</p>
+<ul class="simple">
+<li><p>为每个样本或每个局部区域学习独立的度量</p></li>
+<li><p>在预测时根据查询位置选择合适的度量</p></li>
+<li><p>在KNN等局部方法中特别有效</p></li>
+</ul>
+<p><strong>典型方法：</strong></p>
+<ul class="simple">
+<li><p><strong>LMNN</strong> <span id="id8">[]</span>：大间隔最近邻，局部自适应</p></li>
+<li><p><strong>PLML</strong>（Parametric Local Metric Learning）：参数化局部度量</p></li>
+</ul>
+<p><strong>全局 vs 局部：选择指南</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>场景</p></th>
+<th class="head"><p>推荐方法</p></th>
+<th class="head"><p>原因</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>数据分布均匀</p></td>
+<td><p>全局方法</p></td>
+<td><p>更简单高效</p></td>
+</tr>
+<tr class="row-odd"><td><p>多模态分布</p></td>
+<td><p>局部方法</p></td>
+<td><p>更灵活适应</p></td>
+</tr>
+<tr class="row-even"><td><p>大规模数据</p></td>
+<td><p>全局方法</p></td>
+<td><p>计算开销小</p></td>
+</tr>
+<tr class="row-odd"><td><p>需要高精度</p></td>
+<td><p>局部方法</p></td>
+<td><p>局部自适应能力强</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>注意</strong>：局部方法计算开销更大，需要权衡精度与效率。</p>
+</section>
+</section>
+<section id="id9">
+<h2>2.2 传统度量学习方法<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
+<p>在进入深度度量学习之前，理解传统方法有助于我们把握问题的本质。许多深度度量学习的思想都源于这些经典工作。</p>
+<section id="id10">
+<h3>2.2.1 马氏距离学习框架<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<p>传统度量学习的核心是<strong>学习一个马氏距离</strong>。这与学习欧氏距离的区别在于引入了协方差矩阵 <span class="math notranslate nohighlight">\(M\)</span>，可以调整不同特征维度的重要性并考虑特征间的相关性。</p>
+<p>马氏距离通过协方差矩阵进行&quot;白化&quot;，消除量纲和尺度的影响，使距离计算更合理。例如身高（150-200cm）和体重（50-100kg）的数值范围不同，直接使用欧氏距离会导致体重维度的贡献过大。</p>
+<div class="figure" id="id37" style="text-align: center"><p><img  src="../_images/tikz-e883cd3ba6a4c06f6e3c9dc703443188355ee84d.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">欧氏距离 vs 马氏距离</span></p>
+</div><p><strong>优化问题的一般形式：</strong></p>
+<div class="math notranslate nohighlight">
+\[\min_M \mathcal{L}(M) \quad \text{s.t.} \quad M \succeq 0\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\mathcal{L}(M)\)</span> 是基于相似性约束定义的损失函数，约束 <span class="math notranslate nohighlight">\(M \succeq 0\)</span> 保证 <span class="math notranslate nohighlight">\(M\)</span> 是半正定矩阵（马氏距离成为合法度量的必要条件）。</p>
+<div class="admonition caution">
+<p class="admonition-title">小心</p>
+<p>约束 <span class="math notranslate nohighlight">\(M \succeq 0\)</span> 确保马氏距离满足度量公理（非负性、对称性、三角不等式）。如果 <span class="math notranslate nohighlight">\(M\)</span> 不是半正定的，距离可能为负值，失去几何意义！</p>
+</div>
+</section>
+<section id="id11">
+<h3>2.2.2 代表性传统方法<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<p><strong>RCA（Relevant Component Analysis）</strong> <span id="id12">[]</span></p>
+<p>RCA利用&quot;等价约束&quot;（chunklet）——已知相似的样本组。其核心思想是：</p>
+<p><strong>RCA算法步骤：</strong></p>
+<ol class="arabic simple">
+<li><p>计算每个chunklet内的协方差矩阵 <span class="math notranslate nohighlight">\(\Sigma_k\)</span></p></li>
+<li><p>取平均：<span class="math notranslate nohighlight">\(\Sigma_{\text{intra}} = \frac{1}{K}\sum_{k=1}^K \Sigma_k\)</span></p></li>
+<li><p>学习度量：<span class="math notranslate nohighlight">\(M = \Sigma_{\text{intra}}^{-1}\)</span></p></li>
+</ol>
+<p>直觉上，RCA放大了在chunklet内变化大的方向（这些方向对区分类别不重要），压缩了变化小的方向（这些方向包含类别信息）。</p>
+<p><strong>RCA优缺点：</strong></p>
+<p><strong>优点</strong>：</p>
+<ul class="simple">
+<li><p>计算简单，只需矩阵求逆</p></li>
+<li><p>有闭式解，无需迭代优化</p></li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul class="simple">
+<li><p>不能利用&quot;不相似&quot;的信息</p></li>
+<li><p>假设数据服从高斯分布</p></li>
+</ul>
+<p><strong>LMNN（Large Margin Nearest Neighbor）</strong> <span id="id13">[]</span></p>
+<p>LMNN直接优化KNN分类性能。其核心思想是：对于每个样本，其 <span class="math notranslate nohighlight">\(k\)</span> 个最近邻应该来自同一类别（目标邻居），同时不同类别的样本应该与目标邻居保持至少一个间隔。</p>
+<p>损失函数包含两项：</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{L}(M) = \underbrace{\sum_{i,j \leadsto i} d_M^2(x_i, x_j)}_{\text{Pull项}} + \lambda \underbrace{\sum_{i,j \leadsto i, l} \max(0, 1 + d_M^2(x_i, x_j) - d_M^2(x_i, x_l))}_{\text{Push项}}\]</div>
+<p>LMNN的推拉机制：Pull项拉近目标邻居（同类样本），Push项推远不同类别的样本并保持间隔。这与深度度量学习的Triplet Loss思想一致！</p>
+<p>LMNN的优势在于直接优化分类性能，在大规模数据上表现良好；缺点是需要求解半定规划（SDP），计算开销大。</p>
+<p><strong>ITML（Information Theoretic Metric Learning）</strong> <span id="id14">[]</span></p>
+<p>ITML从信息论角度学习度量，要求学到的度量与先验度量（通常是欧氏距离）不要太&quot;远&quot;，同时满足相似性约束。</p>
+<p>ITML使用LogDet散度作为正则化项：</p>
+<div class="math notranslate nohighlight">
+\[\min_M D_{\text{ld}}(M, M_0) \quad \text{s.t.} \quad \text{similarity constraints}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(D_{\text{ld}}\)</span> 是LogDet散度，<span class="math notranslate nohighlight">\(M_0\)</span> 通常是单位矩阵。</p>
+<p>ITML的核心思想：通过LogDet散度约束防止学到的度量偏离先验太远，使用Bregman投影高效求解，特别适合小样本场景。</p>
+<p><strong>KISSME（Keep It Simple and Straightforward MEtric learning）</strong> <span id="id15">[]</span></p>
+<p>KISSME采用统计学习方法，假设相似和不相似的样本分别服从高斯分布：</p>
+<div class="math notranslate nohighlight">
+\[M = (\Sigma_{\text{pos}}^{-1} - \Sigma_{\text{neg}}^{-1})\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\Sigma_{\text{pos}}\)</span> 是相似样本对的协方差，<span class="math notranslate nohighlight">\(\Sigma_{\text{neg}}\)</span> 是不相似样本对的协方差。</p>
+<p><strong>KISSME：简单即美</strong></p>
+<p><strong>优势</strong>：</p>
+<ul class="simple">
+<li><p>计算极其高效（只需计算协方差矩阵）</p></li>
+<li><p>闭式解，无需迭代优化</p></li>
+<li><p>适合大规模数据</p></li>
+</ul>
+<p><strong>局限</strong>：</p>
+<ul class="simple">
+<li><p>假设高斯分布可能不成立</p></li>
+<li><p>无法捕捉复杂的非线性关系</p></li>
+</ul>
+<p><strong>NCA（Neighborhood Component Analysis）</strong> <span id="id16">[]</span></p>
+<p>NCA直接优化KNN的留一法（leave-one-out）分类准确率。通过软分配的方式定义邻居概率，避免离散优化。</p>
+<p>NCA的目标函数：</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{L}(M) = -\sum_i \log \left( \sum_{j \in C_i} p_{ij} \right)\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(p_{ij} = \frac{\exp(-d_M^2(x_i, x_j))}{\sum_{k \neq i} \exp(-d_M^2(x_i, x_k))}\)</span> 是 <span class="math notranslate nohighlight">\(x_i\)</span> 选择 <span class="math notranslate nohighlight">\(x_j\)</span> 作为邻居的概率。</p>
+<p>NCA的创新在于使用<strong>软邻居分配</strong>：<span class="math notranslate nohighlight">\(p_{ij} \propto \exp(-d_M^2(x_i, x_j))\)</span>，距离越近成为邻居的概率越大，使优化可微分。</p>
+<p>NCA的优势在于直接优化分类性能，没有显式的间隔约束；缺点是目标函数非凸，优化困难。</p>
+</section>
+<section id="id17">
+<h3>2.2.3 传统方法的局限与启示<a class="headerlink" href="#id17" title="Link to this heading">#</a></h3>
+<p><strong>传统方法的共同局限：</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>局限</p></th>
+<th class="head"><p>说明</p></th>
+<th class="head"><p>影响</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>线性假设</strong></p></td>
+<td><p>无法捕捉非线性关系</p></td>
+<td><p>在复杂数据上表现受限</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>特征工程依赖</strong></p></td>
+<td><p>需要手工设计特征（SIFT、HOG）</p></td>
+<td><p>泛化能力差</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>高维计算</strong></p></td>
+<td><p>学习 <span class="math notranslate nohighlight">\(d \times d\)</span> 矩阵</p></td>
+<td><p>高维时计算量大</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>扩展性差</strong></p></td>
+<td><p>难以处理大规模数据</p></td>
+<td><p>实用性受限</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>但这些方法提供了深刻的洞见，这些思想在深度度量学习中得到了继承和发展：</p>
+<p><strong>传统方法的核心洞见：</strong></p>
+<ol class="arabic simple">
+<li><p><strong>推拉机制</strong>（Pull-Push）：同时拉近正样本、推远负样本，这是所有度量学习的基础思想</p></li>
+<li><p><strong>间隔最大化</strong>（Margin Maximization）：不同类别之间应保持安全距离，防止过拟合，提高泛化能力</p></li>
+<li><p><strong>正则化的重要性</strong>：防止过拟合，保持度量的合理性</p></li>
+<li><p><strong>局部性思想</strong>：不同区域可能需要不同度量，启发后来的自适应方法</p></li>
+</ol>
+</section>
+</section>
+<section id="id18">
+<h2>2.3 深度度量学习的网络架构<a class="headerlink" href="#id18" title="Link to this heading">#</a></h2>
+<p>既然我们已经理解了Metric Learning的基本思想（学习特征向量，优化距离），接下来的问题是：<strong>如何设计网络来实现这一目标？</strong></p>
+<p>深度度量学习的核心创新是：<strong>将特征提取和度量学习联合进行</strong>。不同于Classification只需要处理单个样本，Metric Learning需要同时处理多个样本并比较它们的关系。</p>
+<section id="siamese">
+<h3>2.3.1 Siamese网络（孪生网络）—— 最基础的架构<a class="headerlink" href="#siamese" title="Link to this heading">#</a></h3>
+<p><strong>什么是Siamese网络？</strong></p>
+<p>Siamese网络通过两个完全相同的网络分支（共享权重）分别处理两个输入样本，输出特征向量后计算距离。两个分支使用完全相同的参数（权重共享），就像连体双胞胎，因此称为&quot;孪生&quot;网络。</p>
+<p>Siamese网络 <span id="id19">[]</span> 是最早的度量学习架构之一，最初用于签名验证。</p>
+<div class="figure" id="id38" style="text-align: center"><p><img  src="../_images/tikz-0aa7528255dca221b782fe8210a74d12c8f0a793.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Siamese网络架构</span></p>
+</div><p><strong>Siamese网络关键特性：</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>特性</p></th>
+<th class="head"><p>说明</p></th>
+<th class="head"><p>优势</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>权重共享</strong></p></td>
+<td><p>两个分支使用相同参数</p></td>
+<td><p>确保相同样本被一致映射</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>对称性</strong></p></td>
+<td><p>天然满足对称性</p></td>
+<td><p><span class="math notranslate nohighlight">\(d(x_i, x_j) = d(x_j, x_i)\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>灵活性</strong></p></td>
+<td><p>可使用任意主干网络</p></td>
+<td><p>CNN、RNN、Transformer</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>工作原理</strong></p>
+<p>给定样本对 <span class="math notranslate nohighlight">\((x_i, x_j)\)</span> 和标签 <span class="math notranslate nohighlight">\(y_{ij} \in \{0, 1\}\)</span>（1表示相似，0表示不相似）：</p>
+<p><strong>前向传播流程：</strong></p>
+<ol class="arabic simple">
+<li><p><strong>特征提取</strong>：</p></li>
+</ol>
+<div class="math notranslate nohighlight">
+\[z_i = f_\theta(x_i), \quad z_j = f_\theta(x_j)\]</div>
+<ol class="arabic simple" start="2">
+<li><p><strong>距离计算</strong>：</p></li>
+</ol>
+<div class="math notranslate nohighlight">
+\[d_{ij} = \|z_i - z_j\|_2^2\]</div>
+<ol class="arabic simple" start="3">
+<li><p><strong>对比损失</strong>：</p></li>
+</ol>
+<div class="math notranslate nohighlight">
+\[\mathcal{L} = y_{ij} d_{ij} + (1 - y_{ij}) \max(0, m - d_{ij})\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(m\)</span> 是间隔（margin），表示不相似样本之间的最小期望距离。</p>
+<p><strong>应用场景：</strong></p>
+<ul class="simple">
+<li><p><strong>签名验证</strong> <span id="id20">[]</span>：比较两个签名是否为同一人</p></li>
+<li><p><strong>人脸验证</strong>：1:1人脸比对</p></li>
+<li><p><strong>文本相似度</strong>：句子语义相似度判断</p></li>
+<li><p><strong>人脸聚类</strong>：将相似人脸自动分组</p></li>
+</ul>
+<p><strong>局限</strong></p>
+<div class="admonition caution">
+<p class="admonition-title">小心</p>
+<p>Siamese网络一次只考虑<strong>两个样本</strong>，忽略了样本间的<strong>相对关系</strong>。</p>
+<p><strong>例子</strong>：样本A和B属于同一类但差异很大，样本A和C属于不同类但视觉相似。Siamese损失会独立优化每个对：拉近A和B，推远A和C。这可能导致冲突，因为没有明确表达&quot;A与B的距离应该比A与C的距离小&quot;。</p>
+</div>
+</section>
+<section id="triplet">
+<h3>2.3.2 Triplet网络（三元组网络）<a class="headerlink" href="#triplet" title="Link to this heading">#</a></h3>
+<div class="admonition important">
+<p class="admonition-title">重要</p>
+<p>Triplet网络 <span id="id21">[]</span> 是深度度量学习的里程碑工作，扩展了Siamese网络，一次处理<strong>三个样本</strong>：</p>
+<ul class="simple">
+<li><p><strong>锚点（Anchor）</strong>：参考样本</p></li>
+<li><p><strong>正样本（Positive）</strong>：与锚点同类的样本</p></li>
+<li><p><strong>负样本（Negative）</strong>：与锚点不同类的样本</p></li>
+</ul>
+<p><strong>核心洞见</strong>：通过<strong>相对比较</strong>优化，而非独立优化每对样本。</p>
+</div>
+<div class="figure" id="id39" style="text-align: center"><p><img  src="../_images/tikz-39fd764a46c1f2bfc705a784f17d2871c38b90ab.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Triplet网络架构与三元组损失原理</span></p>
+</div><p>三个分支共享相同的网络参数。</p>
+<p><strong>工作原理</strong></p>
+<p>三元组损失的核心约束是：锚点与正样本的距离应该远小于锚点与负样本的距离。</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{L} = \max(0, d(x_a, x_p) - d(x_a, x_n) + m)\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(m\)</span> 是间隔。只有当 <span class="math notranslate nohighlight">\(d(x_a, x_n) &gt; d(x_a, x_p) + m\)</span> 时损失为0，否则产生梯度推动模型学习。</p>
+<p>Triplet的相对排序优化目标更符合相似度学习的本质：</p>
+<p><strong>场景</strong>：样本A和B属于同一类但差异很大（如同一个人的正面和侧面照），样本A和C属于不同类但视觉上相似（如金毛犬和拉布拉多犬）。</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>方法</p></th>
+<th class="head"><p>优化目标</p></th>
+<th class="head"><p>问题</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Siamese</strong></p></td>
+<td><p>独立优化 <span class="math notranslate nohighlight">\((A,B)\)</span> 和 <span class="math notranslate nohighlight">\((A,C)\)</span></p></td>
+<td><p>既要把 <span class="math notranslate nohighlight">\(A,B\)</span> 拉近，又要把 <span class="math notranslate nohighlight">\(A,C\)</span> 推远，<strong>产生矛盾</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Triplet</strong></p></td>
+<td><p><span class="math notranslate nohighlight">\(d(A,B) &lt; d(A,C) - m\)</span></p></td>
+<td><p>明确表达&quot;A与B的距离应该比A与C的距离小&quot;，<strong>相对排序</strong></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>挑战与解决</strong></p>
+<p><strong>挑战1：三元组数量爆炸</strong></p>
+<p><strong>问题</strong>：对于 <span class="math notranslate nohighlight">\(N\)</span> 个样本、<span class="math notranslate nohighlight">\(C\)</span> 个类别，可能的三元组数量为 <span class="math notranslate nohighlight">\(O(N^3)\)</span>，无法全部遍历。</p>
+<p><strong>解决：在线难例挖掘（Online Hard Negative Mining）</strong></p>
+<p>在每个mini-batch中，对每个锚点：</p>
+<ol class="arabic simple">
+<li><p>选择<strong>最困难的正样本</strong>（hardest positive）：同类别中距离锚点最远的样本</p></li>
+<li><p>选择<strong>最困难的负样本</strong>（hardest negative）：不同类别中距离锚点最近的样本</p></li>
+</ol>
+<p>这样既减少了计算量，又聚焦于<strong>信息量最大</strong>的样本。</p>
+<p><strong>挑战2：训练不稳定</strong></p>
+<p><strong>问题</strong>：如果随机选择三元组，大多数三元组已经满足约束（easy triplets），不产生梯度，训练停滞。</p>
+<p><strong>解决：Semi-Hard Negative Mining</strong></p>
+<p>选择满足以下条件的负样本：</p>
+<div class="math notranslate nohighlight">
+\[d(x_a, x_p) &lt; d(x_a, x_n) &lt; d(x_a, x_p) + m\]</div>
+<p>即&quot;比正样本远，但还没有远到满足间隔&quot;的样本。这种样本提供了<strong>适度的难度</strong>：稳定训练，避免极端困难样本导致的梯度爆炸。</p>
+</section>
+<section id="quadruplet">
+<h3>2.3.3 Quadruplet网络与更高阶架构<a class="headerlink" href="#quadruplet" title="Link to this heading">#</a></h3>
+<p><strong>Quadruplet Loss</strong></p>
+<p>Quadruplet网络 <span id="id22">[]</span> 进一步扩展，一次处理四个样本。除了传统的triplet约束外，还引入额外的约束：不同类别样本间的距离应该大于正样本间的距离。</p>
+<p>这种设计增强了模型的判别能力，特别适用于细粒度分类任务。</p>
+<p><strong>Higher-order架构</strong></p>
+<p>理论上，可以构建处理任意数量样本的网络：</p>
+<ul class="simple">
+<li><p><strong>N-pair Loss</strong>：一次处理一个锚点和 <span class="math notranslate nohighlight">\(N-1\)</span> 个负样本</p></li>
+<li><p><strong>Lifted Structured Loss</strong>：考虑batch内所有可能的正负样本对</p></li>
+</ul>
+<p>这些方法的共同趋势是：从成对比较（pairwise）向结构化比较（structured）发展，更充分地利用batch内的样本关系。</p>
+</section>
+<section id="id23">
+<h3>2.3.4 采样策略的演进<a class="headerlink" href="#id23" title="Link to this heading">#</a></h3>
+<p>采样策略对深度度量学习的成功至关重要。以下是主要的发展脉络：</p>
+<p><strong>随机采样（Random Sampling）</strong></p>
+<p>最简单的方法，随机选择正样本和负样本组成三元组。问题是产生的大部分三元组很容易满足约束，不提供有效梯度。</p>
+<p><strong>离线难例挖掘（Offline Hard Mining）</strong></p>
+<p>定期（如每个epoch结束后）：</p>
+<ol class="arabic simple">
+<li><p>用当前模型对所有样本计算特征</p></li>
+<li><p>找出最困难的样本对</p></li>
+<li><p>在下一轮训练中重点使用这些样本</p></li>
+</ol>
+<p>优点是能够找到全局最困难的样本；缺点是计算开销大，需要频繁重新计算特征。</p>
+<p><strong>在线难例挖掘（Online Hard Mining）</strong></p>
+<p>在每个mini-batch内动态选择困难样本。FaceNet的原始论文建议：</p>
+<p>对每个锚点，选择：</p>
+<ul class="simple">
+<li><p><strong>Hardest Positive</strong>：同类别中距离最远的正样本</p></li>
+<li><p><strong>Hardest Negative</strong>：不同类别中距离最近的负样本</p></li>
+</ul>
+<p>这种方法高效且稳定，成为标准实践。</p>
+<p><strong>Distance-Weighted Sampling</strong></p>
+<p>考虑样本距离分布，根据权重采样负样本。给那些&quot;距离适中&quot;的样本更高权重，避免极端困难或极端简单的样本。</p>
+<p><strong>Proxy-based Sampling</strong></p>
+<p>为每个类别学习一个代表性的&quot;代理向量&quot;（proxy），与代理比较而非与具体样本比较。这显著减少了需要比较的数量（从 <span class="math notranslate nohighlight">\(O(N)\)</span> 到 <span class="math notranslate nohighlight">\(O(C)\)</span>，<span class="math notranslate nohighlight">\(C\)</span> 是类别数）。</p>
+</section>
+</section>
+<section id="id24">
+<h2>2.4 网络架构选择指南<a class="headerlink" href="#id24" title="Link to this heading">#</a></h2>
+<section id="id25">
+<h3>2.4.1 不同架构的适用场景<a class="headerlink" href="#id25" title="Link to this heading">#</a></h3>
+<p><strong>架构选择速查表</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>架构</p></th>
+<th class="head"><p>适用场景</p></th>
+<th class="head"><p>优势</p></th>
+<th class="head"><p>劣势</p></th>
+<th class="head"><p>代表工作</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Siamese</strong></p></td>
+<td><p>二分类相似度任务</p></td>
+<td><p>简单直观，训练稳定</p></td>
+<td><p>忽略相对关系</p></td>
+<td><p><span id="id26">[]</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Triplet</strong></p></td>
+<td><p>通用度量学习</p></td>
+<td><p>捕获相对关系，效果好</p></td>
+<td><p>采样复杂</p></td>
+<td><p><span id="id27">[]</span></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Quadruplet</strong></p></td>
+<td><p>细粒度分类</p></td>
+<td><p>更强判别能力</p></td>
+<td><p>更复杂的采样</p></td>
+<td><p><span id="id28">[]</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>N-pair</strong></p></td>
+<td><p>大规模类别</p></td>
+<td><p>高效利用batch</p></td>
+<td><p>需要大批量</p></td>
+<td><p><span id="id29">[]</span></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>推荐</strong>：初学者从 <strong>Triplet</strong> 开始，实际项目根据数据特点选择。</p>
+</section>
+<section id="id30">
+<h3>2.4.2 主干网络选择<a class="headerlink" href="#id30" title="Link to this heading">#</a></h3>
+<p>度量学习的主干网络可以是任何提取特征的架构。</p>
+<p><strong>CNN架构选择</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>架构</p></th>
+<th class="head"><p>特点</p></th>
+<th class="head"><p>适用场景</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>ResNet</strong> <span id="id31">[<a class="reference internal" href="../transfer-learning/part3-model-transfer.html#id43" title="Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. Proceedings of the IEEE conference on computer vision and pattern recognition, pages 770–778, 2016.">HZRS16</a>]</span></p></td>
+<td><p>最常用，性能与计算量平衡</p></td>
+<td><p>通用场景，ResNet-50/101标准选择</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Inception</strong> <span id="id32">[]</span></p></td>
+<td><p>多尺度特征</p></td>
+<td><p>细粒度任务</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>EfficientNet</strong></p></td>
+<td><p>计算效率高</p></td>
+<td><p>移动端部署</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>设计考虑</strong>：</p>
+<ul class="simple">
+<li><p>最后一层改为嵌入层（128维或256维）</p></li>
+<li><p>移除最后的分类层（Softmax层）</p></li>
+<li><p>添加L2归一化</p></li>
+</ul>
+<p><strong>Transformer架构：</strong></p>
+<ul class="simple">
+<li><p><strong>ViT</strong> <span id="id33">[]</span>：在图像度量学习中逐渐流行</p></li>
+<li><p>适合需要全局上下文信息的任务</p></li>
+<li><p>计算量较大，需要更多训练数据</p></li>
+</ul>
+</section>
+<section id="id34">
+<h3>2.4.3 实践建议<a class="headerlink" href="#id34" title="Link to this heading">#</a></h3>
+<div class="admonition important">
+<p class="admonition-title">重要</p>
+<p><strong>初学者路线图</strong></p>
+<ol class="arabic simple">
+<li><p><strong>第一阶段</strong>：Siamese网络 + Contrastive Loss</p>
+<ul class="simple">
+<li><p>理解权重共享机制</p></li>
+<li><p>掌握对比损失的基本原理</p></li>
+</ul>
+</li>
+<li><p><strong>第二阶段</strong>：Triplet网络 + Triplet Loss</p>
+<ul class="simple">
+<li><p>理解相对约束的优势</p></li>
+<li><p>学习三元组采样</p></li>
+</ul>
+</li>
+<li><p><strong>第三阶段</strong>：在线难例挖掘</p>
+<ul class="simple">
+<li><p>Semi-Hard Negative Mining</p></li>
+<li><p>训练稳定的关键！</p></li>
+</ul>
+</li>
+</ol>
+</div>
+<p><strong>实际项目建议</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>场景</p></th>
+<th class="head"><p>推荐配置</p></th>
+<th class="head"><p>原因</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>数据量小</strong> (&lt;1万张)</p></td>
+<td><p>预训练ResNet + Triplet Loss</p></td>
+<td><p>迁移学习提供良好初始化</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>类别多、每类样本少</strong></p></td>
+<td><p>Proxy-based方法</p></td>
+<td><p>代理向量减少比较数量</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>实时推理</strong></p></td>
+<td><p>MobileNet/EfficientNet-Lite</p></td>
+<td><p>轻量级网络，快速推理</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>细粒度任务</strong></p></td>
+<td><p>注意力机制增强网络</p></td>
+<td><p>关注判别性区域</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="admonition danger">
+<p class="admonition-title">危险</p>
+<p><strong>避免的陷阱</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>陷阱</p></th>
+<th class="head"><p>后果</p></th>
+<th class="head"><p>解决方案</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>忽视采样策略</strong></p></td>
+<td><p>训练失败或效果差</p></td>
+<td><p>使用Semi-Hard Mining</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>忽略特征归一化</strong></p></td>
+<td><p>距离计算不稳定</p></td>
+<td><p>L2归一化到单位球面</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>不监控训练</strong></p></td>
+<td><p>无法及时发现问题</p></td>
+<td><p>观察hardest positive/negative距离</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Batch构造不当</strong></p></td>
+<td><p>无有效三元组</p></td>
+<td><p>确保每类至少4个样本</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<figure class="align-center" id="id40">
+<object data="../_images/mermaid-34a057f83f0e39919cb90c157c9bc4fc0906839d.svg" type="image/svg+xml">
+            <p class="warning">flowchart TD
+    Start([开始选择架构]) --&gt; Q1{任务类型？}
+    
+    Q1 --&gt;|二分类相似度| S1[Siamese网络]
+    Q1 --&gt;|通用度量学习| Q2{数据规模？}
+    
+    Q2 --&gt;|小数据集&lt;br/&gt;&lt;1万张| S2[预训练ResNet&lt;br/&gt;+ Triplet Loss]
+    Q2 --&gt;|大数据集| Q3{类别数/样本数？}
+    
+    Q3 --&gt;|类别多&lt;br/&gt;每类样本少| S3[Proxy-based&lt;br/&gt;方法]
+    Q3 --&gt;|类别适中| Q4{细粒度？}
+    
+    Q4 --&gt;|是| S4[Quadruplet网络&lt;br/&gt;+ 注意力机制]
+    Q4 --&gt;|否| S5[Triplet网络&lt;br/&gt;+ Online Hard Mining]
+    
+    Q1 --&gt;|需要实时推理| S6[轻量级网络&lt;br/&gt;MobileNet/EfficientNet]
+    
+    S1 --&gt; S7[使用对比损失]
+    S2 --&gt; S8[使用Semi-Hard Mining]
+    S3 --&gt; S9[代理向量学习]
+    S4 --&gt; S10[细粒度特征对齐]
+    S5 --&gt; S11[标准训练流程]
+    S6 --&gt; S12[模型量化部署]
+    
+    style Start fill:#e3f2fd
+    style S1 fill:#c8e6c9
+    style S2 fill:#c8e6c9
+    style S3 fill:#c8e6c9
+    style S4 fill:#c8e6c9
+    style S5 fill:#c8e6c9
+    style S6 fill:#ffccbc</p></object>
+<figcaption>
+<p><span class="caption-text">架构选择决策树</span><a class="headerlink" href="#id40" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+</section>
+<section id="id35">
+<h2>小结<a class="headerlink" href="#id35" title="Link to this heading">#</a></h2>
+<p><strong>本部分要点回顾</strong></p>
+<p>度量学习方法的演进路径：</p>
+<p><strong>传统方法 → 深度方法</strong></p>
+<ul class="simple">
+<li><p><strong>线性</strong> → <strong>非线性</strong>：从马氏距离到深度神经网络</p></li>
+<li><p><strong>全局</strong> → <strong>局部</strong>：从统一度量到自适应度量</p></li>
+<li><p><strong>成对</strong> → <strong>结构化</strong>：从独立优化到相对比较</p></li>
+</ul>
+<p><strong>核心思想传承</strong>：</p>
+<ul class="simple">
+<li><p>推拉机制（Pull-Push）</p></li>
+<li><p>间隔最大化（Margin Maximization）</p></li>
+<li><p>正则化（Regularization）</p></li>
+</ul>
+<p><strong>网络架构选择决策</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>需求</p></th>
+<th class="head"><p>推荐架构</p></th>
+<th class="head"><p>关键配置</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>简单相似度判断</p></td>
+<td><p>Siamese</p></td>
+<td><p>Contrastive Loss</p></td>
+</tr>
+<tr class="row-odd"><td><p>通用度量学习</p></td>
+<td><p>Triplet</p></td>
+<td><p>Triplet Loss + Semi-Hard Mining</p></td>
+</tr>
+<tr class="row-even"><td><p>细粒度分类</p></td>
+<td><p>Quadruplet</p></td>
+<td><p>注意力机制</p></td>
+</tr>
+<tr class="row-odd"><td><p>大规模类别</p></td>
+<td><p>N-pair</p></td>
+<td><p>大批量训练</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="admonition important">
+<p class="admonition-title">重要</p>
+<p><strong>最重要的洞见</strong>：采样策略往往比网络架构更重要！精心设计的采样（Semi-Hard Mining）配合简单的Triplet Loss，通常比复杂架构配合随机采样效果更好。</p>
+</div>
+<p><strong>设计哲学</strong></p>
+<p>如何让模型学会&quot;好的&quot;相似度度量？</p>
+<p><strong>答案</strong>：设计合适的约束和优化目标，让模型自动发现数据中的相似性结构。</p>
+<ul class="simple">
+<li><p><strong>约束设计</strong>：相对排序 &gt; 独立优化</p></li>
+<li><p><strong>采样策略</strong>：困难样本 &gt; 随机样本</p></li>
+<li><p><strong>损失函数</strong>：平滑稳定 &gt; 复杂多变</p></li>
+<li><p><strong>正则化</strong>：防止过拟合，保持度量合理性</p></li>
+</ul>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">e1bf5e0</code>
+                2026-03-09 - <strong>Heyan Zhu</strong>: Add metric leaning
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="part1-intro.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">上一页</p>
+        <p class="prev-next-title">第一部分：导论与核心概念</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="part3-loss-functions.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">下一页</p>
+        <p class="prev-next-title">第三部分：核心损失函数设计</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> 目录
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">2.1 度量学习的方法分类</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">2.1.1 按学习方式分类</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">2.1.2 按变换性质分类</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">2.1.3 按局部性分类</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">2.2 传统度量学习方法</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">2.2.1 马氏距离学习框架</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">2.2.2 代表性传统方法</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">2.2.3 传统方法的局限与启示</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">2.3 深度度量学习的网络架构</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#siamese">2.3.1 Siamese网络（孪生网络）—— 最基础的架构</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#triplet">2.3.2 Triplet网络（三元组网络）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quadruplet">2.3.3 Quadruplet网络与更高阶架构</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">2.3.4 采样策略的演进</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">2.4 网络架构选择指南</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">2.4.1 不同架构的适用场景</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id30">2.4.2 主干网络选择</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id34">2.4.3 实践建议</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id35">小结</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+作者： UCS Deep Learning Club
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, UCS Deep Learning Club and Contributors, licensed under CC BY-SA 4.0.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
