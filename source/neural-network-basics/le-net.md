@@ -94,21 +94,21 @@ LeNet-5的经典架构包含以下层：
 
 % Define the nodes (layers) in a vertical sequence
 % 'below=of' is used to stack the nodes vertically
-\node[io] (Input) {输入\\ (1$\times$28$\times$28)};
+\node[io] (Input) {输入 (1$\times$28$\times$28)};
 
-\node[convpool, below=1cm of Input] (C1) {卷积 C1\\ (6$\times$24$\times$24)};
+\node[convpool, below=1cm of Input] (C1) {卷积 C1 (6$\times$24$\times$24)};
 
-\node[convpool, below=1cm of C1] (S2) {池化 S2\\ (6$\times$12$\times$12)};
+\node[convpool, below=1cm of C1] (S2) {池化 S2 (6$\times$12$\times$12)};
 
-\node[convpool, below=1cm of S2] (C3) {卷积 C3\\ (16$\times$8$\times$8)};
+\node[convpool, below=1cm of S2] (C3) {卷积 C3 (16$\times$8$\times$8)};
 
-\node[convpool, below=1cm of C3] (S4) {池化 S4\\ (16$\times$4$\times$4)};
+\node[convpool, below=1cm of C3] (S4) {池化 S4 (16$\times$4$\times$4)};
 
-\node[fc, below=1cm of S4] (F5) {全连接 F5\\ (120)};
+\node[fc, below=1cm of S4] (F5) {全连接 F5 (120)};
 
-\node[fc, below=1cm of F5] (F6) {全连接 F6\\ (84)};
+\node[fc, below=1cm of F5] (F6) {全连接 F6 (84)};
 
-\node[io, below=1cm of F6] (Out) {输出\\ (10)};
+\node[io, below=1cm of F6] (Out) {输出 (10)};
 
 % Draw the arrows (connections)
 \draw[arrow] (Input) -- (C1);

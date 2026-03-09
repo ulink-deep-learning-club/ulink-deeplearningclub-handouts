@@ -205,4 +205,4 @@ mathjax3_config = {
     }
 }
 
-bibtex_bibfiles = list_file_with_extension(Path("./"), "bib")
+bibtex_bibfiles = ["references.bib"]
