@@ -1,24 +1,13 @@
-# 计算图基础
+(computational-graph)=
+# 计算图
 
 ## 什么是计算图？
 
-计算图（Computational Graph）是一种用图来表示数学表达式的方法。图中的节点代表变量或运算，边代表数据流动的方向。这种表示既直观，又为自动微分（automatic differentiation）打下了数学基础。
+计算图是一种用图来表示数学运算的方法。你可以把它想象成**数据流的管道系统**：数据从输入节点流入，经过各种操作节点（如加法、乘法、激活函数），最终到达输出节点。
 
-```{admonition} 计算图的正式定义
-:class: note
-
-计算图 $G = (V, E)$ 是一个有向图，其中：
-
-- $V$ 是节点集合，包括：
-  - **输入节点**：表示变量或常数（如 $x$, $y$）
-  - **操作节点**：表示数学运算（加法、乘法、函数等）
-  - **输出节点**：表示最终计算结果
-- $E$ 是边集合，表示数据依赖关系
-- 每个节点 $v \in V$ 都有一个对应的值 $val(v)$
-- 边 $(u, v) \in E$ 表示节点 $u$ 的值是节点 $v$ 的输入
-```
-
-## 计算图的基本元素
+这种表示方式有两个核心价值：
+1. **可视化**：复杂的数学表达式变成清晰的流程图
+2. **自动求导**：为反向传播提供结构基础，让梯度计算自动化
 
 ```{tikz} 计算图示例：$f(x,y) = (x+y) \times y$
 \begin{tikzpicture}[scale=1.2]
@@ -44,101 +33,41 @@
 \end{tikzpicture}
 ```
 
-### 节点类型
+在这个图中：
+- **蓝色节点**：输入变量（$x$, $y$）
+- **红色节点**：操作（加法 $+$、乘法 $\times$）
+- **绿色节点**：最终输出
+- **箭头**：数据流动方向
 
-```{admonition} 输入节点（Input Nodes）
-:class: note
+## 前向传播：数据如何流动
 
-- 表示模型的输入变量或常数
-- 通常是计算图的起点
-- 在训练过程中，这些节点的值会被赋予具体数值
-- 示例：$x$, $y$, $w$, $b$ 等
-```
+前向传播就是数据从输入节点流向输出节点的过程。按照拓扑顺序（先计算依赖的节点），每个操作节点接收输入、计算输出。
 
-```{admonition} 操作节点（Operation Nodes）
-:class: note
+### 示例：计算 $f(x, y, z) = (x + y) \times z$
 
-- 表示数学运算或函数
-- 接收一个或多个输入，产生一个输出
-- 示例：加法(+)、乘法($\times$)、sigmoid($\sigma$)、ReLU等
-- 每个操作节点都对应一个前向计算和反向传播规则
-```
-
-### 边的语义
-
-边在计算图中承载着重要的语义信息：
-
-- **数据流**：数值从源节点流向目标节点
-- **依赖关系**：显示计算过程中的依赖关系
-- **梯度传播**：反向传播时，梯度沿着边反向流动
-- **计算顺序**：边的方向决定了计算的先后顺序
-
-## 计算图的构建规则
-
-构建计算图需要遵循特定的规则，以确保计算的正确性和效率：
-
-```{admonition} 构建原则
-:class: note
-
-1. **无环性**：计算图必须是有向无环图（DAG），避免循环依赖
-2. **完整性**：每个操作节点的所有输入都必须有明确的来源
-3. **一致性**：数据类型和维度必须匹配
-4. **可微分性**：所有操作节点必须支持前向计算和反向传播
-```
-
-## 计算图的前向传播
-
-前向传播是计算图中数值从输入节点流向输出节点的过程。对于每个节点，我们按照拓扑顺序计算其值。
-
-### 前向传播算法
-
-```python
-def forward_pass(graph):
-    """执行计算图的前向传播"""
-    # 拓扑排序
-    topological_order = topological_sort(graph)
-    
-    for node in topological_order:
-        if node.is_input:
-            # 输入节点：值已给定
-            continue
-        elif node.is_operation:
-            # 操作节点：计算输出值
-            inputs = [predecessor.value for predecessor in node.predecessors]
-            node.value = node.operation(*inputs)
-    
-    return graph.output_node.value
-```
-
-### 前向传播示例
-
-考虑函数 $f(x, y, z) = (x + y) \times z$：
+设 $x = 2$, $y = 3$, $z = 4$：
 
 1. **输入节点**：$x = 2$, $y = 3$, $z = 4$
-2. **操作节点1**：$a = x + y = 2 + 3 = 5$
-3. **操作节点2**：$f = a \times z = 5 \times 4 = 20$
+2. **加法节点**：$a = x + y = 2 + 3 = 5$
+3. **乘法节点**：$f = a \times z = 5 \times 4 = 20$
 
-## 计算图的优势
+这就是计算图在前向传播中的工作流程。
 
-### 1. 可视化复杂表达式
+## 反向传播：梯度如何回流
 
-计算图把复杂的数学表达式拆成简单的操作，让结构一目了然。
+计算图的真正威力在于{ref}`back-propagation`。梯度（误差信号）沿着边的反方向流动，从输出节点传回输入节点。这使得我们可以高效计算每个参数对最终损失的贡献。
 
-### 2. 支持自动微分
+```{admonition} 关键洞察
+:class: note
 
-计算图为反向传播算法提供了数据结构，让梯度计算自动化。
+计算图让"信用分配"变得系统化：
+- 前向传播：数据沿着箭头方向流动，计算输出
+- 反向传播：梯度沿着箭头反方向流动，分摊误差
+```
 
-### 3. 优化计算顺序
+## PyTorch中的动态计算图
 
-通过拓扑排序，计算图可以确定最优的计算顺序，避免重复计算。
-
-### 4. 并行计算
-
-计算图能分析操作之间的依赖关系，找出可以并行执行的操作。
-
-## 实际应用：PyTorch中的计算图
-
-在PyTorch中，计算图是动态构建的：
+PyTorch使用**动态计算图**（define-by-run）：每次前向传播时实时构建计算图，这提供了极大的灵活性。
 
 ```python
 import torch
@@ -148,101 +77,86 @@ x = torch.tensor(2.0, requires_grad=True)
 y = torch.tensor(3.0, requires_grad=True)
 z = torch.tensor(4.0, requires_grad=True)
 
-# 构建计算图
+# 构建计算图（前向传播）
 a = x + y      # 加法操作
 f = a * z      # 乘法操作
 
-print(f"x = {x}, y = {y}, z = {z}")
-print(f"a = x + y = {a}")
-print(f"f = a * z = {f}")
+print(f"前向传播: f = {f}")  # 输出: 20.0
 
-# 计算梯度
+# 反向传播：自动计算梯度
 f.backward()
 
 print(f"\n梯度计算:")
-print(f"∂f/∂x = {x.grad}")
-print(f"∂f/∂y = {y.grad}")
-print(f"∂f/∂z = {z.grad}")
+print(f"∂f/∂x = {x.grad}")  # 输出: 4.0 (z的值)
+print(f"∂f/∂y = {y.grad}")  # 输出: 4.0 (z的值)
+print(f"∂f/∂z = {z.grad}")  # 输出: 5.0 (a的值)
 ```
 
-### 计算图的内存管理
+### 梯度计算的解释
 
-PyTorch使用动态计算图，每次前向传播都会构建新的计算图。这提供了灵活性，但也需要注意内存管理：
+为什么梯度是这些值？根据链式法则：
+- $\frac{\partial f}{\partial x} = \frac{\partial f}{\partial a} \cdot \frac{\partial a}{\partial x} = z \cdot 1 = 4$
+- $\frac{\partial f}{\partial y} = \frac{\partial f}{\partial a} \cdot \frac{\partial a}{\partial y} = z \cdot 1 = 4$
+- $\frac{\partial f}{\partial z} = a = 5$
 
-```python
-# 释放计算图内存
-f.backward(retain_graph=True)  # 保留计算图
-f.backward()                   # 默认会释放计算图
+PyTorch的 `backward()` 自动完成了这些计算。
 
-# 或者手动释放
-del f, a
-torch.cuda.empty_cache()  # 如果使用GPU
+## 计算图的优势
+
+- **可视化复杂计算**: 深度网络可能有数百万个操作，计算图将其分解为可理解的模块。
+
+- **自动微分**: 无需手动推导梯度公式，计算图结构让自动求导成为可能。
+
+- **优化执行**:
+
+    通过分析依赖关系，可以：
+    - 确定最优计算顺序
+    - 识别可并行执行的操作
+    - 避免重复计算
+
+## 从计算图到神经网络
+
+神经网络的计算图具有以下特点：
+
+```{tikz} 简化神经网络计算图
+\begin{tikzpicture}[scale=0.8]
+    % 输入层
+    \foreach \i in {1,2,3}
+        \node[circle, draw=blue!50, fill=blue!20, minimum size=0.6cm] (in\i) at (0,\i) {};
+    \node at (-1.2, 2) {输入};
+    
+    % 隐藏层
+    \foreach \i in {1,2,3,4}
+        \node[circle, draw=orange!50, fill=orange!20, minimum size=0.6cm] (hid\i) at (3,\i-0.5) {};
+    \node at (3, 4.5) {隐藏层};
+    
+    % 输出层
+    \foreach \i in {1,2}
+        \node[circle, draw=green!50, fill=green!20, minimum size=0.6cm] (out\i) at (6,\i+0.5) {};
+    \node at (7.2, 2) {输出};
+    
+    % 前向连接（蓝色）
+    \foreach \i in {1,2,3}
+        \foreach \j in {1,2,3,4}
+            \draw[->, blue!30] (in\i) -- (hid\j);
+    
+    \foreach \i in {1,2,3,4}
+        \foreach \j in {1,2}
+            \draw[->, blue!30] (hid\i) -- (out\j);
+\end{tikzpicture}
 ```
 
-## 常见计算图操作
+- **多层结构**：输入层 → 隐藏层 → 输出层
+- **权重参数**：每条边代表一个可学习的权重
+- **激活函数**：每个节点通常包含非线性变换
 
-### 基本数学运算
-
-```python
-# 基本运算
-a = x + y    # 加法
-b = x - y    # 减法  
-c = x * y    # 乘法
-d = x / y    # 除法
-e = x ** 2   # 幂运算
-
-# 矩阵运算
-import torch
-A = torch.randn(3, 4, requires_grad=True)
-B = torch.randn(4, 5, requires_grad=True)
-C = torch.matmul(A, B)  # 矩阵乘法
-```
-
-### 激活函数
-
-```python
-import torch.nn.functional as F
-
-x = torch.randn(10, requires_grad=True)
-
-# 常见激活函数
-y_relu = F.relu(x)      # ReLU: max(0, x)
-y_sigmoid = torch.sigmoid(x)  # Sigmoid: 1/(1+exp(-x))
-y_tanh = torch.tanh(x)        # Tanh: (exp(x)-exp(-x))/(exp(x)+exp(-x))
-y_softmax = F.softmax(x, dim=0)  # Softmax: exp(x_i)/∑exp(x_j)
-```
-
-## 计算图的调试
-
-### 可视化计算图
-
-```python
-import torchviz
-from torchviz import make_dot
-
-# 创建计算图
-x = torch.tensor(2.0, requires_grad=True)
-y = torch.tensor(3.0, requires_grad=True)
-z = x * y + torch.sin(x)
-
-# 生成可视化
-dot = make_dot(z, params={'x': x, 'y': y})
-dot.render("computational_graph", format="png")  # 保存为PNG
-```
-
-### 检查梯度流
-
-```python
-def check_gradient_flow(model):
-    """检查模型中梯度的流动情况"""
-    for name, param in model.named_parameters():
-        if param.grad is not None:
-            grad_mean = param.grad.abs().mean().item()
-            print(f"{name}: gradient mean = {grad_mean:.6f}")
-        else:
-            print(f"{name}: no gradient")
-```
+在下一节中，我们将深入探讨{ref}`activation-functions`——计算图中的非线性操作如何让神经网络拥有划分复杂决策边界的能力。
 
 ## 总结
 
-计算图是深度学习的核心数据结构，它将复杂的数学表达式分解为简单的操作节点，通过有向边连接形成计算流程。计算图不仅提供了直观的可视化表示，还为自动微分和优化计算提供了基础。理解计算图的结构和运作原理是掌握深度学习框架的关键。
+{ref}`computational-graph`是深度学习的核心数据结构：
+- **前向传播**：数据沿着边流动，计算预测结果
+- **反向传播**：梯度沿着边反向流动，为{ref}`back-propagation`奠定基础
+- **自动求导**：计算图结构让{ref}`back-propagation`的梯度计算自动化
+
+理解{ref}`computational-graph`后，我们将探索{ref}`activation-functions`如何用非线性变换在空间中划分决策边界。之后{ref}`loss-functions`会将预测误差量化，{ref}`back-propagation`通过计算图高效计算梯度，最后{ref}`gradient-descent`利用这些梯度优化参数。

@@ -1,0 +1,1031 @@
+
+<!DOCTYPE html>
+
+
+<html lang="zh-CN" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>梯度下降与优化算法 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=3e9436e6" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=eb1cd0b9"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/translations.js?v=beaddf03"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'math-fundamentals/gradient-descent';</script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="总结与展望" href="the-end.html" />
+    <link rel="prev" title="反向传播算法" href="back-propagation.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="zh-CN"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Deep Learning Club</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">搜索</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验与比较</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">神经网络缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch基础教程：从NumPy到深度学习</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">1. 引言：PyTorch的设计哲学与学习路径</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从NumPy到PyTorch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">3. 张量操作详解：PyTorch的核心数据结构</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">4. 自动微分：PyTorch的核心机制</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">总结</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN消融研究：理解卷积神经网络各组件的作用</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：什么是消融研究？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../transfer-learning/index.html">深度学习中的迁移学习</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part1-intro.html">第一部分：导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part2-taxonomy.html">第二部分：迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part3-model-transfer.html">第三部分：基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part4-practical-guide.html">第四部分：实操指南</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../metric-learning/index.html">深度学习中的度量学习</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../metric-learning/part1-intro.html">第一部分：导论与核心概念</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../metric-learning/part2-taxonomy.html">第二部分：分类体系与网络架构</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../metric-learning/part3-loss-functions.html">第三部分：核心损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../metric-learning/part4-practical-guide.html">第四部分：实践指南</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../attention-mechanisms/index.html">CNN中的注意力机制：从 SE-Net 到 CBAM</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/se-net.html">Squeeze-and-Excitation Networks (SE-Net)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/spatial-attn.html">空间注意力机制</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/cbam.html">Convolutional Block Attention Module (CBAM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/channel-spatial-attm-cmp.html">通道与空间注意力的比较</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/experiments.html">实验与性能分析</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/attn-math.html">注意力机制的数学基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/practical-guide.html">实际应用指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/extensions-variations.html">扩展与变体</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net架构：生物医学图像分割的革命性方法</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U-Net架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">核心组件实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/full-impl.html">完整U-Net实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/data-enhance.html">数据增强策略</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/techniques-best-practices.html">训练技巧与最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/application.html">应用领域</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/variation.html">U-Net变体与改进</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="源码库"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/math-fundamentals/gradient-descent.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/issues/new?title=Issue%20on%20page%20%2Fmath-fundamentals/gradient-descent.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="创建议题"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="下载此页面">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/math-fundamentals/gradient-descent.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="下载源文件"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="列印成 PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="全屏模式"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>梯度下降与优化算法</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> 目录 </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">梯度下降的本质：沿着最陡方向下山</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">下山比喻</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">学习率的重要性</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">梯度下降的变体</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#batch-gd">批量梯度下降（Batch GD）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sgd">随机梯度下降（SGD）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mini-batch-gd">小批量梯度下降（Mini-batch GD）</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">高级优化算法</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#loss-landscape-loss-functions">Loss Landscape：<span class="xref std std-ref">loss-functions</span>塑造的优化地形</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">动量法：积累速度翻越障碍</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#adam">Adam（自适应矩估计）</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">学习率调度：为什么需要调整学习率？</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">核心问题</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">常见学习率调度策略</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#step-decay">1. 步长衰减（Step Decay）</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#exponential-decay">2. 指数衰减（Exponential Decay）</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cosine-annealing">3. 余弦退火（Cosine Annealing）</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#warmup">4. 预热（Warmup）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">选择建议</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch实践</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">训练技巧</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">总结</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="gradient-descent">
+<span id="id1"></span><h1>梯度下降与优化算法<a class="headerlink" href="#gradient-descent" title="Link to this heading">#</a></h1>
+<section id="id2">
+<h2>梯度下降的本质：沿着最陡方向下山<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>神经网络训练转化为优化问题后，我们需要找到损失函数的<strong>最小值点</strong>。梯度下降（Gradient Descent）就是解决这个问题的迭代算法。</p>
+<p><strong>核心思想</strong>：在当前位置，沿着<strong>梯度下降方向</strong>（损失减小最快的方向）迈出一小步。</p>
+<div class="math notranslate nohighlight">
+\[
+\theta_{t+1} = \theta_t - \eta \cdot \nabla_\theta J(\theta)
+\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\eta\)</span> 是<strong>学习率</strong>（步长），<span class="math notranslate nohighlight">\(\nabla_\theta J(\theta)\)</span> 是损失函数对参数的梯度。</p>
+<div class="figure" id="id14" style="text-align: center"><p><img  src="../_images/tikz-1fcb6e31998d6ac9bb181d5315ffa43589084ee7.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">梯度下降：从初始点逐步逼近最小值</span></p>
+</div><section id="id3">
+<h3>下山比喻<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<p>想象你在山上迷路了，想要下到山谷：</p>
+<ul class="simple">
+<li><p><strong>当前位置</strong>：参数当前值 <span class="math notranslate nohighlight">\(\theta_t\)</span></p></li>
+<li><p><strong>最陡下降方向</strong>：负梯度方向（你脚下最陡的下坡方向）</p></li>
+<li><p><strong>步长</strong>：学习率 <span class="math notranslate nohighlight">\(\eta\)</span>（你每一步迈多大）</p></li>
+<li><p><strong>目标</strong>：到达山谷最低点（损失最小）</p></li>
+</ul>
+</section>
+<section id="id4">
+<h3>学习率的重要性<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p>学习率的选择至关重要：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>学习率</p></th>
+<th class="head"><p>效果</p></th>
+<th class="head"><p>类比</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>太小</p></td>
+<td><p>收敛极慢</p></td>
+<td><p>婴儿学步</p></td>
+</tr>
+<tr class="row-odd"><td><p>合适</p></td>
+<td><p>快速收敛</p></td>
+<td><p>正常行走</p></td>
+</tr>
+<tr class="row-even"><td><p>太大</p></td>
+<td><p>震荡/发散</p></td>
+<td><p>大跳，可能跳过山谷</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="figure" id="id15" style="text-align: center"><p><img  src="../_images/tikz-6d8d98f01221194e32bd78fa9e9ce2022e7bf6b5.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">学习率过大导致震荡</span></p>
+</div></section>
+</section>
+<hr class="docutils" />
+<section id="id5">
+<h2>梯度下降的变体<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<p>在<a class="reference internal" href="#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>中，我们根据<a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>计算的梯度更新参数。根据使用多少数据计算梯度，有三种变体：</p>
+<section id="batch-gd">
+<h3>批量梯度下降（Batch GD）<a class="headerlink" href="#batch-gd" title="Link to this heading">#</a></h3>
+<p>使用<strong>全部数据</strong>计算梯度：</p>
+<div class="math notranslate nohighlight">
+\[
+\theta_{t+1} = \theta_t - \eta \cdot \frac{1}{N} \sum_{i=1}^N \nabla_\theta J(\theta; x_i, y_i)
+\]</div>
+<p><strong>特点</strong>：</p>
+<ul class="simple">
+<li><p>梯度估计准确，收敛稳定</p></li>
+<li><p>每次迭代计算量大，不适合大数据集</p></li>
+</ul>
+</section>
+<section id="sgd">
+<h3>随机梯度下降（SGD）<a class="headerlink" href="#sgd" title="Link to this heading">#</a></h3>
+<p>每次使用<strong>一个样本</strong>计算梯度：</p>
+<div class="math notranslate nohighlight">
+\[
+\theta_{t+1} = \theta_t - \eta \cdot \nabla_\theta J(\theta; x_i, y_i)
+\]</div>
+<p><strong>特点</strong>：</p>
+<ul class="simple">
+<li><p>计算快，适合在线学习</p></li>
+<li><p>梯度有噪声，收敛不稳定</p></li>
+<li><p><strong>噪声可能帮助跳出局部最优</strong></p></li>
+</ul>
+</section>
+<section id="mini-batch-gd">
+<h3>小批量梯度下降（Mini-batch GD）<a class="headerlink" href="#mini-batch-gd" title="Link to this heading">#</a></h3>
+<p>使用<strong>一小批样本</strong>（通常32-256个）计算梯度：</p>
+<div class="math notranslate nohighlight">
+\[
+\theta_{t+1} = \theta_t - \eta \cdot \frac{1}{m} \sum_{i=1}^m \nabla_\theta J(\theta; x_i, y_i)
+\]</div>
+<p><strong>特点</strong>：</p>
+<ul class="simple">
+<li><p><strong>平衡计算效率和稳定性</strong></p></li>
+<li><p>可以利用GPU并行计算</p></li>
+<li><p><strong>深度学习中最常用</strong></p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id6">
+<h2>高级优化算法<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<section id="loss-landscape-loss-functions">
+<h3>Loss Landscape：<a class="reference internal" href="loss-functions.html#loss-functions"><span class="std std-ref">损失函数</span></a>塑造的优化地形<a class="headerlink" href="#loss-landscape-loss-functions" title="Link to this heading">#</a></h3>
+<p><strong>Loss Landscape</strong>（损失景观）描述了<a class="reference internal" href="loss-functions.html#loss-functions"><span class="std std-ref">损失函数</span></a>在参数空间中的形状。想象一个高维的山地地形：山谷代表损失低的区域，山峰代表损失高的区域。</p>
+<p>在深度学习中，这个景观通常是<strong>非凸</strong>的，包含：</p>
+<ul class="simple">
+<li><p><strong>局部最优</strong>：局部山谷（浅坑）</p></li>
+<li><p><strong>全局最优</strong>：最深的山谷（最优解）</p></li>
+<li><p><strong>鞍点</strong>：马鞍形状的点（高维空间中非常常见）</p></li>
+</ul>
+<div class="figure" id="id16" style="text-align: center"><p><img  src="../_images/tikz-3132097730a3f1ceea03f8f371df6dc9546db3ce.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Loss Landscape：局部最优 vs 全局最优</span></p>
+</div><p><strong>关键观察</strong>：</p>
+<ul class="simple">
+<li><p>全局最优比局部最优<strong>明显更深</strong>（红色点远低于橙色点）</p></li>
+<li><p>两个最优之间由<strong>鞍点</strong>（紫色）分隔</p></li>
+<li><p>优化算法需要&quot;翻过&quot;鞍点才能从局部最优到达全局最优</p></li>
+</ul>
+<p><strong>鞍点的详细展示</strong>：</p>
+<p>鞍点像一个马鞍——沿一个方向是极小值，沿另一个方向是极大值：</p>
+<div class="figure" id="id17" style="text-align: center"><p><img  src="../_images/tikz-f471d78432b2b2b3a89d15137b679e701956fe2b.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">鞍点：马鞍形状</span></p>
+</div><p><strong>深度学习的特殊情况</strong>：</p>
+<ul class="simple">
+<li><p>高维空间中，<strong>鞍点比局部最优更常见</strong></p></li>
+<li><p>随机梯度下降的噪声有助于跳出局部最优和鞍点</p></li>
+<li><p>现代网络通常能找到足够好的解，即使不是全局最优</p></li>
+</ul>
+</section>
+<section id="id7">
+<h3>动量法：积累速度翻越障碍<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<p><strong>直觉</strong>：想象滚雪球下山，球会积累动量，越滚越快，同时可以滚过小的坑洼。在 loss landscape 中，动量帮助我们冲过鞍点和平坦区域。</p>
+<p><strong>原理</strong>：引入速度变量，累积历史梯度：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+v_{t+1} = \beta v_t + \nabla J(\theta_t) \\
+\theta_{t+1} = \theta_t - \eta v_{t+1}
+\end{split}\]</div>
+<p><strong>效果</strong>：</p>
+<ul class="simple">
+<li><p>加速收敛（尤其在梯度方向一致时）</p></li>
+<li><p>减少震荡（梯度方向变化时动量抵消）</p></li>
+<li><p>帮助跳出局部最优</p></li>
+</ul>
+</section>
+<section id="adam">
+<h3>Adam（自适应矩估计）<a class="headerlink" href="#adam" title="Link to this heading">#</a></h3>
+<p><strong>直觉</strong>：为每个参数单独调整学习率。频繁更新的参数用较小学习率，稀疏更新的用较大学习率。</p>
+<p><strong>特点</strong>：</p>
+<ul class="simple">
+<li><p>结合动量和自适应学习率</p></li>
+<li><p>对超参数不敏感，<strong>默认首选</strong></p></li>
+<li><p>适合大多数深度学习任务</p></li>
+</ul>
+<div class="pst-scrollable-table-container"><table class="table" id="id18">
+<caption><span class="caption-text">优化算法选择建议</span><a class="headerlink" href="#id18" title="Link to this table">#</a></caption>
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 35.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>算法</strong></p></th>
+<th class="head"><p><strong>适用场景</strong></p></th>
+<th class="head"><p><strong>特点</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>SGD + Momentum</p></td>
+<td><p>图像分类、大模型</p></td>
+<td><p>泛化性能好，需调学习率</p></td>
+</tr>
+<tr class="row-odd"><td><p>Adam</p></td>
+<td><p>默认首选、NLP、推荐系统</p></td>
+<td><p>自适应、收敛快、易用</p></td>
+</tr>
+<tr class="row-even"><td><p>AdamW</p></td>
+<td><p>Transformer、大模型</p></td>
+<td><p>改进权重衰减，效果更好</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id8">
+<h2>学习率调度：为什么需要调整学习率？<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<section id="id9">
+<h3>核心问题<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<p>训练初期，参数远离最优，需要<strong>大学习率</strong>快速接近目标。
+训练后期，参数接近最优，需要<strong>小学习率</strong>精细调整，避免在最优点附近震荡。</p>
+<div class="figure" id="id19" style="text-align: center"><p><img  src="../_images/tikz-917c71b5dd181b58ccdf1c66024dd5599a9a8936.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">固定学习率 vs 学习率调度</span></p>
+</div></section>
+<section id="id10">
+<h3>常见学习率调度策略<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<div class="figure" id="id20" style="text-align: center"><p><img  src="../_images/tikz-29d8fbf95122945632fa8a291052b78d67c7bc71.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">学习率调度策略对比</span></p>
+</div><section id="step-decay">
+<h4>1. 步长衰减（Step Decay）<a class="headerlink" href="#step-decay" title="Link to this heading">#</a></h4>
+<p><strong>策略</strong>：每N个epoch，学习率乘以衰减系数（如0.1）</p>
+<p><strong>适用场景</strong>：</p>
+<ul class="simple">
+<li><p>传统图像分类任务（ImageNet训练标配）</p></li>
+<li><p>当验证集损失不再下降时手动降低学习率</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 每30个epoch，学习率乘以0.1</span>
+<span class="n">scheduler</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">StepLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">step_size</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>特点</strong>：阶梯式下降，简单有效，但需要预设衰减时机。</p>
+</section>
+<section id="exponential-decay">
+<h4>2. 指数衰减（Exponential Decay）<a class="headerlink" href="#exponential-decay" title="Link to this heading">#</a></h4>
+<p><strong>策略</strong>：每个epoch学习率按指数衰减</p>
+<div class="math notranslate nohighlight">
+\[\eta_t = \eta_0 \cdot \gamma^t\]</div>
+<p><strong>适用场景</strong>：</p>
+<ul class="simple">
+<li><p>需要平滑连续衰减</p></li>
+<li><p>训练轮数较多时</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 每个epoch学习率乘以0.95</span>
+<span class="n">scheduler</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">ExponentialLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="cosine-annealing">
+<h4>3. 余弦退火（Cosine Annealing）<a class="headerlink" href="#cosine-annealing" title="Link to this heading">#</a></h4>
+<p><strong>策略</strong>：学习率按余弦函数从初始值降到接近0</p>
+<div class="math notranslate nohighlight">
+\[\eta_t = \eta_{min} + \frac{1}{2}(\eta_{max} - \eta_{min})(1 + \cos(\frac{t}{T_{max}}\pi))\]</div>
+<p><strong>适用场景</strong>：</p>
+<ul class="simple">
+<li><p>现代Transformer模型（BERT、GPT等）</p></li>
+<li><p>配合Warmup使用效果更佳</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">scheduler</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">CosineAnnealingLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">T_max</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="warmup">
+<h3>4. 预热（Warmup）<a class="headerlink" href="#warmup" title="Link to this heading">#</a></h3>
+<p><strong>问题</strong>：训练初期参数随机初始化，梯度可能很大且不稳定，大学习率会导致震荡。</p>
+<p><strong>策略</strong>：从很小的学习率开始，线性增加到目标学习率。</p>
+<div class="figure" id="id21" style="text-align: center"><p><img  src="../_images/tikz-7eea247496776676952d82efa46cf0cf22fad6d9.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Warmup + Cosine Annealing</span></p>
+</div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 组合使用：Warmup + Cosine Annealing</span>
+<span class="n">scheduler1</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">LinearLR</span><span class="p">(</span>
+    <span class="n">optimizer</span><span class="p">,</span> 
+    <span class="n">start_factor</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>      <span class="c1"># 从1%的目标学习率开始</span>
+    <span class="n">end_factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">total_iters</span><span class="o">=</span><span class="mi">5</span>           <span class="c1"># 前5个epoch预热</span>
+<span class="p">)</span>
+<span class="n">scheduler2</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">CosineAnnealingLR</span><span class="p">(</span>
+    <span class="n">optimizer</span><span class="p">,</span> 
+    <span class="n">T_max</span><span class="o">=</span><span class="mi">95</span>                <span class="c1"># 剩余95个epoch余弦退火</span>
+<span class="p">)</span>
+<span class="n">scheduler</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">SequentialLR</span><span class="p">(</span>
+    <span class="n">optimizer</span><span class="p">,</span> 
+    <span class="n">schedulers</span><span class="o">=</span><span class="p">[</span><span class="n">scheduler1</span><span class="p">,</span> <span class="n">scheduler2</span><span class="p">],</span> 
+    <span class="n">milestones</span><span class="o">=</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id11">
+<h3>选择建议<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>策略</p></th>
+<th class="head"><p>推荐场景</p></th>
+<th class="head"><p>优点</p></th>
+<th class="head"><p>缺点</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Step Decay</p></td>
+<td><p>图像分类、CNN</p></td>
+<td><p>简单有效</p></td>
+<td><p>需预设衰减时机</p></td>
+</tr>
+<tr class="row-odd"><td><p>Exponential</p></td>
+<td><p>长周期训练</p></td>
+<td><p>平滑连续</p></td>
+<td><p>衰减过快</p></td>
+</tr>
+<tr class="row-even"><td><p>Cosine</p></td>
+<td><p>Transformer、NLP</p></td>
+<td><p>效果通常最好</p></td>
+<td><p>相对复杂</p></td>
+</tr>
+<tr class="row-odd"><td><p>Warmup + Cosine</p></td>
+<td><p>大模型训练</p></td>
+<td><p>稳定+效果好</p></td>
+<td><p>需调两个参数</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="pytorch">
+<h2>PyTorch实践<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h2>
+<ul>
+<li><p><strong>基本训练循环</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.optim</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">optim</span>
+
+<span class="c1"># 定义模型、损失函数、优化器</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">()</span>
+<span class="n">criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+
+<span class="c1"># 训练循环</span>
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_epochs</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">data</span><span class="p">,</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">dataloader</span><span class="p">:</span>
+        <span class="c1"># 前向传播</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+        
+        <span class="c1"># 反向传播</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>  <span class="c1"># 清空梯度</span>
+        <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>        <span class="c1"># 计算梯度</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>       <span class="c1"># 更新参数</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>学习率调度</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 组合调度：预热 + 余弦退火</span>
+<span class="n">scheduler1</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">LinearLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">start_factor</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">total_iters</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">scheduler2</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">CosineAnnealingLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">T_max</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+<span class="n">scheduler</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">SequentialLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="p">[</span><span class="n">scheduler1</span><span class="p">,</span> <span class="n">scheduler2</span><span class="p">],</span> <span class="n">milestones</span><span class="o">=</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span>
+
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_epochs</span><span class="p">):</span>
+    <span class="n">train</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">scheduler</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>  <span class="c1"># 更新学习率</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="id12">
+<h2>训练技巧<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
+<ol class="arabic">
+<li><p><strong>梯度裁剪</strong></p>
+<p>防止梯度爆炸：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">clip_grad_norm_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">max_norm</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>批归一化（BatchNorm）</strong></p>
+<p>稳定训练、加速收敛：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">bn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm1d</span><span class="p">(</span><span class="n">num_features</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>早停（Early Stopping）</strong></p>
+<p>验证集损失不再下降时停止训练，防止过拟合。</p>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="id13">
+<h2>总结<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<p>梯度下降是深度学习训练的基石：</p>
+<ol class="arabic simple">
+<li><p><strong>基本原理</strong>：沿<a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>计算的负梯度方向迭代更新参数</p></li>
+<li><p><strong>学习率</strong>：最关键的超参数，过大震荡，过小收敛慢</p></li>
+<li><p><strong>Mini-batch</strong>：平衡效率和稳定性，深度学习标配</p></li>
+<li><p><strong>Adam</strong>：默认首选优化器，自适应、易用</p></li>
+<li><p><strong>学习率调度</strong>：训练过程中调整学习率能提升效果</p></li>
+</ol>
+<p>理解<a class="reference internal" href="loss-functions.html#loss-functions"><span class="std std-ref">损失函数</span></a>和优化算法后，你就掌握了深度学习训练的全流程。接下来我们将通过<a class="reference internal" href="the-end.html"><span class="doc">总结与展望</span></a>回顾本章内容，然后进入实践章节。</p>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">756a793</code>
+                2026-04-25 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and improve explanations
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="back-propagation.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">上一页</p>
+        <p class="prev-next-title">反向传播算法</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="the-end.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">下一页</p>
+        <p class="prev-next-title">总结与展望</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> 目录
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">梯度下降的本质：沿着最陡方向下山</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">下山比喻</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">学习率的重要性</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">梯度下降的变体</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#batch-gd">批量梯度下降（Batch GD）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sgd">随机梯度下降（SGD）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mini-batch-gd">小批量梯度下降（Mini-batch GD）</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">高级优化算法</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#loss-landscape-loss-functions">Loss Landscape：<span class="xref std std-ref">loss-functions</span>塑造的优化地形</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">动量法：积累速度翻越障碍</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#adam">Adam（自适应矩估计）</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">学习率调度：为什么需要调整学习率？</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">核心问题</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">常见学习率调度策略</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#step-decay">1. 步长衰减（Step Decay）</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#exponential-decay">2. 指数衰减（Exponential Decay）</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cosine-annealing">3. 余弦退火（Cosine Annealing）</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#warmup">4. 预热（Warmup）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">选择建议</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch实践</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">训练技巧</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">总结</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+作者： UCS Deep Learning Club
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, UCS Deep Learning Club and Contributors, licensed under CC BY-SA 4.0.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

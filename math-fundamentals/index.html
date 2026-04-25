@@ -155,12 +155,12 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="computational-graph.html">计算图基础</a></li>
-<li class="toctree-l2"><a class="reference internal" href="back-propagation.html">反向传播算法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gradient-decent.html">梯度下降与优化算法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="computational-graph.html">计算图</a></li>
 <li class="toctree-l2"><a class="reference internal" href="activation-functions.html">激活函数</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -464,14 +464,16 @@ document.write(`
 <strong>日期</strong>: 2025-12-05</p>
 <section id="id2">
 <h2>摘要<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>本文带你深入理解深度学习的三大数学基础：计算图、反向传播和梯度下降。我们会用MNIST手写数字识别作为例子，从概念到代码，一步步拆解这些技术如何让神经网络“学会”知识。</p>
+<p>本章用几何直观和物理类比，帮你建立深度学习核心机制的直觉理解。我们会用MNIST手写数字识别作为例子，从概念到代码，一步步拆解这些技术如何让神经网络&quot;学会&quot;知识。</p>
 <p>你将学到：</p>
 <ul class="simple">
-<li><p><strong>计算图</strong>：如何把复杂的数学计算变成直观的流程图</p></li>
-<li><p><strong>反向传播</strong>：神经网络如何通过链式法则快速计算梯度</p></li>
-<li><p><strong>梯度下降</strong>：如何利用梯度信息调整参数，让模型越变越准</p></li>
+<li><p><strong>计算图</strong>：如何把复杂的数学计算变成直观的&quot;数据流图&quot;</p></li>
+<li><p><strong>激活函数</strong>：如何用非线性变换在空间中划分决策边界</p></li>
+<li><p><strong>损失函数</strong>：如何衡量模型预测的好坏</p></li>
+<li><p><strong>反向传播</strong>：如何把最终误差&quot;分摊&quot;给每个参数（信用分配机制）</p></li>
+<li><p><strong>梯度下降</strong>：如何利用梯度信息优化模型参数</p></li>
 </ul>
-<p>文中不仅有清晰的数学推导和图示，还有可以直接运行的PyTorch代码。无论你是数学爱好者还是编程新手，都能通过这些内容打下坚实的深度学习基础。</p>
+<p>文中用可视化图示和可直接运行的PyTorch代码，帮你建立几何直觉而非机械推导。理解这些原理后，下一章我们将用这些工具构建和训练实际的神经网络。</p>
 <div class="note admonition">
 <p class="admonition-title">目录</p>
 <div class="toctree-wrapper compound">
@@ -479,80 +481,69 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">引言</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="introduction.html#id2">学习目标与核心概念</a></li>
 <li class="toctree-l2"><a class="reference internal" href="introduction.html#id3">机器学习的基本问题</a></li>
-<li class="toctree-l2"><a class="reference internal" href="introduction.html#id4">为什么需要计算图、反向传播和梯度下降？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#id4">为什么需要这些核心机制？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#id5">本章预览</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="computational-graph.html">计算图基础</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="computational-graph.html">计算图</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="computational-graph.html#id2">什么是计算图？</a></li>
-<li class="toctree-l2"><a class="reference internal" href="computational-graph.html#id3">计算图的基本元素</a></li>
-<li class="toctree-l2"><a class="reference internal" href="computational-graph.html#id6">计算图的构建规则</a></li>
-<li class="toctree-l2"><a class="reference internal" href="computational-graph.html#id7">计算图的前向传播</a></li>
-<li class="toctree-l2"><a class="reference internal" href="computational-graph.html#id10">计算图的优势</a></li>
-<li class="toctree-l2"><a class="reference internal" href="computational-graph.html#pytorch">实际应用：PyTorch中的计算图</a></li>
-<li class="toctree-l2"><a class="reference internal" href="computational-graph.html#id16">常见计算图操作</a></li>
-<li class="toctree-l2"><a class="reference internal" href="computational-graph.html#id19">计算图的调试</a></li>
-<li class="toctree-l2"><a class="reference internal" href="computational-graph.html#id22">总结</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="back-propagation.html">反向传播算法</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="back-propagation.html#id2">什么是反向传播？</a></li>
-<li class="toctree-l2"><a class="reference internal" href="back-propagation.html#id5">链式法则回顾</a></li>
-<li class="toctree-l2"><a class="reference internal" href="back-propagation.html#id6">反向传播的基本思想</a></li>
-<li class="toctree-l2"><a class="reference internal" href="back-propagation.html#id7">反向传播的数学推导</a></li>
-<li class="toctree-l2"><a class="reference internal" href="back-propagation.html#id10">反向传播算法详细步骤</a></li>
-<li class="toctree-l2"><a class="reference internal" href="back-propagation.html#id12">常见操作的梯度计算</a></li>
-<li class="toctree-l2"><a class="reference internal" href="back-propagation.html#id15">反向传播的优化技巧</a></li>
-<li class="toctree-l2"><a class="reference internal" href="back-propagation.html#pytorch">PyTorch中的自动微分</a></li>
-<li class="toctree-l2"><a class="reference internal" href="back-propagation.html#id21">反向传播的常见问题与解决方案</a></li>
-<li class="toctree-l2"><a class="reference internal" href="back-propagation.html#id25">总结</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gradient-decent.html">梯度下降与优化算法</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gradient-decent.html#id2">基本概念</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gradient-decent.html#id3">直观理解</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gradient-decent.html#id7">梯度下降的数学原理</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gradient-decent.html#id10">梯度下降变体</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gradient-decent.html#id11">高级优化算法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gradient-decent.html#id12">学习率调度</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gradient-decent.html#id17">梯度下降的实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gradient-decent.html#id19">超参数调优</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gradient-decent.html#id22">梯度下降的挑战与解决方案</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gradient-decent.html#id27">实践建议</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gradient-decent.html#id31">总结</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="loss-functions.html">损失函数</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="loss-functions.html#id2">基本概念</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-functions.html#id3">直观理解</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-functions.html#id7">常见损失函数</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-functions.html#id8">损失函数的选择原则</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-functions.html#id9">损失函数的数学性质</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-functions.html#id13">正则化损失</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-functions.html#id17">损失函数的梯度计算</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-functions.html#id19">实践建议</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-functions.html#id23">总结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="computational-graph.html#id3">前向传播：数据如何流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="computational-graph.html#id4">反向传播：梯度如何回流</a></li>
+<li class="toctree-l2"><a class="reference internal" href="computational-graph.html#pytorch">PyTorch中的动态计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="computational-graph.html#id6">计算图的优势</a></li>
+<li class="toctree-l2"><a class="reference internal" href="computational-graph.html#id7">从计算图到神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="computational-graph.html#id8">总结</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="activation-functions.html">激活函数</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="activation-functions.html#id2">基本概念</a></li>
-<li class="toctree-l2"><a class="reference internal" href="activation-functions.html#id3">常见激活函数</a></li>
-<li class="toctree-l2"><a class="reference internal" href="activation-functions.html#id4">激活函数比较</a></li>
-<li class="toctree-l2"><a class="reference internal" href="activation-functions.html#id5">激活函数的选择原则</a></li>
-<li class="toctree-l2"><a class="reference internal" href="activation-functions.html#id11">激活函数的梯度分析</a></li>
-<li class="toctree-l2"><a class="reference internal" href="activation-functions.html#id16">激活函数的初始化配合</a></li>
-<li class="toctree-l2"><a class="reference internal" href="activation-functions.html#id18">实践建议</a></li>
-<li class="toctree-l2"><a class="reference internal" href="activation-functions.html#id22">高级主题</a></li>
-<li class="toctree-l2"><a class="reference internal" href="activation-functions.html#id26">总结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activation-functions.html#id2">激活函数的本质：划分特征空间</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activation-functions.html#sigmoid">Sigmoid 函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activation-functions.html#tanh">Tanh函数（双曲正切）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activation-functions.html#relu-rectified-linear-unit">ReLU 函数（Rectified Linear Unit）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activation-functions.html#leaky-relu">Leaky ReLU 与变体</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activation-functions.html#swish">Swish 函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activation-functions.html#softmax">Softmax函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activation-functions.html#id6">激活函数选择指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activation-functions.html#id7">总结</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="the-end.html">总结</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id2">核心概念回顾</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id3">三者关系</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id4">实际应用价值</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id8">关键实践建议</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id12">进一步学习路径</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id17">资源推荐</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id22">结语</a></li>
+<li class="toctree-l1"><a class="reference internal" href="loss-functions.html">损失函数</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="loss-functions.html#id2">损失函数的本质：定义优化目标</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-functions.html#id3">回归问题的损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-functions.html#id4">分类问题的损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-functions.html#id10">损失函数选择指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-functions.html#pytorch">PyTorch实现示例</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-functions.html#id11">总结</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="back-propagation.html">反向传播算法</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="back-propagation.html#id2">反向传播的本质：信用分配</a></li>
+<li class="toctree-l2"><a class="reference internal" href="back-propagation.html#id4">链式法则：梯度的传递机制</a></li>
+<li class="toctree-l2"><a class="reference internal" href="back-propagation.html#pytorch">PyTorch中的自动微分</a></li>
+<li class="toctree-l2"><a class="reference internal" href="back-propagation.html#id6">神经网络中的反向传播</a></li>
+<li class="toctree-l2"><a class="reference internal" href="back-propagation.html#id7">常见操作的梯度</a></li>
+<li class="toctree-l2"><a class="reference internal" href="back-propagation.html#id8">反向传播的优势</a></li>
+<li class="toctree-l2"><a class="reference internal" href="back-propagation.html#id11">常见问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="back-propagation.html#id12">总结</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gradient-descent.html">梯度下降与优化算法</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gradient-descent.html#id2">梯度下降的本质：沿着最陡方向下山</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gradient-descent.html#id5">梯度下降的变体</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gradient-descent.html#id6">高级优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gradient-descent.html#id8">学习率调度：为什么需要调整学习率？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gradient-descent.html#pytorch">PyTorch实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gradient-descent.html#id12">训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gradient-descent.html#id13">总结</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="the-end.html">总结与展望</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id2">本章核心回顾</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id3">训练流程全景</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id4">关键要点速查</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id5">常见问题速答</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id6">通往下一章</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id7">推荐资源</a></li>
 </ul>
 </li>
 </ul>
@@ -565,7 +556,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -573,6 +564,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">756a793</code>
+                2026-04-25 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and improve explanations
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">0c291d7</code>
                 2025-12-10 - <strong>Heyan Zhu</strong>: docs: restructure course materials and add new content

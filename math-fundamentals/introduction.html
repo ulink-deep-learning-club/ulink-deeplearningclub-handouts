@@ -47,7 +47,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'math-fundamentals/introduction';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="计算图基础" href="computational-graph.html" />
+    <link rel="next" title="计算图" href="computational-graph.html" />
     <link rel="prev" title="计算图、反向传播与梯度下降：深度学习核心数学基础" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
@@ -155,12 +155,12 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="computational-graph.html">计算图基础</a></li>
-<li class="toctree-l2"><a class="reference internal" href="back-propagation.html">反向传播算法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gradient-decent.html">梯度下降与优化算法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="computational-graph.html">计算图</a></li>
 <li class="toctree-l2"><a class="reference internal" href="activation-functions.html">激活函数</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -448,7 +448,8 @@ document.write(`
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">学习目标与核心概念</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">机器学习的基本问题</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">为什么需要计算图、反向传播和梯度下降？</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">为什么需要这些核心机制？</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">本章预览</a></li>
 </ul>
             </nav>
         </div>
@@ -468,11 +469,12 @@ document.write(`
 <div class="note admonition">
 <p class="admonition-title">学习目标</p>
 <ul class="simple">
-<li><p><strong>看懂计算图</strong>：学会把数学表达式变成直观的流程图</p></li>
-<li><p><strong>搞懂反向传播</strong>：理解神经网络如何用链式法则快速计算梯度</p></li>
-<li><p><strong>会用梯度下降</strong>：掌握用梯度信息调整参数，让模型越来越准</p></li>
-<li><p><strong>动手写代码</strong>：在PyTorch中实现这些概念，并调试运行</p></li>
-<li><p><strong>解决真实问题</strong>：通过MNIST手写数字识别，看这些技术如何实际应用</p></li>
+<li><p><strong>计算图直觉</strong>：把数学运算看作&quot;数据流动&quot;的管道系统</p></li>
+<li><p><strong>激活函数直觉</strong>：理解非线性如何将线性不可分的数据&quot;折叠&quot;成可分</p></li>
+<li><p><strong>损失函数直觉</strong>：理解不同目标如何塑造优化问题的几何结构</p></li>
+<li><p><strong>反向传播直觉</strong>：把最终误差&quot;分摊&quot;给每个参数（信用分配机制）</p></li>
+<li><p><strong>梯度下降直觉</strong>：理解损失曲面的几何形状如何影响优化路径</p></li>
+<li><p><strong>代码连接</strong>：在PyTorch中观察这些机制的实际表现</p></li>
 </ul>
 </div>
 </section>
@@ -490,25 +492,21 @@ document.write(`
 </div>
 </section>
 <section id="id4">
-<h2>为什么需要计算图、反向传播和梯度下降？<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
-<p>这三个概念就像深度学习的“基础设施”，缺一不可：</p>
+<h2>为什么需要这些核心机制？<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p>神经网络训练涉及几个关键环节，每个环节都需要特定的数学工具：</p>
 <ol class="arabic simple">
-<li><p><strong>计算图</strong>：把复杂的数学计算变成一张清晰的流程图，一目了然</p></li>
-<li><p><strong>反向传播</strong>：高效计算每个参数对最终结果影响的算法（告诉你“谁该背锅”）</p></li>
-<li><p><strong>梯度下降</strong>：利用计算出的梯度信息，一步步调整参数，让模型越来越准</p></li>
+<li><p><strong><a class="reference internal" href="computational-graph.html#computational-graph"><span class="std std-ref">计算图</span></a></strong>：描述数据如何在网络中流动，为自动求导提供结构基础</p></li>
+<li><p><strong><a class="reference internal" href="activation-functions.html#activation-functions"><span class="std std-ref">激活函数</span></a></strong>：引入非线性，让网络能够划分复杂的决策边界</p></li>
+<li><p><strong><a class="reference internal" href="loss-functions.html#loss-functions"><span class="std std-ref">损失函数</span></a></strong>：定义&quot;预测好坏&quot;的度量，将训练转化为优化问题</p></li>
+<li><p><strong><a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a></strong>：高效计算梯度，完成误差的&quot;信用分配&quot;</p></li>
+<li><p><strong><a class="reference internal" href="gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a></strong>：利用梯度信息迭代优化参数</p></li>
 </ol>
-<div class="admonition warning">
-<p class="admonition-title">警告</p>
-<p><strong>历史背景</strong></p>
-<p>这些概念并非一夜之间出现，而是经过了几十年的发展：</p>
-<ul class="simple">
-<li><p>1960s：链式法则在神经网络中的应用首次被提出</p></li>
-<li><p>1970s：反向传播算法的雏形出现</p></li>
-<li><p>1986年：Rumelhart、Hinton和Williams重新发现并推广了反向传播算法</p></li>
-<li><p>1990s至今：这些技术成为所有深度学习框架的核心</p></li>
-</ul>
-<p>了解历史能帮助我们更好地理解这些技术的来龙去脉。</p>
-</div>
+<p>这些概念相互配合，构成了现代深度学习框架的核心机制。</p>
+</section>
+<section id="id5">
+<h2>本章预览<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<p>本章我们将从<a class="reference internal" href="computational-graph.html#computational-graph"><span class="std std-ref">计算图</span></a>开始，建立&quot;数据流&quot;的直觉视角。然后理解<a class="reference internal" href="activation-functions.html#activation-functions"><span class="std std-ref">激活函数</span></a>如何用非线性变换在空间中划分决策边界。接着探讨<a class="reference internal" href="loss-functions.html#loss-functions"><span class="std std-ref">损失函数</span></a>如何定义优化目标、塑造损失曲面的几何形状。之后理解<a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>如何高效地完成&quot;信用分配&quot;——把最终误差分摊给每个参数。最后探索<a class="reference internal" href="gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>如何在损失曲面上寻找最优解。</p>
+<p>掌握这些核心机制后，<a class="reference internal" href="the-end.html"><span class="doc">总结与展望</span></a>将回顾本章要点，然后下一章我们将用PyTorch构建实际的神经网络，在MNIST任务上观察这些理论如何转化为训练动态。</p>
 </section>
 </section>
 
@@ -516,7 +514,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -524,6 +522,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">756a793</code>
+                2026-04-25 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and improve explanations
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">0c291d7</code>
                 2025-12-10 - <strong>Heyan Zhu</strong>: docs: restructure course materials and add new content
@@ -558,7 +561,7 @@ document.write(`
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">计算图基础</p>
+        <p class="prev-next-title">计算图</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -580,7 +583,8 @@ document.write(`
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">学习目标与核心概念</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">机器学习的基本问题</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">为什么需要计算图、反向传播和梯度下降？</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">为什么需要这些核心机制？</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">本章预览</a></li>
 </ul>
   </nav></div>
 

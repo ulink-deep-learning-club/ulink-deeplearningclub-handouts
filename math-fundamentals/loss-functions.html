@@ -46,375 +46,11 @@
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
-    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
-    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
-
-const defaultStyle = document.createElement('style');
-defaultStyle.textContent = `pre.mermaid {
-    /* Same as .mermaid-container > pre */
-    display: block;
-    width: 100%;
-}
-
-pre.mermaid > svg {
-    /* Same as .mermaid-container > pre > svg */
-    height: 500px;
-    width: 100%;
-    max-width: 100% !important;
-}
-`;
-document.head.appendChild(defaultStyle);
-
-const fullscreenStyle = document.createElement('style');
-fullscreenStyle.textContent = `.mermaid-container {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-}
-
-.mermaid-container > pre {
-    display: block;
-    width: 100%;
-}
-
-.mermaid-container > pre > svg {
-    height: 500px;
-    width: 100%;
-    max-width: 100% !important;
-}
-
-.mermaid-fullscreen-btn {
-    width: 28px;
-    height: 28px;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(0, 0, 0, 0.3);
-    border-radius: 4px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    font-size: 14px;
-    line-height: 1;
-    padding: 0;
-    color: #333;
-}
-
-.mermaid-fullscreen-btn:hover {
-    opacity: 100% !important;
-    background: rgba(255, 255, 255, 1);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
-    transform: scale(1.1);
-}
-
-.mermaid-fullscreen-btn.dark-theme {
-    background: rgba(50, 50, 50, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: #e0e0e0;
-}
-
-.mermaid-fullscreen-btn.dark-theme:hover {
-    background: rgba(60, 60, 60, 1);
-    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
-}
-
-.mermaid-fullscreen-modal {
-    display: none;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 95vw;
-    height: 100vh;
-    background: rgba(255, 255, 255, 0.98);
-    z-index: 9999;
-    padding: 20px;
-    overflow: auto;
-}
-
-.mermaid-fullscreen-modal.dark-theme {
-    background: rgba(0, 0, 0, 0.98);
-}
-
-.mermaid-fullscreen-modal.active {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.mermaid-container-fullscreen {
-    position: relative;
-    width: 95vw;
-    height: 90vh;
-    max-width: 95vw;
-    max-height: 90vh;
-    background: white;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-    overflow: auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.mermaid-container-fullscreen.dark-theme {
-    background: #1a1a1a;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
-}
-
-.mermaid-container-fullscreen pre.mermaid {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.mermaid-container-fullscreen .mermaid svg {
-    height: 100% !important;
-    width: 100% !important;
-    cursor: grab;
-}
-
-.mermaid-fullscreen-close {
-    position: fixed !important;
-    top: 20px !important;
-    right: 20px !important;
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    border-radius: 50%;
-    cursor: pointer;
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s;
-    font-size: 24px;
-    line-height: 1;
-    color: #333;
-}
-
-.mermaid-fullscreen-close:hover {
-    background: white;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-    transform: scale(1.1);
-}
-
-.mermaid-fullscreen-close.dark-theme {
-    background: rgba(50, 50, 50, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #e0e0e0;
-}
-
-.mermaid-fullscreen-close.dark-theme:hover {
-    background: rgba(60, 60, 60, 1);
-    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
-}
-
-.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
-    display: none !important;
-}`;
-document.head.appendChild(fullscreenStyle);
-
-// Detect if page has dark background
-const isDarkTheme = () => {
-    const bgColor = window.getComputedStyle(document.body).backgroundColor;
-    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
-    if (match) {
-        const r = parseInt(match[1]);
-        const g = parseInt(match[2]);
-        const b = parseInt(match[3]);
-        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-        return brightness < 128;
-    }
-    return false;
-};
-
-const load = async () => {
-    await mermaid.run();
-
-    const all_mermaids = document.querySelectorAll(".mermaid");
-    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
-
-    if ("False" === "True") {
-        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
-        if(mermaids_to_add_zoom > 0) {
-            var svgs = d3.selectAll("");
-            if(all_mermaids.length !== mermaids_processed.length) {
-                setTimeout(load, 200);
-                return;
-            } else if(svgs.size() !== mermaids_to_add_zoom) {
-                setTimeout(load, 200);
-                return;
-            } else {
-                svgs.each(function() {
-                    var svg = d3.select(this);
-                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
-                    var inner = svg.select("g");
-                    var zoom = d3.zoom().on("zoom", function(event) {
-                        inner.attr("transform", event.transform);
-                    });
-                    svg.call(zoom);
-                });
-            }
-        }
-    } else if(all_mermaids.length !== mermaids_processed.length) {
-        // Wait for mermaid to process all diagrams
-        setTimeout(load, 200);
-        return;
-    }
-
-    const darkTheme = isDarkTheme();
-
-    // Stop here if not adding fullscreen capability
-    if ("True" !== "True") return;
-
-    const modal = document.createElement('div');
-    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
-    modal.setAttribute('role', 'dialog');
-    modal.setAttribute('aria-modal', 'true');
-    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
-    modal.innerHTML = `
-        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
-        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
-    `;
-    document.body.appendChild(modal);
-
-    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
-    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
-
-    let previousScrollOffset = [window.scrollX, window.scrollY];
-
-    const closeModal = () => {
-        modal.classList.remove('active');
-        modalContent.innerHTML = '';
-        document.body.style.overflow = ''
-        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
-    };
-
-    closeBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
-    });
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.classList.contains('active')) {
-            closeModal();
-        }
-    });
-
-    const allButtons = [];
-
-    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
-        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
-            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
-            return;
-        }
-
-        const container = document.createElement('div');
-        container.className = 'mermaid-container';
-        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
-        container.appendChild(mermaidDiv);
-
-        const fullscreenBtn = document.createElement('button');
-        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
-        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
-        fullscreenBtn.textContent = '⛶';
-        fullscreenBtn.style.opacity = '50%';
-
-        // Calculate dynamic position based on diagram's margin and padding
-        const diagramStyle = window.getComputedStyle(mermaidDiv);
-        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
-        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
-        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
-        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
-        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
-        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
-
-        fullscreenBtn.addEventListener('click', () => {
-            previousScrollOffset = [window.scroll, window.scrollY];
-            const clone = mermaidDiv.cloneNode(true);
-            modalContent.innerHTML = '';
-            modalContent.appendChild(clone);
-
-            const svg = clone.querySelector('svg');
-            if (svg) {
-                svg.removeAttribute('width');
-                svg.removeAttribute('height');
-                svg.style.width = '100%';
-                svg.style.height = 'auto';
-                svg.style.maxWidth = '100%';
-                svg.style.sdisplay = 'block';
-
-                if ("False" === "True") {
-                    setTimeout(() => {
-                        const g = svg.querySelector('g');
-                        if (g) {
-                            var svgD3 = d3.select(svg);
-                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
-                            var inner = svgD3.select("g");
-                            var zoom = d3.zoom().on("zoom", function(event) {
-                                inner.attr("transform", event.transform);
-                            });
-                            svgD3.call(zoom);
-                        }
-                    }, 100);
-                }
-            }
-
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        });
-
-        container.appendChild(fullscreenBtn);
-        allButtons.push(fullscreenBtn);
-    });
-
-    // Update theme classes when theme changes
-    const updateTheme = () => {
-        const dark = isDarkTheme();
-        allButtons.forEach(btn => {
-            if (dark) {
-                btn.classList.add('dark-theme');
-            } else {
-                btn.classList.remove('dark-theme');
-            }
-        });
-        if (dark) {
-            modal.classList.add('dark-theme');
-            modalContent.classList.add('dark-theme');
-            closeBtn.classList.add('dark-theme');
-        } else {
-            modal.classList.remove('dark-theme');
-            modalContent.classList.remove('dark-theme');
-            closeBtn.classList.remove('dark-theme');
-        }
-    };
-
-    // Watch for theme changes
-    const observer = new MutationObserver(updateTheme);
-    observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ['class', 'style', 'data-theme']
-    });
-    observer.observe(document.body, {
-        attributes: true,
-        attributeFilter: ['class', 'style']
-    });
-};
-
-window.addEventListener("load", load);
-</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'math-fundamentals/loss-functions';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="激活函数" href="activation-functions.html" />
-    <link rel="prev" title="梯度下降与优化算法" href="gradient-decent.html" />
+    <link rel="next" title="反向传播算法" href="back-propagation.html" />
+    <link rel="prev" title="激活函数" href="activation-functions.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
   </head>
@@ -521,12 +157,12 @@ window.addEventListener("load", load);
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="computational-graph.html">计算图基础</a></li>
-<li class="toctree-l2"><a class="reference internal" href="back-propagation.html">反向传播算法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gradient-decent.html">梯度下降与优化算法</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="computational-graph.html">计算图</a></li>
 <li class="toctree-l2"><a class="reference internal" href="activation-functions.html">激活函数</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -812,54 +448,30 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">基本概念</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">直观理解</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">损失函数的几何意义</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">不同损失函数的形状</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">示例：回归问题的损失函数比较</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">损失函数的本质：定义优化目标</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">回归问题的损失函数</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mse">均方误差（MSE）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mae">平均绝对误差（MAE）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#huber-smooth-l1">Huber损失（Smooth L1）</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">常见损失函数</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mean-squared-error-mse">1. 均方误差（Mean Squared Error, MSE）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mean-absolute-error-mae">2. 平均绝对误差（Mean Absolute Error, MAE）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cross-entropy-loss">3. 交叉熵损失（Cross-Entropy Loss）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#negative-log-likelihood-loss-nll">4. 负对数似然损失（Negative Log-Likelihood Loss, NLL）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#huber-smooth-l1">5. Huber损失（Smooth L1损失）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kl-kullback-leibler-divergence">6. KL散度（Kullback-Leibler Divergence）</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">分类问题的损失函数</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cross-entropy">交叉熵损失（Cross-Entropy）</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">从编码角度理解</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">交叉熵公式</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">损失函数的选择原则</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">损失函数的数学性质</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">凸性</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">可导性</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">利普希茨连续性</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kl-kullback-leibler-divergence">KL散度（Kullback-Leibler Divergence）</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">直觉：额外的编码代价</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">与交叉熵的关系</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">应用场景</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">正则化损失</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">正则化的直观理解</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#l1-lasso">L1正则化（Lasso）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#l2-ridge">L2正则化（Ridge）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#l1-vs-l2">L1 vs L2 正则化对比</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#elastic-net">Elastic Net</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch中的正则化实现</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">正则化参数的选择</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dropout">Dropout：另一种正则化方法</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">正则化策略的选择</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">损失函数的梯度计算</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mse">MSE梯度</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">交叉熵梯度</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mae">MAE次梯度</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">实践建议</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">1. 损失函数缩放</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">2. 自定义损失函数</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">3. 损失函数监控</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">损失函数选择指南</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch实现示例</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">总结</a></li>
 </ul>
             </nav>
         </div>
@@ -871,773 +483,214 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="id1">
-<h1>损失函数<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="loss-functions">
+<span id="id1"></span><h1>损失函数<a class="headerlink" href="#loss-functions" title="Link to this heading">#</a></h1>
 <section id="id2">
-<h2>基本概念<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>损失函数（Loss Function）是机器学习中用于衡量模型预测值与真实值之间差异的函数。它是优化算法的目标函数，梯度下降等优化算法通过最小化损失函数来调整模型参数。</p>
-<div class="note admonition">
-<p class="admonition-title">损失函数的作用</p>
+<h2>损失函数的本质：定义优化目标<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>损失函数衡量模型预测与真实值之间的差异，将训练转化为<strong>优化问题</strong>。不同的损失函数塑造了不同的<strong>损失曲面几何</strong>，影响优化的难易程度。</p>
+<div class="figure" id="id12" style="text-align: center"><p><img  src="../_images/tikz-1fcb6e31998d6ac9bb181d5315ffa43589084ee7.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">损失函数定义误差曲面</span></p>
+</div><p><strong>核心作用</strong>：</p>
 <ul class="simple">
-<li><p><strong>量化误差</strong>：将预测误差转化为可计算的数值</p></li>
-<li><p><strong>指导优化</strong>：提供梯度方向，指导参数更新</p></li>
-<li><p><strong>评估模型</strong>：作为模型性能的评估指标</p></li>
-<li><p><strong>正则化</strong>：通过添加正则项控制模型复杂度</p></li>
+<li><p><strong>量化误差</strong>：将预测好坏转化为可计算的数值</p></li>
+<li><p><strong>指导优化</strong>：通过梯度告诉模型&quot;如何调整&quot;（详见<a class="reference internal" href="gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>）</p></li>
+<li><p><strong>塑造曲面</strong>：不同损失函数对应不同的<a class="reference internal" href="gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>优化难度</p></li>
 </ul>
-</div>
 </section>
+<hr class="docutils" />
 <section id="id3">
-<h2>直观理解<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
-<section id="id4">
-<h3>损失函数的几何意义<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
-<p>损失函数可以看作是一个“误差曲面”，模型参数对应于曲面上的点，损失值对应于该点的高度。优化过程就是寻找曲面的最低点（全局最小值）。</p>
-<object data="../_images/mermaid-9a14aac3df23dc03585b59abc8503a799692a3c4.svg" type="image/svg+xml">
-            <p class="warning">graph TD
-    A[输入数据] --&gt; B[模型预测]
-    B --&gt; C[&quot;计算损失 L(y, ŷ)&quot;]
-    C --&gt; D{损失是否可接受？}
-    D --&gt;|是| E[训练完成]
-    D --&gt;|否| F[计算梯度 ∇L]
-    F --&gt; G[更新参数]
-    G --&gt; B</p></object>
-</section>
-<section id="id5">
-<h3>不同损失函数的形状<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
-<p>不同的损失函数对应不同的误差曲面形状：</p>
-<ul class="simple">
-<li><p><strong>MSE</strong>：平滑的二次曲面，有唯一最小值</p></li>
-<li><p><strong>MAE</strong>：V形曲面，在零点不可导</p></li>
-<li><p><strong>交叉熵</strong>：复杂的非线性曲面，但梯度计算稳定</p></li>
-</ul>
-</section>
-<section id="id6">
-<h3>示例：回归问题的损失函数比较<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
-<p>假设真实值 <span class="math notranslate nohighlight">\(y=0\)</span>，预测值 <span class="math notranslate nohighlight">\(\hat{y}\)</span> 在区间 <span class="math notranslate nohighlight">\([-3, 3]\)</span> 内变化，我们可以比较不同损失函数的值：</p>
-<div class="literal-block-wrapper docutils container" id="id24">
-<div class="code-block-caption"><span class="caption-text">回归问题中不同损失函数的对比</span><a class="headerlink" href="#id24" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-<span class="linenos"> 3</span>
-<span class="linenos"> 4</span><span class="n">y</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="linenos"> 5</span><span class="n">y_hat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
-<span class="linenos"> 6</span><span class="n">mse</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_hat</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
-<span class="linenos"> 7</span><span class="n">mae</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_hat</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span>
-<span class="linenos"> 8</span><span class="n">huber</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_hat</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">y_hat</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_hat</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span>
-<span class="linenos"> 9</span>
-<span class="linenos">10</span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
-<span class="linenos">11</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">mse</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;MSE&#39;</span><span class="p">)</span>
-<span class="linenos">12</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">mae</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;MAE&#39;</span><span class="p">)</span>
-<span class="linenos">13</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">huber</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Huber (δ=1)&#39;</span><span class="p">)</span>
-<span class="linenos">14</span><span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;预测值 $\hat</span><span class="si">{y}</span><span class="s1">$&#39;</span><span class="p">)</span>
-<span class="linenos">15</span><span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;损失值&#39;</span><span class="p">)</span>
-<span class="linenos">16</span><span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;不同损失函数对比&#39;</span><span class="p">)</span>
-<span class="linenos">17</span><span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-<span class="linenos">18</span><span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-<span class="linenos">19</span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<p>该图展示了不同损失函数如何惩罚预测误差。MSE对大误差惩罚更重，MAE线性惩罚，Huber在误差较小时类似MSE，较大时类似MAE。</p>
-<p><strong>可视化对比</strong>：</p>
-<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-17285db0e2fd7725d9598e8ef95a2d8069ff018d.svg" alt="Figure made with TikZ" /></p>
-</div><p>该图展示了不同损失函数如何惩罚预测误差。MSE对大误差惩罚更重，MAE线性惩罚，Huber在误差较小时类似MSE，较大时类似MAE。</p>
-</section>
-</section>
-<section id="id7">
-<h2>常见损失函数<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
-<section id="mean-squared-error-mse">
-<h3>1. 均方误差（Mean Squared Error, MSE）<a class="headerlink" href="#mean-squared-error-mse" title="Link to this heading">#</a></h3>
-<p>均方误差是回归问题中最常用的损失函数，计算预测值与真实值之差的平方的平均值：</p>
+<h2>回归问题的损失函数<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<section id="mse">
+<h3>均方误差（MSE）<a class="headerlink" href="#mse" title="Link to this heading">#</a></h3>
 <div class="math notranslate nohighlight">
 \[\text{MSE} = \frac{1}{n} \sum_{i=1}^n (y_i - \hat{y}_i)^2\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(y_i\)</span> 是真实值，<span class="math notranslate nohighlight">\(\hat{y}_i\)</span> 是预测值，<span class="math notranslate nohighlight">\(n\)</span> 是样本数量。</p>
 <p><strong>特点</strong>：</p>
 <ul class="simple">
-<li><p>对异常值敏感（因为平方项放大了大误差）</p></li>
-<li><p>可导，便于梯度计算</p></li>
-<li><p>假设误差服从高斯分布</p></li>
+<li><p>对<strong>大误差惩罚更重</strong>（平方增长）</p></li>
+<li><p>处处可导，便于梯度计算</p></li>
+<li><p>对<strong>异常值敏感</strong></p></li>
 </ul>
-<p><strong>PyTorch实现</strong>：</p>
-<div class="literal-block-wrapper docutils container" id="id25">
-<div class="code-block-caption"><span class="caption-text">MSE损失函数的PyTorch实现</span><a class="headerlink" href="#id25" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
-<span class="linenos">2</span>
-<span class="linenos">3</span><span class="n">mse_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">MSELoss</span><span class="p">()</span>
-<span class="linenos">4</span><span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
-<span class="linenos">5</span><span class="n">loss</span> <span class="o">=</span> <span class="n">mse_loss</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<p><strong>可视化</strong>：</p>
-<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-6cc1127beb835f3ede1758b0f6a85efad94d8b37.svg" alt="Figure made with TikZ" /></p>
-</div><p><strong>直观理解</strong>：MSE损失函数是一个抛物面形状，在真实值处取得最小值0。误差越大，惩罚呈平方级增长，这意味着MSE对离群点非常敏感——一个很大的误差可能会主导整个损失值。</p>
-</section>
-<section id="mean-absolute-error-mae">
-<h3>2. 平均绝对误差（Mean Absolute Error, MAE）<a class="headerlink" href="#mean-absolute-error-mae" title="Link to this heading">#</a></h3>
-<p>平均绝对误差计算预测值与真实值之差的绝对值的平均值：</p>
+<div class="figure" id="id13" style="text-align: center"><p><img  src="../_images/tikz-5634583b0fe1fa96f8a4a00fd778674ba57a03f0.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">MSE损失函数形状</span></p>
+</div></section>
+<section id="mae">
+<h3>平均绝对误差（MAE）<a class="headerlink" href="#mae" title="Link to this heading">#</a></h3>
 <div class="math notranslate nohighlight">
 \[\text{MAE} = \frac{1}{n} \sum_{i=1}^n |y_i - \hat{y}_i|\]</div>
 <p><strong>特点</strong>：</p>
 <ul class="simple">
-<li><p>对异常值不敏感（比MSE更鲁棒）</p></li>
-<li><p>在零点不可导（但实际应用中可通过次梯度处理）</p></li>
-<li><p>假设误差服从拉普拉斯分布</p></li>
+<li><p>对<strong>异常值更鲁棒</strong>（线性惩罚）</p></li>
+<li><p>在零点<strong>不可导</strong>（可用次梯度）</p></li>
 </ul>
-<p><strong>PyTorch实现</strong>：</p>
-<div class="literal-block-wrapper docutils container" id="id26">
-<div class="code-block-caption"><span class="caption-text">MAE损失函数的PyTorch实现</span><a class="headerlink" href="#id26" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="n">mae_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">L1Loss</span><span class="p">()</span>
-<span class="linenos">2</span><span class="n">loss</span> <span class="o">=</span> <span class="n">mae_loss</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<p><strong>可视化</strong>：</p>
-<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-17565870012ef785e622b464e7a1939c9c28c946.svg" alt="Figure made with TikZ" /></p>
-</div><p><strong>直观理解</strong>：MAE损失函数是一个V形曲线，在真实值处取得最小值0。与MSE不同，MAE对误差的惩罚是线性的，这意味着它对异常值更加鲁棒——一个很大的误差不会主导整个损失值。</p>
-</section>
-<section id="cross-entropy-loss">
-<h3>3. 交叉熵损失（Cross-Entropy Loss）<a class="headerlink" href="#cross-entropy-loss" title="Link to this heading">#</a></h3>
-<p><strong>前置知识：什么是One-Hot编码？</strong></p>
-<p>One-Hot编码（独热编码）是将分类标签转换为向量表示的一种方法。在这种表示中：</p>
-<ul class="simple">
-<li><p>向量的长度等于类别的数量 <span class="math notranslate nohighlight">\(C\)</span></p></li>
-<li><p>对应真实类别的位置为1，其他位置都为0</p></li>
-</ul>
-<p>例如，对于一个3分类问题（类别0、1、2）：</p>
-<ul class="simple">
-<li><p>真实类别为0的样本：<span class="math notranslate nohighlight">\(y = [1, 0, 0]\)</span></p></li>
-<li><p>真实类别为1的样本：<span class="math notranslate nohighlight">\(y = [0, 1, 0]\)</span></p></li>
-<li><p>真实类别为2的样本：<span class="math notranslate nohighlight">\(y = [0, 0, 1]\)</span></p></li>
-</ul>
-<p>这种表示方法的优点是：</p>
-<ul class="simple">
-<li><p>消除了类别之间的数值大小关系（类别1并不比类别0&quot;大&quot;）</p></li>
-<li><p>明确表示每个样本所属的类别</p></li>
-<li><p>与概率分布的表示方式兼容</p></li>
-</ul>
-<p>交叉熵损失是分类问题中最常用的损失函数，特别适用于多分类问题：</p>
-<div class="math notranslate nohighlight">
-\[\text{CE} = -\frac{1}{n} \sum_{i=1}^n \sum_{c=1}^C y_{i,c} \log(\hat{y}_{i,c})\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(C\)</span> 是类别数，<span class="math notranslate nohighlight">\(y_{i,c}\)</span> 是样本 <span class="math notranslate nohighlight">\(i\)</span> 属于类别 <span class="math notranslate nohighlight">\(c\)</span> 的真实概率（通常为 one-hot 编码），<span class="math notranslate nohighlight">\(\hat{y}_{i,c}\)</span> 是模型预测的概率。</p>
-<p>对于二分类问题，交叉熵损失简化为：</p>
-<div class="math notranslate nohighlight">
-\[\text{BCE} = -\frac{1}{n} \sum_{i=1}^n \left[ y_i \log(\hat{y}_i) + (1-y_i) \log(1-\hat{y}_i) \right]\]</div>
-<p><strong>特点</strong>：</p>
-<ul class="simple">
-<li><p>与 softmax 激活函数配合使用效果最佳</p></li>
-<li><p>梯度计算稳定，适合深度网络</p></li>
-<li><p>对错误分类的惩罚较大</p></li>
-</ul>
-<p><strong>PyTorch实现</strong>：</p>
-<div class="literal-block-wrapper docutils container" id="id27">
-<div class="code-block-caption"><span class="caption-text">交叉熵损失函数的PyTorch实现</span><a class="headerlink" href="#id27" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="c1"># 多分类交叉熵损失（包含softmax）</span>
-<span class="linenos">2</span><span class="n">ce_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
-<span class="linenos">3</span><span class="n">loss</span> <span class="o">=</span> <span class="n">ce_loss</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-<span class="linenos">4</span>
-<span class="linenos">5</span><span class="c1"># 二分类交叉熵损失</span>
-<span class="linenos">6</span><span class="n">bce_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BCELoss</span><span class="p">()</span>
-<span class="linenos">7</span><span class="n">loss</span> <span class="o">=</span> <span class="n">bce_loss</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<p><strong>可视化</strong>：</p>
-<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-1c557c1014bcd1e1d9a9aa731d8ba8c2098e8dcb.svg" alt="Figure made with TikZ" /></p>
-</div><p><strong>直观理解</strong>：交叉熵损失衡量的是预测概率分布与真实分布之间的差异。当预测接近真实标签时，损失接近0；当预测完全错误时，损失趋向无穷大。这种特性使得模型在训练过程中会努力提高正确类别的预测概率。</p>
-</section>
-<section id="negative-log-likelihood-loss-nll">
-<h3>4. 负对数似然损失（Negative Log-Likelihood Loss, NLL）<a class="headerlink" href="#negative-log-likelihood-loss-nll" title="Link to this heading">#</a></h3>
-<p>负对数似然损失通常与 log-softmax 结合使用：</p>
-<div class="math notranslate nohighlight">
-\[\text{NLL} = -\frac{1}{n} \sum_{i=1}^n \log(\hat{y}_{i, y_i})\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(\hat{y}_{i, y_i}\)</span> 是模型对真实类别 <span class="math notranslate nohighlight">\(y_i\)</span> 的预测概率。</p>
-<p><strong>PyTorch实现</strong>：</p>
-<div class="literal-block-wrapper docutils container" id="id28">
-<div class="code-block-caption"><span class="caption-text">NLL损失函数的PyTorch实现</span><a class="headerlink" href="#id28" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="n">nll_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">NLLLoss</span><span class="p">()</span>
-<span class="linenos">2</span><span class="c1"># 输入需要先经过 log-softmax</span>
-<span class="linenos">3</span><span class="n">log_probs</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LogSoftmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">output</span><span class="p">)</span>
-<span class="linenos">4</span><span class="n">loss</span> <span class="o">=</span> <span class="n">nll_loss</span><span class="p">(</span><span class="n">log_probs</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
 </section>
 <section id="huber-smooth-l1">
-<h3>5. Huber损失（Smooth L1损失）<a class="headerlink" href="#huber-smooth-l1" title="Link to this heading">#</a></h3>
-<p>Huber损失结合了MSE和MAE的优点，在误差较小时使用平方项，误差较大时使用线性项：</p>
+<h3>Huber损失（Smooth L1）<a class="headerlink" href="#huber-smooth-l1" title="Link to this heading">#</a></h3>
+<p>结合MSE和MAE的优点：</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}L_\delta(a) = \begin{cases}
-\frac{1}{2}a^2 &amp; \text{for } |a| \le \delta \\
-\delta(|a| - \frac{1}{2}\delta) &amp; \text{otherwise}
-\end{cases}\end{split}\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(a = y - \hat{y}\)</span>，<span class="math notranslate nohighlight">\(\delta\)</span> 是超参数。</p>
+\[\begin{split}L_\delta(a) = \begin{cases} \frac{1}{2}a^2 &amp; |a| \leq \delta \\ \delta(|a| - \frac{1}{2}\delta) &amp; \text{otherwise} \end{cases}\end{split}\]</div>
 <p><strong>特点</strong>：</p>
 <ul class="simple">
-<li><p>对异常值比MSE更鲁棒</p></li>
-<li><p>处处可导</p></li>
-<li><p>常用于回归问题，特别是目标检测</p></li>
+<li><p>小误差：MSE（平滑）</p></li>
+<li><p>大误差：MAE（鲁棒）</p></li>
+<li><p>常用于目标检测等任务</p></li>
 </ul>
-<p><strong>PyTorch实现</strong>：</p>
-<div class="literal-block-wrapper docutils container" id="id29">
-<div class="code-block-caption"><span class="caption-text">Huber损失函数的PyTorch实现</span><a class="headerlink" href="#id29" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="n">huber_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">SmoothL1Loss</span><span class="p">(</span><span class="n">beta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>  <span class="c1"># beta对应δ</span>
-<span class="linenos">2</span><span class="n">loss</span> <span class="o">=</span> <span class="n">huber_loss</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<p><strong>可视化</strong>：</p>
-<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-fcc39dbeee24555213defea50b8fbf85bcc876e9.svg" alt="Figure made with TikZ" /></p>
-</div><p><strong>直观理解</strong>：Huber损失函数结合了MSE和MAE的优点——在误差较小时（|a| ≤ δ），它像MSE一样使用平方项，提供平滑的梯度；在误差较大时，它像MAE一样使用线性项，避免对异常值过度惩罚。</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id4">
+<h2>分类问题的损失函数<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<section id="cross-entropy">
+<h3>交叉熵损失（Cross-Entropy）<a class="headerlink" href="#cross-entropy" title="Link to this heading">#</a></h3>
+<section id="id5">
+<h4>从编码角度理解<a class="headerlink" href="#id5" title="Link to this heading">#</a></h4>
+<p>想象你要传递一条消息：“这是一张猫的图片”。如果只有10个可能的类别，最直接的编码方式是给每个类别分配一个编号（0-9）。但这种方式有问题：<strong>如果模型预测&quot;狗&quot;的概率是80%而&quot;猫&quot;是20%，我们丢失了预测信心信息</strong>。</p>
+<p>更好的方式是使用<strong>概率分布</strong>作为编码。模型输出 <span class="math notranslate nohighlight">\([0.1, 0.7, 0.05, ...]\)</span> 表示对每个类别的信心。</p>
+<p><strong>One-Hot编码</strong>：将类别标签转换为向量，对应类别的位置为1，其余为0。</p>
+<div class="figure" id="id14" style="text-align: center"><p><img  src="../_images/tikz-0d32726a35b9a83f789fce8d44b40520d4a23370.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">One-Hot编码示例</span></p>
+</div><p><strong>为什么叫&quot;One-Hot&quot;？</strong></p>
+<ul class="simple">
+<li><p><strong>One</strong>：只有一个位置是1</p></li>
+<li><p><strong>Hot</strong>：这个位置&quot;激活&quot;（热），其余都是&quot;冷&quot;（0）</p></li>
+</ul>
+</section>
+<section id="id6">
+<h4>交叉熵公式<a class="headerlink" href="#id6" title="Link to this heading">#</a></h4>
+<p>交叉熵衡量<strong>用预测分布 <span class="math notranslate nohighlight">\(Q\)</span> 来编码真实分布 <span class="math notranslate nohighlight">\(P\)</span> 所需的平均信息量</strong>：</p>
+<div class="math notranslate nohighlight">
+\[\text{CE}(P, Q) = -\sum_{i} P(i) \log Q(i)\]</div>
+<p>对于分类问题（<span class="math notranslate nohighlight">\(P\)</span> 是one-hot编码），这简化为：</p>
+<div class="math notranslate nohighlight">
+\[\text{CE} = -\log(\hat{y}_{\text{正确类别}})\]</div>
+<p><strong>关键性质</strong>：</p>
+<ul class="simple">
+<li><p>预测越准（概率接近1），损失越低</p></li>
+<li><p>对<strong>错误预测惩罚很大</strong>（预测接近0时损失→∞）</p></li>
+<li><p>与softmax配合，梯度形式简洁</p></li>
+</ul>
+<div class="figure" id="id15" style="text-align: center"><p><img  src="../_images/tikz-072ab880e3f6abdb3f0f587d38b94dd51f130f32.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">交叉熵损失：惩罚错误预测</span></p>
+</div><p><strong>为什么不用MSE做分类？</strong></p>
+<ul class="simple">
+<li><p>MSE在预测概率接近0或1时梯度很小，学习缓慢</p></li>
+<li><p>交叉熵在错误预测时提供更强的梯度信号</p></li>
+</ul>
+</section>
 </section>
 <section id="kl-kullback-leibler-divergence">
-<h3>6. KL散度（Kullback-Leibler Divergence）<a class="headerlink" href="#kl-kullback-leibler-divergence" title="Link to this heading">#</a></h3>
-<p>KL散度用于衡量两个概率分布之间的差异：</p>
+<h3>KL散度（Kullback-Leibler Divergence）<a class="headerlink" href="#kl-kullback-leibler-divergence" title="Link to this heading">#</a></h3>
+<section id="id7">
+<h4>直觉：额外的编码代价<a class="headerlink" href="#id7" title="Link to this heading">#</a></h4>
+<p>想象你有一个完美的天气预测模型 <span class="math notranslate nohighlight">\(P\)</span>（知道每天实际下雨的概率），但你只能用另一个模型 <span class="math notranslate nohighlight">\(Q\)</span> 来做预测。KL散度衡量的是：<strong>因为使用了不完美的 <span class="math notranslate nohighlight">\(Q\)</span> 而不是真实的 <span class="math notranslate nohighlight">\(P\)</span>，你需要多传输多少信息</strong>。</p>
 <div class="math notranslate nohighlight">
 \[D_{KL}(P \| Q) = \sum_{i} P(i) \log \frac{P(i)}{Q(i)}\]</div>
-<p><strong>应用</strong>：</p>
+<p><strong>直观例子</strong>：</p>
 <ul class="simple">
-<li><p>变分自编码器（VAE）</p></li>
-<li><p>知识蒸馏</p></li>
-<li><p>强化学习</p></li>
+<li><p>如果 <span class="math notranslate nohighlight">\(Q = P\)</span>（预测完美），额外代价为0</p></li>
+<li><p>如果预测经常出错，代价就高</p></li>
+<li><p><strong>非对称</strong>：用 <span class="math notranslate nohighlight">\(Q\)</span> 近似 <span class="math notranslate nohighlight">\(P\)</span> 的代价 ≠ 用 <span class="math notranslate nohighlight">\(P\)</span> 近似 <span class="math notranslate nohighlight">\(Q\)</span> 的代价</p></li>
 </ul>
-<p><strong>PyTorch实现</strong>：</p>
-<div class="literal-block-wrapper docutils container" id="id30">
-<div class="code-block-caption"><span class="caption-text">KL散度的PyTorch实现</span><a class="headerlink" href="#id30" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="n">kl_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">KLDivLoss</span><span class="p">(</span><span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;batchmean&#39;</span><span class="p">)</span>
-<span class="linenos">2</span><span class="n">loss</span> <span class="o">=</span> <span class="n">kl_loss</span><span class="p">(</span><span class="n">log_input</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</section>
 </section>
 <section id="id8">
-<h2>损失函数的选择原则<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="table" id="id31">
-<caption><span class="caption-text">损失函数选择指南</span><a class="headerlink" href="#id31" title="Link to this table">#</a></caption>
+<h4>与交叉熵的关系<a class="headerlink" href="#id8" title="Link to this heading">#</a></h4>
+<div class="math notranslate nohighlight">
+\[\underbrace{\text{CrossEntropy}(P, Q)}_{\text{总编码长度}} = \underbrace{H(P)}_{\text{最优编码长度}} + \underbrace{D_{KL}(P \| Q)}_{\text{额外代价}}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(H(P)\)</span> 是分布 <span class="math notranslate nohighlight">\(P\)</span> 的<strong>熵</strong>（信息论中最小可能编码长度）。因为真实分布 <span class="math notranslate nohighlight">\(P\)</span> 是固定的，<span class="math notranslate nohighlight">\(H(P)\)</span> 是常数。因此：</p>
+<blockquote>
+<div><p><strong>最小化交叉熵 = 最小化KL散度 = 让预测分布尽可能接近真实分布</strong></p>
+</div></blockquote>
+</section>
+<section id="id9">
+<h4>应用场景<a class="headerlink" href="#id9" title="Link to this heading">#</a></h4>
+<ul class="simple">
+<li><p><strong>变分自编码器（VAE）</strong>：约束潜在变量 <span class="math notranslate nohighlight">\(z\)</span> 的分布接近标准正态分布</p></li>
+<li><p><strong>知识蒸馏</strong>：让小模型学习大模型的&quot;软预测&quot;（概率分布），而非硬标签</p></li>
+<li><p><strong>强化学习</strong>：限制策略更新幅度，防止模型突变</p></li>
+</ul>
+</section>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id10">
+<h2>损失函数选择指南<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table" id="id16">
+<caption><span class="caption-text">损失函数选择参考</span><a class="headerlink" href="#id16" title="Link to this table">#</a></caption>
 <colgroup>
-<col style="width: 30.0%" />
-<col style="width: 35.0%" />
-<col style="width: 35.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>问题类型</strong></p></th>
-<th class="head"><p><strong>推荐损失函数</strong></p></th>
+<th class="head"><p><strong>推荐损失</strong></p></th>
+<th class="head"><p><strong>优势</strong></p></th>
 <th class="head"><p><strong>注意事项</strong></p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>回归问题</p></td>
-<td><p>MSE、MAE、Huber</p></td>
-<td><p>MSE对异常值敏感，MAE在零点不可导</p></td>
+<td><p>MSE / MAE</p></td>
+<td><p>MSE光滑可导，MAE鲁棒</p></td>
+<td><p>数据有异常值时选MAE</p></td>
 </tr>
-<tr class="row-odd"><td><p>二分类问题</p></td>
-<td><p>二元交叉熵（BCE）</p></td>
-<td><p>输出需经过sigmoid激活</p></td>
+<tr class="row-odd"><td><p>回归（需鲁棒性）</p></td>
+<td><p>Huber损失</p></td>
+<td><p>结合两者优点</p></td>
+<td><p>需要调超参数<span class="math notranslate nohighlight">\(\delta\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p>多分类问题</p></td>
-<td><p>交叉熵（CE）</p></td>
-<td><p>输出需经过softmax激活</p></td>
+<tr class="row-even"><td><p>二分类</p></td>
+<td><p>二元交叉熵</p></td>
+<td><p>梯度强、收敛快</p></td>
+<td><p>输出需sigmoid激活</p></td>
 </tr>
-<tr class="row-odd"><td><p>多标签分类</p></td>
-<td><p>二元交叉熵（BCE）</p></td>
-<td><p>每个类别独立计算损失</p></td>
+<tr class="row-odd"><td><p>多分类</p></td>
+<td><p>交叉熵</p></td>
+<td><p>配合softmax效果最佳</p></td>
+<td><p>PyTorch的CE包含softmax</p></td>
 </tr>
-<tr class="row-even"><td><p>概率分布匹配</p></td>
-<td><p>KL散度、JS散度</p></td>
-<td><p>确保输入为概率分布</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="id9">
-<h2>损失函数的数学性质<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
-<section id="id10">
-<h3>凸性<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
-<p>凸损失函数保证梯度下降能找到全局最优解。常见凸损失函数包括：</p>
-<ul class="simple">
-<li><p>均方误差（MSE）</p></li>
-<li><p>逻辑损失（Logistic Loss）</p></li>
-<li><p>Huber损失（当 <span class="math notranslate nohighlight">\(\delta &gt; 0\)</span> 时）</p></li>
-</ul>
-</section>
-<section id="id11">
-<h3>可导性<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
-<p>损失函数需要在参数空间上可导（或次可导），以便使用梯度下降优化：</p>
-<ul class="simple">
-<li><p>MSE、交叉熵处处可导</p></li>
-<li><p>MAE在零点不可导，但可使用次梯度</p></li>
-<li><p>ReLU等激活函数引入的非光滑点可通过次梯度处理</p></li>
-</ul>
-</section>
-<section id="id12">
-<h3>利普希茨连续性<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
-<p>利普希茨连续的损失函数具有有界梯度，有利于优化稳定性：</p>
-<ul class="simple">
-<li><p>交叉熵损失是利普希茨连续的</p></li>
-<li><p>MSE在有限域上是利普希茨连续的</p></li>
-</ul>
-</section>
-</section>
-<section id="id13">
-<h2>正则化损失<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
-<p><strong>为什么需要正则化？</strong></p>
-<p>在深度学习中，模型通常拥有大量参数，有时甚至超过了训练样本的数量。这种过高的模型容量使得模型能够&quot;记住&quot;训练数据的噪声和细节，而不是学习到真正的通用规律，这种现象称为<strong>过拟合（Overfitting）</strong>。</p>
-<p>正则化是防止过拟合的核心技术之一，它通过在损失函数中添加额外约束来限制模型的复杂度。</p>
-<div class="warning admonition">
-<p class="admonition-title">过拟合的典型表现</p>
-<ul class="simple">
-<li><p>训练集损失很低，但验证集损失很高</p></li>
-<li><p>模型在训练样本上表现完美，但泛化能力差</p></li>
-<li><p>权重值过大，导致对输入的微小变化过于敏感</p></li>
-</ul>
-</div>
-<p>正则化的核心思想是：<strong>在拟合训练数据的能力和模型复杂度之间找到平衡</strong>。</p>
-<section id="id14">
-<h3>正则化的直观理解<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
-<p>想象我们要拟合一组数据点：</p>
-<ul class="simple">
-<li><p><strong>无正则化</strong>：模型可能为了完美拟合每一个点而形成复杂的曲线</p></li>
-<li><p><strong>适度正则化</strong>：模型学习到数据的一般趋势，忽略噪声</p></li>
-<li><p><strong>过度正则化</strong>：模型过于简单，无法捕捉数据的基本模式</p></li>
-</ul>
-<p><strong>正则化强度的可视化</strong>：</p>
-<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-71333f4b9a6d5026e99c553fcbb8607cda0135e2.svg" alt="Figure made with TikZ" /></p>
-</div><p>这个图展示了正则化如何平衡模型复杂度与数据拟合：</p>
-<ul class="simple">
-<li><p><strong>蓝色曲线</strong>：数据拟合损失随复杂度增加而降低</p></li>
-<li><p><strong>红色曲线</strong>：正则化损失随复杂度增加而增加</p></li>
-<li><p><strong>绿色曲线</strong>：总损失在两者之间取得最优平衡点</p></li>
-</ul>
-</section>
-<section id="l1-lasso">
-<h3>L1正则化（Lasso）<a class="headerlink" href="#l1-lasso" title="Link to this heading">#</a></h3>
-<p><strong>数学定义</strong>：</p>
-<p>L1正则化在损失函数中添加权重的绝对值之和：</p>
-<div class="math notranslate nohighlight">
-\[L_{\text{total}} = L_{\text{data}} + \lambda \sum_{i=1}^{n} |w_i|\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(\lambda\)</span> 是正则化强度超参数，控制正则化的力度。</p>
-<p><strong>L1正则化的独特性质：稀疏性</strong></p>
-<p>L1正则化倾向于产生稀疏权重向量，即大多数权重为0，只有少数权重非零。这是因为L1正则化的等值面是菱形（多边形），在与误差曲面的交点处更容易落在坐标轴上。</p>
-<p><strong>几何解释</strong>：</p>
-<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-19d73c1ccb001bd54e09f8a2c6b4d6ba843cc0fe.svg" alt="Figure made with TikZ" /></p>
-</div><p>图中展示了L1正则化如何产生稀疏解：最优解通常位于坐标轴上（某些权重为0）。</p>
-<p><strong>L1正则化的效果</strong>：</p>
-<ul class="simple">
-<li><p><strong>特征选择</strong>：自动识别重要特征，非重要特征的权重趋近于0</p></li>
-<li><p><strong>可解释性</strong>：最终模型只包含少数关键特征</p></li>
-<li><p><strong>降维</strong>：有效减少模型参数数量</p></li>
-</ul>
-<p><strong>适用场景</strong>：</p>
-<ul class="simple">
-<li><p>特征数量远大于样本数量</p></li>
-<li><p>需要特征选择或降维</p></li>
-<li><p>追求模型可解释性</p></li>
-</ul>
-</section>
-<section id="l2-ridge">
-<h3>L2正则化（Ridge）<a class="headerlink" href="#l2-ridge" title="Link to this heading">#</a></h3>
-<p><strong>数学定义</strong>：</p>
-<p>L2正则化在损失函数中添加权重的平方和：</p>
-<div class="math notranslate nohighlight">
-\[L_{\text{total}} = L_{\text{data}} + \lambda \sum_{i=1}^{n} w_i^2\]</div>
-<p><strong>L2正则化的特点：权重衰减</strong></p>
-<p>L2正则化不会产生稀疏权重，但会使得权重普遍较小。它通过惩罚大权重来防止模型过度依赖任何一个特征。</p>
-<p><strong>几何解释</strong>：</p>
-<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-19b4377b0d3d7cb3903b0d3bed7112a6dae87c7d.svg" alt="Figure made with TikZ" /></p>
-</div><p>图中展示了L2正则化如何收缩权重：最优解位于原点与无正则化解的连线上，但更靠近原点。</p>
-<p><strong>L2正则化的效果</strong>：</p>
-<ul class="simple">
-<li><p><strong>权重衰减</strong>：所有权重都变小，但不为零</p></li>
-<li><p><strong>提高泛化</strong>：防止模型过度依赖少数特征</p></li>
-<li><p><strong>数值稳定</strong>：避免权重过大导致的数值问题</p></li>
-</ul>
-<p><strong>适用场景</strong>：</p>
-<ul class="simple">
-<li><p>特征数量与样本数量相当</p></li>
-<li><p>需要提高模型泛化能力</p></li>
-<li><p>特征之间存在多重共线性</p></li>
-</ul>
-</section>
-<section id="l1-vs-l2">
-<h3>L1 vs L2 正则化对比<a class="headerlink" href="#l1-vs-l2" title="Link to this heading">#</a></h3>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>特性</p></th>
-<th class="head"><p>L1正则化</p></th>
-<th class="head"><p>L2正则化</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>几何形状</p></td>
-<td><p>菱形（多边形）</p></td>
-<td><p>圆形（椭球）</p></td>
-</tr>
-<tr class="row-odd"><td><p>稀疏性</p></td>
-<td><p>产生稀疏解</p></td>
-<td><p>权重普遍较小但不稀疏</p></td>
-</tr>
-<tr class="row-even"><td><p>特征选择</p></td>
-<td><p>自动进行特征选择</p></td>
-<td><p>不进行特征选择</p></td>
-</tr>
-<tr class="row-odd"><td><p>计算复杂度</p></td>
-<td><p>需要特殊的优化算法</p></td>
-<td><p>梯度下降即可优化</p></td>
-</tr>
-<tr class="row-even"><td><p>对异常值</p></td>
-<td><p>较敏感</p></td>
-<td><p>较鲁棒</p></td>
-</tr>
-<tr class="row-odd"><td><p>典型应用</p></td>
-<td><p>特征选择、压缩感知</p></td>
-<td><p>防止过拟合、权重衰减</p></td>
+<tr class="row-even"><td><p>分布匹配</p></td>
+<td><p>KL散度</p></td>
+<td><p>衡量分布差异</p></td>
+<td><p>注意方向性<span class="math notranslate nohighlight">\(P\|Q\)</span></p></td>
 </tr>
 </tbody>
 </table>
 </div>
 </section>
-<section id="elastic-net">
-<h3>Elastic Net<a class="headerlink" href="#elastic-net" title="Link to this heading">#</a></h3>
-<p>Elastic Net结合了L1和L2正则化的优点：</p>
-<div class="math notranslate nohighlight">
-\[L_{\text{total}} = L_{\text{data}} + \lambda_1 \sum_{i} |w_i| + \lambda_2 \sum_{i} w_i^2\]</div>
-<p><strong>为什么需要Elastic Net？</strong></p>
-<p>Elastic Net解决了L1正则化的两个主要问题：</p>
-<ol class="arabic simple">
-<li><p>当特征数量大于样本数量时，L1可能只选择一个特征</p></li>
-<li><p>L1对特征的缩放敏感</p></li>
-</ol>
-<p>Elastic Net通过同时使用L1和L2正则化：</p>
-<ul class="simple">
-<li><p>保持L1的稀疏性（特征选择能力）</p></li>
-<li><p>通过L2稳定L1的优化过程</p></li>
-<li><p>在高度相关的特征组中同时选择多个特征</p></li>
-</ul>
-</section>
+<hr class="docutils" />
 <section id="pytorch">
-<h3>PyTorch中的正则化实现<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h3>
-<p><strong>方法1：手动添加正则化项</strong></p>
-<div class="literal-block-wrapper docutils container" id="id32">
-<div class="code-block-caption"><span class="caption-text">手动实现L1和L2正则化</span><a class="headerlink" href="#id32" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="linenos"> 2</span>
-<span class="linenos"> 3</span><span class="k">def</span><span class="w"> </span><span class="nf">l1_regularization</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">l1_lambda</span><span class="p">):</span>
-<span class="linenos"> 4</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;计算L1正则化损失&quot;&quot;&quot;</span>
-<span class="linenos"> 5</span>    <span class="n">l1_reg</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="linenos"> 6</span>    <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
-<span class="linenos"> 7</span>        <span class="n">l1_reg</span> <span class="o">=</span> <span class="n">l1_reg</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="linenos"> 8</span>    <span class="k">return</span> <span class="n">l1_lambda</span> <span class="o">*</span> <span class="n">l1_reg</span>
-<span class="linenos"> 9</span>
-<span class="linenos">10</span><span class="k">def</span><span class="w"> </span><span class="nf">l2_regularization</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">l2_lambda</span><span class="p">):</span>
-<span class="linenos">11</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;计算L2正则化损失&quot;&quot;&quot;</span>
-<span class="linenos">12</span>    <span class="n">l2_reg</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="linenos">13</span>    <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
-<span class="linenos">14</span>        <span class="n">l2_reg</span> <span class="o">=</span> <span class="n">l2_reg</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="linenos">15</span>    <span class="k">return</span> <span class="n">l2_lambda</span> <span class="o">*</span> <span class="n">l2_reg</span>
-<span class="linenos">16</span>
-<span class="linenos">17</span><span class="c1"># 使用示例</span>
-<span class="linenos">18</span><span class="n">model</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">()</span>
-<span class="linenos">19</span><span class="n">criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
-<span class="linenos">20</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
-<span class="linenos">21</span>
-<span class="linenos">22</span><span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">dataloader</span><span class="p">:</span>
-<span class="linenos">23</span>    <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span> <span class="o">=</span> <span class="n">batch</span>
-<span class="linenos">24</span>    <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
-<span class="linenos">25</span>    <span class="n">data_loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>
-<span class="linenos">26</span>    
-<span class="linenos">27</span>    <span class="c1"># 添加L1正则化</span>
-<span class="linenos">28</span>    <span class="n">l1_loss</span> <span class="o">=</span> <span class="n">l1_regularization</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">l1_lambda</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
-<span class="linenos">29</span>    
-<span class="linenos">30</span>    <span class="c1"># 添加L2正则化</span>
-<span class="linenos">31</span>    <span class="n">l2_loss</span> <span class="o">=</span> <span class="n">l2_regularization</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">l2_lambda</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
-<span class="linenos">32</span>    
-<span class="linenos">33</span>    <span class="c1"># 总损失</span>
-<span class="linenos">34</span>    <span class="n">total_loss</span> <span class="o">=</span> <span class="n">data_loss</span> <span class="o">+</span> <span class="n">l1_loss</span> <span class="o">+</span> <span class="n">l2_loss</span>
-<span class="linenos">35</span>    
-<span class="linenos">36</span>    <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
-<span class="linenos">37</span>    <span class="n">total_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-<span class="linenos">38</span>    <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+<h2>PyTorch实现示例<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+
+<span class="c1"># 回归损失</span>
+<span class="n">mse_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">MSELoss</span><span class="p">()</span>
+<span class="n">mae_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">L1Loss</span><span class="p">()</span>  <span class="c1"># MAE</span>
+<span class="n">huber_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">SmoothL1Loss</span><span class="p">(</span><span class="n">beta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+<span class="c1"># 分类损失</span>
+<span class="n">ce_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>  <span class="c1"># 包含softmax</span>
+<span class="n">bce_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BCELoss</span><span class="p">()</span>  <span class="c1"># 二分类，需手动sigmoid</span>
+<span class="n">kl_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">KLDivLoss</span><span class="p">(</span><span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;batchmean&#39;</span><span class="p">)</span>
+
+<span class="c1"># 使用示例</span>
+<span class="n">predictions</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+<span class="n">loss</span> <span class="o">=</span> <span class="n">ce_loss</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>  <span class="c1"># 多分类</span>
+<span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>  <span class="c1"># 计算梯度</span>
 </pre></div>
-</div>
-</div>
-<p><strong>方法2：使用PyTorch内置参数</strong></p>
-<p>PyTorch的优化器内置了weight_decay参数（对应L2正则化）：</p>
-<div class="literal-block-wrapper docutils container" id="id33">
-<div class="code-block-caption"><span class="caption-text">使用优化器的weight_decay参数</span><a class="headerlink" href="#id33" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="c1"># L2正则化（weight_decay）</span>
-<span class="linenos">2</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span>
-<span class="linenos">3</span>    <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
-<span class="linenos">4</span>    <span class="n">lr</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
-<span class="linenos">5</span>    <span class="n">weight_decay</span><span class="o">=</span><span class="mf">0.01</span>  <span class="c1"># L2正则化强度</span>
-<span class="linenos">6</span><span class="p">)</span>
-<span class="linenos">7</span>
-<span class="linenos">8</span><span class="c1"># 注意：Adam优化器中的weight_decay与标准L2正则化略有不同</span>
-<span class="linenos">9</span><span class="c1"># 它使用L2正则化的变体（权重衰减），在某些情况下效果更好</span>
-</pre></div>
-</div>
-</div>
-<p><strong>方法3：Elastic Net组合</strong></p>
-<div class="literal-block-wrapper docutils container" id="id34">
-<div class="code-block-caption"><span class="caption-text">Elastic Net正则化实现</span><a class="headerlink" href="#id34" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="k">class</span><span class="w"> </span><span class="nc">ElasticNetLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="linenos"> 2</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">l1_lambda</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">l2_lambda</span><span class="o">=</span><span class="mf">0.001</span><span class="p">):</span>
-<span class="linenos"> 3</span>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-<span class="linenos"> 4</span>        <span class="bp">self</span><span class="o">.</span><span class="n">l1_lambda</span> <span class="o">=</span> <span class="n">l1_lambda</span>
-<span class="linenos"> 5</span>        <span class="bp">self</span><span class="o">.</span><span class="n">l2_lambda</span> <span class="o">=</span> <span class="n">l2_lambda</span>
-<span class="linenos"> 6</span>    
-<span class="linenos"> 7</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_loss</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
-<span class="linenos"> 8</span>        <span class="n">l1_reg</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="linenos"> 9</span>        <span class="n">l2_reg</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="linenos">10</span>        
-<span class="linenos">11</span>        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
-<span class="linenos">12</span>            <span class="n">l1_reg</span> <span class="o">=</span> <span class="n">l1_reg</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="linenos">13</span>            <span class="n">l2_reg</span> <span class="o">=</span> <span class="n">l2_reg</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="linenos">14</span>        
-<span class="linenos">15</span>        <span class="n">elastic_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">l1_lambda</span> <span class="o">*</span> <span class="n">l1_reg</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">l2_lambda</span> <span class="o">*</span> <span class="n">l2_reg</span>
-<span class="linenos">16</span>        <span class="k">return</span> <span class="n">data_loss</span> <span class="o">+</span> <span class="n">elastic_loss</span>
-<span class="linenos">17</span>
-<span class="linenos">18</span><span class="c1"># 使用示例</span>
-<span class="linenos">19</span><span class="n">criterion</span> <span class="o">=</span> <span class="n">ElasticNetLoss</span><span class="p">(</span><span class="n">l1_lambda</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">l2_lambda</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
-<span class="linenos">20</span>
-<span class="linenos">21</span><span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">dataloader</span><span class="p">:</span>
-<span class="linenos">22</span>    <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span> <span class="o">=</span> <span class="n">batch</span>
-<span class="linenos">23</span>    <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
-<span class="linenos">24</span>    <span class="n">data_loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>
-<span class="linenos">25</span>    <span class="n">total_loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">data_loss</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
-<span class="linenos">26</span>    
-<span class="linenos">27</span>    <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
-<span class="linenos">28</span>    <span class="n">total_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-<span class="linenos">29</span>    <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-</pre></div>
-</div>
 </div>
 </section>
-<section id="id15">
-<h3>正则化参数的选择<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
-<p><strong>超参数 <span class="math notranslate nohighlight">\(\lambda\)</span> 的选择</strong>：</p>
-<p><span class="math notranslate nohighlight">\(\lambda\)</span> 是正则化强度的超参数，需要仔细调优：</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(\lambda\)</span> 太小：正则化效果弱，可能过拟合</p></li>
-<li><p><span class="math notranslate nohighlight">\(\lambda\)</span> 太大：正则化效果过强，可能欠拟合</p></li>
-</ul>
-<p><strong>常用的选择方法</strong>：</p>
+<hr class="docutils" />
+<section id="id11">
+<h2>总结<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
+<p>损失函数定义了&quot;什么是好的预测&quot;，将训练转化为优化问题：</p>
 <ol class="arabic simple">
-<li><p><strong>网格搜索（Grid Search）</strong></p>
-<ul class="simple">
-<li><p>在预定义的参数范围内搜索最优 <span class="math notranslate nohighlight">\(\lambda\)</span></p></li>
-<li><p>适用于参数空间较小的情况</p></li>
-</ul>
-</li>
-<li><p><strong>随机搜索（Random Search）</strong></p>
-<ul class="simple">
-<li><p>在参数空间中随机采样</p></li>
-<li><p>通常比网格搜索更高效</p></li>
-</ul>
-</li>
-<li><p><strong>验证集选择</strong></p>
-<ul class="simple">
-<li><p>在验证集上评估不同 <span class="math notranslate nohighlight">\(\lambda\)</span> 的效果</p></li>
-<li><p>选择使验证损失最小的 <span class="math notranslate nohighlight">\(\lambda\)</span></p></li>
-</ul>
-</li>
-<li><p><strong>贝叶斯优化</strong></p>
-<ul class="simple">
-<li><p>使用贝叶斯方法高效搜索超参数</p></li>
-<li><p>适用于昂贵的评估场景</p></li>
-</ul>
-</li>
+<li><p><strong>回归问题</strong>：MSE光滑易优化，MAE鲁棒抗异常值</p></li>
+<li><p><strong>分类问题</strong>：交叉熵提供强梯度，是深度学习的主流选择</p></li>
+<li><p><strong>分布匹配</strong>：KL散度衡量概率分布差异，VAE和知识蒸馏的核心工具</p></li>
 </ol>
-<p><strong><span class="math notranslate nohighlight">\(\lambda\)</span> 的常见取值范围</strong>：</p>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>数据规模</p></th>
-<th class="head"><p>典型 <span class="math notranslate nohighlight">\(\lambda\)</span> 范围</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>小数据集</p></td>
-<td><p>0.01 ~ 0.1</p></td>
-</tr>
-<tr class="row-odd"><td><p>中等数据集</p></td>
-<td><p>0.001 ~ 0.01</p></td>
-</tr>
-<tr class="row-even"><td><p>大数据集</p></td>
-<td><p>0.0001 ~ 0.001</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="dropout">
-<h3>Dropout：另一种正则化方法<a class="headerlink" href="#dropout" title="Link to this heading">#</a></h3>
-<p>除了L1/L2正则化，Dropout也是一种非常有效的正则化技术：</p>
-<div class="literal-block-wrapper docutils container" id="id35">
-<div class="code-block-caption"><span class="caption-text">Dropout正则化实现</span><a class="headerlink" href="#id35" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="k">class</span><span class="w"> </span><span class="nc">DropoutModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="linenos"> 2</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
-<span class="linenos"> 3</span>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-<span class="linenos"> 4</span>        <span class="bp">self</span><span class="o">.</span><span class="n">layer1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">input_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">)</span>
-<span class="linenos"> 5</span>        <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_rate</span><span class="p">)</span>  <span class="c1"># Dropout层</span>
-<span class="linenos"> 6</span>        <span class="bp">self</span><span class="o">.</span><span class="n">layer2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_dim</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">)</span>
-<span class="linenos"> 7</span>    
-<span class="linenos"> 8</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-<span class="linenos"> 9</span>        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layer1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-<span class="linenos">10</span>        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># 训练时随机丢弃神经元</span>
-<span class="linenos">11</span>        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="linenos">12</span>        <span class="k">return</span> <span class="n">x</span>
-<span class="linenos">13</span>
-<span class="linenos">14</span><span class="c1"># 使用Dropout的注意事项</span>
-<span class="linenos">15</span><span class="n">model</span> <span class="o">=</span> <span class="n">DropoutModel</span><span class="p">(</span><span class="mi">784</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-<span class="linenos">16</span>
-<span class="linenos">17</span><span class="c1"># 训练模式：启用Dropout</span>
-<span class="linenos">18</span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
-<span class="linenos">19</span>
-<span class="linenos">20</span><span class="c1"># 评估模式：禁用Dropout</span>
-<span class="linenos">21</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
-<span class="linenos">22</span><span class="c1"># 或者使用 torch.inference_mode()</span>
-</pre></div>
-</div>
-</div>
-<p><strong>Dropout的工作原理</strong>：</p>
-<ul class="simple">
-<li><p>训练时：随机丢弃一定比例的神经元</p></li>
-<li><p>预测时：使用所有神经元，但权重按比例缩放</p></li>
-</ul>
-<p><strong>Dropout的效果</strong>：</p>
-<ul class="simple">
-<li><p>防止神经元之间过度共适应</p></li>
-<li><p>类似于训练多个不同的模型并集成</p></li>
-<li><p>提供隐式的模型集成效果</p></li>
-</ul>
-</section>
-<section id="id16">
-<h3>正则化策略的选择<a class="headerlink" href="#id16" title="Link to this heading">#</a></h3>
-<p>根据不同场景选择合适的正则化策略：</p>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>场景</p></th>
-<th class="head"><p>推荐策略</p></th>
-<th class="head"><p>说明</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>特征数量 &gt;&gt; 样本数量</p></td>
-<td><p>L1/Elastic Net</p></td>
-<td><p>特征选择，降低过拟合风险</p></td>
-</tr>
-<tr class="row-odd"><td><p>高度相关特征</p></td>
-<td><p>Elastic Net</p></td>
-<td><p>同时选择相关特征组</p></td>
-</tr>
-<tr class="row-even"><td><p>需要特征可解释性</p></td>
-<td><p>L1</p></td>
-<td><p>产生稀疏模型</p></td>
-</tr>
-<tr class="row-odd"><td><p>防止权重过大</p></td>
-<td><p>L2</p></td>
-<td><p>权重衰减</p></td>
-</tr>
-<tr class="row-even"><td><p>大型深度学习模型</p></td>
-<td><p>Dropout</p></td>
-<td><p>深度网络的标准正则化</p></td>
-</tr>
-<tr class="row-odd"><td><p>多重正则化</p></td>
-<td><p>L1 + L2 + Dropout</p></td>
-<td><p>综合使用多种技术</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-</section>
-<section id="id17">
-<h2>损失函数的梯度计算<a class="headerlink" href="#id17" title="Link to this heading">#</a></h2>
-<section id="mse">
-<h3>MSE梯度<a class="headerlink" href="#mse" title="Link to this heading">#</a></h3>
-<div class="math notranslate nohighlight">
-\[\frac{\partial \text{MSE}}{\partial \hat{y}_i} = \frac{2}{n} (\hat{y}_i - y_i)\]</div>
-</section>
-<section id="id18">
-<h3>交叉熵梯度<a class="headerlink" href="#id18" title="Link to this heading">#</a></h3>
-<p>对于softmax输出后的交叉熵损失，梯度具有简洁形式：</p>
-<div class="math notranslate nohighlight">
-\[\frac{\partial \text{CE}}{\partial z_i} = \hat{y}_i - y_i\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(z_i\)</span> 是softmax层的输入。</p>
-</section>
-<section id="mae">
-<h3>MAE次梯度<a class="headerlink" href="#mae" title="Link to this heading">#</a></h3>
-<div class="math notranslate nohighlight">
-\[\begin{split}\frac{\partial \text{MAE}}{\partial \hat{y}_i} = \begin{cases}
-1 &amp; \text{if } \hat{y}_i &gt; y_i \\
--1 &amp; \text{if } \hat{y}_i &lt; y_i \\
-[-1, 1] &amp; \text{if } \hat{y}_i = y_i
-\end{cases}\end{split}\]</div>
-</section>
-</section>
-<section id="id19">
-<h2>实践建议<a class="headerlink" href="#id19" title="Link to this heading">#</a></h2>
-<section id="id20">
-<h3>1. 损失函数缩放<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
-<div class="literal-block-wrapper docutils container" id="id36">
-<div class="code-block-caption"><span class="caption-text">多任务学习中的损失加权</span><a class="headerlink" href="#id36" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="c1"># 多任务学习中的损失加权</span>
-<span class="linenos">2</span><span class="n">total_loss</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">loss1</span> <span class="o">+</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">loss2</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">loss3</span>
-</pre></div>
-</div>
-</div>
-</section>
-<section id="id21">
-<h3>2. 自定义损失函数<a class="headerlink" href="#id21" title="Link to this heading">#</a></h3>
-<div class="literal-block-wrapper docutils container" id="id37">
-<div class="code-block-caption"><span class="caption-text">自定义损失函数的实现</span><a class="headerlink" href="#id37" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="k">class</span><span class="w"> </span><span class="nc">CustomLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="linenos">2</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="linenos">3</span>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-<span class="linenos">4</span>    
-<span class="linenos">5</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
-<span class="linenos">6</span>        <span class="c1"># 自定义损失计算</span>
-<span class="linenos">7</span>        <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">output</span> <span class="o">-</span> <span class="n">target</span><span class="p">)</span> <span class="o">**</span> <span class="mf">1.5</span><span class="p">)</span>
-<span class="linenos">8</span>        <span class="k">return</span> <span class="n">loss</span>
-</pre></div>
-</div>
-</div>
-</section>
-<section id="id22">
-<h3>3. 损失函数监控<a class="headerlink" href="#id22" title="Link to this heading">#</a></h3>
-<div class="literal-block-wrapper docutils container" id="id38">
-<div class="code-block-caption"><span class="caption-text">损失函数监控的实现</span><a class="headerlink" href="#id38" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="k">def</span><span class="w"> </span><span class="nf">monitor_losses</span><span class="p">(</span><span class="n">loss_dict</span><span class="p">,</span> <span class="n">epoch</span><span class="p">):</span>
-<span class="linenos"> 2</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;监控多个损失分量&quot;&quot;&quot;</span>
-<span class="linenos"> 3</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
-<span class="linenos"> 4</span>    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">loss_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-<span class="linenos"> 5</span>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="linenos"> 6</span>    
-<span class="linenos"> 7</span>    <span class="c1"># 可视化</span>
-<span class="linenos"> 8</span>    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-<span class="linenos"> 9</span>    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
-<span class="linenos">10</span>    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">loss_history</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-<span class="linenos">11</span>        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
-<span class="linenos">12</span>    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-<span class="linenos">13</span>    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</section>
-</section>
-<section id="id23">
-<h2>总结<a class="headerlink" href="#id23" title="Link to this heading">#</a></h2>
-<p>损失函数是深度学习的核心组件，它连接了模型预测和参数优化。选择合适的损失函数需要考虑问题类型、数据特性和模型结构。理解不同损失函数的数学性质和梯度行为，有助于设计更有效的训练策略和解决实际问题。</p>
-<div class="tip admonition">
-<p class="admonition-title">关键要点</p>
-<ol class="arabic simple">
-<li><p><strong>回归问题</strong>：优先考虑MSE，对异常值敏感时使用MAE或Huber损失</p></li>
-<li><p><strong>分类问题</strong>：交叉熵损失是标准选择，配合适当的激活函数</p></li>
-<li><p><strong>正则化</strong>：通过L1/L2正则化防止过拟合，提高泛化能力</p></li>
-<li><p><strong>多任务学习</strong>：合理加权不同任务的损失函数</p></li>
-<li><p><strong>自定义损失</strong>：根据特定问题设计专用损失函数</p></li>
-</ol>
-</div>
+<p>理解损失函数后，我们将探讨<a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>——如何高效计算梯度，完成误差的&quot;信用分配&quot;。</p>
 </section>
 </section>
 
@@ -1645,7 +698,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (3 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -1653,6 +706,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">756a793</code>
+                2026-04-25 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and improve explanations
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">dcecce4</code>
                 2026-01-26 - <strong>Heyan Zhu</strong>: docs: enrich math fundamentals documentation with code captions and TikZ visualizations
@@ -1679,20 +737,20 @@ document.write(`
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="gradient-decent.html"
+       href="activation-functions.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">上一页</p>
-        <p class="prev-next-title">梯度下降与优化算法</p>
+        <p class="prev-next-title">激活函数</p>
       </div>
     </a>
     <a class="right-next"
-       href="activation-functions.html"
+       href="back-propagation.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">激活函数</p>
+        <p class="prev-next-title">反向传播算法</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1712,54 +770,30 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">基本概念</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">直观理解</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">损失函数的几何意义</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">不同损失函数的形状</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">示例：回归问题的损失函数比较</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">损失函数的本质：定义优化目标</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">回归问题的损失函数</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mse">均方误差（MSE）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mae">平均绝对误差（MAE）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#huber-smooth-l1">Huber损失（Smooth L1）</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">常见损失函数</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mean-squared-error-mse">1. 均方误差（Mean Squared Error, MSE）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mean-absolute-error-mae">2. 平均绝对误差（Mean Absolute Error, MAE）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cross-entropy-loss">3. 交叉熵损失（Cross-Entropy Loss）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#negative-log-likelihood-loss-nll">4. 负对数似然损失（Negative Log-Likelihood Loss, NLL）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#huber-smooth-l1">5. Huber损失（Smooth L1损失）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kl-kullback-leibler-divergence">6. KL散度（Kullback-Leibler Divergence）</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">分类问题的损失函数</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cross-entropy">交叉熵损失（Cross-Entropy）</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">从编码角度理解</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">交叉熵公式</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">损失函数的选择原则</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">损失函数的数学性质</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">凸性</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">可导性</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">利普希茨连续性</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kl-kullback-leibler-divergence">KL散度（Kullback-Leibler Divergence）</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">直觉：额外的编码代价</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">与交叉熵的关系</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">应用场景</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">正则化损失</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">正则化的直观理解</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#l1-lasso">L1正则化（Lasso）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#l2-ridge">L2正则化（Ridge）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#l1-vs-l2">L1 vs L2 正则化对比</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#elastic-net">Elastic Net</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch中的正则化实现</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">正则化参数的选择</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dropout">Dropout：另一种正则化方法</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">正则化策略的选择</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">损失函数的梯度计算</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mse">MSE梯度</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">交叉熵梯度</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mae">MAE次梯度</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">实践建议</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">1. 损失函数缩放</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">2. 自定义损失函数</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">3. 损失函数监控</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">损失函数选择指南</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch实现示例</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">总结</a></li>
 </ul>
   </nav></div>
 

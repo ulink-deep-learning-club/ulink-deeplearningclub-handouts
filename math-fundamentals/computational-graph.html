@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>计算图基础 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+    <title>计算图 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
   
   
   
@@ -49,7 +49,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'math-fundamentals/computational-graph';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="反向传播算法" href="back-propagation.html" />
+    <link rel="next" title="激活函数" href="activation-functions.html" />
     <link rel="prev" title="引言" href="introduction.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
@@ -157,12 +157,12 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">计算图基础</a></li>
-<li class="toctree-l2"><a class="reference internal" href="back-propagation.html">反向传播算法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gradient-decent.html">梯度下降与优化算法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-functions.html">损失函数</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">计算图</a></li>
 <li class="toctree-l2"><a class="reference internal" href="activation-functions.html">激活函数</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -438,7 +438,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>计算图基础</h1>
+    <h1>计算图</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -449,39 +449,18 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">什么是计算图？</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">计算图的基本元素</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">节点类型</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">边的语义</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">前向传播：数据如何流动</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#f-x-y-z-x-y-times-z">示例：计算 <span class="math notranslate nohighlight">\(f(x, y, z) = (x + y) \times z\)</span></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">计算图的构建规则</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">计算图的前向传播</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">前向传播算法</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">前向传播示例</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">反向传播：梯度如何回流</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch中的动态计算图</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">梯度计算的解释</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">计算图的优势</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">1. 可视化复杂表达式</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">2. 支持自动微分</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">3. 优化计算顺序</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">4. 并行计算</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">实际应用：PyTorch中的计算图</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">计算图的内存管理</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">常见计算图操作</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">基本数学运算</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">激活函数</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">计算图的调试</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">可视化计算图</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">检查梯度流</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">计算图的优势</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">从计算图到神经网络</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">总结</a></li>
 </ul>
             </nav>
         </div>
@@ -493,132 +472,55 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="id1">
-<h1>计算图基础<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="computational-graph">
+<span id="id1"></span><h1>计算图<a class="headerlink" href="#computational-graph" title="Link to this heading">#</a></h1>
 <section id="id2">
 <h2>什么是计算图？<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>计算图（Computational Graph）是一种用图来表示数学表达式的方法。图中的节点代表变量或运算，边代表数据流动的方向。这种表示既直观，又为自动微分（automatic differentiation）打下了数学基础。</p>
-<div class="note admonition">
-<p class="admonition-title">计算图的正式定义</p>
-<p>计算图 <span class="math notranslate nohighlight">\(G = (V, E)\)</span> 是一个有向图，其中：</p>
+<p>计算图是一种用图来表示数学运算的方法。你可以把它想象成<strong>数据流的管道系统</strong>：数据从输入节点流入，经过各种操作节点（如加法、乘法、激活函数），最终到达输出节点。</p>
+<p>这种表示方式有两个核心价值：</p>
+<ol class="arabic simple">
+<li><p><strong>可视化</strong>：复杂的数学表达式变成清晰的流程图</p></li>
+<li><p><strong>自动求导</strong>：为反向传播提供结构基础，让梯度计算自动化</p></li>
+</ol>
+<div class="figure" id="id9" style="text-align: center"><p><img  src="../_images/tikz-b63387814044c16faed006c3c2ad7f9bf4f57fef.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">计算图示例：<span class="math notranslate nohighlight">\(f(x,y) = (x+y) \times y\)</span></span></p>
+</div><p>在这个图中：</p>
 <ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(V\)</span> 是节点集合，包括：</p>
-<ul>
-<li><p><strong>输入节点</strong>：表示变量或常数（如 <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>）</p></li>
-<li><p><strong>操作节点</strong>：表示数学运算（加法、乘法、函数等）</p></li>
-<li><p><strong>输出节点</strong>：表示最终计算结果</p></li>
+<li><p><strong>蓝色节点</strong>：输入变量（<span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>）</p></li>
+<li><p><strong>红色节点</strong>：操作（加法 <span class="math notranslate nohighlight">\(+\)</span>、乘法 <span class="math notranslate nohighlight">\(\times\)</span>）</p></li>
+<li><p><strong>绿色节点</strong>：最终输出</p></li>
+<li><p><strong>箭头</strong>：数据流动方向</p></li>
 </ul>
-</li>
-<li><p><span class="math notranslate nohighlight">\(E\)</span> 是边集合，表示数据依赖关系</p></li>
-<li><p>每个节点 <span class="math notranslate nohighlight">\(v \in V\)</span> 都有一个对应的值 <span class="math notranslate nohighlight">\(val(v)\)</span></p></li>
-<li><p>边 <span class="math notranslate nohighlight">\((u, v) \in E\)</span> 表示节点 <span class="math notranslate nohighlight">\(u\)</span> 的值是节点 <span class="math notranslate nohighlight">\(v\)</span> 的输入</p></li>
-</ul>
-</div>
 </section>
 <section id="id3">
-<h2>计算图的基本元素<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
-<div class="figure" id="id23" style="text-align: center"><p><img  src="../_images/tikz-b63387814044c16faed006c3c2ad7f9bf4f57fef.svg" alt="Figure made with TikZ" /></p>
-<p><span class="caption-text">计算图示例：<span class="math notranslate nohighlight">\(f(x,y) = (x+y) \times y\)</span></span></p>
-</div><section id="id4">
-<h3>节点类型<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
-<div class="note admonition">
-<p class="admonition-title">输入节点（Input Nodes）</p>
-<ul class="simple">
-<li><p>表示模型的输入变量或常数</p></li>
-<li><p>通常是计算图的起点</p></li>
-<li><p>在训练过程中，这些节点的值会被赋予具体数值</p></li>
-<li><p>示例：<span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>, <span class="math notranslate nohighlight">\(w\)</span>, <span class="math notranslate nohighlight">\(b\)</span> 等</p></li>
-</ul>
-</div>
-<div class="note admonition">
-<p class="admonition-title">操作节点（Operation Nodes）</p>
-<ul class="simple">
-<li><p>表示数学运算或函数</p></li>
-<li><p>接收一个或多个输入，产生一个输出</p></li>
-<li><p>示例：加法(+)、乘法(<span class="math notranslate nohighlight">\(\times\)</span>)、sigmoid(<span class="math notranslate nohighlight">\(\sigma\)</span>)、ReLU等</p></li>
-<li><p>每个操作节点都对应一个前向计算和反向传播规则</p></li>
-</ul>
-</div>
-</section>
-<section id="id5">
-<h3>边的语义<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
-<p>边在计算图中承载着重要的语义信息：</p>
-<ul class="simple">
-<li><p><strong>数据流</strong>：数值从源节点流向目标节点</p></li>
-<li><p><strong>依赖关系</strong>：显示计算过程中的依赖关系</p></li>
-<li><p><strong>梯度传播</strong>：反向传播时，梯度沿着边反向流动</p></li>
-<li><p><strong>计算顺序</strong>：边的方向决定了计算的先后顺序</p></li>
-</ul>
-</section>
-</section>
-<section id="id6">
-<h2>计算图的构建规则<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
-<p>构建计算图需要遵循特定的规则，以确保计算的正确性和效率：</p>
-<div class="note admonition">
-<p class="admonition-title">构建原则</p>
-<ol class="arabic simple">
-<li><p><strong>无环性</strong>：计算图必须是有向无环图（DAG），避免循环依赖</p></li>
-<li><p><strong>完整性</strong>：每个操作节点的所有输入都必须有明确的来源</p></li>
-<li><p><strong>一致性</strong>：数据类型和维度必须匹配</p></li>
-<li><p><strong>可微分性</strong>：所有操作节点必须支持前向计算和反向传播</p></li>
-</ol>
-</div>
-</section>
-<section id="id7">
-<h2>计算图的前向传播<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
-<p>前向传播是计算图中数值从输入节点流向输出节点的过程。对于每个节点，我们按照拓扑顺序计算其值。</p>
-<section id="id8">
-<h3>前向传播算法<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">forward_pass</span><span class="p">(</span><span class="n">graph</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;执行计算图的前向传播&quot;&quot;&quot;</span>
-    <span class="c1"># 拓扑排序</span>
-    <span class="n">topological_order</span> <span class="o">=</span> <span class="n">topological_sort</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
-    
-    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">topological_order</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">is_input</span><span class="p">:</span>
-            <span class="c1"># 输入节点：值已给定</span>
-            <span class="k">continue</span>
-        <span class="k">elif</span> <span class="n">node</span><span class="o">.</span><span class="n">is_operation</span><span class="p">:</span>
-            <span class="c1"># 操作节点：计算输出值</span>
-            <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">predecessor</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">predecessor</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">predecessors</span><span class="p">]</span>
-            <span class="n">node</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">operation</span><span class="p">(</span><span class="o">*</span><span class="n">inputs</span><span class="p">)</span>
-    
-    <span class="k">return</span> <span class="n">graph</span><span class="o">.</span><span class="n">output_node</span><span class="o">.</span><span class="n">value</span>
-</pre></div>
-</div>
-</section>
-<section id="id9">
-<h3>前向传播示例<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
-<p>考虑函数 <span class="math notranslate nohighlight">\(f(x, y, z) = (x + y) \times z\)</span>：</p>
+<h2>前向传播：数据如何流动<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>前向传播就是数据从输入节点流向输出节点的过程。按照拓扑顺序（先计算依赖的节点），每个操作节点接收输入、计算输出。</p>
+<section id="f-x-y-z-x-y-times-z">
+<h3>示例：计算 <span class="math notranslate nohighlight">\(f(x, y, z) = (x + y) \times z\)</span><a class="headerlink" href="#f-x-y-z-x-y-times-z" title="Link to this heading">#</a></h3>
+<p>设 <span class="math notranslate nohighlight">\(x = 2\)</span>, <span class="math notranslate nohighlight">\(y = 3\)</span>, <span class="math notranslate nohighlight">\(z = 4\)</span>：</p>
 <ol class="arabic simple">
 <li><p><strong>输入节点</strong>：<span class="math notranslate nohighlight">\(x = 2\)</span>, <span class="math notranslate nohighlight">\(y = 3\)</span>, <span class="math notranslate nohighlight">\(z = 4\)</span></p></li>
-<li><p><strong>操作节点1</strong>：<span class="math notranslate nohighlight">\(a = x + y = 2 + 3 = 5\)</span></p></li>
-<li><p><strong>操作节点2</strong>：<span class="math notranslate nohighlight">\(f = a \times z = 5 \times 4 = 20\)</span></p></li>
+<li><p><strong>加法节点</strong>：<span class="math notranslate nohighlight">\(a = x + y = 2 + 3 = 5\)</span></p></li>
+<li><p><strong>乘法节点</strong>：<span class="math notranslate nohighlight">\(f = a \times z = 5 \times 4 = 20\)</span></p></li>
 </ol>
+<p>这就是计算图在前向传播中的工作流程。</p>
 </section>
 </section>
-<section id="id10">
-<h2>计算图的优势<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
-<section id="id11">
-<h3>1. 可视化复杂表达式<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
-<p>计算图把复杂的数学表达式拆成简单的操作，让结构一目了然。</p>
-</section>
-<section id="id12">
-<h3>2. 支持自动微分<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
-<p>计算图为反向传播算法提供了数据结构，让梯度计算自动化。</p>
-</section>
-<section id="id13">
-<h3>3. 优化计算顺序<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
-<p>通过拓扑排序，计算图可以确定最优的计算顺序，避免重复计算。</p>
-</section>
-<section id="id14">
-<h3>4. 并行计算<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
-<p>计算图能分析操作之间的依赖关系，找出可以并行执行的操作。</p>
-</section>
+<section id="id4">
+<h2>反向传播：梯度如何回流<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p>计算图的真正威力在于<a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>。梯度（误差信号）沿着边的反方向流动，从输出节点传回输入节点。这使得我们可以高效计算每个参数对最终损失的贡献。</p>
+<div class="note admonition">
+<p class="admonition-title">关键洞察</p>
+<p>计算图让&quot;信用分配&quot;变得系统化：</p>
+<ul class="simple">
+<li><p>前向传播：数据沿着箭头方向流动，计算输出</p></li>
+<li><p>反向传播：梯度沿着箭头反方向流动，分摊误差</p></li>
+</ul>
+</div>
 </section>
 <section id="pytorch">
-<h2>实际应用：PyTorch中的计算图<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h2>
-<p>在PyTorch中，计算图是动态构建的：</p>
+<h2>PyTorch中的动态计算图<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h2>
+<p>PyTorch使用<strong>动态计算图</strong>（define-by-run）：每次前向传播时实时构建计算图，这提供了极大的灵活性。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
 <span class="c1"># 创建张量并启用梯度跟踪</span>
@@ -626,106 +528,68 @@ document.write(`
 <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">z</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="c1"># 构建计算图</span>
+<span class="c1"># 构建计算图（前向传播）</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>      <span class="c1"># 加法操作</span>
 <span class="n">f</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">z</span>      <span class="c1"># 乘法操作</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x = </span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">, y = </span><span class="si">{</span><span class="n">y</span><span class="si">}</span><span class="s2">, z = </span><span class="si">{</span><span class="n">z</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;a = x + y = </span><span class="si">{</span><span class="n">a</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;f = a * z = </span><span class="si">{</span><span class="n">f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;前向传播: f = </span><span class="si">{</span><span class="n">f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 输出: 20.0</span>
 
-<span class="c1"># 计算梯度</span>
+<span class="c1"># 反向传播：自动计算梯度</span>
 <span class="n">f</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">梯度计算:&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;∂f/∂x = </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;∂f/∂y = </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;∂f/∂z = </span><span class="si">{</span><span class="n">z</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;∂f/∂x = </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 输出: 4.0 (z的值)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;∂f/∂y = </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 输出: 4.0 (z的值)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;∂f/∂z = </span><span class="si">{</span><span class="n">z</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 输出: 5.0 (a的值)</span>
 </pre></div>
 </div>
-<section id="id15">
-<h3>计算图的内存管理<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
-<p>PyTorch使用动态计算图，每次前向传播都会构建新的计算图。这提供了灵活性，但也需要注意内存管理：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 释放计算图内存</span>
-<span class="n">f</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">retain_graph</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># 保留计算图</span>
-<span class="n">f</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>                   <span class="c1"># 默认会释放计算图</span>
-
-<span class="c1"># 或者手动释放</span>
-<span class="k">del</span> <span class="n">f</span><span class="p">,</span> <span class="n">a</span>
-<span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>  <span class="c1"># 如果使用GPU</span>
-</pre></div>
-</div>
+<section id="id5">
+<h3>梯度计算的解释<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<p>为什么梯度是这些值？根据链式法则：</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\frac{\partial f}{\partial x} = \frac{\partial f}{\partial a} \cdot \frac{\partial a}{\partial x} = z \cdot 1 = 4\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\frac{\partial f}{\partial y} = \frac{\partial f}{\partial a} \cdot \frac{\partial a}{\partial y} = z \cdot 1 = 4\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\frac{\partial f}{\partial z} = a = 5\)</span></p></li>
+</ul>
+<p>PyTorch的 <code class="docutils literal notranslate"><span class="pre">backward()</span></code> 自动完成了这些计算。</p>
 </section>
 </section>
-<section id="id16">
-<h2>常见计算图操作<a class="headerlink" href="#id16" title="Link to this heading">#</a></h2>
-<section id="id17">
-<h3>基本数学运算<a class="headerlink" href="#id17" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 基本运算</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>    <span class="c1"># 加法</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">y</span>    <span class="c1"># 减法  </span>
-<span class="n">c</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span>    <span class="c1"># 乘法</span>
-<span class="n">d</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="n">y</span>    <span class="c1"># 除法</span>
-<span class="n">e</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span>   <span class="c1"># 幂运算</span>
-
-<span class="c1"># 矩阵运算</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="n">A</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">B</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">C</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>  <span class="c1"># 矩阵乘法</span>
-</pre></div>
-</div>
+<section id="id6">
+<h2>计算图的优势<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<ul>
+<li><p><strong>可视化复杂计算</strong>: 深度网络可能有数百万个操作，计算图将其分解为可理解的模块。</p></li>
+<li><p><strong>自动微分</strong>: 无需手动推导梯度公式，计算图结构让自动求导成为可能。</p></li>
+<li><p><strong>优化执行</strong>:</p>
+<p>通过分析依赖关系，可以：</p>
+<ul class="simple">
+<li><p>确定最优计算顺序</p></li>
+<li><p>识别可并行执行的操作</p></li>
+<li><p>避免重复计算</p></li>
+</ul>
+</li>
+</ul>
 </section>
-<section id="id18">
-<h3>激活函数<a class="headerlink" href="#id18" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
-
-<span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-<span class="c1"># 常见激活函数</span>
-<span class="n">y_relu</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>      <span class="c1"># ReLU: max(0, x)</span>
-<span class="n">y_sigmoid</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># Sigmoid: 1/(1+exp(-x))</span>
-<span class="n">y_tanh</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>        <span class="c1"># Tanh: (exp(x)-exp(-x))/(exp(x)+exp(-x))</span>
-<span class="n">y_softmax</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Softmax: exp(x_i)/∑exp(x_j)</span>
-</pre></div>
-</div>
+<section id="id7">
+<h2>从计算图到神经网络<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<p>神经网络的计算图具有以下特点：</p>
+<div class="figure" id="id10" style="text-align: center"><p><img  src="../_images/tikz-210cd299a9bf38d36fe229015234ed3e95c58382.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">简化神经网络计算图</span></p>
+</div><ul class="simple">
+<li><p><strong>多层结构</strong>：输入层 → 隐藏层 → 输出层</p></li>
+<li><p><strong>权重参数</strong>：每条边代表一个可学习的权重</p></li>
+<li><p><strong>激活函数</strong>：每个节点通常包含非线性变换</p></li>
+</ul>
+<p>在下一节中，我们将深入探讨<a class="reference internal" href="activation-functions.html#activation-functions"><span class="std std-ref">激活函数</span></a>——计算图中的非线性操作如何让神经网络拥有划分复杂决策边界的能力。</p>
 </section>
-</section>
-<section id="id19">
-<h2>计算图的调试<a class="headerlink" href="#id19" title="Link to this heading">#</a></h2>
-<section id="id20">
-<h3>可视化计算图<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torchviz</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">torchviz</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_dot</span>
-
-<span class="c1"># 创建计算图</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-
-<span class="c1"># 生成可视化</span>
-<span class="n">dot</span> <span class="o">=</span> <span class="n">make_dot</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y</span><span class="p">})</span>
-<span class="n">dot</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s2">&quot;computational_graph&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;png&quot;</span><span class="p">)</span>  <span class="c1"># 保存为PNG</span>
-</pre></div>
-</div>
-</section>
-<section id="id21">
-<h3>检查梯度流<a class="headerlink" href="#id21" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">check_gradient_flow</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;检查模型中梯度的流动情况&quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">grad_mean</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: gradient mean = </span><span class="si">{</span><span class="n">grad_mean</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: no gradient&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="id22">
-<h2>总结<a class="headerlink" href="#id22" title="Link to this heading">#</a></h2>
-<p>计算图是深度学习的核心数据结构，它将复杂的数学表达式分解为简单的操作节点，通过有向边连接形成计算流程。计算图不仅提供了直观的可视化表示，还为自动微分和优化计算提供了基础。理解计算图的结构和运作原理是掌握深度学习框架的关键。</p>
+<section id="id8">
+<h2>总结<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="#computational-graph"><span class="std std-ref">计算图</span></a>是深度学习的核心数据结构：</p>
+<ul class="simple">
+<li><p><strong>前向传播</strong>：数据沿着边流动，计算预测结果</p></li>
+<li><p><strong>反向传播</strong>：梯度沿着边反向流动，为<a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>奠定基础</p></li>
+<li><p><strong>自动求导</strong>：计算图结构让<a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>的梯度计算自动化</p></li>
+</ul>
+<p>理解<a class="reference internal" href="#computational-graph"><span class="std std-ref">计算图</span></a>后，我们将探索<a class="reference internal" href="activation-functions.html#activation-functions"><span class="std std-ref">激活函数</span></a>如何用非线性变换在空间中划分决策边界。之后<a class="reference internal" href="loss-functions.html#loss-functions"><span class="std std-ref">损失函数</span></a>会将预测误差量化，<a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>通过计算图高效计算梯度，最后<a class="reference internal" href="gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>利用这些梯度优化参数。</p>
 </section>
 </section>
 
@@ -733,7 +597,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (3 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -741,6 +605,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">756a793</code>
+                2026-04-25 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and improve explanations
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">cec393d</code>
                 2025-12-11 - <strong>Heyan Zhu</strong>: docs: partially complete migration and restructure course materials
@@ -776,11 +645,11 @@ document.write(`
       </div>
     </a>
     <a class="right-next"
-       href="back-propagation.html"
+       href="activation-functions.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">反向传播算法</p>
+        <p class="prev-next-title">激活函数</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -801,39 +670,18 @@ document.write(`
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">什么是计算图？</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">计算图的基本元素</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">节点类型</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">边的语义</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">前向传播：数据如何流动</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#f-x-y-z-x-y-times-z">示例：计算 <span class="math notranslate nohighlight">\(f(x, y, z) = (x + y) \times z\)</span></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">计算图的构建规则</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">计算图的前向传播</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">前向传播算法</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">前向传播示例</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">反向传播：梯度如何回流</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch中的动态计算图</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">梯度计算的解释</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">计算图的优势</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">1. 可视化复杂表达式</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">2. 支持自动微分</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">3. 优化计算顺序</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">4. 并行计算</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">实际应用：PyTorch中的计算图</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">计算图的内存管理</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">常见计算图操作</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">基本数学运算</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">激活函数</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">计算图的调试</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">可视化计算图</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">检查梯度流</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">计算图的优势</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">从计算图到神经网络</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">总结</a></li>
 </ul>
   </nav></div>
 

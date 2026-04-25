@@ -49,8 +49,8 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'math-fundamentals/back-propagation';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="梯度下降与优化算法" href="gradient-decent.html" />
-    <link rel="prev" title="计算图基础" href="computational-graph.html" />
+    <link rel="next" title="梯度下降与优化算法" href="gradient-descent.html" />
+    <link rel="prev" title="损失函数" href="loss-functions.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
   </head>
@@ -157,12 +157,12 @@
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="computational-graph.html">计算图基础</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">反向传播算法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gradient-decent.html">梯度下降与优化算法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="computational-graph.html">计算图</a></li>
 <li class="toctree-l2"><a class="reference internal" href="activation-functions.html">激活函数</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-functions.html">损失函数</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -448,46 +448,28 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">什么是反向传播？</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">简单理解</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">反向传播的作用</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">反向传播的本质：信用分配</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">类比：团队项目的责任分摊</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">链式法则回顾</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">反向传播的基本思想</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">反向传播的数学推导</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">1. 标量输出的反向传播</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">2. 向量输出的反向传播</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">链式法则：梯度的传递机制</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">示例：简单计算图</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">反向传播算法详细步骤</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">算法伪代码</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#python">Python实现</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch中的自动微分</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">神经网络中的反向传播</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">常见操作的梯度</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">反向传播的优势</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">1. 计算效率</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">2. 模块化设计</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">常见操作的梯度计算</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">基本运算</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">激活函数梯度</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">常见问题</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vanishing-gradient">梯度消失（Vanishing Gradient）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#exploding-gradient">梯度爆炸（Exploding Gradient）</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">反向传播的优化技巧</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">1. 梯度检查</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">2. 梯度裁剪</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch中的自动微分</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">基本用法</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">高阶导数</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">自定义自动微分函数</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">反向传播的常见问题与解决方案</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">1. 梯度消失</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">2. 梯度爆炸</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">3. 内存问题</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">总结</a></li>
 </ul>
             </nav>
         </div>
@@ -499,323 +481,158 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="id1">
-<h1>反向传播算法<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="back-propagation">
+<span id="id1"></span><h1>反向传播算法<a class="headerlink" href="#back-propagation" title="Link to this heading">#</a></h1>
 <section id="id2">
-<h2>什么是反向传播？<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>反向传播（Back Propagation）是一种用来高效计算神经网络中梯度的方法。它的核心思想是利用数学中的链式法则，将损失函数对每个参数的影响从输出层逐步传递回输入层。虽然反向传播本身不是一种学习算法，但它为像梯度下降这样的优化方法提供了必要的梯度信息。</p>
+<h2>反向传播的本质：信用分配<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>神经网络训练时，我们根据最终损失来调整参数。核心问题是：<strong>损失是由很多参数共同造成的，每个参数该&quot;背多少锅&quot;？</strong></p>
+<p>反向传播（Backpropagation）就是解决这个&quot;<strong>信用分配问题</strong>&quot;的高效算法。</p>
 <section id="id3">
-<h3>简单理解<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<h3>类比：团队项目的责任分摊<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<p>想象一个团队项目失败了（损失很大），需要找出每个人的责任：</p>
 <ul class="simple">
-<li><p><strong>前向传播</strong>：先从输入开始，逐层计算每个神经元的输出，最终得到模型的预测结果和损失值。</p></li>
-<li><p><strong>反向传播</strong>：从损失开始，逐层向前传递“误差信号”，每一层根据自己的局部导数计算出对损失的贡献（即梯度）。</p></li>
-<li><p><strong>高效性</strong>：通过重复利用中间计算结果，反向传播避免了对每个参数重复求导，从而在深度网络中既节省了计算时间，也节省了内存。</p></li>
+<li><p><strong>前向传播</strong>：项目执行过程，每个人完成自己的任务</p></li>
+<li><p><strong>反向传播</strong>：从失败结果倒推，计算每个人对失败的责任（梯度）</p></li>
+<li><p><strong>链式法则</strong>：如果A的工作影响了B，B的责任要按贡献度传递给A</p></li>
 </ul>
+<div class="figure" id="id13" style="text-align: center"><p><img  src="../_images/tikz-71cf7bcf033322592b12289c16ca05c7e9badc1b.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">反向传播：梯度从输出流回输入</span></p>
+</div></section>
 </section>
 <section id="id4">
-<h3>反向传播的作用<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
-<ul class="simple">
-<li><p><strong>计算梯度</strong>：帮助我们知道每个参数（如权重和偏置）需要调整多少。</p></li>
-<li><p><strong>支持优化</strong>：与优化算法（如随机梯度下降、Adam）配合，完成模型的训练。</p></li>
-<li><p><strong>高效且精确</strong>：相比手动计算或数值差分，反向传播在复杂网络中既快又准确。</p></li>
-<li><p><strong>易于使用</strong>：现代深度学习框架（如 PyTorch 和 TensorFlow）已经自动实现了反向传播，开发者只需专注于设计模型，而无需手动推导公式。</p></li>
-</ul>
-<p>简而言之，反向传播把“误差”变成可用于优化的梯度，是深度学习中连接模型与优化器的关键机制。</p>
-</section>
-</section>
+<h2>链式法则：梯度的传递机制<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="#back-propagation"><span class="std std-ref">反向传播算法</span></a>的核心是<strong>链式法则</strong>（Chain Rule），它在<a class="reference internal" href="computational-graph.html#computational-graph"><span class="std std-ref">计算图</span></a>中让梯度高效传递。对于复合函数 <span class="math notranslate nohighlight">\(z = f(g(x))\)</span>：</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial z}{\partial x} = \frac{\partial z}{\partial g} \cdot \frac{\partial g}{\partial x}\]</div>
+<p><strong>直觉</strong>：总的责任 = 当前环节的责任 × 上一环节的责任</p>
 <section id="id5">
-<h2>链式法则回顾<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
-<p>反向传播算法的核心是链式法则。对于复合函数 <span class="math notranslate nohighlight">\(z = f(g(x))\)</span>，其导数为：</p>
-<div class="math notranslate nohighlight">
-\[\frac{dz}{dx} = \frac{dz}{dg} \cdot \frac{dg}{dx}\]</div>
-<p>在多元函数的情况下，对于 <span class="math notranslate nohighlight">\(z = f(x_1, x_2, \dots, x_n)\)</span>，偏导数为：</p>
-<div class="math notranslate nohighlight">
-\[\frac{\partial z}{\partial x_i} = \sum_{j} \frac{\partial z}{\partial y_j} \cdot \frac{\partial y_j}{\partial x_i}\]</div>
-</section>
-<section id="id6">
-<h2>反向传播的基本思想<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
-<p>反向传播算法通过三步计算梯度：</p>
-<ol class="arabic simple">
-<li><p><strong>前向传播</strong>：计算图中每个节点的值</p></li>
-<li><p><strong>反向传播</strong>：从输出节点开始，反向计算每个节点的梯度</p></li>
-<li><p><strong>梯度累积</strong>：利用链式法则累积梯度</p></li>
-</ol>
-</section>
-<section id="id7">
-<h2>反向传播的数学推导<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
-<section id="id8">
-<h3>1. 标量输出的反向传播<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
-<p>考虑计算图 <span class="math notranslate nohighlight">\(G\)</span>，输出为标量 <span class="math notranslate nohighlight">\(L\)</span>。对于任意节点 <span class="math notranslate nohighlight">\(v\)</span>，定义其梯度为：</p>
-<div class="math notranslate nohighlight">
-\[\frac{\partial L}{\partial v} = \text{节点 } v \text{ 对损失 } L \text{ 的贡献}\]</div>
-<p>反向传播算法计算所有节点的梯度：</p>
-<div class="math notranslate nohighlight">
-\[\frac{\partial L}{\partial v} = \sum_{w \in \text{children}(v)} \frac{\partial L}{\partial w} \cdot \frac{\partial w}{\partial v}\]</div>
-</section>
-<section id="id9">
-<h3>2. 向量输出的反向传播<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
-<p>当输出为向量时，我们需要计算雅可比矩阵。对于函数 <span class="math notranslate nohighlight">\(f: \mathbb{R}^n \to \mathbb{R}^m\)</span>，雅可比矩阵 <span class="math notranslate nohighlight">\(J_f\)</span> 为：</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}J_f = \begin{bmatrix}
-\frac{\partial f_1}{\partial x_1} &amp; \cdots &amp; \frac{\partial f_1}{\partial x_n} \\
-\vdots &amp; \ddots &amp; \vdots \\
-\frac{\partial f_m}{\partial x_1} &amp; \cdots &amp; \frac{\partial f_m}{\partial x_n}
-\end{bmatrix}\end{split}\]</div>
-</section>
-</section>
-<section id="id10">
-<h2>反向传播算法详细步骤<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
-<section id="id11">
-<h3>算法伪代码<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>输入：计算图 G，损失函数 L
-输出：每个节点的梯度 grad[v]
-
-1. 执行前向传播，计算每个节点的值 value[v]
-2. 初始化梯度：grad[output] = 1
-3. 按逆拓扑顺序遍历节点：
-   对于每个节点 v：
-    对于 v 的每个子节点 w：
-      grad[v] += grad[w] * ∂w/∂v
-4. 返回 grad
-</pre></div>
-</div>
-</section>
-<section id="python">
-<h3>Python实现<a class="headerlink" href="#python" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Node</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">operation</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="n">children</span> <span class="ow">or</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">operation</span> <span class="o">=</span> <span class="n">operation</span>
-        
-    <span class="k">def</span><span class="w"> </span><span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grad</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;反向传播&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">grad</span> <span class="o">+=</span> <span class="n">grad</span>
-        
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">operation</span> <span class="o">==</span> <span class="s1">&#39;add&#39;</span><span class="p">:</span>
-            <span class="c1"># 对于加法：∂(a+b)/∂a = 1, ∂(a+b)/∂b = 1</span>
-            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
-                <span class="n">child</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">grad</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">operation</span> <span class="o">==</span> <span class="s1">&#39;mul&#39;</span><span class="p">:</span>
-            <span class="c1"># 对于乘法：∂(a*b)/∂a = b, ∂(a*b)/∂b = a</span>
-            <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span>
-            <span class="n">a</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">grad</span> <span class="o">*</span> <span class="n">b</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-            <span class="n">b</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">grad</span> <span class="o">*</span> <span class="n">a</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">operation</span> <span class="o">==</span> <span class="s1">&#39;sigmoid&#39;</span><span class="p">:</span>
-            <span class="c1"># 对于sigmoid：∂σ(x)/∂x = σ(x)(1-σ(x))</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">sig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
-            <span class="n">x</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">grad</span> <span class="o">*</span> <span class="n">sig</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">sig</span><span class="p">))</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="id12">
-<h2>常见操作的梯度计算<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
-<section id="id13">
-<h3>基本运算<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
-<div class="math notranslate nohighlight">
-\[\begin{split}\begin{aligned}
-\text{加法：} &amp; \frac{\partial (a+b)}{\partial a} = 1, \quad \frac{\partial (a+b)}{\partial b} = 1 \\
-\text{乘法：} &amp; \frac{\partial (a \times b)}{\partial a} = b, \quad \frac{\partial (a \times b)}{\partial b} = a \\
-\text{幂运算：} &amp; \frac{\partial (a^n)}{\partial a} = n \cdot a^{n-1} \\
-\text{指数：} &amp; \frac{\partial e^a}{\partial a} = e^a
-\end{aligned}\end{split}\]</div>
-</section>
-<section id="id14">
-<h3>激活函数梯度<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
-<div class="math notranslate nohighlight">
-\[\begin{split}\begin{aligned}
-\text{ReLU：} &amp; \frac{\partial \text{ReLU}(x)}{\partial x} = 
-\begin{cases}
-1 &amp; \text{if } x &gt; 0 \\
-0 &amp; \text{otherwise}
-\end{cases} \\
-\text{Sigmoid：} &amp; \frac{\partial \sigma(x)}{\partial x} = \sigma(x)(1 - \sigma(x)) \\
-\text{Tanh：} &amp; \frac{\partial \tanh(x)}{\partial x} = 1 - \tanh^2(x) \\
-\text{Softmax：} &amp; \frac{\partial \text{softmax}(x_i)}{\partial x_j} = 
-\begin{cases}
-\text{softmax}(x_i)(1 - \text{softmax}(x_i)) &amp; \text{if } i = j \\
--\text{softmax}(x_i)\text{softmax}(x_j) &amp; \text{if } i \neq j
-\end{cases}
-\end{aligned}\end{split}\]</div>
-</section>
-</section>
-<section id="id15">
-<h2>反向传播的优化技巧<a class="headerlink" href="#id15" title="Link to this heading">#</a></h2>
-<section id="id16">
-<h3>1. 梯度检查<a class="headerlink" href="#id16" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">gradient_check</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">input_data</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;数值梯度检查&quot;&quot;&quot;</span>
-    <span class="n">model</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
-    
-    <span class="c1"># 计算解析梯度</span>
-    <span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
-    <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-    
-    <span class="c1"># 数值梯度计算</span>
-    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">:</span>
-            <span class="n">original_value</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
-            
-            <span class="c1"># 计算数值梯度</span>
-            <span class="n">numerical_grad</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">numel</span><span class="p">()):</span>
-                <span class="c1"># f(x + ε)</span>
-                <span class="n">param</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">original_value</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
-                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">epsilon</span>
-                <span class="n">output_plus</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
-                <span class="n">loss_plus</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">output_plus</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-                
-                <span class="c1"># f(x - ε)</span>
-                <span class="n">param</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">original_value</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
-                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span> <span class="o">-=</span> <span class="n">epsilon</span>
-                <span class="n">output_minus</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
-                <span class="n">loss_minus</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">output_minus</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-                
-                <span class="c1"># 中心差分</span>
-                <span class="n">numerical_grad</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">loss_plus</span> <span class="o">-</span> <span class="n">loss_minus</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">epsilon</span><span class="p">)</span>
-            
-            <span class="c1"># 恢复原始值</span>
-            <span class="n">param</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">original_value</span>
-            
-            <span class="c1"># 比较梯度</span>
-            <span class="n">diff</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">numerical_grad</span> <span class="o">-</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: max diff = </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">diff</span> <span class="o">&gt;</span> <span class="mf">1e-5</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Warning: gradient mismatch!&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="id17">
-<h3>2. 梯度裁剪<a class="headerlink" href="#id17" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">clip_gradients</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">max_norm</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;梯度裁剪防止梯度爆炸&quot;&quot;&quot;</span>
-    <span class="n">total_norm</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">param_norm</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-            <span class="n">total_norm</span> <span class="o">+=</span> <span class="n">param_norm</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">**</span> <span class="mi">2</span>
-    <span class="n">total_norm</span> <span class="o">=</span> <span class="n">total_norm</span> <span class="o">**</span> <span class="mf">0.5</span>
-    
-    <span class="n">clip_coef</span> <span class="o">=</span> <span class="n">max_norm</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_norm</span> <span class="o">+</span> <span class="mf">1e-6</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">clip_coef</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">mul_</span><span class="p">(</span><span class="n">clip_coef</span><span class="p">)</span>
-    
-    <span class="k">return</span> <span class="n">total_norm</span>
-</pre></div>
-</div>
+<h3>示例：简单计算图<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<p>考虑 <span class="math notranslate nohighlight">\(f(x, y) = (x + y) \times y\)</span>，设 <span class="math notranslate nohighlight">\(x=2, y=3\)</span>：</p>
+<p><strong>前向传播</strong>：</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(a = x + y = 2 + 3 = 5\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(f = a \times y = 5 \times 3 = 15\)</span></p></li>
+</ul>
+<p><strong>反向传播</strong>（假设损失对 <span class="math notranslate nohighlight">\(f\)</span> 的梯度为1）：</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\frac{\partial f}{\partial f} = 1\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\frac{\partial f}{\partial a} = y = 3\)</span>（乘法规则）</p></li>
+<li><p><span class="math notranslate nohighlight">\(\frac{\partial f}{\partial y} = a = 5\)</span>（乘法规则）</p></li>
+<li><p><span class="math notranslate nohighlight">\(\frac{\partial f}{\partial x} = \frac{\partial f}{\partial a} \cdot \frac{\partial a}{\partial x} = 3 \times 1 = 3\)</span>（链式法则）</p></li>
+<li><p><span class="math notranslate nohighlight">\(\frac{\partial f}{\partial y}\)</span> 有两条路径：<span class="math notranslate nohighlight">\(= 5 + 3 = 8\)</span></p></li>
+</ul>
 </section>
 </section>
 <section id="pytorch">
 <h2>PyTorch中的自动微分<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h2>
-<section id="id18">
-<h3>基本用法<a class="headerlink" href="#id18" title="Link to this heading">#</a></h3>
+<p>PyTorch通过<code class="docutils literal notranslate"><span class="pre">autograd</span></code>自动完成反向传播：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
-<span class="c1"># 创建张量并启用梯度跟踪</span>
+<span class="c1"># 创建张量，启用梯度跟踪</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># 前向传播</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>      <span class="c1"># a = 5</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">y</span>      <span class="c1"># f = 15</span>
 
 <span class="c1"># 反向传播</span>
-<span class="n">z</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="n">f</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x.grad = </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># ∂z/∂x = y + cos(x) = 3 + cos(2)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;y.grad = </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># ∂z/∂y = x = 2</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;∂f/∂x = </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 输出: 3.0</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;∂f/∂y = </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 输出: 8.0</span>
 </pre></div>
 </div>
+<p><strong>关键机制</strong>：</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">requires_grad=True</span></code>：告诉PyTorch需要跟踪这个张量的<a class="reference internal" href="computational-graph.html#computational-graph"><span class="std std-ref">计算图</span></a></p></li>
+<li><p>PyTorch自动构建<strong>动态计算图</strong>（参见<a class="reference internal" href="computational-graph.html#computational-graph"><span class="std std-ref">计算图</span></a>）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.backward()</span></code>：自动执行<a class="reference internal" href="#back-propagation"><span class="std std-ref">反向传播算法</span></a>计算所有叶节点的梯度</p></li>
+</ul>
 </section>
-<section id="id19">
-<h3>高阶导数<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 计算二阶导数</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">3</span>
-
-<span class="c1"># 一阶导数</span>
-<span class="n">grad1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">create_graph</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;一阶导数: dy/dx = </span><span class="si">{</span><span class="n">grad1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 3x² = 12</span>
-
-<span class="c1"># 二阶导数</span>
-<span class="n">grad2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">grad1</span><span class="p">,</span> <span class="n">x</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;二阶导数: d²y/dx² = </span><span class="si">{</span><span class="n">grad2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 6x = 12</span>
-</pre></div>
+<section id="id6">
+<h2>神经网络中的反向传播<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<p>对于多层神经网络，反向传播从输出层逐层回传：</p>
+<div class="figure" id="id14" style="text-align: center"><p><img  src="../_images/tikz-602a045cabc553a25a48b80d890d1591abb950fc.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">神经网络反向传播示意</span></p>
+</div><p><strong>流程</strong>：</p>
+<ol class="arabic simple">
+<li><p><strong>前向传播</strong>：数据从输入层 → 隐藏层 → 输出层，计算预测和损失</p></li>
+<li><p><strong>反向传播</strong>：梯度从输出层 ← 隐藏层 ← 输入层，计算每个参数的梯度</p></li>
+<li><p><strong>参数更新</strong>：使用梯度下降更新权重</p></li>
+</ol>
+</section>
+<section id="id7">
+<h2>常见操作的梯度<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>操作</p></th>
+<th class="head"><p>前向</p></th>
+<th class="head"><p>反向梯度</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>加法 <span class="math notranslate nohighlight">\(z = x + y\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(z = x + y\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{\partial L}{\partial x} = \frac{\partial L}{\partial z}\)</span>, <span class="math notranslate nohighlight">\(\frac{\partial L}{\partial y} = \frac{\partial L}{\partial z}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>乘法 <span class="math notranslate nohighlight">\(z = x \times y\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(z = x \times y\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{\partial L}{\partial x} = \frac{\partial L}{\partial z} \cdot y\)</span>, <span class="math notranslate nohighlight">\(\frac{\partial L}{\partial y} = \frac{\partial L}{\partial z} \cdot x\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>ReLU <span class="math notranslate nohighlight">\(z = \max(0, x)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(z = \max(0, x)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{\partial L}{\partial x} = \frac{\partial L}{\partial z}\)</span> (if <span class="math notranslate nohighlight">\(x&gt;0\)</span>), else 0</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sigmoid <span class="math notranslate nohighlight">\(z = \sigma(x)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(z = \sigma(x)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{\partial L}{\partial x} = \frac{\partial L}{\partial z} \cdot z(1-z)\)</span></p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </section>
-<section id="id20">
-<h3>自定义自动微分函数<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">torch.autograd</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">autograd</span>
-
-<span class="k">class</span><span class="w"> </span><span class="nc">CustomSigmoid</span><span class="p">(</span><span class="n">autograd</span><span class="o">.</span><span class="n">Function</span><span class="p">):</span>
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;前向传播&quot;&quot;&quot;</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="nb">input</span><span class="p">))</span>
-        <span class="n">ctx</span><span class="o">.</span><span class="n">save_for_backward</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">output</span>
-    
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">backward</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">grad_output</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;反向传播&quot;&quot;&quot;</span>
-        <span class="n">output</span><span class="p">,</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">saved_tensors</span>
-        <span class="n">grad_input</span> <span class="o">=</span> <span class="n">grad_output</span> <span class="o">*</span> <span class="n">output</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">output</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">grad_input</span>
-
-<span class="c1"># 使用自定义函数</span>
-<span class="n">custom_sigmoid</span> <span class="o">=</span> <span class="n">CustomSigmoid</span><span class="o">.</span><span class="n">apply</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">custom_sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="n">y</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x.grad = </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
+<section id="id8">
+<h2>反向传播的优势<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<section id="id9">
+<h3>1. 计算效率<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="#back-propagation"><span class="std std-ref">反向传播算法</span></a>的时间复杂度是 <span class="math notranslate nohighlight">\(O(n)\)</span>，其中 <span class="math notranslate nohighlight">\(n\)</span> 是<a class="reference internal" href="computational-graph.html#computational-graph"><span class="std std-ref">计算图</span></a>中边的数量。相比之下，数值差分需要 <span class="math notranslate nohighlight">\(O(n \times p)\)</span>，其中 <span class="math notranslate nohighlight">\(p\)</span> 是参数数量。</p>
+<p><strong>关键</strong>：通过复用中间计算结果，避免重复求导。</p>
 </section>
-</section>
-<section id="id21">
-<h2>反向传播的常见问题与解决方案<a class="headerlink" href="#id21" title="Link to this heading">#</a></h2>
-<section id="id22">
-<h3>1. 梯度消失<a class="headerlink" href="#id22" title="Link to this heading">#</a></h3>
-<p><strong>问题</strong>：深层网络中梯度变得非常小，导致早期层无法更新。</p>
-<p><strong>解决方案</strong>：</p>
+<section id="id10">
+<h3>2. 模块化设计<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<p>每个操作只需要定义：</p>
 <ul class="simple">
-<li><p>使用合适的激活函数（ReLU、Leaky ReLU）</p></li>
-<li><p>使用批量归一化</p></li>
-<li><p>使用残差连接</p></li>
-<li><p>合适的权重初始化</p></li>
+<li><p>前向：如何计算输出</p></li>
+<li><p>反向：如何计算梯度</p></li>
 </ul>
-</section>
-<section id="id23">
-<h3>2. 梯度爆炸<a class="headerlink" href="#id23" title="Link to this heading">#</a></h3>
-<p><strong>问题</strong>：梯度变得非常大，导致数值不稳定。</p>
-<p><strong>解决方案</strong>：</p>
-<ul class="simple">
-<li><p>梯度裁剪</p></li>
-<li><p>权重正则化</p></li>
-<li><p>使用梯度归一化</p></li>
-<li><p>降低学习率</p></li>
-</ul>
-</section>
-<section id="id24">
-<h3>3. 内存问题<a class="headerlink" href="#id24" title="Link to this heading">#</a></h3>
-<p><strong>问题</strong>：计算图占用过多内存。</p>
-<p><strong>解决方案</strong>：</p>
-<ul class="simple">
-<li><p>使用 <code class="docutils literal notranslate"><span class="pre">detach()</span></code> 分离不需要梯度的张量</p></li>
-<li><p>及时释放计算图</p></li>
-<li><p>使用梯度检查点技术</p></li>
-</ul>
+<p>这使得添加新操作变得简单。</p>
 </section>
 </section>
-<section id="id25">
-<h2>总结<a class="headerlink" href="#id25" title="Link to this heading">#</a></h2>
-<p>反向传播是深度学习的核心算法，它基于链式法则高效计算梯度。理解反向传播的数学原理和实现细节对于调试和优化深度学习模型至关重要。现代深度学习框架如PyTorch和TensorFlow提供了自动微分功能，使得反向传播的实现变得简单，但深入理解其原理仍然非常重要。</p>
+<section id="id11">
+<h2>常见问题<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
+<section id="vanishing-gradient">
+<h3>梯度消失（Vanishing Gradient）<a class="headerlink" href="#vanishing-gradient" title="Link to this heading">#</a></h3>
+<p><strong>现象</strong>：深层网络中，靠近输入层的梯度变得非常小，参数几乎不更新。</p>
+<p><strong>原因</strong>：<a class="reference internal" href="activation-functions.html#activation-functions"><span class="std std-ref">激活函数</span></a>中的Sigmoid/Tanh在饱和区梯度接近0，<a class="reference internal" href="#back-propagation"><span class="std std-ref">反向传播算法</span></a>多层连乘后梯度指数级衰减。</p>
+<p><strong>解决</strong>：使用ReLU激活函数、批归一化、残差连接。</p>
+</section>
+<section id="exploding-gradient">
+<h3>梯度爆炸（Exploding Gradient）<a class="headerlink" href="#exploding-gradient" title="Link to this heading">#</a></h3>
+<p><strong>现象</strong>：梯度变得非常大，导致参数更新剧烈，训练不稳定。</p>
+<p><strong>原因</strong>：权重初始化不当或网络结构导致梯度连乘后指数级增长。</p>
+<p><strong>解决</strong>：梯度裁剪、权重正则化、更好的初始化。</p>
+</section>
+</section>
+<section id="id12">
+<h2>总结<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
+<p>反向传播是深度学习的核心算法：</p>
+<ol class="arabic simple">
+<li><p><strong>信用分配</strong>：将最终损失&quot;分摊&quot;给每个参数</p></li>
+<li><p><strong>链式法则</strong>：梯度从输出层逐层回传</p></li>
+<li><p><strong>高效计算</strong>：复用中间结果，时间与网络规模线性相关</p></li>
+</ol>
+<p>反向传播通过<a class="reference internal" href="computational-graph.html#computational-graph"><span class="std std-ref">计算图</span></a>高效计算梯度。理解反向传播后，我们将探讨<a class="reference internal" href="gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>——如何利用这些梯度来优化模型参数。</p>
 </section>
 </section>
 
@@ -823,7 +640,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (3 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -831,6 +648,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">756a793</code>
+                2026-04-25 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and improve explanations
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">cec393d</code>
                 2025-12-11 - <strong>Heyan Zhu</strong>: docs: partially complete migration and restructure course materials
@@ -857,16 +679,16 @@ document.write(`
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="computational-graph.html"
+       href="loss-functions.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">上一页</p>
-        <p class="prev-next-title">计算图基础</p>
+        <p class="prev-next-title">损失函数</p>
       </div>
     </a>
     <a class="right-next"
-       href="gradient-decent.html"
+       href="gradient-descent.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">下一页</p>
@@ -890,46 +712,28 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">什么是反向传播？</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">简单理解</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">反向传播的作用</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">反向传播的本质：信用分配</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">类比：团队项目的责任分摊</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">链式法则回顾</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">反向传播的基本思想</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">反向传播的数学推导</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">1. 标量输出的反向传播</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">2. 向量输出的反向传播</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">链式法则：梯度的传递机制</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">示例：简单计算图</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">反向传播算法详细步骤</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">算法伪代码</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#python">Python实现</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch中的自动微分</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">神经网络中的反向传播</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">常见操作的梯度</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">反向传播的优势</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">1. 计算效率</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">2. 模块化设计</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">常见操作的梯度计算</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">基本运算</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">激活函数梯度</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">常见问题</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vanishing-gradient">梯度消失（Vanishing Gradient）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#exploding-gradient">梯度爆炸（Exploding Gradient）</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">反向传播的优化技巧</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">1. 梯度检查</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">2. 梯度裁剪</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch中的自动微分</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">基本用法</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">高阶导数</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">自定义自动微分函数</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">反向传播的常见问题与解决方案</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">1. 梯度消失</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">2. 梯度爆炸</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">3. 内存问题</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">总结</a></li>
 </ul>
   </nav></div>
 

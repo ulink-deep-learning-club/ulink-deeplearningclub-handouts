@@ -1,318 +1,195 @@
+(back-propagation)=
 # 反向传播算法
 
-## 什么是反向传播？
+## 反向传播的本质：信用分配
 
-反向传播（Back Propagation）是一种用来高效计算神经网络中梯度的方法。它的核心思想是利用数学中的链式法则，将损失函数对每个参数的影响从输出层逐步传递回输入层。虽然反向传播本身不是一种学习算法，但它为像梯度下降这样的优化方法提供了必要的梯度信息。
+神经网络训练时，我们根据最终损失来调整参数。核心问题是：**损失是由很多参数共同造成的，每个参数该"背多少锅"？**
 
-### 简单理解
+反向传播（Backpropagation）就是解决这个"**信用分配问题**"的高效算法。
 
-- **前向传播**：先从输入开始，逐层计算每个神经元的输出，最终得到模型的预测结果和损失值。
-- **反向传播**：从损失开始，逐层向前传递“误差信号”，每一层根据自己的局部导数计算出对损失的贡献（即梯度）。
-- **高效性**：通过重复利用中间计算结果，反向传播避免了对每个参数重复求导，从而在深度网络中既节省了计算时间，也节省了内存。
+### 类比：团队项目的责任分摊
 
-### 反向传播的作用
+想象一个团队项目失败了（损失很大），需要找出每个人的责任：
 
-- **计算梯度**：帮助我们知道每个参数（如权重和偏置）需要调整多少。
-- **支持优化**：与优化算法（如随机梯度下降、Adam）配合，完成模型的训练。
-- **高效且精确**：相比手动计算或数值差分，反向传播在复杂网络中既快又准确。
-- **易于使用**：现代深度学习框架（如 PyTorch 和 TensorFlow）已经自动实现了反向传播，开发者只需专注于设计模型，而无需手动推导公式。
+- **前向传播**：项目执行过程，每个人完成自己的任务
+- **反向传播**：从失败结果倒推，计算每个人对失败的责任（梯度）
+- **链式法则**：如果A的工作影响了B，B的责任要按贡献度传递给A
 
-简而言之，反向传播把“误差”变成可用于优化的梯度，是深度学习中连接模型与优化器的关键机制。
-
-## 链式法则回顾
-
-反向传播算法的核心是链式法则。对于复合函数 $z = f(g(x))$，其导数为：
-
-```{math}
-\frac{dz}{dx} = \frac{dz}{dg} \cdot \frac{dg}{dx}
-```
-
-在多元函数的情况下，对于 $z = f(x_1, x_2, \dots, x_n)$，偏导数为：
-
-```{math}
-\frac{\partial z}{\partial x_i} = \sum_{j} \frac{\partial z}{\partial y_j} \cdot \frac{\partial y_j}{\partial x_i}
-```
-
-## 反向传播的基本思想
-
-反向传播算法通过三步计算梯度：
-
-1. **前向传播**：计算图中每个节点的值
-2. **反向传播**：从输出节点开始，反向计算每个节点的梯度
-3. **梯度累积**：利用链式法则累积梯度
-
-## 反向传播的数学推导
-
-### 1. 标量输出的反向传播
-
-考虑计算图 $G$，输出为标量 $L$。对于任意节点 $v$，定义其梯度为：
-
-```{math}
-\frac{\partial L}{\partial v} = \text{节点 } v \text{ 对损失 } L \text{ 的贡献}
-```
-
-反向传播算法计算所有节点的梯度：
-
-```{math}
-\frac{\partial L}{\partial v} = \sum_{w \in \text{children}(v)} \frac{\partial L}{\partial w} \cdot \frac{\partial w}{\partial v}
-```
-
-### 2. 向量输出的反向传播
-
-当输出为向量时，我们需要计算雅可比矩阵。对于函数 $f: \mathbb{R}^n \to \mathbb{R}^m$，雅可比矩阵 $J_f$ 为：
-
-```{math}
-J_f = \begin{bmatrix}
-\frac{\partial f_1}{\partial x_1} & \cdots & \frac{\partial f_1}{\partial x_n} \\
-\vdots & \ddots & \vdots \\
-\frac{\partial f_m}{\partial x_1} & \cdots & \frac{\partial f_m}{\partial x_n}
-\end{bmatrix}
-```
-
-## 反向传播算法详细步骤
-
-### 算法伪代码
-
-```
-输入：计算图 G，损失函数 L
-输出：每个节点的梯度 grad[v]
-
-1. 执行前向传播，计算每个节点的值 value[v]
-2. 初始化梯度：grad[output] = 1
-3. 按逆拓扑顺序遍历节点：
-   对于每个节点 v：
-    对于 v 的每个子节点 w：
-      grad[v] += grad[w] * ∂w/∂v
-4. 返回 grad
-```
-
-### Python实现
-
-```python
-class Node:
-    def __init__(self, value=None, children=None, operation=None):
-        self.value = value
-        self.children = children or []
-        self.grad = 0
-        self.operation = operation
-        
-    def backward(self, grad=1):
-        """反向传播"""
-        self.grad += grad
-        
-        if self.operation == 'add':
-            # 对于加法：∂(a+b)/∂a = 1, ∂(a+b)/∂b = 1
-            for child in self.children:
-                child.backward(grad)
-        elif self.operation == 'mul':
-            # 对于乘法：∂(a*b)/∂a = b, ∂(a*b)/∂b = a
-            a, b = self.children
-            a.backward(grad * b.value)
-            b.backward(grad * a.value)
-        elif self.operation == 'sigmoid':
-            # 对于sigmoid：∂σ(x)/∂x = σ(x)(1-σ(x))
-            x = self.children[0]
-            sig = self.value
-            x.backward(grad * sig * (1 - sig))
-```
-
-## 常见操作的梯度计算
-
-### 基本运算
-
-```{math}
-\begin{aligned}
-\text{加法：} & \frac{\partial (a+b)}{\partial a} = 1, \quad \frac{\partial (a+b)}{\partial b} = 1 \\
-\text{乘法：} & \frac{\partial (a \times b)}{\partial a} = b, \quad \frac{\partial (a \times b)}{\partial b} = a \\
-\text{幂运算：} & \frac{\partial (a^n)}{\partial a} = n \cdot a^{n-1} \\
-\text{指数：} & \frac{\partial e^a}{\partial a} = e^a
-\end{aligned}
-```
-
-### 激活函数梯度
-
-```{math}
-\begin{aligned}
-\text{ReLU：} & \frac{\partial \text{ReLU}(x)}{\partial x} = 
-\begin{cases}
-1 & \text{if } x > 0 \\
-0 & \text{otherwise}
-\end{cases} \\
-\text{Sigmoid：} & \frac{\partial \sigma(x)}{\partial x} = \sigma(x)(1 - \sigma(x)) \\
-\text{Tanh：} & \frac{\partial \tanh(x)}{\partial x} = 1 - \tanh^2(x) \\
-\text{Softmax：} & \frac{\partial \text{softmax}(x_i)}{\partial x_j} = 
-\begin{cases}
-\text{softmax}(x_i)(1 - \text{softmax}(x_i)) & \text{if } i = j \\
--\text{softmax}(x_i)\text{softmax}(x_j) & \text{if } i \neq j
-\end{cases}
-\end{aligned}
-```
-
-## 反向传播的优化技巧
-
-### 1. 梯度检查
-
-```python
-def gradient_check(model, input_data, target, epsilon=1e-7):
-    """数值梯度检查"""
-    model.zero_grad()
+```{tikz} 反向传播：梯度从输出流回输入
+\begin{tikzpicture}[scale=0.9]
+    % 前向传播箭头（蓝色）
+    \draw[->, blue, very thick] (0, 3.2) -- (3, 3.2);
+    \draw[->, blue, very thick] (3, 3.2) -- (6, 3.2);
+    \draw[->, blue, very thick] (6, 3.2) -- (9, 3.2);
+    \node[blue] at (4.5, 3.7) {前向传播：计算预测};
     
-    # 计算解析梯度
-    output = model(input_data)
-    loss = criterion(output, target)
-    loss.backward()
+    % 反向传播箭头（红色）
+    \draw[->, red, very thick] (9, 1.8) -- (6, 1.8);
+    \draw[->, red, very thick] (6, 1.8) -- (3, 1.8);
+    \draw[->, red, very thick] (3, 1.8) -- (0, 1.8);
+    \node[red] at (4.5, 1.3) {反向传播：回传梯度};
     
-    # 数值梯度计算
-    for name, param in model.named_parameters():
-        if param.requires_grad:
-            original_value = param.data.clone()
-            
-            # 计算数值梯度
-            numerical_grad = torch.zeros_like(param.data)
-            for i in range(param.numel()):
-                # f(x + ε)
-                param.data = original_value.clone()
-                param.data.flatten()[i] += epsilon
-                output_plus = model(input_data)
-                loss_plus = criterion(output_plus, target)
-                
-                # f(x - ε)
-                param.data = original_value.clone()
-                param.data.flatten()[i] -= epsilon
-                output_minus = model(input_data)
-                loss_minus = criterion(output_minus, target)
-                
-                # 中心差分
-                numerical_grad.flatten()[i] = (loss_plus - loss_minus) / (2 * epsilon)
-            
-            # 恢复原始值
-            param.data = original_value
-            
-            # 比较梯度
-            diff = torch.abs(numerical_grad - param.grad).max().item()
-            print(f"{name}: max diff = {diff:.6f}")
-            if diff > 1e-5:
-                print(f"  Warning: gradient mismatch!")
+    % 节点
+    \node[circle, draw, fill=blue!20, minimum size=0.8cm] at (0, 2.5) {$x$};
+    \node[circle, draw, fill=blue!20, minimum size=0.8cm] at (3, 2.5) {$h$};
+    \node[circle, draw, fill=blue!20, minimum size=0.8cm] at (6, 2.5) {$z$};
+    \node[circle, draw, fill=red!20, minimum size=0.8cm] at (9, 2.5) {$L$};
+    
+    % 梯度标注
+    \node[red, font=\small] at (9, 0.7) {$\frac{\partial L}{\partial L}=1$};
+    \node[red, font=\small] at (6, 0.7) {$\frac{\partial L}{\partial z}$};
+    \node[red, font=\small] at (3, 0.7) {$\frac{\partial L}{\partial h}$};
+    \node[red, font=\small] at (0, 0.7) {$\frac{\partial L}{\partial x}$};
+\end{tikzpicture}
 ```
 
-### 2. 梯度裁剪
+## 链式法则：梯度的传递机制
 
-```python
-def clip_gradients(model, max_norm):
-    """梯度裁剪防止梯度爆炸"""
-    total_norm = 0
-    for param in model.parameters():
-        if param.grad is not None:
-            param_norm = param.grad.data.norm(2)
-            total_norm += param_norm.item() ** 2
-    total_norm = total_norm ** 0.5
-    
-    clip_coef = max_norm / (total_norm + 1e-6)
-    if clip_coef < 1:
-        for param in model.parameters():
-            if param.grad is not None:
-                param.grad.data.mul_(clip_coef)
-    
-    return total_norm
-```
+{ref}`back-propagation`的核心是**链式法则**（Chain Rule），它在{ref}`computational-graph`中让梯度高效传递。对于复合函数 $z = f(g(x))$：
+
+$$\frac{\partial z}{\partial x} = \frac{\partial z}{\partial g} \cdot \frac{\partial g}{\partial x}$$
+
+**直觉**：总的责任 = 当前环节的责任 × 上一环节的责任
+
+### 示例：简单计算图
+
+考虑 $f(x, y) = (x + y) \times y$，设 $x=2, y=3$：
+
+**前向传播**：
+
+- $a = x + y = 2 + 3 = 5$
+- $f = a \times y = 5 \times 3 = 15$
+
+**反向传播**（假设损失对 $f$ 的梯度为1）：
+
+- $\frac{\partial f}{\partial f} = 1$
+- $\frac{\partial f}{\partial a} = y = 3$（乘法规则）
+- $\frac{\partial f}{\partial y} = a = 5$（乘法规则）
+- $\frac{\partial f}{\partial x} = \frac{\partial f}{\partial a} \cdot \frac{\partial a}{\partial x} = 3 \times 1 = 3$（链式法则）
+- $\frac{\partial f}{\partial y}$ 有两条路径：$= 5 + 3 = 8$
 
 ## PyTorch中的自动微分
 
-### 基本用法
+PyTorch通过`autograd`自动完成反向传播：
 
 ```python
 import torch
 
-# 创建张量并启用梯度跟踪
+# 创建张量，启用梯度跟踪
 x = torch.tensor(2.0, requires_grad=True)
 y = torch.tensor(3.0, requires_grad=True)
 
 # 前向传播
-z = x * y + torch.sin(x)
+a = x + y      # a = 5
+f = a * y      # f = 15
 
 # 反向传播
-z.backward()
+f.backward()
 
-print(f"x.grad = {x.grad}")  # ∂z/∂x = y + cos(x) = 3 + cos(2)
-print(f"y.grad = {y.grad}")  # ∂z/∂y = x = 2
+print(f"∂f/∂x = {x.grad}")  # 输出: 3.0
+print(f"∂f/∂y = {y.grad}")  # 输出: 8.0
 ```
 
-### 高阶导数
+**关键机制**：
 
-```python
-# 计算二阶导数
-x = torch.tensor(2.0, requires_grad=True)
-y = x ** 3
+- `requires_grad=True`：告诉PyTorch需要跟踪这个张量的{ref}`computational-graph`
+- PyTorch自动构建**动态计算图**（参见{ref}`computational-graph`）
+- `.backward()`：自动执行{ref}`back-propagation`计算所有叶节点的梯度
 
-# 一阶导数
-grad1 = torch.autograd.grad(y, x, create_graph=True)[0]
-print(f"一阶导数: dy/dx = {grad1}")  # 3x² = 12
+## 神经网络中的反向传播
 
-# 二阶导数
-grad2 = torch.autograd.grad(grad1, x)[0]
-print(f"二阶导数: d²y/dx² = {grad2}")  # 6x = 12
-```
+对于多层神经网络，反向传播从输出层逐层回传：
 
-### 自定义自动微分函数
-
-```python
-import torch
-import torch.autograd as autograd
-
-class CustomSigmoid(autograd.Function):
-    @staticmethod
-    def forward(ctx, input):
-        """前向传播"""
-        output = 1 / (1 + torch.exp(-input))
-        ctx.save_for_backward(output)
-        return output
+```{tikz} 神经网络反向传播示意
+\begin{tikzpicture}[scale=0.8]
+    % 输入层
+    \foreach \i in {1,2,3}
+        \node[circle, draw=blue!50, fill=blue!20, minimum size=0.6cm] (in\i) at (0,\i) {};
+    \node at (-1.2, 2) {输入};
     
-    @staticmethod
-    def backward(ctx, grad_output):
-        """反向传播"""
-        output, = ctx.saved_tensors
-        grad_input = grad_output * output * (1 - output)
-        return grad_input
-
-# 使用自定义函数
-custom_sigmoid = CustomSigmoid.apply
-x = torch.tensor(2.0, requires_grad=True)
-y = custom_sigmoid(x)
-y.backward()
-print(f"x.grad = {x.grad}")
+    % 隐藏层
+    \foreach \i in {1,2,3,4}
+        \node[circle, draw=orange!50, fill=orange!20, minimum size=0.6cm] (hid\i) at (3,\i-0.5) {};
+    \node at (3, 4.5) {隐藏层};
+    
+    % 输出层
+    \foreach \i in {1,2}
+        \node[circle, draw=green!50, fill=green!20, minimum size=0.6cm] (out\i) at (6,\i+0.5) {};
+    \node at (7.2, 2) {输出};
+    
+    % 前向连接（蓝色）
+    \foreach \i in {1,2,3}
+        \foreach \j in {1,2,3,4}
+            \draw[->, blue!30] (in\i) -- (hid\j);
+    
+    \foreach \i in {1,2,3,4}
+        \foreach \j in {1,2}
+            \draw[->, blue!30] (hid\i) -- (out\j);
+    
+    % 反向梯度流（红色箭头）
+    \draw[->, red, thick] (5, 0.8) -- (4.5, 0.4);
+    \draw[->, red, thick] (5, 3.2) -- (4.5, 3.4);
+    \node[red, font=\small] at (7, 3.5) {损失};
+    \node[red, font=\small] at (7, 3) {$\nabla L$};
+\end{tikzpicture}
 ```
 
-## 反向传播的常见问题与解决方案
+**流程**：
 
-### 1. 梯度消失
+1. **前向传播**：数据从输入层 → 隐藏层 → 输出层，计算预测和损失
+2. **反向传播**：梯度从输出层 ← 隐藏层 ← 输入层，计算每个参数的梯度
+3. **参数更新**：使用梯度下降更新权重
 
-**问题**：深层网络中梯度变得非常小，导致早期层无法更新。
+## 常见操作的梯度
 
-**解决方案**：
-- 使用合适的激活函数（ReLU、Leaky ReLU）
-- 使用批量归一化
-- 使用残差连接
-- 合适的权重初始化
+| 操作 | 前向 | 反向梯度 |
+|------|------|----------|
+| 加法 $z = x + y$ | $z = x + y$ | $\frac{\partial L}{\partial x} = \frac{\partial L}{\partial z}$, $\frac{\partial L}{\partial y} = \frac{\partial L}{\partial z}$ |
+| 乘法 $z = x \times y$ | $z = x \times y$ | $\frac{\partial L}{\partial x} = \frac{\partial L}{\partial z} \cdot y$, $\frac{\partial L}{\partial y} = \frac{\partial L}{\partial z} \cdot x$ |
+| ReLU $z = \max(0, x)$ | $z = \max(0, x)$ | $\frac{\partial L}{\partial x} = \frac{\partial L}{\partial z}$ (if $x>0$), else 0 |
+| Sigmoid $z = \sigma(x)$ | $z = \sigma(x)$ | $\frac{\partial L}{\partial x} = \frac{\partial L}{\partial z} \cdot z(1-z)$ |
 
-### 2. 梯度爆炸
+## 反向传播的优势
 
-**问题**：梯度变得非常大，导致数值不稳定。
+### 1. 计算效率
 
-**解决方案**：
-- 梯度裁剪
-- 权重正则化
-- 使用梯度归一化
-- 降低学习率
+{ref}`back-propagation`的时间复杂度是 $O(n)$，其中 $n$ 是{ref}`computational-graph`中边的数量。相比之下，数值差分需要 $O(n \times p)$，其中 $p$ 是参数数量。
 
-### 3. 内存问题
+**关键**：通过复用中间计算结果，避免重复求导。
 
-**问题**：计算图占用过多内存。
+### 2. 模块化设计
 
-**解决方案**：
-- 使用 `detach()` 分离不需要梯度的张量
-- 及时释放计算图
-- 使用梯度检查点技术
+每个操作只需要定义：
+
+- 前向：如何计算输出
+- 反向：如何计算梯度
+
+这使得添加新操作变得简单。
+
+## 常见问题
+
+### 梯度消失（Vanishing Gradient）
+
+**现象**：深层网络中，靠近输入层的梯度变得非常小，参数几乎不更新。
+
+**原因**：{ref}`activation-functions`中的Sigmoid/Tanh在饱和区梯度接近0，{ref}`back-propagation`多层连乘后梯度指数级衰减。
+
+**解决**：使用ReLU激活函数、批归一化、残差连接。
+
+### 梯度爆炸（Exploding Gradient）
+
+**现象**：梯度变得非常大，导致参数更新剧烈，训练不稳定。
+
+**原因**：权重初始化不当或网络结构导致梯度连乘后指数级增长。
+
+**解决**：梯度裁剪、权重正则化、更好的初始化。
 
 ## 总结
 
-反向传播是深度学习的核心算法，它基于链式法则高效计算梯度。理解反向传播的数学原理和实现细节对于调试和优化深度学习模型至关重要。现代深度学习框架如PyTorch和TensorFlow提供了自动微分功能，使得反向传播的实现变得简单，但深入理解其原理仍然非常重要。
+反向传播是深度学习的核心算法：
+
+1. **信用分配**：将最终损失"分摊"给每个参数
+2. **链式法则**：梯度从输出层逐层回传
+3. **高效计算**：复用中间结果，时间与网络规模线性相关
+
+反向传播通过{ref}`computational-graph`高效计算梯度。理解反向传播后，我们将探讨{ref}`gradient-descent`——如何利用这些梯度来优化模型参数。
