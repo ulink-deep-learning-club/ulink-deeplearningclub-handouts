@@ -138,6 +138,81 @@ lesson4/index
 
 List the topics in the desired order. Each entry is the path of the Markdown file without the `.md` extension.
 
+## Cross References
+
+Sphinx provides powerful cross-referencing capabilities to link between different parts of your documentation.
+
+### Referencing Sections with `{ref}`
+
+To reference a specific section or heading, first define a label above the target header, then use `{ref}` to create the link.
+
+**Step 1: Define a label** (must be above a header):
+
+```markdown
+(my-custom-label)=
+# Target Section
+
+Content here...
+```
+
+**Step 2: Reference the label** from any other file:
+
+```markdown
+See {ref}`my-custom-label` for more details.
+```
+
+Or with custom link text:
+
+```markdown
+See {ref}`Custom Link Text <my-custom-label>` for more details.
+```
+
+### Referencing Documents with `{doc}`
+
+To link to the "front door" of another page (using its title automatically), use the `{doc}` role:
+
+```markdown
+Continue to {doc}`./folder/filename` for the next lesson.
+```
+
+Note: Omit the `.md` extension in the path.
+
+### Referencing with Markdown Links
+
+For external URLs or standard Markdown links:
+
+```markdown
+[Link text](https://example.com)
+[Link to section](#section-name)
+```
+
+### Best Practices for Cross References
+
+1. **Use descriptive labels**: Choose label names that clearly indicate the target content, e.g., `(gradient-descent)=` instead of `(section-5)=`.
+
+2. **Define labels at the top of files**: Place `(label-name)=` right before the main `# Title` for easy reference.
+
+3. **Reference early and often**: Link related concepts across chapters to help readers navigate.
+
+4. **Use `{ref}` for sections, `{doc}` for files**: 
+   - Use `{ref}` when pointing to a specific section/heading
+   - Use `{doc}` when linking to an entire document
+
+5. **Check references after restructuring**: If you move or rename files, update all cross references accordingly.
+
+### Example Usage
+
+```markdown
+(computational-graph)=
+# Computational Graphs
+
+## Introduction
+...
+
+In the next section, we discuss {ref}`activation-functions`.
+For a complete overview, see {doc}`index`.
+```
+
 ## Conclusion
 
 Following these patterns will ensure that your Sphinx‑based documentation is well‑structured, maintainable, and visually consistent. For further details, refer to the official [Sphinx documentation](https://www.sphinx-doc.org/).
