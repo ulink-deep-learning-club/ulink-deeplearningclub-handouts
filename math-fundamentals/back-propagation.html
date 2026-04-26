@@ -155,9 +155,11 @@
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../preface.html">写在前面：关于深度学习</a></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
 <li class="toctree-l2"><a class="reference internal" href="computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="task-formulations.html">学习任务的形式</a></li>
 <li class="toctree-l2"><a class="reference internal" href="activation-functions.html">激活函数</a></li>
 <li class="toctree-l2"><a class="reference internal" href="loss-functions.html">损失函数</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">反向传播算法</a></li>
@@ -501,10 +503,17 @@ document.write(`
 </section>
 <section id="id4">
 <h2>链式法则：梯度的传递机制<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
-<p><a class="reference internal" href="#back-propagation"><span class="std std-ref">反向传播算法</span></a>的核心是<strong>链式法则</strong>（Chain Rule），它在<a class="reference internal" href="computational-graph.html#computational-graph"><span class="std std-ref">计算图</span></a>中让梯度高效传递。对于复合函数 <span class="math notranslate nohighlight">\(z = f(g(x))\)</span>：</p>
+<p><a class="reference internal" href="#back-propagation"><span class="std std-ref">反向传播算法</span></a>的核心是<strong>链式法则</strong>（Chain Rule）。想象你改变了输入 <span class="math notranslate nohighlight">\(x\)</span> 一点点，这个变化会层层传递，最终影响损失 <span class="math notranslate nohighlight">\(L\)</span>。链式法则告诉我们：<strong>总的影响是各层影响的乘积</strong>。</p>
+<p>对于复合函数 <span class="math notranslate nohighlight">\(z = f(g(x))\)</span>，如果 <span class="math notranslate nohighlight">\(x\)</span> 变化了 <span class="math notranslate nohighlight">\(\Delta x\)</span>：</p>
+<ul class="simple">
+<li><p>首先影响 <span class="math notranslate nohighlight">\(g\)</span>：<span class="math notranslate nohighlight">\(\Delta g \approx \frac{\partial g}{\partial x} \Delta x\)</span></p></li>
+<li><p>然后影响 <span class="math notranslate nohighlight">\(z\)</span>：<span class="math notranslate nohighlight">\(\Delta z \approx \frac{\partial z}{\partial g} \Delta g\)</span></p></li>
+<li><p>综合起来：<span class="math notranslate nohighlight">\(\Delta z \approx \frac{\partial z}{\partial g} \cdot \frac{\partial g}{\partial x} \cdot \Delta x\)</span></p></li>
+</ul>
+<p>所以：</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial z}{\partial x} = \frac{\partial z}{\partial g} \cdot \frac{\partial g}{\partial x}\]</div>
-<p><strong>直觉</strong>：总的责任 = 当前环节的责任 × 上一环节的责任</p>
+<p><strong>直觉</strong>：影响会<strong>层层叠加</strong>——就像多米诺骨牌，第一块倒下的角度（<span class="math notranslate nohighlight">\(\frac{\partial g}{\partial x}\)</span>）乘以第二块倒下的角度（<span class="math notranslate nohighlight">\(\frac{\partial z}{\partial g}\)</span>），就是最后一块倒下的总角度。</p>
 <section id="id5">
 <h3>示例：简单计算图<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
 <p>考虑 <span class="math notranslate nohighlight">\(f(x, y) = (x + y) \times y\)</span>，设 <span class="math notranslate nohighlight">\(x=2, y=3\)</span>：</p>
@@ -613,15 +622,35 @@ document.write(`
 <h2>常见问题<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
 <section id="vanishing-gradient">
 <h3>梯度消失（Vanishing Gradient）<a class="headerlink" href="#vanishing-gradient" title="Link to this heading">#</a></h3>
-<p><strong>现象</strong>：深层网络中，靠近输入层的梯度变得非常小，参数几乎不更新。</p>
-<p><strong>原因</strong>：<a class="reference internal" href="activation-functions.html#activation-functions"><span class="std std-ref">激活函数</span></a>中的Sigmoid/Tanh在饱和区梯度接近0，<a class="reference internal" href="#back-propagation"><span class="std std-ref">反向传播算法</span></a>多层连乘后梯度指数级衰减。</p>
-<p><strong>解决</strong>：使用ReLU激活函数、批归一化、残差连接。</p>
+<p>想象一个100层的神经网络。当你训练时，发现靠近输出层的参数更新正常，但靠近输入层的参数几乎不动——就像前面几十层&quot;冻住&quot;了一样。这就是<strong>梯度消失</strong>。</p>
+<p>为什么会发生？回顾链式法则：梯度是<strong>各层影响的乘积</strong>。如果每一层的梯度都小于1（比如Sigmoid在饱和区的梯度只有0.01），100层连乘后：</p>
+<div class="math notranslate nohighlight">
+\[0.01 \times 0.01 \times ... \times 0.01 \quad (100次) = 10^{-200}\]</div>
+<p>这个数小到计算机都当成0处理了！具体场景是：使用Sigmoid/Tanh激活函数时，输入值很大或很小会让函数进入&quot;饱和区&quot;，梯度接近0；网络层数越深，问题越严重。</p>
+<p><strong>后果</strong>：前面的层学不到东西，模型退化成&quot;浅层网络&quot;——只有后面几层在学习。对于图像数据，前面的层本应学习边缘、纹理等基础特征，但这些特征学不到。</p>
+<p><strong>解决方案</strong>：</p>
+<ul class="simple">
+<li><p><strong>ReLU激活函数</strong>：正区间的梯度恒为1，不会衰减</p></li>
+<li><p><strong>批归一化（BatchNorm）</strong>：控制每层的数值范围，避免进入饱和区</p></li>
+<li><p><strong>残差连接（ResNet）</strong>：让梯度有&quot;捷径&quot;可以直达前面层</p></li>
+</ul>
 </section>
+<hr class="docutils" />
 <section id="exploding-gradient">
 <h3>梯度爆炸（Exploding Gradient）<a class="headerlink" href="#exploding-gradient" title="Link to this heading">#</a></h3>
-<p><strong>现象</strong>：梯度变得非常大，导致参数更新剧烈，训练不稳定。</p>
-<p><strong>原因</strong>：权重初始化不当或网络结构导致梯度连乘后指数级增长。</p>
-<p><strong>解决</strong>：梯度裁剪、权重正则化、更好的初始化。</p>
+<p>训练过程中，损失突然变成NaN（不是数字），或者参数变得极其巨大（比如从0.1变成1000000），模型完全失控。这就是<strong>梯度爆炸</strong>。</p>
+<p>为什么会发生？和梯度消失相反，如果每层的梯度都大于1（比如权重初始化过大，梯度为2），100层连乘后：</p>
+<div class="math notranslate nohighlight">
+\[2 \times 2 \times ... \times 2 \quad (100次) = 2^{100} \approx 10^{30}\]</div>
+<p>这是一个天文数字！参数会被更新得极其剧烈，完全偏离最优解。常见于权重初始化不当，或循环神经网络（RNN）处理长序列时。</p>
+<p><strong>后果</strong>：参数更新过大跳出最优解区域，损失函数震荡发散，甚至数值溢出（NaN）导致训练彻底失败。</p>
+<p><strong>解决方案</strong>：</p>
+<ul class="simple">
+<li><p><strong>梯度裁剪</strong>：设定梯度上限，超过就截断</p></li>
+<li><p><strong>权重正则化（L2正则）</strong>：惩罚过大的权重</p></li>
+<li><p><strong>更好的初始化</strong>：如Xavier初始化、He初始化，控制初始梯度规模</p></li>
+<li><p><strong>更小的学习率</strong>：让参数更新更温和</p></li>
+</ul>
 </section>
 </section>
 <section id="id12">
@@ -640,7 +669,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (3 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (4 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -648,6 +677,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">ae2053f</code>
+                2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): add task-formulations and update related content
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">756a793</code>
                 2026-04-25 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and improve explanations

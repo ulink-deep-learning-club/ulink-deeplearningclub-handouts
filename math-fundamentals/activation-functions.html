@@ -414,7 +414,7 @@ window.addEventListener("load", load);
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
     <link rel="next" title="损失函数" href="loss-functions.html" />
-    <link rel="prev" title="计算图" href="computational-graph.html" />
+    <link rel="prev" title="学习任务的形式" href="task-formulations.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
   </head>
@@ -519,9 +519,11 @@ window.addEventListener("load", load);
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../preface.html">写在前面：关于深度学习</a></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
 <li class="toctree-l2"><a class="reference internal" href="computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="task-formulations.html">学习任务的形式</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">激活函数</a></li>
 <li class="toctree-l2"><a class="reference internal" href="loss-functions.html">损失函数</a></li>
 <li class="toctree-l2"><a class="reference internal" href="back-propagation.html">反向传播算法</a></li>
@@ -813,9 +815,10 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">激活函数的本质：划分特征空间</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">从线性回归到神经网络</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">什么是"空间"？</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">决策边界的形成</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">从线性回归到逻辑回归</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">为什么需要激活函数</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">什么是"空间"？</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">决策边界的形成</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sigmoid">Sigmoid 函数</a></li>
@@ -823,9 +826,9 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#relu-rectified-linear-unit">ReLU 函数（Rectified Linear Unit）</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#leaky-relu">Leaky ReLU 与变体</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#swish">Swish 函数</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#softmax">Softmax函数</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">激活函数选择指南</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#softmax">Softmax 函数</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">激活函数选择指南</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">总结</a></li>
 </ul>
             </nav>
         </div>
@@ -842,21 +845,33 @@ document.write(`
 <section id="id2">
 <h2>激活函数的本质：划分特征空间<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
 <section id="id3">
-<h3>从线性回归到神经网络<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
-<p>你可能熟悉<strong>线性回归</strong>：<span class="math notranslate nohighlight">\(y = wx + b\)</span>，它用一条直线拟合数据。在特征空间中，线性回归用一个<strong>超平面</strong>划分空间——平面一侧预测为正，另一侧为负。</p>
-<p><strong>单神经元 + Sigmoid</strong> 就是逻辑回归：</p>
+<h3>从线性回归到逻辑回归<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<p>你可能熟悉<strong>线性回归</strong>：<span class="math notranslate nohighlight">\(y = wx + b\)</span>，它用一条直线拟合数据，输出连续值。但很多时候我们需要做<strong>分类</strong>——不是预测数值，而是判断&quot;这是A类还是B类&quot;。</p>
+<p><strong>问题</strong>：如果用线性回归做二分类会怎样？</p>
+<p>假设我们想区分&quot;垃圾邮件&quot;和&quot;正常邮件&quot;。如果用线性回归输出 <span class="math notranslate nohighlight">\(y = wx + b\)</span>，我们得到一个实数值。但分类需要的是一个概率——“这封邮件是垃圾邮件的可能性有多大”。</p>
+<p><strong>逻辑回归</strong>解决了这个问题。它在线性回归的输出上叠加一个 <strong>Sigmoid</strong> 函数：</p>
 <div class="math notranslate nohighlight">
 \[\hat{y} = \sigma(wx + b) = \frac{1}{1 + e^{-(wx + b)}}\]</div>
-<p>它同样只能学习 <strong>线性决策边界</strong>，无法解决异或（XOR）这类简单问题。</p>
-<p><strong>多层感知机（MLP）</strong> 是线性回归的自然延伸：</p>
+<p>Sigmoid 将任意实数压缩到 <span class="math notranslate nohighlight">\((0, 1)\)</span> 区间，恰好可以解释为概率。</p>
+<p><strong>逻辑回归的决策规则</strong>：</p>
+<ul class="simple">
+<li><p>如果 <span class="math notranslate nohighlight">\(\sigma(wx + b) \geq 0.5\)</span>，预测为类别1</p></li>
+<li><p>如果 <span class="math notranslate nohighlight">\(\sigma(wx + b) &lt; 0.5\)</span>，预测为类别0</p></li>
+</ul>
+<p>这等价于判断 <span class="math notranslate nohighlight">\(wx + b \geq 0\)</span> 还是 <span class="math notranslate nohighlight">\(wx + b &lt; 0\)</span>——在特征空间中，就是用一条<strong>直线</strong>（或超平面）划分两个区域。逻辑回归只能学习<strong>线性决策边界</strong>。</p>
+</section>
+<section id="id4">
+<h3>为什么需要激活函数<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p>逻辑回归解决了二分类问题，但它有一个根本限制：<strong>只能学习线性边界</strong>。现实中很多分类问题的决策边界是复杂的非线性形状——比如异或（XOR）问题，逻辑回归就无法解决。</p>
+<p><strong>多层感知机（MLP）</strong> 突破了这个限制：</p>
 <ul class="simple">
 <li><p>第一层：多个神经元并行，各自学习不同的线性边界</p></li>
 <li><p><strong>激活函数</strong>：引入非线性，将空间&quot;折叠&quot;</p></li>
 <li><p>后续层：组合这些折叠后的特征，学习复杂边界</p></li>
 </ul>
 </section>
-<section id="id4">
-<h3>什么是&quot;空间&quot;？<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<section id="id5">
+<h3>什么是&quot;空间&quot;？<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
 <p>在深度学习中，<strong>空间</strong>指的是输入数据的特征空间：</p>
 <ul class="simple">
 <li><p>一个样本对应空间中的一个<strong>点</strong></p></li>
@@ -869,14 +884,14 @@ document.write(`
 <li><p><strong>非线性激活</strong>：将空间&quot;折叠&quot;，使线性不可分的数据变得可分</p></li>
 </ul>
 </section>
-<section id="id5">
-<h3>决策边界的形成<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<section id="id6">
+<h3>决策边界的形成<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
 <p>没有激活函数，无论堆叠多少层，网络只能学习线性变换——因为多个线性变换的组合仍然是线性的：<span class="math notranslate nohighlight">\(f(W_2(W_1x)) = W_2W_1x = W'x\)</span>。激活函数引入非线性，使网络能够在空间中划分<strong>复杂的决策边界</strong>。</p>
-<figure class="align-center" id="id8">
+<figure class="align-center" id="id9">
 <a class="with-border reference internal image-reference" href="../_images/simple-nn-demo.png"><img alt="../_images/simple-nn-demo.png" class="with-border" src="../_images/simple-nn-demo.png" style="width: 400px;" />
 </a>
 <figcaption>
-<p><span class="caption-text">3神经元网络形成的复杂决策边界</span><a class="headerlink" href="#id8" title="Link to this image">#</a></p>
+<p><span class="caption-text">3神经元网络形成的复杂决策边界</span><a class="headerlink" href="#id9" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <p><strong>网络结构解析</strong>：</p>
@@ -1000,7 +1015,7 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <li><p><strong>梯度消失</strong>：<span class="math notranslate nohighlight">\(|x|\)</span>较大时梯度接近0，这会导致<a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>时梯度衰减</p></li>
 <li><p><strong>非零中心</strong>：输出始终为正</p></li>
 </ul>
-<div class="figure" id="id9" style="text-align: center"><p><img  src="../_images/tikz-edd0f92cd625512bf02e7fffafc9d34929517109.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id10" style="text-align: center"><p><img  src="../_images/tikz-edd0f92cd625512bf02e7fffafc9d34929517109.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Sigmoid 函数</span></p>
 </div></section>
 <hr class="docutils" />
@@ -1016,7 +1031,7 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <li><p>更强梯度信号（最大梯度是 Sigmoid 的4倍）</p></li>
 </ul>
 <p><strong>局限</strong>：仍然存在梯度消失问题</p>
-<div class="figure" id="id10" style="text-align: center"><p><img  src="../_images/tikz-1658b8c837140dcc26171e59642e4bcb2ffe10a3.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id11" style="text-align: center"><p><img  src="../_images/tikz-1658b8c837140dcc26171e59642e4bcb2ffe10a3.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Tanh函数</span></p>
 </div></section>
 <hr class="docutils" />
@@ -1033,7 +1048,7 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <li><p><strong>稀疏激活</strong>：约 50% 神经元输出为 0</p></li>
 </ul>
 <p><strong>问题</strong>：<strong>“死亡神经元”</strong>——若输入始终为负，梯度永远为 0，神经元永久失活</p>
-<div class="figure" id="id11" style="text-align: center"><p><img  src="../_images/tikz-0c40b387d3934f504c6b57d11908b31e0af05bd2.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id12" style="text-align: center"><p><img  src="../_images/tikz-0c40b387d3934f504c6b57d11908b31e0af05bd2.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">ReLU 函数</span></p>
 </div></section>
 <hr class="docutils" />
@@ -1053,7 +1068,7 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <li><p><strong>PReLU</strong>：<span class="math notranslate nohighlight">\(\alpha\)</span> 作为可学习参数</p></li>
 <li><p><strong>ELU</strong>：负区间使用指数函数，更平滑</p></li>
 </ul>
-<div class="figure" id="id12" style="text-align: center"><p><img  src="../_images/tikz-ab7aba33e1318d8f084dc4a0d1e4acb89b7a0562.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id13" style="text-align: center"><p><img  src="../_images/tikz-ab7aba33e1318d8f084dc4a0d1e4acb89b7a0562.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Leaky ReLU函数</span></p>
 </div></section>
 <hr class="docutils" />
@@ -1074,12 +1089,12 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <p>当 <span class="math notranslate nohighlight">\(\beta \to \infty\)</span> 时，<span class="math notranslate nohighlight">\(\sigma(\beta x) \to \text{step}(x)\)</span>，Swish 趋近于 ReLU：</p>
 <div class="math notranslate nohighlight">
 \[\begin{split} \lim_{\beta \to \infty} \frac{x}{1 + e^{-\beta x}} = \begin{cases} x &amp; \text{if } x &gt; 0 \\ 0 &amp; \text{otherwise} \end{cases} \end{split}\]</div>
-<div class="figure" id="id13" style="text-align: center"><p><img  src="../_images/tikz-c6683a00a81d024028fda3ad88d31c08274713f1.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id14" style="text-align: center"><p><img  src="../_images/tikz-c6683a00a81d024028fda3ad88d31c08274713f1.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Swish 函数</span></p>
 </div></section>
 <hr class="docutils" />
 <section id="softmax">
-<h2>Softmax函数<a class="headerlink" href="#softmax" title="Link to this heading">#</a></h2>
+<h2>Softmax 函数<a class="headerlink" href="#softmax" title="Link to this heading">#</a></h2>
 <p>Softmax 是多分类问题的标准输出层激活函数，将 logits 转换为概率分布：</p>
 <div class="math notranslate nohighlight">
 \[\text{softmax}(x_i) = \frac{e^{x_i}}{\sum_{j=1}^C e^{x_j}}\]</div>
@@ -1093,14 +1108,14 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <ul class="simple">
 <li><p>梯度形式简洁：<span class="math notranslate nohighlight">\(\frac{\partial L}{\partial x_i} = \text{softmax}(x_i) - y_i\)</span></p></li>
 </ul>
-<div class="figure" id="id14" style="text-align: center"><p><img  src="../_images/tikz-488a73b31177d9e08e9d2da70aa3dd8b3027d817.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id15" style="text-align: center"><p><img  src="../_images/tikz-488a73b31177d9e08e9d2da70aa3dd8b3027d817.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Softmax 变换示意</span></p>
 </div></section>
 <hr class="docutils" />
-<section id="id6">
-<h2>激活函数选择指南<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="table" id="id15">
-<caption><span class="caption-text">激活函数选择参考</span><a class="headerlink" href="#id15" title="Link to this table">#</a></caption>
+<section id="id7">
+<h2>激活函数选择指南<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table" id="id16">
+<caption><span class="caption-text">激活函数选择参考</span><a class="headerlink" href="#id16" title="Link to this table">#</a></caption>
 <colgroup>
 <col style="width: 20.0%" />
 <col style="width: 20.0%" />
@@ -1140,8 +1155,8 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 </div>
 </section>
 <hr class="docutils" />
-<section id="id7">
-<h2>总结<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<section id="id8">
+<h2>总结<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
 <p>激活函数是神经网络<strong>非线性表达能力</strong>的来源：</p>
 <ol class="arabic simple">
 <li><p><strong>几何视角</strong>：每个激活函数定义了输入空间的划分方式</p></li>
@@ -1162,7 +1177,7 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (3 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (4 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -1170,6 +1185,11 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">ae2053f</code>
+                2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): add task-formulations and update related content
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">756a793</code>
                 2026-04-25 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and improve explanations
@@ -1201,12 +1221,12 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="computational-graph.html"
+       href="task-formulations.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">上一页</p>
-        <p class="prev-next-title">计算图</p>
+        <p class="prev-next-title">学习任务的形式</p>
       </div>
     </a>
     <a class="right-next"
@@ -1235,9 +1255,10 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">激活函数的本质：划分特征空间</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">从线性回归到神经网络</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">什么是"空间"？</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">决策边界的形成</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">从线性回归到逻辑回归</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">为什么需要激活函数</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">什么是"空间"？</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">决策边界的形成</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sigmoid">Sigmoid 函数</a></li>
@@ -1245,9 +1266,9 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#relu-rectified-linear-unit">ReLU 函数（Rectified Linear Unit）</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#leaky-relu">Leaky ReLU 与变体</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#swish">Swish 函数</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#softmax">Softmax函数</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">激活函数选择指南</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#softmax">Softmax 函数</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">激活函数选择指南</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">总结</a></li>
 </ul>
   </nav></div>
 
