@@ -66,9 +66,13 @@ To include an image with a caption, width, and alignment, use the `figure` direc
 Example:
 
 ```{figure} images/example.png
-:width: 400px
-:align: center
-:caption: An example figure illustrating the concept.
+---
+width: 400px
+align: center
+class: with-border
+---
+
+An example figure illustrating the concept.
 ```
 
 Remove the `:width:` or `:align:` lines if they are not required.

@@ -262,6 +262,8 @@ $$
 
 ### Adam（自适应矩估计）
 
+Adam {cite}`kingma2014adam` 是目前最常用的优化算法之一。
+
 **直觉**：为每个参数单独调整学习率。频繁更新的参数用较小学习率，稀疏更新的用较大学习率。
 
 **特点**：
@@ -544,3 +546,11 @@ scheduler = optim.lr_scheduler.SequentialLR(
 5. **学习率调度**：训练过程中调整学习率能提升效果
 
 理解{ref}`loss-functions`和优化算法后，你就掌握了深度学习训练的全流程。接下来我们将通过{doc}`the-end`回顾本章内容，然后进入实践章节。
+
+---
+
+## 参考文献
+
+```{bibliography}
+:filter: docname in docnames
+```

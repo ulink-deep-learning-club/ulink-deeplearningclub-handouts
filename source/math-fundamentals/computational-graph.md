@@ -5,7 +5,7 @@
 
 计算图是一种用图来表示数学运算的方法。你可以把它想象成**数据流的管道系统**：数据从输入节点流入，经过各种操作节点（如加法、乘法、激活函数），最终到达输出节点。
 
-这种表示方式有两个核心价值：
+这种表示方式有两个核心价值 {cite}`werbos1990backpropagation`：
 1. **可视化**：复杂的数学表达式变成清晰的流程图
 2. **自动求导**：为反向传播提供结构基础，让梯度计算自动化
 
@@ -160,3 +160,12 @@ PyTorch的 `backward()` 自动完成了这些计算。
 - **自动求导**：计算图结构让{ref}`back-propagation`的梯度计算自动化
 
 理解{ref}`computational-graph`后，我们将探索{ref}`activation-functions`如何用非线性变换在空间中划分决策边界。之后{ref}`loss-functions`会将预测误差量化，{ref}`back-propagation`通过计算图高效计算梯度，最后{ref}`gradient-descent`利用这些梯度优化参数。
+
+---
+
+## 参考文献
+
+```{bibliography}
+:filter: docname in docnames
+```
+

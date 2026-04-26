@@ -5,9 +5,10 @@
 
 神经网络训练时，我们根据最终损失来调整参数。核心问题是：**损失是由很多参数共同造成的，每个参数该"背多少锅"？**
 
-反向传播（Backpropagation）就是解决这个"**信用分配问题**"的高效算法。
+反向传播（Backpropagation）{cite}`rumelhart1986learning` 就是解决这个"**信用分配问题**"的高效算法。
 
-### 类比：团队项目的责任分摊
+```{admonition} 类比：团队项目的责任分摊
+:class: tip
 
 想象一个团队项目失败了（损失很大），需要找出每个人的责任：
 
@@ -15,7 +16,7 @@
 - **反向传播**：从失败结果倒推，计算每个人对失败的责任（梯度）
 - **链式法则**：如果A的工作影响了B，B的责任要按贡献度传递给A
 
-```{tikz} 反向传播：梯度从输出流回输入
+~~~{tikz} 反向传播：梯度从输出流回输入
 \begin{tikzpicture}[scale=0.9]
     % 前向传播箭头（蓝色）
     \draw[->, blue, very thick] (0, 3.2) -- (3, 3.2);
@@ -41,7 +42,10 @@
     \node[red, font=\small] at (3, 0.7) {$\frac{\partial L}{\partial h}$};
     \node[red, font=\small] at (0, 0.7) {$\frac{\partial L}{\partial x}$};
 \end{tikzpicture}
+~~~
 ```
+
+
 
 ## 链式法则：梯度的传递机制
 
@@ -221,3 +225,11 @@ $$2 \times 2 \times ... \times 2 \quad (100次) = 2^{100} \approx 10^{30}$$
 3. **高效计算**：复用中间结果，时间与网络规模线性相关
 
 反向传播通过{ref}`computational-graph`高效计算梯度。理解反向传播后，我们将探讨{ref}`gradient-descent`——如何利用这些梯度来优化模型参数。
+
+---
+
+## 参考文献
+
+```{bibliography}
+:filter: docname in docnames
+```

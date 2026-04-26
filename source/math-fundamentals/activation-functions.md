@@ -219,7 +219,7 @@ $$\tanh(x) = \frac{e^x - e^{-x}}{e^x + e^{-x}} = 2\sigma(2x) - 1$$
 
 ## ReLU 函数（Rectified Linear Unit）
 
-ReLU 于2012年 AlexNet 的成功后成为主流：
+ReLU {cite}`nair2010rectified` 于2012年 AlexNet 的成功后成为主流：
 
 $$\text{ReLU}(x) = \max(0, x) = \begin{cases} x & x > 0 \\ 0 & x \leq 0 \end{cases}$$
 
@@ -282,7 +282,7 @@ $$\text{LeakyReLU}(x) = \begin{cases} x & x > 0 \\ \alpha x & x \leq 0 \end{case
 
 ## Swish 函数
 
-由 Google Brain 团队的 Prajit Ramachandran 等人于 2017 年通过神经架构搜索发现。其设计动机体现了深度学习研究的新趋势：**通过自动化方法发现新的激活函数**
+由 Google Brain 团队的 Prajit Ramachandran 等人于 2017 年通过神经架构搜索发现 {cite}`ramachandran2017swish`。其设计动机体现了深度学习研究的新趋势：**通过自动化方法发现新的激活函数**
 
 $$ \text{Swish}(x) = x \cdot \sigma(\beta x) = \frac{x}{1 + e^{-\beta x}} $$
 
@@ -404,3 +404,11 @@ $$\text{softmax}(x_i) = \frac{e^{x_i}}{\sum_{j=1}^C e^{x_j}}$$
    - 梯度消失问题推动了ReLU及其变体的发展
 
 理解{ref}`activation-functions`如何引入非线性后，我们将探讨{ref}`loss-functions`——如何量化模型预测的好坏，将训练转化为可通过{ref}`gradient-descent`求解的优化问题。
+
+---
+
+## 参考文献
+
+```{bibliography}
+:filter: docname in docnames
+```
