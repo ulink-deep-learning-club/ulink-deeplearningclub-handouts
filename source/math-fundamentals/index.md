@@ -23,6 +23,7 @@
 
    introduction
    computational-graph
+   task-formulations
    activation-functions
    loss-functions
    back-propagation
