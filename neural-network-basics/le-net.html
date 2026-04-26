@@ -49,7 +49,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'neural-network-basics/le-net';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="实验与比较" href="exp-cmp.html" />
+    <link rel="next" title="神经网络训练基础" href="neural-training-basics.html" />
     <link rel="prev" title="卷积神经网络" href="cnn-basics.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
@@ -169,12 +169,12 @@
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">神经网络基础</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="neural-training-basics.html">神经网络训练基础</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fc-layer-basics.html">全连接神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cnn-basics.html">卷积神经网络</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">LeNet-5架构详解</a></li>
-<li class="toctree-l2"><a class="reference internal" href="exp-cmp.html">实验与比较</a></li>
-<li class="toctree-l2"><a class="reference internal" href="scaling-law.html">神经网络缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scaling-law.html">缩放定律：模型越大越好吗？</a></li>
 <li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
@@ -450,15 +450,26 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">LeNet-5架构概述</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">网络结构</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">历史背景：从实验室到银行</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">LeNet-5架构概述</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">网络结构</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">金字塔视角：数据流的维度变化</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch实现</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">原始LeNet-5实现</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">原始LeNet-5实现</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mnistlenet">适配MNIST的LeNet实现</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">参数计算</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">特征图的语义演化：从低层到高层</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">参数计算</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">特征图的语义演化：从低层到高层</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lenet">LeNet的启示与历史意义</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">理论到实践的跨越</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">为什么1998年的设计至今不过时？</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">下一步</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">参考文献</a></li>
 </ul>
             </nav>
         </div>
@@ -471,10 +482,20 @@ document.write(`
                 <article class="bd-article">
                   
   <section class="tex2jax_ignore mathjax_ignore" id="lenet-5">
-<h1>LeNet-5架构详解<a class="headerlink" href="#lenet-5" title="Link to this heading">#</a></h1>
+<span id="le-net"></span><h1>LeNet-5架构详解<a class="headerlink" href="#lenet-5" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="cnn-basics.html"><span class="doc">卷积神经网络</span></a>中我们学习了CNN的核心机制：局部感受野、权值共享、参数效率。本节我们将分析<strong>第一个成功的CNN架构</strong>——LeNet-5，看这些理论如何转化为工程实践。</p>
 <section id="id1">
-<h2>LeNet-5架构概述<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
-<p>LeNet-5由Yann LeCun等人于1998年提出，是卷积神经网络发展史上的里程碑工作。</p>
+<h2>历史背景：从实验室到银行<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<p>LeNet-5由Yann LeCun等人于1998年提出<span id="id2">[<a class="reference internal" href="the-end.html#id89" title="Yann LeCun, Léon Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 86(11):2278–2324, 1998.">LBBH98</a>]</span>，是神经网络发展史上的里程碑：</p>
+<ul class="simple">
+<li><p><strong>开创性</strong>：首次证明CNN可以实用化，不只是理论玩具</p></li>
+<li><p><strong>工业应用</strong>：成功部署于美国银行系统，处理手写支票识别（每天处理数百万张）</p></li>
+<li><p><strong>持久影响</strong>：其设计思想（卷积→池化→卷积→池化→全连接）至今仍在ResNet、EfficientNet等现代架构中使用</p></li>
+</ul>
+<p>这证明了<a class="reference internal" href="cnn-basics.html"><span class="doc">卷积神经网络</span></a>中讨论的<a class="reference internal" href="introduction.html#inductive-bias"><span class="std std-ref">归纳偏置（Inductive Bias）</span></a>——通过架构设计引入先验知识——不仅是理论优雅，更是工程实用的关键。</p>
+</section>
+<section id="id3">
+<h2>LeNet-5架构概述<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
 <div class="note admonition">
 <p class="admonition-title">LeNet-5架构</p>
 <div class="math notranslate nohighlight">
@@ -483,8 +504,8 @@ document.write(`
 \]</div>
 </div>
 <p>具体参数配置：</p>
-<div class="pst-scrollable-table-container"><table class="table" id="id6">
-<caption><span class="caption-text">LeNet-5架构详细配置</span><a class="headerlink" href="#id6" title="Link to this table">#</a></caption>
+<div class="pst-scrollable-table-container"><table class="table" id="id87">
+<caption><span class="caption-text">LeNet-5架构详细配置</span><a class="headerlink" href="#id87" title="Link to this table">#</a></caption>
 <colgroup>
 <col style="width: 25.0%" />
 <col style="width: 25.0%" />
@@ -501,14 +522,8 @@ document.write(`
 <tbody>
 <tr class="row-even"><td><p>输入层</p></td>
 <td><p>32×32×1</p></td>
-<td><ul class="simple">
-<li></li>
-</ul>
-</td>
-<td><ul class="simple">
-<li></li>
-</ul>
-</td>
+<td><p>-</p></td>
+<td><p>-</p></td>
 </tr>
 <tr class="row-odd"><td><p>卷积层C1</p></td>
 <td><p>28×28×6</p></td>
@@ -518,10 +533,7 @@ document.write(`
 <tr class="row-even"><td><p>池化层S2</p></td>
 <td><p>14×14×6</p></td>
 <td><p>2×2, 平均池化</p></td>
-<td><ul class="simple">
-<li></li>
-</ul>
-</td>
+<td><p>-</p></td>
 </tr>
 <tr class="row-odd"><td><p>卷积层C3</p></td>
 <td><p>10×10×16</p></td>
@@ -531,10 +543,7 @@ document.write(`
 <tr class="row-even"><td><p>池化层S4</p></td>
 <td><p>5×5×16</p></td>
 <td><p>2×2, 平均池化</p></td>
-<td><ul class="simple">
-<li></li>
-</ul>
-</td>
+<td><p>-</p></td>
 </tr>
 <tr class="row-odd"><td><p>全连接层C5</p></td>
 <td><p>120</p></td>
@@ -555,16 +564,25 @@ document.write(`
 </table>
 </div>
 </section>
-<section id="id2">
-<h2>网络结构<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<section id="id4">
+<h2>网络结构<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
 <p>LeNet-5的经典架构包含以下层：</p>
-<div class="figure" id="id7" style="text-align: center"><p><img  src="../_images/tikz-2984f16ff33cfcc641c89de6cf368399a790542a.svg" alt="Figure made with TikZ" /></p>
-<p><span class="caption-text">LeNet-5 架构</span></p>
-</div></section>
+<section id="id5">
+<h3>金字塔视角：数据流的维度变化<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<div class="figure" id="id88" style="text-align: center"><p><img  src="../_images/tikz-b2ef10ec6c4f72ff4f046b1b64efd230d90b79f0.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">LeNet-5 金字塔架构：从图像到类别</span></p>
+</div><p><strong>金字塔的核心洞察</strong>：</p>
+<ul class="simple">
+<li><p><strong>空间维度递减</strong>：32×32 → 5×5（缩小64倍）</p></li>
+<li><p><strong>特征通道递增</strong>：1 → 6 → 16（语义丰富度提升）</p></li>
+<li><p><strong>参数量集中</strong>：卷积层仅占3%参数，全连接层占97%</p></li>
+</ul>
+</section>
+</section>
 <section id="pytorch">
 <h2>PyTorch实现<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h2>
-<section id="id3">
-<h3>原始LeNet-5实现<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<section id="id6">
+<h3>原始LeNet-5实现<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
@@ -587,35 +605,43 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">fc3</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">84</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">)</span>
         
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="c1"># 输入：1x28x28</span>
+        <span class="c1"># 输入：1x28x28（MNIST标准尺寸）</span>
         
         <span class="c1"># C1：卷积层，1x28x28 -&gt; 6x24x24</span>
+        <span class="c1"># 使用5x5卷积核（比{cnn-basics}中的3x3更大，感受野更强）</span>
+        <span class="c1"># 参数量：6 × (5×5×1 + 1) = 156（{ref}`cnn-basics`中的参数共享机制）</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># 早期使用Tanh，现代多用ReLU（见{ref}`activation-functions`）</span>
         
         <span class="c1"># S2：平均池化，6x24x24 -&gt; 6x12x12</span>
+        <span class="c1"># 空间分辨率减半（24/2=12），特征通道不变（6）</span>
+        <span class="c1"># 注意：现代常用MaxPool，但LeNet证明AvgPool同样有效</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         
         <span class="c1"># C3：卷积层，6x12x12 -&gt; 16x8x8</span>
+        <span class="c1"># 输入通道从1增加到6，输出通道从6增加到16（金字塔的语义丰富化）</span>
+        <span class="c1"># 参数量：16 × (5×5×6 + 1) = 2,416</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         
         <span class="c1"># S4：平均池化，16x8x8 -&gt; 16x4x4</span>
-        <span class="c1"># 注意：这里需要调整以适应MNIST的28x28输入</span>
-        <span class="c1"># 实际实现中，我们通常将输入填充到32x32</span>
+        <span class="c1"># 实际实现中，我们通常将输入填充到32x32以匹配原始论文</span>
+        <span class="c1"># 这里假设经过适当填充，最终得到16x5x5 = 400维特征</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         
-        <span class="c1"># 展平</span>
+        <span class="c1"># 展平：16通道 × 5×5 = 400维 → 全连接层的输入</span>
+        <span class="c1"># 对比{cnn-basics}：这里的展平维度由前面的卷积/池化决定</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         
-        <span class="c1"># 全连接层</span>
+        <span class="c1"># 全连接层：400 -&gt; 120 -&gt; 84 -&gt; 10</span>
+        <span class="c1"># 占总参数的97%！说明卷积层提取特征，全连接层做决策</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc3</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc3</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># 输出logits，配合CrossEntropyLoss使用</span>
         
         <span class="k">return</span> <span class="n">x</span>
 </pre></div>
@@ -639,27 +665,34 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">fc3</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">84</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">)</span>
         
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="c1"># C1：1x28x28 -&gt; 6x28x28 (with padding)</span>
+        <span class="c1"># C1：1x28x28 -&gt; 6x28x28 (padding=2保持尺寸)</span>
+        <span class="c1"># 参数量：6 × (5×5×1 + 1) = 156</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># LeNet原始使用Tanh，见{ref}`activation-functions`</span>
         
-        <span class="c1"># S2：6x28x28 -&gt; 6x14x14</span>
+        <span class="c1"># S2：6x28x28 -&gt; 6x14x14，平均池化降采样</span>
+        <span class="c1"># 空间维度减半，计算量减少4倍</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         
         <span class="c1"># C3：6x14x14 -&gt; 16x10x10</span>
+        <span class="c1"># 参数量：16 × (5×5×6 + 1) = 2,416</span>
+        <span class="c1"># 注意：C3的输入是6通道，输出是16通道，体现特征层次深化</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         
         <span class="c1"># S4：16x10x10 -&gt; 16x5x5</span>
+        <span class="c1"># 最终特征图：16通道 × 5×5 = 400维，输入全连接层</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         
-        <span class="c1"># 展平</span>
+        <span class="c1"># 展平：400维向量</span>
+        <span class="c1"># 对比{cnn-basics}的SimpleCNN（3136维），LeNet更紧凑</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         
-        <span class="c1"># 全连接层</span>
+        <span class="c1"># 全连接层：400 -&gt; 120 -&gt; 84 -&gt; 10</span>
+        <span class="c1"># 占总参数的97%，但这是&quot;必要的复杂&quot;——最终决策需要足够容量</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fc2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc3</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc3</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># 输出层无激活，配合CrossEntropyLoss</span>
         
         <span class="k">return</span> <span class="n">x</span>
 
@@ -670,8 +703,8 @@ document.write(`
 </div>
 </section>
 </section>
-<section id="id4">
-<h2>参数计算<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<section id="id7">
+<h2>参数计算<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
 <p>LeNet的参数分布：</p>
 <ul class="simple">
 <li><p><strong>卷积层C1：</strong> <span class="math notranslate nohighlight">\(6 \times (5 \times 5 \times 1 + 1) = 156\)</span> 参数</p></li>
@@ -681,10 +714,47 @@ document.write(`
 <li><p><strong>输出层：</strong> <span class="math notranslate nohighlight">\(10 \times (84 + 1) = 850\)</span> 参数</p></li>
 </ul>
 <p><strong>总参数数量：</strong> 61,706个参数</p>
-<p>相比全连接网络，LeNet的参数数量显著减少，但性能却大幅提升。</p>
+<p><strong>对比分析</strong>：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>指标</p></th>
+<th class="head"><p>全连接网络</p></th>
+<th class="head"><p>LeNet-5</p></th>
+<th class="head"><p>改进</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>参数量</p></td>
+<td><p>~235,000</p></td>
+<td><p><strong>61,706</strong></p></td>
+<td><p>↓74%</p></td>
+</tr>
+<tr class="row-odd"><td><p>MNIST准确率</p></td>
+<td><p>~98%</p></td>
+<td><p><strong>~99%</strong></p></td>
+<td><p>↑1%</p></td>
+</tr>
+<tr class="row-even"><td><p>训练时间</p></td>
+<td><p>慢</p></td>
+<td><p><strong>快</strong></p></td>
+<td><p>卷积操作更高效</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>关键洞察</strong>：</p>
+<ul class="simple">
+<li><p>参数减少74%，准确率反而提升1%！</p></li>
+<li><p>这正是<a class="reference internal" href="introduction.html#inductive-bias"><span class="std std-ref">归纳偏置（Inductive Bias）</span></a>的力量——好的先验让模型用更少参数学到更好规律</p></li>
+<li><p>{cnn-basics}中的参数效率公式在此得到验证：</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[
+\text{参数效率} = \frac{\text{模型表达能力}}{\text{参数量}} \Rightarrow \text{LeNet} \gg \text{全连接}
+\]</div>
 </section>
-<section id="id5">
-<h2>特征图的语义演化：从低层到高层<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<section id="id8">
+<h2>特征图的语义演化：从低层到高层<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
 <p>卷积神经网络的一个关键特性是特征图随着网络深度的增加而变得越来越具有语义意义。让我们详细分析LeNet中各层特征图的语义内容：</p>
 <div class="note admonition">
 <p class="admonition-title">低层特征（C1层）：边缘和纹理检测</p>
@@ -739,9 +809,76 @@ document.write(`
 <li><p><strong>生物学启发：</strong> 类似于人类视觉系统的信息处理机制，先局部后整体</p></li>
 </ol>
 </div>
-<div class="figure" id="id8" style="text-align: center"><p><img  src="../_images/tikz-68136e4318768009a95c59d56be23a95dd4b0b77.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id89" style="text-align: center"><p><img  src="../_images/tikz-68136e4318768009a95c59d56be23a95dd4b0b77.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">LeNet中特征图的语义演化过程</span></p>
 </div><p>这种从具体到抽象、从局部到整体的特征演化过程，使得卷积神经网络能够有效地理解图像内容，并在MNIST等视觉任务上取得优异的性能。</p>
+</section>
+<hr class="docutils" />
+<section id="lenet">
+<h2>LeNet的启示与历史意义<a class="headerlink" href="#lenet" title="Link to this heading">#</a></h2>
+<section id="id9">
+<h3>理论到实践的跨越<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<p>LeNet-5的成功证明了{cnn-basics}和<a class="reference internal" href="introduction.html#inductive-bias"><span class="std std-ref">归纳偏置（Inductive Bias）</span></a>的核心观点：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>理论概念</p></th>
+<th class="head"><p>LeNet实践</p></th>
+<th class="head"><p>效果</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>局部感受野</p></td>
+<td><p>5×5卷积核</p></td>
+<td><p>捕捉局部特征</p></td>
+</tr>
+<tr class="row-odd"><td><p>权值共享</p></td>
+<td><p>6+16个卷积核滑过全图</p></td>
+<td><p>参数减少74%</p></td>
+</tr>
+<tr class="row-even"><td><p>归纳偏置</p></td>
+<td><p>金字塔架构设计</p></td>
+<td><p>准确率提升1%</p></td>
+</tr>
+<tr class="row-odd"><td><p>层次特征</p></td>
+<td><p>C1→C3→FC</p></td>
+<td><p>自动学习从边缘到语义的特征</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id10">
+<h3>为什么1998年的设计至今不过时？<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>普适性原理</strong>：局部性、平移不变性是图像的固有属性，不因时代改变</p></li>
+<li><p><strong>工程简洁</strong>：8层网络解决复杂问题，没有不必要的复杂度</p></li>
+<li><p><strong>端到端学习</strong>：从原始像素到类别标签，无需手工特征工程</p></li>
+<li><p><strong>可扩展性</strong>：现代ResNet、EfficientNet仍是LeNet思想的延伸</p></li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="id11">
+<h3>下一步<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<p>了解了LeNet-5的经典架构后，下一节<a class="reference internal" href="neural-training-basics.html"><span class="doc">神经网络训练基础</span></a>我们将学习：</p>
+<ul class="simple">
+<li><p>如何<strong>训练</strong>这样的网络（<a class="reference internal" href="../math-fundamentals/back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>的实践）</p></li>
+<li><p>如何<strong>监控</strong>训练过程（损失曲线、准确率曲线）</p></li>
+<li><p>如何<strong>调试</strong>超参数（学习率、批大小、正则化）</p></li>
+</ul>
+<p>让我们从&quot;知道架构长什么样&quot;进化到&quot;知道如何让架构工作&quot;！</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id12">
+<h2>参考文献<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id13">
+<div role="list" class="citation-list">
+<div class="citation" id="id74" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">LBBH98</a><span class="fn-bracket">]</span></span>
+<p>Yann LeCun, Léon Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document recognition. <em>Proceedings of the IEEE</em>, 86(11):2278–2324, 1998.</p>
+</div>
+</div>
+</div>
 </section>
 </section>
 
@@ -749,7 +886,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (3 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -757,6 +894,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">59126f4</code>
+                2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and add citations
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">4b228f7</code>
                 2026-03-09 - <strong>Heyan Zhu</strong>: Fix tikz diagrams
@@ -792,11 +934,11 @@ document.write(`
       </div>
     </a>
     <a class="right-next"
-       href="exp-cmp.html"
+       href="neural-training-basics.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">实验与比较</p>
+        <p class="prev-next-title">神经网络训练基础</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -816,15 +958,26 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">LeNet-5架构概述</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">网络结构</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">历史背景：从实验室到银行</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">LeNet-5架构概述</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">网络结构</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">金字塔视角：数据流的维度变化</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch实现</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">原始LeNet-5实现</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">原始LeNet-5实现</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mnistlenet">适配MNIST的LeNet实现</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">参数计算</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">特征图的语义演化：从低层到高层</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">参数计算</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">特征图的语义演化：从低层到高层</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lenet">LeNet的启示与历史意义</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">理论到实践的跨越</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">为什么1998年的设计至今不过时？</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">下一步</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">参考文献</a></li>
 </ul>
   </nav></div>
 

@@ -169,12 +169,12 @@
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验与比较</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">神经网络缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律：模型越大越好吗？</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
@@ -450,10 +450,7 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">反向传播的本质：信用分配</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">类比：团队项目的责任分摊</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">反向传播的本质：信用分配</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">链式法则：梯度的传递机制</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">示例：简单计算图</a></li>
 </ul>
@@ -472,6 +469,7 @@ document.write(`
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">参考文献</a></li>
 </ul>
             </nav>
         </div>
@@ -488,18 +486,18 @@ document.write(`
 <section id="id2">
 <h2>反向传播的本质：信用分配<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
 <p>神经网络训练时，我们根据最终损失来调整参数。核心问题是：<strong>损失是由很多参数共同造成的，每个参数该&quot;背多少锅&quot;？</strong></p>
-<p>反向传播（Backpropagation）就是解决这个&quot;<strong>信用分配问题</strong>&quot;的高效算法。</p>
-<section id="id3">
-<h3>类比：团队项目的责任分摊<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<p>反向传播（Backpropagation）<span id="id3">[<a class="reference internal" href="#id79" title="David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. Nature, 323(6088):533–536, 1986.">RHW86</a>]</span> 就是解决这个&quot;<strong>信用分配问题</strong>&quot;的高效算法。</p>
+<div class="tip admonition">
+<p class="admonition-title">类比：团队项目的责任分摊</p>
 <p>想象一个团队项目失败了（损失很大），需要找出每个人的责任：</p>
 <ul class="simple">
 <li><p><strong>前向传播</strong>：项目执行过程，每个人完成自己的任务</p></li>
 <li><p><strong>反向传播</strong>：从失败结果倒推，计算每个人对失败的责任（梯度）</p></li>
 <li><p><strong>链式法则</strong>：如果A的工作影响了B，B的责任要按贡献度传递给A</p></li>
 </ul>
-<div class="figure" id="id13" style="text-align: center"><p><img  src="../_images/tikz-71cf7bcf033322592b12289c16ca05c7e9badc1b.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id88" style="text-align: center"><p><img  src="../_images/tikz-71cf7bcf033322592b12289c16ca05c7e9badc1b.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">反向传播：梯度从输出流回输入</span></p>
-</div></section>
+</div></div>
 </section>
 <section id="id4">
 <h2>链式法则：梯度的传递机制<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
@@ -562,7 +560,7 @@ document.write(`
 <section id="id6">
 <h2>神经网络中的反向传播<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
 <p>对于多层神经网络，反向传播从输出层逐层回传：</p>
-<div class="figure" id="id14" style="text-align: center"><p><img  src="../_images/tikz-602a045cabc553a25a48b80d890d1591abb950fc.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id89" style="text-align: center"><p><img  src="../_images/tikz-602a045cabc553a25a48b80d890d1591abb950fc.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">神经网络反向传播示意</span></p>
 </div><p><strong>流程</strong>：</p>
 <ol class="arabic simple">
@@ -663,13 +661,25 @@ document.write(`
 </ol>
 <p>反向传播通过<a class="reference internal" href="computational-graph.html#computational-graph"><span class="std std-ref">计算图</span></a>高效计算梯度。理解反向传播后，我们将探讨<a class="reference internal" href="gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>——如何利用这些梯度来优化模型参数。</p>
 </section>
+<hr class="docutils" />
+<section id="id13">
+<h2>参考文献<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id14">
+<div role="list" class="citation-list">
+<div class="citation" id="id79" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">RHW86</a><span class="fn-bracket">]</span></span>
+<p>David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. <em>Nature</em>, 323(6088):533–536, 1986.</p>
+</div>
+</div>
+</div>
+</section>
 </section>
 
     <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (4 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (5 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -677,6 +687,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">59126f4</code>
+                2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and add citations
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">ae2053f</code>
                 2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): add task-formulations and update related content
@@ -746,10 +761,7 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">反向传播的本质：信用分配</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">类比：团队项目的责任分摊</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">反向传播的本质：信用分配</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">链式法则：梯度的传递机制</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">示例：简单计算图</a></li>
 </ul>
@@ -768,6 +780,7 @@ document.write(`
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">参考文献</a></li>
 </ul>
   </nav></div>
 

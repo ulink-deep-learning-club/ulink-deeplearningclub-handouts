@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>神经网络缩放定律 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+    <title>缩放定律：模型越大越好吗？ &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
   
   
   
@@ -50,7 +50,7 @@
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
     <link rel="next" title="总结与展望" href="the-end.html" />
-    <link rel="prev" title="实验与比较" href="exp-cmp.html" />
+    <link rel="prev" title="实验对比：全连接 vs CNN" href="exp-cmp.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
   </head>
@@ -169,12 +169,12 @@
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">神经网络基础</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="neural-training-basics.html">神经网络训练基础</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fc-layer-basics.html">全连接神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cnn-basics.html">卷积神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="le-net.html">LeNet-5架构详解</a></li>
-<li class="toctree-l2"><a class="reference internal" href="exp-cmp.html">实验与比较</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">神经网络缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">缩放定律：模型越大越好吗？</a></li>
 <li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
@@ -440,7 +440,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>神经网络缩放定律</h1>
+    <h1>缩放定律：模型越大越好吗？</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -450,13 +450,28 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">缩放定律的基本概念</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">模型规模缩放</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">数据集规模缩放</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">计算最优缩放</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mnistlenet">MNIST与LeNet的缩放分析</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">现代发展</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">计算复杂度分析</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">从实验观察：收益递减</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">缩放定律的数学形式</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">模型规模缩放</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">数据规模缩放</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">计算最优配置</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mnist">MNIST上的缩放分析</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">饱和效应</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lenet">从LeNet到现代架构：缩放的演进</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">实践建议：如何应用缩放定律</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">1. 从小开始，逐步扩展</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">2. 监控缩放曲线</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">3. 数据与模型匹配</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">4. 考虑部署约束</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">总结：理论与实践的结合</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">下一步</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">参考文献</a></li>
 </ul>
             </nav>
         </div>
@@ -468,106 +483,499 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="id1">
-<h1>神经网络缩放定律<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
-<section id="id2">
-<h2>缩放定律的基本概念<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>缩放定律（Scaling Laws）描述了神经网络性能如何随着模型规模、数据集规模和计算资源的增加而变化。Kaplan等人的研究表明，这些关系通常遵循幂律分布：</p>
-<div class="math notranslate nohighlight">
-\[L(N, D, C) \propto N^{-\alpha} \cdot D^{-\beta} \cdot C^{-\gamma}\]</div>
-<p>其中：</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(L\)</span>：损失函数值</p></li>
-<li><p><span class="math notranslate nohighlight">\(N\)</span>：模型参数数量</p></li>
-<li><p><span class="math notranslate nohighlight">\(D\)</span>：数据集大小</p></li>
-<li><p><span class="math notranslate nohighlight">\(C\)</span>：计算资源（FLOPs）</p></li>
-<li><p><span class="math notranslate nohighlight">\(\alpha, \beta, \gamma\)</span>：缩放指数</p></li>
-</ul>
-</section>
+  <section class="tex2jax_ignore mathjax_ignore" id="scaling-law">
+<span id="id1"></span><h1>缩放定律：模型越大越好吗？<a class="headerlink" href="#scaling-law" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="exp-cmp.html"><span class="doc">实验对比：全连接 vs CNN</span></a>中我们看到，CNN用61K参数达到98.9%准确率，比235K参数的全连接网络更好。这引出了一个深层问题：<strong>如果继续增大模型，性能会无限提升吗？</strong></p>
+<p>答案是否定的。现实世界中的资源总是有限的——计算时间、内存、数据量。理解<strong>缩放定律（Scaling Laws）</strong> <span id="id2">[<a class="reference internal" href="#id81" title="Jared Kaplan, Sam McCandlish, Tom Henighan, Tom B Brown, Benjamin Chess, Rewon Child, Scott Gray, Alec Radford, Jeffrey Wu, and Dario Amodei. Scaling laws for neural language models. arXiv preprint arXiv:2001.08361, 2020.">KMH+20</a>]</span>，帮助我们在有限资源下做出最优决策：用多大的模型？需要多少数据？投入更多计算值得吗？</p>
 <section id="id3">
-<h2>模型规模缩放<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
-<p>对于固定数据集，模型性能与参数数量的关系：</p>
-<div class="math notranslate nohighlight">
-\[L(N) = L_{\infty} + A \cdot N^{-\alpha}\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(L_{\infty}\)</span> 是理论最优损失，<span class="math notranslate nohighlight">\(A\)</span> 是幅度系数，<span class="math notranslate nohighlight">\(\alpha \approx 0.076\)</span>（对于语言模型）。</p>
-</section>
-<section id="id4">
-<h2>数据集规模缩放<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
-<p>类似地，数据集规模的影响：</p>
-<div class="math notranslate nohighlight">
-\[L(D) = L_{\infty} + B \cdot D^{-\beta}\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(\beta \approx 0.095\)</span>（对于语言模型）。</p>
-</section>
-<section id="id5">
-<h2>计算最优缩放<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
-<p>在实际应用中，我们需要在模型规模、数据集规模和计算资源之间找到最优平衡。研究表明：</p>
-<div class="math notranslate nohighlight">
-\[N_{opt} \propto C^{\frac{\alpha}{\alpha + \beta}}, \quad D_{opt} \propto C^{\frac{\beta}{\alpha + \beta}}\]</div>
-<p>这意味着随着计算资源的增加，模型规模和数据集规模应该按照特定比例同步增长。</p>
-</section>
-<section id="mnistlenet">
-<h2>MNIST与LeNet的缩放分析<a class="headerlink" href="#mnistlenet" title="Link to this heading">#</a></h2>
-<p>对于MNIST这样的简单任务，缩放定律表现出一些特殊性质：</p>
-<ul class="simple">
-<li><p><strong>饱和效应：</strong> 当模型达到一定规模后，性能提升趋于饱和</p></li>
-<li><p><strong>数据限制：</strong> MNIST数据集相对较小，限制了大规模模型的效果</p></li>
-<li><p><strong>任务复杂度：</strong> 对于简单的10类分类任务，过大的模型反而容易过拟合</p></li>
-</ul>
-<div class="figure" id="id8" style="text-align: center"><p><img  src="../_images/tikz-8b48a5702c793df7a8f43c3e1a86a37101a48e3f.svg" alt="Figure made with TikZ" /></p>
-<p><span class="caption-text">MNIST任务上的性能饱和现象</span></p>
-</div><div class="admonition warning">
-<p class="admonition-title">警告</p>
-<p><strong>重要启示</strong></p>
-<p>MNIST任务告诉我们：</p>
-<ol class="arabic simple">
-<li><p>对于简单任务，过大的模型并不能带来性能提升</p></li>
-<li><p>数据集的复杂度限制了模型的有效规模</p></li>
-<li><p>需要在模型复杂度和任务需求之间找到平衡</p></li>
-<li><p>LeNet的61K参数已经足以达到99%+的准确率，好的归纳偏置，比暴力堆参更有效</p></li>
-</ol>
+<h2>从实验观察：收益递减<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>回顾<a class="reference internal" href="exp-cmp.html"><span class="doc">实验对比：全连接 vs CNN</span></a>的性能对比：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>模型</p></th>
+<th class="head"><p>参数量</p></th>
+<th class="head"><p>测试准确率</p></th>
+<th class="head"><p>边际收益</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>全连接</p></td>
+<td><p>235K</p></td>
+<td><p>97.8%</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-odd"><td><p>LeNet</p></td>
+<td><p>61K</p></td>
+<td><p>98.9%</p></td>
+<td><p>+1.1%</p></td>
+</tr>
+</tbody>
+</table>
 </div>
+<p>如果我们继续增大LeNet（增加卷积核数量、层数），会发现一个规律：<strong>初期提升明显，后期趋于饱和</strong>。</p>
+<div class="figure" id="id91" style="text-align: center"><p><img  src="../_images/tikz-4a3e8ef4de556e5f9a9c5403cfbe09e3acfe8c37.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">性能随模型规模变化的典型曲线</span></p>
+</div><p><strong>三个区域</strong>：</p>
+<ol class="arabic simple">
+<li><p><strong>高效区</strong>：增加参数带来显著提升（如从全连接到LeNet）</p></li>
+<li><p><strong>边际递减区</strong>：继续增大，提升幅度变小（如LeNet→更深的LeNet）</p></li>
+<li><p><strong>饱和区</strong>：再大的模型也几乎不提升（MNIST上&gt;99%后再难进步）</p></li>
+</ol>
+<p>这背后的原因是：<a class="reference internal" href="introduction.html"><span class="doc">引言</span></a>中讨论的<strong>归纳偏置</strong>已经捕获了任务的主要结构，剩余的是噪声和偶然性，无法用更多参数消除。</p>
+</section>
+<hr class="docutils" />
+<section id="id4">
+<h2>缩放定律的数学形式<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p>研究表明，性能与模型规模、数据量、计算量之间存在<strong>幂律关系</strong>——这在自然界中普遍存在（如生物代谢与体重的3/4次方关系）。</p>
+<section id="id5">
+<h3>模型规模缩放<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<p>固定数据集时，损失随参数量的变化：</p>
+<div class="math notranslate nohighlight">
+\[
+L(N) = L_{\infty} + A \cdot N^{-\alpha}
+\]</div>
+<p><strong>公式各部分含义</strong>：</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(L_{\infty}\)</span>（不可约损失）：任务本身的难度下限。即使无限大的模型、无限多的数据，也无法突破。对MNIST来说，<span class="math notranslate nohighlight">\(L_{\infty}\)</span>对应约0.5%错误率（人类也会犯错）</p></li>
+<li><p><span class="math notranslate nohighlight">\(A\)</span>（幅度系数）：当前模型与最优的差距。小模型<span class="math notranslate nohighlight">\(A\)</span>大，大模型<span class="math notranslate nohighlight">\(A\)</span>小</p></li>
+<li><p><span class="math notranslate nohighlight">\(N^{-\alpha}\)</span>（缩放项）：增加参数带来的收益，呈幂律递减</p></li>
+<li><p><span class="math notranslate nohighlight">\(\alpha \approx 0.05-0.1\)</span>：收益递减的速度。<span class="math notranslate nohighlight">\(\alpha\)</span>越小，收益递减越快</p></li>
+</ul>
+<p><strong>具体例子（MNIST上的假设数据）</strong>：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>模型规模 <span class="math notranslate nohighlight">\(N\)</span></p></th>
+<th class="head"><p>损失 <span class="math notranslate nohighlight">\(L(N)\)</span></p></th>
+<th class="head"><p>错误率</p></th>
+<th class="head"><p>边际收益</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>10K参数</p></td>
+<td><p><span class="math notranslate nohighlight">\(0.05 + 0.5 \cdot (10K)^{-0.07} \approx 0.12\)</span></p></td>
+<td><p>12%</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-odd"><td><p>60K参数 (LeNet)</p></td>
+<td><p><span class="math notranslate nohighlight">\(0.05 + 0.5 \cdot (60K)^{-0.07} \approx 0.09\)</span></p></td>
+<td><p>9%</p></td>
+<td><p>-3%</p></td>
+</tr>
+<tr class="row-even"><td><p>600K参数</p></td>
+<td><p><span class="math notranslate nohighlight">\(0.05 + 0.5 \cdot (600K)^{-0.07} \approx 0.07\)</span></p></td>
+<td><p>7%</p></td>
+<td><p>-2%</p></td>
+</tr>
+<tr class="row-odd"><td><p>6M参数</p></td>
+<td><p><span class="math notranslate nohighlight">\(0.05 + 0.5 \cdot (6M)^{-0.07} \approx 0.06\)</span></p></td>
+<td><p>6%</p></td>
+<td><p>-1%</p></td>
+</tr>
+<tr class="row-even"><td><p>60M参数</p></td>
+<td><p><span class="math notranslate nohighlight">\(0.05 + 0.5 \cdot (60M)^{-0.07} \approx 0.055\)</span></p></td>
+<td><p>5.5%</p></td>
+<td><p>-0.5%</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>为什么不是线性？</strong></p>
+<p>想象你在用积木搭建城堡：</p>
+<ul class="simple">
+<li><p><strong>前100块积木</strong>（小模型）：每增加一块都有明显作用——建地基、围墙、塔楼。边际收益高</p></li>
+<li><p><strong>第101-1000块</strong>（中等模型）：增加细节——窗户花纹、旗帜装饰。有提升，但不明显</p></li>
+<li><p><strong>第1000块以后</strong>（大模型）：增加微小的纹理、微调颜色。几乎看不出来变化</p></li>
+</ul>
+<p>神经网络参数存在冗余——许多参数学习的是噪声或重复信息。随着规模增大，新增参数捕获的是越来越细微的模式，边际贡献自然递减。</p>
 </section>
 <section id="id6">
-<h2>现代发展<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
-<p>从LeNet到现代CNN架构的发展历程：</p>
-<ol class="arabic simple">
-<li><p><strong>AlexNet (2012)</strong>：更深网络，ReLU激活，Dropout</p></li>
-<li><p><strong>VGG (2014)</strong>：小卷积核堆叠，统一架构</p></li>
-<li><p><strong>GoogLeNet (2014)</strong>：Inception模块，多尺度特征</p></li>
-<li><p><strong>ResNet (2015)</strong>：残差连接，训练极深网络</p></li>
-<li><p><strong>EfficientNet (2019)</strong>：复合缩放，平衡深度、宽度、分辨率</p></li>
-</ol>
-<div class="note admonition">
-<p class="admonition-title">缩放定律的实践意义</p>
-<p>理解缩放定律对于实际应用具有重要意义：</p>
-<ol class="arabic simple">
-<li><p><strong>资源分配：</strong> 根据可用计算资源合理分配模型规模和数据集规模</p></li>
-<li><p><strong>性能预测：</strong> 预测增加资源能带来的性能提升</p></li>
-<li><p><strong>成本效益分析：</strong> 在性能提升和成本增加之间找到平衡点</p></li>
-<li><p><strong>架构设计：</strong> 设计适合任务复杂度的模型规模</p></li>
-</ol>
+<h3>数据规模缩放<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p>类似地，数据量的影响：</p>
+<div class="math notranslate nohighlight">
+\[
+L(D) = L_{\infty} + B \cdot D^{-\beta}
+\]</div>
+<p><strong>关键洞察</strong>：数据与模型需要<strong>匹配</strong>。</p>
+<p><strong>不匹配的后果</strong>：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>场景</p></th>
+<th class="head"><p>模型规模</p></th>
+<th class="head"><p>数据规模</p></th>
+<th class="head"><p>结果</p></th>
+<th class="head"><p>原因</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>过拟合</strong></p></td>
+<td><p>1亿参数</p></td>
+<td><p>1,000张图片</p></td>
+<td><p>❌ 灾难</p></td>
+<td><p>模型记住了所有样本，泛化能力差</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>欠拟合</strong></p></td>
+<td><p>1万参数</p></td>
+<td><p>1亿张图片</p></td>
+<td><p>❌ 浪费</p></td>
+<td><p>模型容量不足，无法利用大量数据</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>平衡</strong></p></td>
+<td><p>60K参数</p></td>
+<td><p>70,000张图片 (MNIST)</p></td>
+<td><p>✅ 合适</p></td>
+<td><p>LeNet-scale匹配MNIST数据量</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>平衡</strong></p></td>
+<td><p>1亿参数</p></td>
+<td><p>100万张图片 (ImageNet)</p></td>
+<td><p>✅ 合适</p></td>
+<td><p>ResNet-scale匹配ImageNet数据量</p></td>
+</tr>
+</tbody>
+</table>
 </div>
+<p><strong>数据效率曲线</strong>：</p>
+<p>想象学习一个概念：</p>
+<ul class="simple">
+<li><p><strong>前100个例子</strong>：每多看一个例子，理解都有飞跃（从陌生到熟悉）</p></li>
+<li><p><strong>第101-1000个例子</strong>：巩固知识，发现边缘案例（从熟悉到精通）</p></li>
+<li><p><strong>第1000个以后</strong>： diminishing returns（从精通到专家，提升极小）</p></li>
+</ul>
+<p>MNIST只有70,000张图片。即使模型再大，也无法突破数据本身的信息量上限——就像用望远镜看报纸，设备再好，信息来源有限。</p>
 </section>
 <section id="id7">
-<h2>计算复杂度分析<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
-<p>神经网络的性能通常随模型规模增大而提升，但存在边际递减效应：</p>
+<h3>计算最优配置<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<p>实际中，我们需要同时决定模型规模<span class="math notranslate nohighlight">\(N\)</span>和数据量<span class="math notranslate nohighlight">\(D\)</span>。给定计算预算<span class="math notranslate nohighlight">\(C\)</span>（FLOPs，浮点运算次数），最优配置满足：</p>
 <div class="math notranslate nohighlight">
-\[\text{性能} \propto \log(\text{参数量}) \quad \text{或} \quad \text{性能} \propto (\text{计算量})^\alpha\]</div>
-<p>在实际应用中，我们需要考虑：</p>
+\[
+N_{opt} \propto C^{0.5}, \quad D_{opt} \propto C^{0.5}
+\]</div>
+<p><strong>直观解释</strong>：为什么模型和数据都要增加？</p>
+<p>想象你要学习一门语言：</p>
 <ul class="simple">
-<li><p><strong>计算瓶颈：</strong> 训练时间和内存限制</p></li>
-<li><p><strong>通信开销：</strong> 分布式训练中的通信成本</p></li>
-<li><p><strong>推理延迟：</strong> 部署时的实时性要求</p></li>
+<li><p><strong>只增加课本数量</strong>（只增大模型）：你买了10本教材，但每本只看1页——学不深入</p></li>
+<li><p><strong>只增加阅读时间</strong>（只增加数据）：你有无限时间，但只有1本教材——学不广博</p></li>
+<li><p><strong>平衡增加</strong>：课本数量和时间都增加——学得既深入又广博</p></li>
 </ul>
-<div class="tip admonition">
-<p class="admonition-title">给初学者的建议</p>
+<p><strong>具体场景示例</strong>：</p>
+<p>假设你初始配置：60K参数模型 + 70K数据，训练1小时达到98%准确率。</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>计算预算 <span class="math notranslate nohighlight">\(C\)</span></p></th>
+<th class="head"><p>最优模型规模 <span class="math notranslate nohighlight">\(N_{opt}\)</span></p></th>
+<th class="head"><p>最优数据规模 <span class="math notranslate nohighlight">\(D_{opt}\)</span></p></th>
+<th class="head"><p>训练时间</p></th>
+<th class="head"><p>预期准确率</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1× (基线)</p></td>
+<td><p>60K</p></td>
+<td><p>70K</p></td>
+<td><p>1小时</p></td>
+<td><p>98.0%</p></td>
+</tr>
+<tr class="row-odd"><td><p>2×</p></td>
+<td><p>60K × 1.41 ≈ 85K</p></td>
+<td><p>70K × 1.41 ≈ 100K</p></td>
+<td><p>2小时</p></td>
+<td><p>98.5%</p></td>
+</tr>
+<tr class="row-even"><td><p>4×</p></td>
+<td><p>60K × 2 = 120K</p></td>
+<td><p>70K × 2 = 140K</p></td>
+<td><p>4小时</p></td>
+<td><p>98.8%</p></td>
+</tr>
+<tr class="row-odd"><td><p>8×</p></td>
+<td><p>60K × 2.83 ≈ 170K</p></td>
+<td><p>70K × 2.83 ≈ 200K</p></td>
+<td><p>8小时</p></td>
+<td><p>99.0%</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>常见误区</strong>：</p>
+<ul class="simple">
+<li><p>❌ <strong>只增大模型</strong>：1000K参数 + 70K数据 → 严重过拟合</p></li>
+<li><p>❌ <strong>只增加数据</strong>：60K参数 + 700K数据 → 模型容量不足，欠拟合</p></li>
+<li><p>✅ <strong>平衡增加</strong>：按比例同步增加，获得最优性价比</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="mnist">
+<h2>MNIST上的缩放分析<a class="headerlink" href="#mnist" title="Link to this heading">#</a></h2>
+<p>MNIST是一个&quot;简单&quot;任务——10类分类，图像清晰、对齐、标准化。这导致特殊的缩放特性：</p>
+<section id="id8">
+<h3>饱和效应<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<div class="figure" id="id92" style="text-align: center"><p><img  src="../_images/tikz-c70f2cc66bba8219bd60b6e6870e34e1eef00a3d.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">MNIST任务上的性能饱和</span></p>
+</div><p><strong>关键观察</strong>：</p>
+<ul class="simple">
+<li><p>LeNet的61K参数已达到**99%**准确率</p></li>
+<li><p>增大10倍到600K参数，可能只提升到<strong>99.3%</strong>（+0.3%）</p></li>
+<li><p>再增大100倍，几乎不提升（接近人类水平99.5%）（+0.2%）</p></li>
+</ul>
+<p><strong>为什么会在99.5%饱和？</strong></p>
 <ol class="arabic simple">
-<li><p><strong>从小开始：</strong> 先用小模型建立基线，逐步增加复杂度</p></li>
-<li><p><strong>监控缩放：</strong> 记录模型规模、数据规模和性能的关系</p></li>
-<li><p><strong>避免过度：</strong> 不要盲目追求大模型，考虑任务需求</p></li>
-<li><p><strong>利用现有：</strong> 使用预训练模型和迁移学习</p></li>
-<li><p><strong>实验设计：</strong> 系统地进行缩放实验，一次只改变一个变量</p></li>
+<li><p><strong>人类水平上限</strong>：MNIST数据集由人类标注，本身就包含约0.5%的标注噪声（模糊、难以辨认的数字）。模型再强，也无法超越数据质量</p></li>
+<li><p><strong>任务复杂度上限</strong>：10类手写数字识别是&quot;简单&quot;任务——类内变化小（都是数字0-9），类间界限清晰。不像ImageNet有1000类，或自然语言理解需要推理能力</p></li>
+<li><p><strong>归纳偏置已充分利用</strong>：<a class="reference internal" href="introduction.html"><span class="doc">引言</span></a>中讨论的CNN归纳偏置（局部性、平移不变性、组合性）已经捕获了MNIST的主要结构。剩余的是随机噪声，无法用更多参数消除</p></li>
 </ol>
+<p><strong>具体数据对比</strong>：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>模型</p></th>
+<th class="head"><p>参数量</p></th>
+<th class="head"><p>准确率</p></th>
+<th class="head"><p>边际提升</p></th>
+<th class="head"><p>投入产出比</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>简单MLP</p></td>
+<td><p>50K</p></td>
+<td><p>96%</p></td>
+<td><p>—</p></td>
+<td><p>基线</p></td>
+</tr>
+<tr class="row-odd"><td><p>LeNet</p></td>
+<td><p>60K</p></td>
+<td><p>99%</p></td>
+<td><p>+3%</p></td>
+<td><p>极高</p></td>
+</tr>
+<tr class="row-even"><td><p>深层CNN</p></td>
+<td><p>600K</p></td>
+<td><p>99.3%</p></td>
+<td><p>+0.3%</p></td>
+<td><p>中等</p></td>
+</tr>
+<tr class="row-odd"><td><p>ResNet-18</p></td>
+<td><p>11M</p></td>
+<td><p>99.5%</p></td>
+<td><p>+0.2%</p></td>
+<td><p>低</p></td>
+</tr>
+<tr class="row-even"><td><p>ResNet-101</p></td>
+<td><p>45M</p></td>
+<td><p>99.5%</p></td>
+<td><p>+0%</p></td>
+<td><p>无</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这证明了<a class="reference internal" href="le-net.html"><span class="doc">LeNet-5架构详解</span></a>中讨论的设计理念——<strong>好的归纳偏置比暴力堆参更有效</strong>。LeNet用60K参数达到99%，而增大750倍的ResNet-101也只能到99.5%（且最后0.5%主要是靠数据清洗和训练技巧，而非模型容量）。</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="lenet">
+<h2>从LeNet到现代架构：缩放的演进<a class="headerlink" href="#lenet" title="Link to this heading">#</a></h2>
+<p>尽管MNIST上容易饱和，但缩放定律在更复杂任务（ImageNet、语言模型）中展现了巨大价值。回顾发展历程：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>架构</p></th>
+<th class="head"><p>年份</p></th>
+<th class="head"><p>参数量</p></th>
+<th class="head"><p>关键创新</p></th>
+<th class="head"><p>缩放维度</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>LeNet</strong></p></td>
+<td><p>1998</p></td>
+<td><p>60K</p></td>
+<td><p>卷积+池化</p></td>
+<td><p>深度（6层）</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>AlexNet</strong></p></td>
+<td><p>2012</p></td>
+<td><p>60M</p></td>
+<td><p>ReLU+Dropout+GPU</p></td>
+<td><p>深度×宽度（8层）</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>VGG</strong></p></td>
+<td><p>2014</p></td>
+<td><p>138M</p></td>
+<td><p>小卷积核堆叠</p></td>
+<td><p>深度（19层）</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>ResNet</strong></p></td>
+<td><p>2015</p></td>
+<td><p>60M</p></td>
+<td><p>残差连接</p></td>
+<td><p>极深（152+层）</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>EfficientNet</strong></p></td>
+<td><p>2019</p></td>
+<td><p>可变</p></td>
+<td><p>复合缩放</p></td>
+<td><p>深度×宽度×分辨率</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>演进规律</strong>：</p>
+<ol class="arabic simple">
+<li><p><strong>深度缩放</strong>：更多层→更抽象特征（LeNet→AlexNet→VGG）</p></li>
+<li><p><strong>宽度缩放</strong>：更多通道→更丰富表示（同层内扩展）</p></li>
+<li><p><strong>复合缩放</strong>：深度、宽度、分辨率同时增加（EfficientNet）</p></li>
+</ol>
+<div class="tip admonition">
+<p class="admonition-title">关键洞察</p>
+<p>现代大模型（GPT-4、Claude等）的成功，本质是<strong>缩放定律</strong>在极大规模上的验证：</p>
+<ul class="simple">
+<li><p>千亿级参数（<span class="math notranslate nohighlight">\(N\)</span>巨大）</p></li>
+<li><p>万亿级token（<span class="math notranslate nohighlight">\(D\)</span>巨大）</p></li>
+<li><p>万卡级计算（<span class="math notranslate nohighlight">\(C\)</span>巨大）</p></li>
+</ul>
+<p>但当任务简单时（如MNIST），<a class="reference internal" href="introduction.html"><span class="doc">引言</span></a>强调的<strong>归纳偏置设计</strong>比盲目缩放更重要。</p>
+</div>
+</section>
+<hr class="docutils" />
+<section id="id9">
+<h2>实践建议：如何应用缩放定律<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
+<p>基于本章和前面章节的理解，给出具体建议：</p>
+<section id="id10">
+<h3>1. 从小开始，逐步扩展<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>步骤</p></th>
+<th class="head"><p>行动</p></th>
+<th class="head"><p>预期结果</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>用LeNet-scale模型（~100K参数）建立基线</p></td>
+<td><p>了解任务难度</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>增加深度（+2层卷积）</p></td>
+<td><p>观察收益</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p>增加宽度（通道数×2）</p></td>
+<td><p>观察收益</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p>如果仍有提升，继续缩放；否则停止</p></td>
+<td><p>找到饱和点</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id11">
+<h3>2. 监控缩放曲线<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<p>记录实验数据：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>参数数量</p></th>
+<th class="head"><p>训练损失</p></th>
+<th class="head"><p>验证损失</p></th>
+<th class="head"><p>训练时间</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>60K</p></td>
+<td><p>0.02</p></td>
+<td><p>0.03</p></td>
+<td><p>30min</p></td>
+</tr>
+<tr class="row-odd"><td><p>120K</p></td>
+<td><p>0.015</p></td>
+<td><p>0.025</p></td>
+<td><p>55min  （收益明显）</p></td>
+</tr>
+<tr class="row-even"><td><p>240K</p></td>
+<td><p>0.012</p></td>
+<td><p>0.024</p></td>
+<td><p>100min  （边际递减）</p></td>
+</tr>
+<tr class="row-odd"><td><p>480K</p></td>
+<td><p>0.011</p></td>
+<td><p>0.024</p></td>
+<td><p>200min  （不值得）</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id12">
+<h3>3. 数据与模型匹配<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>数据少</strong>（&lt;10K）：小模型+强正则化（参考<a class="reference internal" href="neural-training-basics.html"><span class="doc">神经网络训练基础</span></a>）</p></li>
+<li><p><strong>数据适中</strong>（10K-1M）：中等模型，关注归纳偏置设计</p></li>
+<li><p><strong>数据海量</strong>（&gt;1M）：大模型+大数据，遵循缩放定律</p></li>
+</ul>
+</section>
+<section id="id13">
+<h3>4. 考虑部署约束<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<p>训练时可以用大模型，但部署时要考虑：</p>
+<ul class="simple">
+<li><p><strong>推理延迟</strong>：移动端要求&lt;100ms</p></li>
+<li><p><strong>内存限制</strong>：嵌入式设备可能只有MB级内存</p></li>
+<li><p><strong>能耗</strong>：边缘设备的电池限制</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id14">
+<h2>总结：理论与实践的结合<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
+<p>本章将<a class="reference internal" href="exp-cmp.html"><span class="doc">实验对比：全连接 vs CNN</span></a>的实验观察上升为理论理解：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>概念</p></th>
+<th class="head"><p>实验观察</p></th>
+<th class="head"><p>理论解释</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>归纳偏置</strong></p></td>
+<td><p>CNN用更少参数更好</p></td>
+<td><p>先验知识减少解空间</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>收益递减</strong></p></td>
+<td><p>增大LeNet提升有限</p></td>
+<td><p>幂律缩放，<span class="math notranslate nohighlight">\(N^{-\alpha}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>饱和效应</strong></p></td>
+<td><p>MNIST准确率接近99.5%</p></td>
+<td><p>任务难度存在下限<span class="math notranslate nohighlight">\(L_{\infty}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>资源匹配</strong></p></td>
+<td><p>数据少时大模型过拟合</p></td>
+<td><p><span class="math notranslate nohighlight">\(N\)</span>与<span class="math notranslate nohighlight">\(D\)</span>需要平衡</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>核心启示</strong>：</p>
+<ul class="simple">
+<li><p><strong>好的架构设计</strong>（归纳偏置）比<strong>暴力堆参</strong>更高效</p></li>
+<li><p><strong>缩放定律</strong>帮助我们预测投入产出比</p></li>
+<li><p><strong>实际约束</strong>（数据、计算、部署）决定最终选择</p></li>
+</ul>
+</section>
+<section id="id15">
+<h2>下一步<a class="headerlink" href="#id15" title="Link to this heading">#</a></h2>
+<p>缩放定律回答了&quot;模型该有多大&quot;的问题，但深度学习的世界远不止于此。<a class="reference internal" href="the-end.html"><span class="doc">总结与展望</span></a>将总结本章的核心启示，并展望更广阔的未来方向——从自动化架构搜索到轻量化部署，从多模态学习到联邦学习。</p>
+<p>从&quot;理解一个任务&quot;进化到&quot;理解一个领域&quot;！</p>
+</section>
+<hr class="docutils" />
+<section id="id16">
+<h2>参考文献<a class="headerlink" href="#id16" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id17">
+<div role="list" class="citation-list">
+<div class="citation" id="id81" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">KMH+20</a><span class="fn-bracket">]</span></span>
+<p>Jared Kaplan, Sam McCandlish, Tom Henighan, Tom B Brown, Benjamin Chess, Rewon Child, Scott Gray, Alec Radford, Jeffrey Wu, and Dario Amodei. Scaling laws for neural language models. <em>arXiv preprint arXiv:2001.08361</em>, 2020.</p>
+</div>
+</div>
 </div>
 </section>
 </section>
@@ -576,7 +984,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -584,6 +992,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">59126f4</code>
+                2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and add citations
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">cec393d</code>
                 2025-12-11 - <strong>Heyan Zhu</strong>: docs: partially complete migration and restructure course materials
@@ -610,7 +1023,7 @@ document.write(`
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">上一页</p>
-        <p class="prev-next-title">实验与比较</p>
+        <p class="prev-next-title">实验对比：全连接 vs CNN</p>
       </div>
     </a>
     <a class="right-next"
@@ -638,13 +1051,28 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">缩放定律的基本概念</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">模型规模缩放</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">数据集规模缩放</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">计算最优缩放</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mnistlenet">MNIST与LeNet的缩放分析</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">现代发展</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">计算复杂度分析</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">从实验观察：收益递减</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">缩放定律的数学形式</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">模型规模缩放</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">数据规模缩放</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">计算最优配置</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mnist">MNIST上的缩放分析</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">饱和效应</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lenet">从LeNet到现代架构：缩放的演进</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">实践建议：如何应用缩放定律</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">1. 从小开始，逐步扩展</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">2. 监控缩放曲线</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">3. 数据与模型匹配</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">4. 考虑部署约束</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">总结：理论与实践的结合</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">下一步</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">参考文献</a></li>
 </ul>
   </nav></div>
 

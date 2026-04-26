@@ -44,10 +44,376 @@
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script src="../_static/translations.js?v=beaddf03"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'neural-network-basics/introduction';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="神经网络训练基础" href="neural-training-basics.html" />
+    <link rel="next" title="全连接神经网络" href="fc-layer-basics.html" />
     <link rel="prev" title="神经网络基础" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
@@ -167,12 +533,12 @@
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">神经网络基础</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="neural-training-basics.html">神经网络训练基础</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fc-layer-basics.html">全连接神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cnn-basics.html">卷积神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="le-net.html">LeNet-5架构详解</a></li>
-<li class="toctree-l2"><a class="reference internal" href="exp-cmp.html">实验与比较</a></li>
-<li class="toctree-l2"><a class="reference internal" href="scaling-law.html">神经网络缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scaling-law.html">缩放定律：模型越大越好吗？</a></li>
 <li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
@@ -448,9 +814,20 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">构建成功神经网络的目标</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mnist">MNIST数据集简介</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lenet">LeNet的历史意义</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">构建成功神经网络的四个目标</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">学习路径：从简单到复杂</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">为什么先学全连接网络？</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn">为什么CNN更适合图像？</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inductive-bias">归纳偏置（Inductive Bias）</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">贝叶斯视角：先验知识的力量</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mnist-hello-world">MNIST：深度学习的"Hello World"</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">本章学习路线图</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">下一步</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">参考文献</a></li>
 </ul>
             </nav>
         </div>
@@ -464,83 +841,300 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="id1">
 <h1>引言<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
-<p>在本教程中，我们将使用MNIST手写数字识别作为案例研究，通过这个经典任务来深入理解神经网络的核心组件。我们将首先介绍全连接层（Fully Connected Layer）的基本原理，然后逐步深入到卷积神经网络（CNN）层的学习。这些基础组件将在后续章节中详细展开，为构建更复杂的深度学习模型奠定基础。</p>
-<section id="id2">
-<h2>构建成功神经网络的目标<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>构建一个成功的神经网络需要实现以下核心目标：</p>
-<ol class="arabic simple">
-<li><p><strong>表达能力（Expressiveness）</strong>：神经网络的核心目标是构建一个灵活的计算架构，而非硬编码的规则或算法。与传统算法需要人工设计每条决策规则不同，神经网络通过其内部结构（包括层数、神经元数量和连接方式）来自动学习如何表示和转换数据。</p>
+<p>在本教程中，我们将使用MNIST手写数字识别作为案例，从零开始构建神经网络。通过这个经典任务，你将理解<strong>为什么全连接网络不适合图像任务</strong>，以及<strong>CNN如何通过巧妙设计解决这个问题</strong>。</p>
+<div class="tip admonition">
+<p class="admonition-title">前置提醒</p>
+<p>本章是<a class="reference internal" href="../math-fundamentals/index.html"><span class="doc">计算图、反向传播与梯度下降：深度学习核心数学基础</span></a>的<strong>实践延伸</strong>。我们将用PyTorch实现前一章学习的理论：</p>
 <ul class="simple">
-<li><p><strong>架构 vs 规则</strong>：我们不是在编写&quot;如果输入是X，则输出Y&quot;的规则，而是在设计一个通用的计算模板，让网络通过训练数据主动发现最优的转换方式。</p></li>
-<li><p><strong>层数的作用</strong>：增加隐藏层的深度使网络能够学习数据的多层次表示——从低级特征（如图像中的边缘）到高级抽象概念（如物体识别）。每一层都作为前一层的&quot;信息处理站&quot;，逐步提炼和组织数据。</p></li>
-<li><p><strong>宽度的影响</strong>：扩展每层的神经元数量增加了该层可以捕捉的特征维度。更多的神经元提供更多的&quot;计算单元&quot;来同时学习不同的模式。</p></li>
-<li><p><strong>灵活性和泛化能力</strong>：通过调整网络的深度和宽度，我们可以创建一个足够灵活的架构来学习复杂的非线性关系，同时避免过度特化于特定规则。</p></li>
+<li><p><a class="reference internal" href="../math-fundamentals/computational-graph.html#computational-graph"><span class="std std-ref">计算图</span></a> → PyTorch自动求导</p></li>
+<li><p><a class="reference internal" href="../math-fundamentals/activation-functions.html#activation-functions"><span class="std std-ref">激活函数</span></a> → ReLU和Softmax的实际应用</p></li>
+<li><p><a class="reference internal" href="../math-fundamentals/back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a> → <code class="docutils literal notranslate"><span class="pre">loss.backward()</span></code>的魔法</p></li>
+<li><p><a class="reference internal" href="../math-fundamentals/gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a> → <code class="docutils literal notranslate"><span class="pre">optimizer.step()</span></code>的参数更新</p></li>
+</ul>
+<p>如果你还不熟悉这些概念，建议先回顾前一章。</p>
+</div>
+<section id="id2">
+<h2>构建成功神经网络的四个目标<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>设计神经网络时，我们需要在以下目标间取得平衡：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>目标</p></th>
+<th class="head"><p>含义</p></th>
+<th class="head"><p>关键挑战</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>表达能力</strong></p></td>
+<td><p>学习复杂模式的能力</p></td>
+<td><p>层数和神经元数量的权衡</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>泛化性能</strong></p></td>
+<td><p>在新数据上的表现</p></td>
+<td><p>避免过拟合与欠拟合</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>计算效率</strong></p></td>
+<td><p>训练和推理速度</p></td>
+<td><p>参数量和计算量的控制</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>可解释性</strong></p></td>
+<td><p>理解模型决策过程</p></td>
+<td><p>深度网络的&quot;黑盒&quot;特性</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>本章我们将通过对比全连接网络和CNN，深入理解这些目标之间的权衡。</p>
+</section>
+<section id="id3">
+<h2>学习路径：从简单到复杂<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<section id="id4">
+<h3>为什么先学全连接网络？<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p>全连接网络（Fully Connected Network）是最简单的神经网络架构。我们将在<a class="reference internal" href="fc-layer-basics.html"><span class="doc">全连接神经网络</span></a>中深入实现这一结构：</p>
+<ul class="simple">
+<li><p><strong>直观易懂</strong>：每个输入连接每个输出，像多层感知机</p></li>
+<li><p><strong>暴露问题</strong>：参数量随输入维度爆炸式增长</p></li>
+<li><p><strong>性能瓶颈</strong>：在图像任务上效率低下，为CNN的改进做铺垫</p></li>
+</ul>
+</section>
+<section id="cnn">
+<h3>为什么CNN更适合图像？<a class="headerlink" href="#cnn" title="Link to this heading">#</a></h3>
+<p>卷积神经网络（CNN）通过两个关键设计解决全连接的问题。<a class="reference internal" href="cnn-basics.html"><span class="doc">卷积神经网络</span></a>将详细解析这些机制：</p>
+<p><strong>1. 局部感受野</strong></p>
+<ul class="simple">
+<li><p>全连接：784个输入像素 → 全部连接到每个隐藏神经元</p></li>
+<li><p>CNN：3×3卷积核 → 只看9个相邻像素</p></li>
+</ul>
+<p><strong>2. 权值共享</strong></p>
+<ul class="simple">
+<li><p>全连接：每个连接有独立参数（784×256=200,704个）</p></li>
+<li><p>CNN：一个卷积核滑过整张图像，参数重复使用（仅3×3=9个）</p></li>
+</ul>
+<p><a class="reference internal" href="le-net.html"><span class="doc">LeNet-5架构详解</span></a>将展示这些思想如何转化为一个完整的、可部署的识别系统。</p>
+<div class="figure" id="id85" style="text-align: center"><p><img  src="../_images/tikz-502d61a76145e26bdcf7a02a9ca941e597b63bd5.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">全连接 vs CNN 的核心差异</span></p>
+</div><p><strong>参数量对比</strong>：</p>
+<ul class="simple">
+<li><p>全连接第一层：784 × 256 + 256 = <strong>200,960</strong> 参数</p></li>
+<li><p>CNN第一个卷积层（32个3×3核）：32 × (3×3 + 1) = <strong>320</strong> 参数</p></li>
+</ul>
+<p>差距超过600倍！这就是为什么CNN在图像任务上成为标准。</p>
+</section>
+</section>
+<section id="inductive-bias">
+<span id="id5"></span><h2>归纳偏置（Inductive Bias）<a class="headerlink" href="#inductive-bias" title="Link to this heading">#</a></h2>
+<p><strong>归纳偏置</strong>是指学习算法对特定类型解决方案的偏好 <span id="id6">[<a class="reference internal" href="#id80" title="Tom M Mitchell. The need for biases in learning generalizations. Technical Report, Department of Computer Science, Laboratory for Computer Science Research, Rutgers University, 1980.">Mit80</a>]</span>。它不是写在代码里的显式规则，而是架构设计隐含的&quot;先验假设&quot;。</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>架构</p></th>
+<th class="head"><p>归纳偏置</p></th>
+<th class="head"><p>隐含假设</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>全连接</strong></p></td>
+<td><p>弱/无</p></td>
+<td><p>所有输入特征同等重要，无特定结构</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>CNN</strong></p></td>
+<td><p><strong>局部性</strong> + <strong>平移不变性</strong></p></td>
+<td><p>相邻像素相关，特征位置不重要</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>为什么归纳偏置重要？</strong></p>
+<ol class="arabic simple">
+<li><p><strong>数据效率</strong>：好的偏置让模型用更少数据学到规律</p>
+<ul class="simple">
+<li><p>全连接：必须&quot;看到&quot;数字7在每个位置，才能识别</p></li>
+<li><p>CNN：学到一个位置的&quot;7&quot;，自动应用到其他位置（平移不变性）</p></li>
 </ul>
 </li>
-<li><p><strong>模式识别（Pattern Capture）</strong>：网络应能够自动发现数据中的有意义的特征和规律，而无需手工设计特征。通过反向传播算法学习最优的权重和偏置，网络能够逐步改进其模式识别能力。</p></li>
-<li><p><strong>泛化性能（Generalization）</strong>：模型不仅要在训练数据上表现良好，更重要的是能够对未见过的新数据做出准确预测。这需要在模型复杂度和训练数据规模之间找到平衡。</p></li>
-<li><p><strong>计算效率（Computational Efficiency）</strong>：在保证性能的前提下，我们希望模型具有较少的参数和较低的计算成本，以便在实际应用中快速推理。</p></li>
-<li><p><strong>稳定性和可靠性（Stability and Reliability）</strong>：网络的训练过程应该稳定收敛，预测结果应该可靠且一致。</p></li>
+<li><p><strong>参数效率</strong>：好的偏置减少所需参数</p>
+<ul class="simple">
+<li><p>全连接：需要为每个位置的每个模式单独学习</p></li>
+<li><p>CNN：一个卷积核识别所有位置的相同模式</p></li>
+</ul>
+</li>
+<li><p><strong>泛化能力</strong>：偏置反映了任务的本质结构</p>
+<ul class="simple">
+<li><p>图像的局部相关性是物理世界的客观规律</p></li>
+<li><p>CNN将这种规律&quot;内置&quot;到架构中</p></li>
+</ul>
+</li>
 </ol>
-<p>在接下来的章节中，我们将通过MNIST任务来演示如何在这些目标之间进行权衡，并逐步构建更高效的神经网络架构。</p>
-</section>
-<section id="mnist">
-<h2>MNIST数据集简介<a class="headerlink" href="#mnist" title="Link to this heading">#</a></h2>
-<p>MNIST（Modified National Institute of Standards and Technology）数据集是机器学习领域最经典的数据集之一，由Yann LeCun等人创建。该数据集包含：</p>
+<section id="id7">
+<h3>贝叶斯视角：先验知识的力量<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<p><strong>直观理解</strong></p>
+<p>从贝叶斯统计的角度看，归纳偏置就是<strong>先验知识</strong>——在看到数据之前，你已经相信的假设：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>概念</p></th>
+<th class="head"><p>含义</p></th>
+<th class="head"><p>在CNN中的体现</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>先验（Prior）</strong></p></td>
+<td><p>看到数据前的信念</p></td>
+<td><p>“相邻像素相关，卷积核应该局部连接”</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>似然（Likelihood）</strong></p></td>
+<td><p>数据对假设的支持</p></td>
+<td><p>训练样本显示哪些特征对分类有用</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>后验（Posterior）</strong></p></td>
+<td><p>看到数据后的更新信念</p></td>
+<td><p>学到的具体卷积核权重</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>为什么先验重要？</strong></p>
+<p>想象猜硬币：</p>
 <ul class="simple">
-<li><p>训练集：60,000张手写数字图像</p></li>
-<li><p>测试集：10,000张手写数字图像</p></li>
-<li><p>图像尺寸：28×28像素，灰度图像</p></li>
-<li><p>类别：0-9共10个数字类别</p></li>
+<li><p><strong>无先验（全连接）</strong>：看到3次正面，就认为硬币100%正面朝上（过拟合）</p></li>
+<li><p><strong>有先验（CNN）</strong>：相信硬币基本公平，3次正面只是偶然（泛化好）</p></li>
 </ul>
-<figure class="align-center" id="id4">
-<a class="reference internal image-reference" href="../_images/mnist.png"><img alt="../_images/mnist.png" src="../_images/mnist.png" style="width: 80%;" />
-</a>
-<figcaption>
-<p><span class="caption-text">MNIST图像数据集</span><a class="headerlink" href="#id4" title="Link to this image">#</a></p>
-</figcaption>
-</figure>
-<p>MNIST数据集之所以成为 “Hello World” 级别的基准测试，是因为：</p>
-<ol class="arabic simple">
-<li><p><strong>规模适中</strong>：足够大以展示机器学习的效果，又足够小以便快速实验</p></li>
-<li><p><strong>预处理完善</strong>：图像已经过标准化处理，可直接用于训练</p></li>
-<li><p><strong>评估标准明确</strong>：分类准确率的计算简单直观</p></li>
-<li><p><strong>历史意义</strong>：见证了从传统机器学习到深度学习的发展历程</p></li>
-</ol>
-</section>
-<section id="lenet">
-<h2>LeNet的历史意义<a class="headerlink" href="#lenet" title="Link to this heading">#</a></h2>
-<p>LeNet由Yann LeCun在1989年提出<a class="footnote-reference brackets" href="#lecun1989backpropagation" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>，是最早的卷积神经网络之一。其历史意义在于：</p>
+<p>CNN的归纳偏置就是给模型一个&quot;好先验&quot;——让它一开始就知道该关注什么（局部特征），而不是从零开始学习所有可能。</p>
+<p><strong>数学表达</strong></p>
+<p>贝叶斯定理告诉我们如何更新信念：</p>
+<div class="math notranslate nohighlight">
+\[
+P(\text{假设}|\text{数据}) \propto P(\text{数据}|\text{假设}) \times P(\text{假设})
+\]</div>
 <ul class="simple">
-<li><p><strong>开创性</strong>：首次将卷积操作引入神经网络</p></li>
-<li><p><strong>实用性</strong>：成功应用于银行支票的手写数字识别</p></li>
-<li><p><strong>理论基础</strong>：奠定了现代CNN架构的基础</p></li>
-<li><p><strong>持久影响</strong>：其设计思想至今仍在使用</p></li>
+<li><p><span class="math notranslate nohighlight">\(P(\text{假设})\)</span>：<strong>先验概率</strong> → CNN的架构设计（局部连接、权值共享）</p></li>
+<li><p><span class="math notranslate nohighlight">\(P(\text{数据}|\text{假设})\)</span>：<strong>似然</strong> → 训练数据的支持程度</p></li>
+<li><p><span class="math notranslate nohighlight">\(P(\text{假设}|\text{数据})\)</span>：<strong>后验概率</strong> → 学到的最终模型</p></li>
 </ul>
-<div class="note admonition">
-<p class="admonition-title">LeNet的关键创新</p>
+<p><strong>关键洞察</strong>：好的归纳偏置 = 好的先验 → 后验更快地收敛到真实分布，且需要更少的数据。</p>
+<div class="tip admonition">
+<p class="admonition-title">直观理解</p>
+<p>想象教小孩认字：</p>
 <ul class="simple">
-<li><p><strong>局部感受野</strong>：通过卷积核捕捉局部特征</p></li>
-<li><p><strong>权值共享</strong>：大幅减少参数数量</p></li>
-<li><p><strong>下采样</strong>：通过池化层减少空间维度</p></li>
-<li><p><strong>端到端训练</strong>：直接从原始像素学习特征表示</p></li>
+<li><p><strong>全连接</strong>：每遇到一个&quot;7&quot;，都当作全新的符号教一遍（无先验，每个位置独立学习）</p></li>
+<li><p><strong>CNN</strong>：教一次&quot;7&quot;的特征，孩子自动能在任何位置认出它（有先验，平移不变性）</p></li>
 </ul>
+<p>这就是归纳偏置的力量——好的架构让学习事半功倍。</p>
 </div>
 </section>
 </section>
-<hr class="footnotes docutils" />
-<aside class="footnote-list brackets">
-<aside class="footnote brackets" id="lecun1989backpropagation" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">1</a><span class="fn-bracket">]</span></span>
-<p>Y. LeCun, B. Boser, J. S. Denker, D. Henderson, R. E. Howard, W. Hubbard, and L. D. Jackel, “Backpropagation applied to handwritten zip code recognition,” <em>Neural Computation</em>, vol. 1, no. 4, pp. 541–551, Winter 1989.</p>
-</aside>
-</aside>
+<section id="mnist-hello-world">
+<h2>MNIST：深度学习的&quot;Hello World&quot;<a class="headerlink" href="#mnist-hello-world" title="Link to this heading">#</a></h2>
+<p>MNIST数据集包含70,000张手写数字图像（28×28像素，0-9共10类），是理想的入门案例：</p>
+<figure class="align-center" id="id86">
+<a class="reference internal image-reference" href="../_images/mnist.png"><img alt="../_images/mnist.png" src="../_images/mnist.png" style="width: 60%;" />
+</a>
+<figcaption>
+<p><span class="caption-text">MNIST手写数字样本</span><a class="headerlink" href="#id86" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<p><strong>为什么选择MNIST？</strong></p>
+<ol class="arabic simple">
+<li><p><strong>规模适中</strong>：足够展示深度学习效果，又小到几分钟完成训练</p></li>
+<li><p><strong>预处理完善</strong>：图像已标准化，无需复杂数据清洗</p></li>
+<li><p><strong>直观可解释</strong>：人类可以直观验证模型学习的内容</p></li>
+<li><p><strong>历史意义</strong>：从LeNet(1989)到现代深度学习，见证了整个领域发展</p></li>
+</ol>
+</section>
+<section id="id8">
+<h2>本章学习路线图<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<object data="../_images/mermaid-9632355d18860c1f135558ba469ee116f9af097c.svg" type="image/svg+xml">
+            <p class="warning">graph LR
+    A[全连接网络&lt;br/&gt;感受参数量爆炸] --&gt; B[CNN基础&lt;br/&gt;理解局部感受野]
+    B --&gt; C[LeNet-5&lt;br/&gt;经典架构解析]
+    C --&gt; D[训练实践&lt;br/&gt;调试与监控]
+    D --&gt; E[实验对比&lt;br/&gt;数据验证]
+    E --&gt; F[缩放定律&lt;br/&gt;理论升华]</p></object>
+<p><strong>核心问题驱动</strong>：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>阶段</p></th>
+<th class="head"><p>问题</p></th>
+<th class="head"><p>答案</p></th>
+<th class="head"><p>章节</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>全连接</p></td>
+<td><p>为什么不适合图像？</p></td>
+<td><p>忽略空间结构，参数量爆炸</p></td>
+<td><p><a class="reference internal" href="fc-layer-basics.html"><span class="doc">全连接神经网络</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>CNN</p></td>
+<td><p>如何减少参数？</p></td>
+<td><p>局部感受野 + 权值共享</p></td>
+<td><p><a class="reference internal" href="cnn-basics.html"><span class="doc">卷积神经网络</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p>LeNet</p></td>
+<td><p>为什么成为经典？</p></td>
+<td><p>端到端学习，工程实用</p></td>
+<td><p><a class="reference internal" href="le-net.html"><span class="doc">LeNet-5架构详解</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>训练</p></td>
+<td><p>如何调试模型？</p></td>
+<td><p>监控损失曲线，学习率调优</p></td>
+<td><p><a class="reference internal" href="neural-training-basics.html"><span class="doc">神经网络训练基础</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p>实验</p></td>
+<td><p>CNN真的更好吗？</p></td>
+<td><p>对比参数量、准确率、训练速度</p></td>
+<td><p><a class="reference internal" href="exp-cmp.html"><span class="doc">实验对比：全连接 vs CNN</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>缩放定律</p></td>
+<td><p>模型越大越好吗？</p></td>
+<td><p>遵循幂律，但有边际递减</p></td>
+<td><p><a class="reference internal" href="scaling-law.html"><span class="doc">缩放定律：模型越大越好吗？</span></a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="important admonition">
+<p class="admonition-title">本章目标</p>
+<p>完成本章后，你将能够：</p>
+<ul class="simple">
+<li><p>用PyTorch实现全连接网络和CNN（<a class="reference internal" href="fc-layer-basics.html"><span class="doc">全连接神经网络</span></a>, <a class="reference internal" href="cnn-basics.html"><span class="doc">卷积神经网络</span></a>）</p></li>
+<li><p>理解为什么CNN在图像任务上更高效（<a class="reference internal" href="exp-cmp.html"><span class="doc">实验对比：全连接 vs CNN</span></a>）</p></li>
+<li><p>掌握训练过程中的调试技巧（<a class="reference internal" href="neural-training-basics.html"><span class="doc">神经网络训练基础</span></a>）</p></li>
+<li><p>用实验数据验证理论分析（<a class="reference internal" href="exp-cmp.html"><span class="doc">实验对比：全连接 vs CNN</span></a>）</p></li>
+<li><p>理解现代大模型的设计原则（<a class="reference internal" href="scaling-law.html"><span class="doc">缩放定律：模型越大越好吗？</span></a>）</p></li>
+</ul>
+</div>
+</section>
+<hr class="docutils" />
+<section id="id9">
+<h2>下一步<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
+<p>理论铺垫已完成。现在让我们进入实践：</p>
+<ol class="arabic simple">
+<li><p><strong><a class="reference internal" href="fc-layer-basics.html"><span class="doc">全连接神经网络</span></a></strong>：实现全连接网络，感受参数量爆炸</p></li>
+<li><p><strong><a class="reference internal" href="cnn-basics.html"><span class="doc">卷积神经网络</span></a></strong>：理解卷积操作，学习参数共享</p></li>
+<li><p><strong><a class="reference internal" href="le-net.html"><span class="doc">LeNet-5架构详解</span></a></strong>：分析第一个成功的CNN架构</p></li>
+<li><p><strong><a class="reference internal" href="neural-training-basics.html"><span class="doc">神经网络训练基础</span></a></strong>：掌握训练调试技巧</p></li>
+<li><p><strong><a class="reference internal" href="exp-cmp.html"><span class="doc">实验对比：全连接 vs CNN</span></a></strong>：用数据验证理论</p></li>
+<li><p><strong><a class="reference internal" href="scaling-law.html"><span class="doc">缩放定律：模型越大越好吗？</span></a></strong>：理解模型规模的数学规律</p></li>
+</ol>
+<p>让我们开始构建第一个神经网络！</p>
+</section>
+<hr class="docutils" />
+<section id="id10">
+<h2>参考文献<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id11">
+<div role="list" class="citation-list">
+<div class="citation" id="id80" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">Mit80</a><span class="fn-bracket">]</span></span>
+<p>Tom M Mitchell. The need for biases in learning generalizations. Technical Report, Department of Computer Science, Laboratory for Computer Science Research, Rutgers University, 1980.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
 
     <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (3 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -548,6 +1142,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">59126f4</code>
+                2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and add citations
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">cec393d</code>
                 2025-12-11 - <strong>Heyan Zhu</strong>: docs: partially complete migration and restructure course materials
@@ -583,11 +1182,11 @@ document.write(`
       </div>
     </a>
     <a class="right-next"
-       href="neural-training-basics.html"
+       href="fc-layer-basics.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">神经网络训练基础</p>
+        <p class="prev-next-title">全连接神经网络</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -607,9 +1206,20 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">构建成功神经网络的目标</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mnist">MNIST数据集简介</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lenet">LeNet的历史意义</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">构建成功神经网络的四个目标</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">学习路径：从简单到复杂</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">为什么先学全连接网络？</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn">为什么CNN更适合图像？</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inductive-bias">归纳偏置（Inductive Bias）</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">贝叶斯视角：先验知识的力量</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mnist-hello-world">MNIST：深度学习的"Hello World"</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">本章学习路线图</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">下一步</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">参考文献</a></li>
 </ul>
   </nav></div>
 

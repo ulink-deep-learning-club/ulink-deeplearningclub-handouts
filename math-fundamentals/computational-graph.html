@@ -169,12 +169,12 @@
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验与比较</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">神经网络缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律：模型越大越好吗？</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
@@ -451,18 +451,19 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">什么是计算图？</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">前向传播：数据如何流动</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">前向传播：数据如何流动</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#f-x-y-z-x-y-times-z">示例：计算 <span class="math notranslate nohighlight">\(f(x, y, z) = (x + y) \times z\)</span></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">反向传播：梯度如何回流</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">反向传播：梯度如何回流</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch中的动态计算图</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">梯度计算的解释</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">梯度计算的解释</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">计算图的优势</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">从计算图到神经网络</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">计算图的优势</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">从计算图到神经网络</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">参考文献</a></li>
 </ul>
             </nav>
         </div>
@@ -479,12 +480,12 @@ document.write(`
 <section id="id2">
 <h2>什么是计算图？<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
 <p>计算图是一种用图来表示数学运算的方法。你可以把它想象成<strong>数据流的管道系统</strong>：数据从输入节点流入，经过各种操作节点（如加法、乘法、激活函数），最终到达输出节点。</p>
-<p>这种表示方式有两个核心价值：</p>
+<p>这种表示方式有两个核心价值 <span id="id3">[<a class="reference internal" href="#id82" title="Paul J Werbos. Backpropagation through time: what it does and how to do it. Proceedings of the IEEE, 78(10):1550–1560, 1990.">Wer90</a>]</span>：</p>
 <ol class="arabic simple">
 <li><p><strong>可视化</strong>：复杂的数学表达式变成清晰的流程图</p></li>
 <li><p><strong>自动求导</strong>：为反向传播提供结构基础，让梯度计算自动化</p></li>
 </ol>
-<div class="figure" id="id9" style="text-align: center"><p><img  src="../_images/tikz-b63387814044c16faed006c3c2ad7f9bf4f57fef.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id85" style="text-align: center"><p><img  src="../_images/tikz-b63387814044c16faed006c3c2ad7f9bf4f57fef.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">计算图示例：<span class="math notranslate nohighlight">\(f(x,y) = (x+y) \times y\)</span></span></p>
 </div><p>在这个图中：</p>
 <ul class="simple">
@@ -494,8 +495,8 @@ document.write(`
 <li><p><strong>箭头</strong>：数据流动方向</p></li>
 </ul>
 </section>
-<section id="id3">
-<h2>前向传播：数据如何流动<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<section id="id4">
+<h2>前向传播：数据如何流动<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
 <p>前向传播就是数据从输入节点流向输出节点的过程。按照拓扑顺序（先计算依赖的节点），每个操作节点接收输入、计算输出。</p>
 <section id="f-x-y-z-x-y-times-z">
 <h3>示例：计算 <span class="math notranslate nohighlight">\(f(x, y, z) = (x + y) \times z\)</span><a class="headerlink" href="#f-x-y-z-x-y-times-z" title="Link to this heading">#</a></h3>
@@ -508,8 +509,8 @@ document.write(`
 <p>这就是计算图在前向传播中的工作流程。</p>
 </section>
 </section>
-<section id="id4">
-<h2>反向传播：梯度如何回流<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<section id="id5">
+<h2>反向传播：梯度如何回流<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
 <p>计算图的真正威力在于<a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>。梯度（误差信号）沿着边的反方向流动，从输出节点传回输入节点。这使得我们可以高效计算每个参数对最终损失的贡献。</p>
 <div class="note admonition">
 <p class="admonition-title">关键洞察</p>
@@ -545,8 +546,8 @@ document.write(`
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;∂f/∂z = </span><span class="si">{</span><span class="n">z</span><span class="o">.</span><span class="n">grad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 输出: 5.0 (a的值)</span>
 </pre></div>
 </div>
-<section id="id5">
-<h3>梯度计算的解释<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<section id="id6">
+<h3>梯度计算的解释<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
 <p>为什么梯度是这些值？根据链式法则：</p>
 <ul class="simple">
 <li><p><span class="math notranslate nohighlight">\(\frac{\partial f}{\partial x} = \frac{\partial f}{\partial a} \cdot \frac{\partial a}{\partial x} = z \cdot 1 = 4\)</span></p></li>
@@ -556,8 +557,8 @@ document.write(`
 <p>PyTorch的 <code class="docutils literal notranslate"><span class="pre">backward()</span></code> 自动完成了这些计算。</p>
 </section>
 </section>
-<section id="id6">
-<h2>计算图的优势<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<section id="id7">
+<h2>计算图的优势<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
 <ul>
 <li><p><strong>可视化复杂计算</strong>: 深度网络可能有数百万个操作，计算图将其分解为可理解的模块。</p></li>
 <li><p><strong>自动微分</strong>: 无需手动推导梯度公式，计算图结构让自动求导成为可能。</p></li>
@@ -571,10 +572,10 @@ document.write(`
 </li>
 </ul>
 </section>
-<section id="id7">
-<h2>从计算图到神经网络<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<section id="id8">
+<h2>从计算图到神经网络<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
 <p>神经网络的计算图具有以下特点：</p>
-<div class="figure" id="id10" style="text-align: center"><p><img  src="../_images/tikz-210cd299a9bf38d36fe229015234ed3e95c58382.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id86" style="text-align: center"><p><img  src="../_images/tikz-210cd299a9bf38d36fe229015234ed3e95c58382.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">简化神经网络计算图</span></p>
 </div><ul class="simple">
 <li><p><strong>多层结构</strong>：输入层 → 隐藏层 → 输出层</p></li>
@@ -583,8 +584,8 @@ document.write(`
 </ul>
 <p>在下一节中，我们将深入探讨<a class="reference internal" href="activation-functions.html#activation-functions"><span class="std std-ref">激活函数</span></a>——计算图中的非线性操作如何让神经网络拥有划分复杂决策边界的能力。</p>
 </section>
-<section id="id8">
-<h2>总结<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<section id="id9">
+<h2>总结<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
 <p><a class="reference internal" href="#computational-graph"><span class="std std-ref">计算图</span></a>是深度学习的核心数据结构：</p>
 <ul class="simple">
 <li><p><strong>前向传播</strong>：数据沿着边流动，计算预测结果</p></li>
@@ -593,13 +594,25 @@ document.write(`
 </ul>
 <p>理解<a class="reference internal" href="#computational-graph"><span class="std std-ref">计算图</span></a>后，我们将探索<a class="reference internal" href="activation-functions.html#activation-functions"><span class="std std-ref">激活函数</span></a>如何用非线性变换在空间中划分决策边界。之后<a class="reference internal" href="loss-functions.html#loss-functions"><span class="std std-ref">损失函数</span></a>会将预测误差量化，<a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>通过计算图高效计算梯度，最后<a class="reference internal" href="gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>利用这些梯度优化参数。</p>
 </section>
+<hr class="docutils" />
+<section id="id10">
+<h2>参考文献<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id11">
+<div role="list" class="citation-list">
+<div class="citation" id="id82" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">Wer90</a><span class="fn-bracket">]</span></span>
+<p>Paul J Werbos. Backpropagation through time: what it does and how to do it. <em>Proceedings of the IEEE</em>, 78(10):1550–1560, 1990.</p>
+</div>
+</div>
+</div>
+</section>
 </section>
 
     <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (3 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (4 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -607,6 +620,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">59126f4</code>
+                2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and add citations
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">756a793</code>
                 2026-04-25 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and improve explanations
@@ -672,18 +690,19 @@ document.write(`
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">什么是计算图？</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">前向传播：数据如何流动</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">前向传播：数据如何流动</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#f-x-y-z-x-y-times-z">示例：计算 <span class="math notranslate nohighlight">\(f(x, y, z) = (x + y) \times z\)</span></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">反向传播：梯度如何回流</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">反向传播：梯度如何回流</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch中的动态计算图</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">梯度计算的解释</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">梯度计算的解释</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">计算图的优势</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">从计算图到神经网络</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">计算图的优势</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">从计算图到神经网络</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">参考文献</a></li>
 </ul>
   </nav></div>
 

@@ -50,7 +50,7 @@
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
     <link rel="next" title="卷积神经网络" href="cnn-basics.html" />
-    <link rel="prev" title="神经网络训练基础" href="neural-training-basics.html" />
+    <link rel="prev" title="引言" href="introduction.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
   </head>
@@ -169,12 +169,12 @@
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">神经网络基础</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="neural-training-basics.html">神经网络训练基础</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">全连接神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cnn-basics.html">卷积神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="le-net.html">LeNet-5架构详解</a></li>
-<li class="toctree-l2"><a class="reference internal" href="exp-cmp.html">实验与比较</a></li>
-<li class="toctree-l2"><a class="reference internal" href="scaling-law.html">神经网络缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scaling-law.html">缩放定律：模型越大越好吗？</a></li>
 <li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
@@ -450,11 +450,20 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">全连接层的基本原理</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">参数数量分析</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">全连接层的基本原理</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">参数数量分析</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">参数爆炸：全连接的核心问题</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch实现</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">全连接层的优缺点</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">局限性</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">全连接层的优缺点</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">核心问题：参数效率低下</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">什么是参数效率？</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">总结与展望</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">关键对比预告</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">参考文献</a></li>
 </ul>
             </nav>
         </div>
@@ -468,10 +477,11 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="id1">
 <h1>全连接神经网络<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
-<section id="id2">
-<h2>全连接层的基本原理<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>全连接层（Fully Connected Layer），也称为线性层或密集层，是神经网络中最基本的构建块。其核心思想是每个输入节点都与每个输出节点相连接。</p>
-<div class="figure" id="id6" style="text-align: center"><p><img  src="../_images/tikz-7c25891a2581ebf2c7c3f520ab409f919e640e25.svg" alt="Figure made with TikZ" /></p>
+<p>本章我们将实现最简单的神经网络架构——全连接层（Fully Connected Layer）。在深入之前，建议回顾<a class="reference internal" href="../math-fundamentals/activation-functions.html#activation-functions"><span class="std std-ref">激活函数</span></a>中讨论的<strong>线性回归→多层感知机</strong>的演变过程。全连接层源于感知机（Perceptron）<span id="id2">[<a class="reference internal" href="#id82" title="Frank Rosenblatt. The perceptron: a probabilistic model for information storage and organization in the brain. Psychological Review, 65(6):386–408, 1958.">Ros58</a>]</span> 的思想，是多层感知机的现代实现。</p>
+<section id="id3">
+<h2>全连接层的基本原理<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>全连接层（Fully Connected Layer），也称为线性层（Linear）或密集层（Dense），是神经网络中最基本的构建块。其核心思想是每个输入节点都与每个输出节点相连接。</p>
+<div class="figure" id="id86" style="text-align: center"><p><img  src="../_images/tikz-7c25891a2581ebf2c7c3f520ab409f919e640e25.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">全连接层结构示意图</span></p>
 </div><div class="admonition note">
 <p class="admonition-title">备注</p>
@@ -481,11 +491,16 @@ document.write(`
 \[
 \mathbf{y} = \mathbf{W}\mathbf{x} + \mathbf{b}
 \]</div>
-<p>其中 <span class="math notranslate nohighlight">\(\mathbf{W} \in \mathbb{R}^{m \times n}\)</span> 是权重矩阵，<span class="math notranslate nohighlight">\(\mathbf{b} \in \mathbb{R}^m\)</span> 是偏置向量。</p>
+<p>这正是<a class="reference internal" href="../math-fundamentals/activation-functions.html#activation-functions"><span class="std std-ref">激活函数</span></a>中提到的<strong>线性变换</strong> <span class="math notranslate nohighlight">\(Wx + b\)</span> 的矩阵形式，其中：</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\mathbf{W} \in \mathbb{R}^{m \times n}\)</span> 是权重矩阵（所有连接）</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{b} \in \mathbb{R}^m\)</span> 是偏置向量</p></li>
+</ul>
+<p>正如我们在<a class="reference internal" href="../math-fundamentals/activation-functions.html#activation-functions"><span class="std std-ref">激活函数</span></a>中看到的，如果没有非线性激活函数，多层全连接等价于单层。这就是为什么代码中需要使用 <code class="docutils literal notranslate"><span class="pre">F.relu()</span></code>。</p>
 </div>
 </section>
-<section id="id3">
-<h2>参数数量分析<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<section id="id4">
+<h2>参数数量分析<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
 <p>对于从 <span class="math notranslate nohighlight">\(n\)</span> 维到 <span class="math notranslate nohighlight">\(m\)</span> 维的全连接层，参数总数为：</p>
 <div class="math notranslate nohighlight">
 \[\text{Parameters} = m \times n + m = m(n + 1)\]</div>
@@ -496,6 +511,30 @@ document.write(`
 <li><p>输出层：从128到10个类别，参数数量为 <span class="math notranslate nohighlight">\(10 \times 128 + 10 = 1,290\)</span></p></li>
 </ul>
 <p><strong>总参数数量：</strong> 235,146个参数</p>
+</section>
+<section id="id5">
+<h2>参数爆炸：全连接的核心问题<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<p>235,146个参数看似不多，但考虑以下问题：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>问题</p></th>
+<th class="head"><p>说明</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>空间信息丢失</strong></p></td>
+<td><p>784维向量完全打乱了28×28的二维结构，相邻像素在向量中可能相距很远</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>参数效率低</strong></p></td>
+<td><p>每个像素都连接到每个神经元，无论距离多远，没有&quot;局部性&quot;概念</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>过拟合风险</strong></p></td>
+<td><p>参数量大，而MNIST是相对简单的10类分类任务</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>直觉理解</strong>：全连接网络把图像当作&quot;表格&quot;，而非&quot;图片&quot;。它不知道像素A和像素B是相邻的——这种空间关系的感知必须从零学习。</p>
 </section>
 <section id="pytorch">
 <h2>PyTorch实现<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h2>
@@ -518,20 +557,22 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
         
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="c1"># 展平输入</span>
+        <span class="c1"># 展平：28x28 图像 → 784 维向量</span>
+        <span class="c1"># 这就是&quot;空间信息丢失&quot;的发生点！二维结构变一维</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         
         <span class="c1"># 第一层：784 -&gt; 256</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>      <span class="c1"># 线性变换 y = Wx + b</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>        <span class="c1"># 非线性激活（见 activation-functions）</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># 随机丢弃50%神经元，防止过拟合</span>
         
         <span class="c1"># 第二层：256 -&gt; 128</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>        <span class="c1"># 再次激活，增加表达能力</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         
-        <span class="c1"># 输出层：128 -&gt; 10</span>
+        <span class="c1"># 输出层：128 -&gt; 10（10个数字类别）</span>
+        <span class="c1"># 注意：最后一层不加激活，CrossEntropyLoss内部会应用Softmax</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc3</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         
         <span class="k">return</span> <span class="n">x</span>
@@ -542,10 +583,10 @@ document.write(`
 </pre></div>
 </div>
 </section>
-<section id="id4">
-<h2>全连接层的优缺点<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="table" id="id7">
-<caption><span class="caption-text">全连接层优缺点对比</span><a class="headerlink" href="#id7" title="Link to this table">#</a></caption>
+<section id="id6">
+<h2>全连接层的优缺点<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table" id="id87">
+<caption><span class="caption-text">全连接层优缺点对比</span><a class="headerlink" href="#id87" title="Link to this table">#</a></caption>
 <colgroup>
 <col style="width: 50.0%" />
 <col style="width: 50.0%" />
@@ -575,18 +616,100 @@ document.write(`
 </table>
 </div>
 </section>
-<section id="id5">
-<h2>局限性<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
-<p>全连接网络在处理图像数据时存在明显局限性：</p>
-<ol class="arabic simple">
-<li><p><strong>参数爆炸</strong>：输入维度高导致参数数量巨大</p></li>
-<li><p><strong>空间信息丢失</strong>：展平操作破坏了图像的二维结构</p></li>
-<li><p><strong>平移不变性差</strong>：同一特征在不同位置需要重新学习</p></li>
-<li><p><strong>计算效率低</strong>：大量参数导致计算和内存开销大</p></li>
-</ol>
-<div class="warning admonition">
-<p class="admonition-title">为什么需要卷积神经网络？</p>
-<p>全连接网络的这些局限性正是卷积神经网络（CNN）被提出的原因。CNN通过局部连接、参数共享和池化操作，有效地解决了上述问题，成为图像处理任务的首选架构。</p>
+<section id="id7">
+<h2>核心问题：参数效率低下<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<p>全连接网络有<strong>235,146个参数</strong>，但大部分都是&quot;浪费&quot;的。</p>
+<section id="id8">
+<h3>什么是参数效率？<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<div class="math notranslate nohighlight">
+\[
+\text{参数效率} = \frac{\text{模型表达能力}}{\text{参数量}}
+\]</div>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>指标</p></th>
+<th class="head"><p>全连接网络</p></th>
+<th class="head"><p>评价</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>参数量</p></td>
+<td><p>235,146</p></td>
+<td><p>过多</p></td>
+</tr>
+<tr class="row-odd"><td><p>MNIST准确率</p></td>
+<td><p>~98%</p></td>
+<td><p>尚可</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>参数效率</strong></p></td>
+<td><p><strong>低</strong></p></td>
+<td><p>用20万参数&quot;记住&quot;数据，而非学会规律</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>问题本质</strong>：全连接缺乏<a class="reference internal" href="introduction.html#inductive-bias"><span class="std std-ref">归纳偏置（Inductive Bias）</span></a>——它没有利用&quot;图像是二维的&quot;、&quot;相邻像素相关&quot;这些先验知识。从贝叶斯角度看，全连接相当于<strong>无信息先验</strong>，必须从零开始学习所有可能；而CNN利用<strong>有信息先验</strong>，直接关注有用的假设空间。</p>
+</section>
+</section>
+<section id="id9">
+<h2>总结与展望<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
+<p>全连接网络虽然实现简单，但存在<strong>致命缺陷</strong>：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>问题</p></th>
+<th class="head"><p>影响</p></th>
+<th class="head"><p>CNN解决方案</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>参数爆炸</strong></p></td>
+<td><p>20万+参数，容易过拟合</p></td>
+<td><p>局部感受野，只看相邻像素</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>空间信息丢失</strong></p></td>
+<td><p>不知道像素位置关系</p></td>
+<td><p>保留2D结构，卷积核滑动</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>平移不变性差</strong></p></td>
+<td><p>同一特征需重复学习</p></td>
+<td><p>权值共享，一个卷积核全图复用</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>归纳偏置弱</strong></p></td>
+<td><p>参数效率极低</p></td>
+<td><p>内置局部性和平移不变性假设</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="id10">
+<h3>关键对比预告<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<p>下一节我们将学习<a class="reference internal" href="cnn-basics.html"><span class="doc">卷积神经网络</span></a>，通过两个核心设计将参数量从<strong>20万</strong>减少到<strong>几百</strong>：</p>
+<ul class="simple">
+<li><p><strong>局部感受野</strong>：3×3卷积核只看相邻9个像素，而非全部784个</p></li>
+<li><p><strong>权值共享</strong>：同一个卷积核滑过整张图像，参数重复使用</p></li>
+</ul>
+<div class="tip admonition">
+<p class="admonition-title">实验预告</p>
+<p>在<a class="reference internal" href="exp-cmp.html"><span class="doc">实验对比：全连接 vs CNN</span></a>中，我们将用实验数据对比：</p>
+<ul class="simple">
+<li><p>参数量：全连接（235K）vs CNN（~60K）</p></li>
+<li><p>准确率：两者都能达到98%+</p></li>
+<li><p>训练速度：CNN收敛更快</p></li>
+</ul>
+<p>这证明了<strong>好的架构设计比单纯增加参数更重要</strong>。</p>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id11">
+<h2>参考文献<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id12">
+<div role="list" class="citation-list">
+<div class="citation" id="id82" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">Ros58</a><span class="fn-bracket">]</span></span>
+<p>Frank Rosenblatt. The perceptron: a probabilistic model for information storage and organization in the brain. <em>Psychological Review</em>, 65(6):386–408, 1958.</p>
+</div>
+</div>
 </div>
 </section>
 </section>
@@ -595,7 +718,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -603,6 +726,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">59126f4</code>
+                2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and add citations
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">0c291d7</code>
                 2025-12-10 - <strong>Heyan Zhu</strong>: docs: restructure course materials and add new content
@@ -624,12 +752,12 @@ document.write(`
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="neural-training-basics.html"
+       href="introduction.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">上一页</p>
-        <p class="prev-next-title">神经网络训练基础</p>
+        <p class="prev-next-title">引言</p>
       </div>
     </a>
     <a class="right-next"
@@ -657,11 +785,20 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">全连接层的基本原理</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">参数数量分析</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">全连接层的基本原理</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">参数数量分析</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">参数爆炸：全连接的核心问题</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch实现</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">全连接层的优缺点</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">局限性</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">全连接层的优缺点</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">核心问题：参数效率低下</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">什么是参数效率？</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">总结与展望</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">关键对比预告</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">参考文献</a></li>
 </ul>
   </nav></div>
 

@@ -169,12 +169,12 @@
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">神经网络基础</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="neural-training-basics.html">神经网络训练基础</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fc-layer-basics.html">全连接神经网络</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">卷积神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="le-net.html">LeNet-5架构详解</a></li>
-<li class="toctree-l2"><a class="reference internal" href="exp-cmp.html">实验与比较</a></li>
-<li class="toctree-l2"><a class="reference internal" href="scaling-law.html">神经网络缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scaling-law.html">缩放定律：模型越大越好吗？</a></li>
 <li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
@@ -450,13 +450,17 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn-vs">参数效率：CNN vs 全连接</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">卷积操作的基本原理</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">特征图尺寸计算</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">参数共享机制</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">卷积层的优势</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">池化层</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">特征图尺寸计算</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">参数共享机制</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">卷积层的优势</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">池化层</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorchcnn">PyTorch实现CNN</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn">CNN的优缺点</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn">特征图：CNN的"眼睛"</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">CNN的优缺点</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">下一步</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">参考文献</a></li>
 </ul>
             </nav>
         </div>
@@ -468,16 +472,56 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="id1">
-<h1>卷积神经网络<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="cnn-basics">
+<span id="id1"></span><h1>卷积神经网络<a class="headerlink" href="#cnn-basics" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="fc-layer-basics.html"><span class="doc">全连接神经网络</span></a>揭示了全连接网络的致命缺陷：用<strong>235,000个参数</strong>处理28×28图像，效率极其低下。本节介绍的CNN通过巧妙设计，将参数量减少到<strong>几千个</strong>，同时提升性能——这就是<strong>参数效率</strong>的飞跃。</p>
+<section id="cnn-vs">
+<h2>参数效率：CNN vs 全连接<a class="headerlink" href="#cnn-vs" title="Link to this heading">#</a></h2>
+<div class="math notranslate nohighlight">
+\[
+\text{参数效率} = \frac{\text{模型表达能力}}{\text{参数量}}
+\]</div>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>架构</p></th>
+<th class="head"><p>参数量</p></th>
+<th class="head"><p>MNIST准确率</p></th>
+<th class="head"><p>归纳偏置</p></th>
+<th class="head"><p>参数效率</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>全连接</p></td>
+<td><p>~235K</p></td>
+<td><p>~98%</p></td>
+<td><p>弱</p></td>
+<td><p>低</p></td>
+</tr>
+<tr class="row-odd"><td><p>CNN</p></td>
+<td><p>~60K</p></td>
+<td><p>~99%</p></td>
+<td><p><strong>局部性+平移不变性</strong></p></td>
+<td><p><strong>高</strong></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>关键问题</strong>：CNN如何用<strong>1/4的参数</strong>达到更好的效果？</p>
+<p>答案就在它的<strong>归纳偏置</strong>设计中：</p>
+<ol class="arabic simple">
+<li><p><strong>局部感受野</strong>：3×3卷积核只看相邻9个像素，而非全部784个</p></li>
+<li><p><strong>权值共享</strong>：同一个卷积核滑过整张图像，参数重复使用</p></li>
+</ol>
+<p>这正是我们在<a class="reference internal" href="introduction.html#inductive-bias"><span class="std std-ref">归纳偏置（Inductive Bias）</span></a>中讨论的核心概念——CNN将&quot;图像是二维的&quot;、&quot;相邻像素相关&quot;这些先验知识<strong>内置到架构中</strong>。</p>
+</section>
 <section id="id2">
 <h2>卷积操作的基本原理<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>卷积操作是CNN的核心，它通过滑动窗口的方式在输入图像上应用（通过点积）滤波器（卷积核）来提取特征。这种思想最早由LeCun等人在1989年提出，并在后续的LeNet-5工作中得到完善。</p>
-<figure class="align-center" id="id7">
+<p>卷积操作是CNN的核心，它通过滑动窗口的方式在输入图像上应用（通过点积）滤波器（卷积核）来提取特征。这种思想最早由LeCun等人在1989年提出 <span id="id3">[<a class="reference internal" href="#id74" title="Yann LeCun, Bernhard Boser, John S Denker, Donnie Henderson, Richard E Howard, Wayne Hubbard, and Lawrence D Jackel. Backpropagation applied to handwritten zip code recognition. Neural Computation, 1(4):541–551, 1989.">LBD+89</a>]</span>，并在后续的LeNet-5工作中 <span id="id4">[<a class="reference internal" href="the-end.html#id89" title="Yann LeCun, Léon Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 86(11):2278–2324, 1998.">LBBH98</a>]</span> 得到完善。</p>
+<figure class="align-center" id="id86">
 <a class="reference internal image-reference" href="../_images/conv-process.png"><img alt="../_images/conv-process.png" src="../_images/conv-process.png" style="width: 40%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">卷积操作示意图</span><a class="headerlink" href="#id7" title="Link to this image">#</a></p>
+<p><span class="caption-text">卷积操作示意图</span><a class="headerlink" href="#id86" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <div class="admonition note">
@@ -502,8 +546,8 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 </div>
 <p>简单来说，卷积操作通过将卷积核在输入特征图上滑动，计算局部区域的加权和，即该区域与卷积核的相似程度，来生成输出特征图。</p>
 </section>
-<section id="id3">
-<h2>特征图尺寸计算<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<section id="id5">
+<h2>特征图尺寸计算<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
 <p>对于输入尺寸为 <span class="math notranslate nohighlight">\(W \times H\)</span>，卷积核大小为 <span class="math notranslate nohighlight">\(K \times K\)</span>，步长为 <span class="math notranslate nohighlight">\(S\)</span>，填充为 <span class="math notranslate nohighlight">\(P\)</span> 的情况，输出特征图的尺寸为：</p>
 <div class="math notranslate nohighlight">
 \[W_{out} = \left\lfloor \frac{W - K + 2P}{S} \right\rfloor + 1\]</div>
@@ -524,14 +568,14 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 </ul>
 </div>
 </section>
-<section id="id4">
-<h2>参数共享机制<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<section id="id6">
+<h2>参数共享机制<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
 <p>卷积层的一个重要特性是参数共享。同一个卷积核在图像的不同位置重复使用，这大大减少了参数数量。</p>
-<figure class="align-center" id="id8">
+<figure class="align-center" id="id87">
 <a class="reference internal image-reference" href="../_images/conv-param-share.png"><img alt="../_images/conv-param-share.png" src="../_images/conv-param-share.png" style="width: 80%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">参数共享机制示意图</span><a class="headerlink" href="#id8" title="Link to this image">#</a></p>
+<p><span class="caption-text">参数共享机制示意图</span><a class="headerlink" href="#id87" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <p>对于 <span class="math notranslate nohighlight">\(C_{\text{out}}\)</span> 个输出通道，每个通道使用独立的卷积核：</p>
@@ -543,8 +587,8 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 \[\text{Parameters} = 32 \times (3 \times 3 \times 1 + 1) = 32 \times 10 = 320\]</div>
 <p>相比全连接层的数万参数，卷积层的参数数量显著减少了99%以上。</p>
 </section>
-<section id="id5">
-<h2>卷积层的优势<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<section id="id7">
+<h2>卷积层的优势<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
 <div class="note admonition">
 <p class="admonition-title">卷积层的核心优势</p>
 <ol class="arabic simple">
@@ -555,8 +599,8 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 </ol>
 </div>
 </section>
-<section id="id6">
-<h2>池化层<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<section id="id8">
+<h2>池化层<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
 <p>池化层用于降采样，减少特征图的空间尺寸：</p>
 <ul class="simple">
 <li><p><strong>最大池化（Max Pooling）</strong>：取局部区域的最大值</p></li>
@@ -593,76 +637,139 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
         
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
         <span class="c1"># 第一个卷积块：28x28 -&gt; 14x14</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="c1"># conv1: 输入1通道，输出32通道，3x3卷积核，参数量32*(3*3*1+1)=320</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>        <span class="c1"># {ref}`computational-graph`中的卷积节点</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>          <span class="c1"># 批归一化 {cite}`ioffe2015batch`，稳定训练</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>            <span class="c1"># 非线性激活（见{ref}`activation-functions`）</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>         <span class="c1"># 下采样：28x28 -&gt; 14x14</span>
         
         <span class="c1"># 第二个卷积块：14x14 -&gt; 7x7</span>
+        <span class="c1"># conv2: 输入32通道，输出64通道，参数量64*(3*3*32+1)=18,496</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>         <span class="c1"># 14x14 -&gt; 7x7</span>
         
-        <span class="c1"># 展平</span>
+        <span class="c1"># 展平：64通道 × 7x7 = 3,136维向量</span>
+        <span class="c1"># 对比全连接：直接从784展平，CNN先提取特征再展平</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         
-        <span class="c1"># 全连接层</span>
+        <span class="c1"># 全连接层：3,136 -&gt; 128 -&gt; 10</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>      <span class="c1"># 正则化，防止过拟合</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>          <span class="c1"># 输出logits，CrossEntropyLoss内部Softmax</span>
         
         <span class="k">return</span> <span class="n">x</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_param_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;计算各层参数数量，验证参数效率&quot;&quot;&quot;</span>
+        <span class="n">conv1_params</span> <span class="o">=</span> <span class="mi">32</span> <span class="o">*</span> <span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="mi">3</span><span class="o">*</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>    <span class="c1"># 320</span>
+        <span class="n">conv2_params</span> <span class="o">=</span> <span class="mi">64</span> <span class="o">*</span> <span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="mi">3</span><span class="o">*</span><span class="mi">32</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>   <span class="c1"># 18,496</span>
+        <span class="n">fc1_params</span> <span class="o">=</span> <span class="mi">64</span><span class="o">*</span><span class="mi">7</span><span class="o">*</span><span class="mi">7</span> <span class="o">*</span> <span class="mi">128</span> <span class="o">+</span> <span class="mi">128</span>    <span class="c1"># 401,536</span>
+        <span class="n">fc2_params</span> <span class="o">=</span> <span class="mi">128</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">+</span> <span class="mi">10</span>         <span class="c1"># 1,290</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">conv1_params</span> <span class="o">+</span> <span class="n">conv2_params</span> <span class="o">+</span> <span class="n">fc1_params</span> <span class="o">+</span> <span class="n">fc2_params</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;conv1&#39;</span><span class="p">:</span> <span class="n">conv1_params</span><span class="p">,</span>
+            <span class="s1">&#39;conv2&#39;</span><span class="p">:</span> <span class="n">conv2_params</span><span class="p">,</span> 
+            <span class="s1">&#39;fc1&#39;</span><span class="p">:</span> <span class="n">fc1_params</span><span class="p">,</span>
+            <span class="s1">&#39;fc2&#39;</span><span class="p">:</span> <span class="n">fc2_params</span><span class="p">,</span>
+            <span class="s1">&#39;total&#39;</span><span class="p">:</span> <span class="n">total</span>
+        <span class="p">}</span>
 
 <span class="c1"># 模型实例化</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">SimpleCNN</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CNN模型总参数数量: </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">param_info</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_param_count</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CNN参数效率分析&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;卷积层参数:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Conv1 (32通道): </span><span class="si">{</span><span class="n">param_info</span><span class="p">[</span><span class="s1">&#39;conv1&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> 参数&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Conv2 (64通道): </span><span class="si">{</span><span class="n">param_info</span><span class="p">[</span><span class="s1">&#39;conv2&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> 参数&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;全连接层参数:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  FC1 (128神经元): </span><span class="si">{</span><span class="n">param_info</span><span class="p">[</span><span class="s1">&#39;fc1&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> 参数&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  FC2 (10类别):   </span><span class="si">{</span><span class="n">param_info</span><span class="p">[</span><span class="s1">&#39;fc2&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> 参数&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;总参数数量: </span><span class="si">{</span><span class="n">param_info</span><span class="p">[</span><span class="s1">&#39;total&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;对比全连接: 235,146 参数&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;参数减少: </span><span class="si">{</span><span class="mi">235146</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">param_info</span><span class="p">[</span><span class="s1">&#39;total&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">param_info</span><span class="p">[</span><span class="s1">&#39;total&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">235146</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%)&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="cnn">
-<h2>CNN的优缺点<a class="headerlink" href="#cnn" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="table" id="id9">
-<caption><span class="caption-text">卷积神经网络优缺点对比</span><a class="headerlink" href="#id9" title="Link to this table">#</a></caption>
-<colgroup>
-<col style="width: 50.0%" />
-<col style="width: 50.0%" />
-</colgroup>
+<h2>特征图：CNN的&quot;眼睛&quot;<a class="headerlink" href="#cnn" title="Link to this heading">#</a></h2>
+<p>每层卷积都在学习什么？通过可视化特征图，我们可以&quot;看到&quot;CNN的感知过程：</p>
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
-<tr class="row-odd"><th class="head"><p><strong>优点</strong></p></th>
-<th class="head"><p><strong>缺点</strong></p></th>
+<tr class="row-odd"><th class="head"><p>层级</p></th>
+<th class="head"><p>特征图内容</p></th>
+<th class="head"><p>人类可理解性</p></th>
+<th class="head"><p>作用</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>保留空间结构信息</p></td>
-<td><p>实现相对复杂</p></td>
+<tr class="row-even"><td><p><strong>Conv1</strong> (32通道)</p></td>
+<td><p>边缘、纹理、颜色梯度</p></td>
+<td><p>⭐⭐⭐ 高</p></td>
+<td><p>像边缘检测器，识别笔画边界</p></td>
 </tr>
-<tr class="row-odd"><td><p>参数数量少</p></td>
-<td><p>超参数选择敏感</p></td>
+<tr class="row-odd"><td><p><strong>Conv2</strong> (64通道)</p></td>
+<td><p>笔画、弧线、角点</p></td>
+<td><p>⭐⭐☆ 中</p></td>
+<td><p>组合低级特征，识别数字部件</p></td>
 </tr>
-<tr class="row-even"><td><p>平移不变性</p></td>
-<td><p>计算复杂度高</p></td>
+<tr class="row-even"><td><p><strong>池化后</strong></p></td>
+<td><p>抽象的位置信息</p></td>
+<td><p>⭐☆☆ 低</p></td>
+<td><p>降维同时保留关键特征</p></td>
 </tr>
-<tr class="row-odd"><td><p>局部连接</p></td>
-<td><p>需要更多内存</p></td>
-</tr>
-<tr class="row-even"><td><p>分层特征提取</p></td>
-<td><p>训练时间较长</p></td>
+<tr class="row-odd"><td><p><strong>FC层</strong></p></td>
+<td><p>数字类别的高层表示</p></td>
+<td><p>⭐☆☆ 低</p></td>
+<td><p>完全抽象，人类难以理解</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<div class="warning admonition">
-<p class="admonition-title">从全连接到卷积的演进</p>
-<p>卷积神经网络的设计直接针对全连接网络的局限性：</p>
-<ol class="arabic simple">
-<li><p><strong>参数爆炸</strong> → 参数共享大幅减少参数</p></li>
-<li><p><strong>空间信息丢失</strong> → 局部连接保留空间结构</p></li>
-<li><p><strong>平移不变性差</strong> → 平移不变性提高泛化能力</p></li>
-<li><p><strong>计算效率低</strong> → 分层特征提取提高计算效率</p></li>
-</ol>
-<p>这种演进体现了深度学习架构设计中的“归纳偏置”思想：通过引入适合任务结构的先验知识，让模型更高效地学习。</p>
+<div class="figure" id="id88" style="text-align: center"><p><img  src="../_images/tikz-9dfb9b54f95e09d8b87eb7077a45e5c1b53e8eae.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">CNN分层特征提取示意</span></p>
+</div><p><strong>分层学习的启示</strong>：</p>
+<ul class="simple">
+<li><p>CNN自动学习从<strong>简单到复杂</strong>的特征层次，无需人工设计</p></li>
+<li><p>这与人类视觉系统类似：视网膜→边缘检测→形状识别→物体认知</p></li>
+<li><p>全连接网络没有这种层次结构，必须同时学习所有复杂度</p></li>
+</ul>
+</section>
+<section id="id9">
+<h2>CNN的优缺点<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
+</section>
+<hr class="docutils" />
+<section id="id10">
+<h2>下一步<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
+<p>掌握了CNN基础后，下一节<a class="reference internal" href="le-net.html"><span class="doc">LeNet-5架构详解</span></a>我们将分析<strong>第一个成功的CNN架构</strong>——LeNet-5。我们将看到：</p>
+<ul class="simple">
+<li><p>理论概念如何转化为工程实践</p></li>
+<li><p>1998年的设计为何至今仍不过时</p></li>
+<li><p>经典架构中的设计智慧</p></li>
+</ul>
+<p>让我们看看CNN如何从实验室走向银行支票识别系统！</p>
+</section>
+<hr class="docutils" />
+<section id="id11">
+<h2>参考文献<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id12">
+<div role="list" class="citation-list">
+<div class="citation" id="id74" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">LBD+89</a><span class="fn-bracket">]</span></span>
+<p>Yann LeCun, Bernhard Boser, John S Denker, Donnie Henderson, Richard E Howard, Wayne Hubbard, and Lawrence D Jackel. Backpropagation applied to handwritten zip code recognition. <em>Neural Computation</em>, 1(4):541–551, 1989.</p>
+</div>
+<div class="citation" id="id73" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">LBBH98</a><span class="fn-bracket">]</span></span>
+<p>Yann LeCun, Léon Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document recognition. <em>Proceedings of the IEEE</em>, 86(11):2278–2324, 1998.</p>
+</div>
+</div>
 </div>
 </section>
 </section>
@@ -671,7 +778,7 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -679,6 +786,11 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">59126f4</code>
+                2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and add citations
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">cec393d</code>
                 2025-12-11 - <strong>Heyan Zhu</strong>: docs: partially complete migration and restructure course materials
@@ -733,13 +845,17 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn-vs">参数效率：CNN vs 全连接</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">卷积操作的基本原理</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">特征图尺寸计算</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">参数共享机制</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">卷积层的优势</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">池化层</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">特征图尺寸计算</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">参数共享机制</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">卷积层的优势</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">池化层</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorchcnn">PyTorch实现CNN</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn">CNN的优缺点</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn">特征图：CNN的"眼睛"</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">CNN的优缺点</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">下一步</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">参考文献</a></li>
 </ul>
   </nav></div>
 

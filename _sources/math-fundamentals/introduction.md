@@ -38,10 +38,19 @@
 4. **{ref}`back-propagation`**：高效计算梯度，完成误差的"信用分配"
 5. **{ref}`gradient-descent`**：利用梯度信息迭代优化参数
 
-这些概念相互配合，构成了现代深度学习框架的核心机制。
+这些概念相互配合，构成了现代深度学习框架的核心机制 {cite}`goodfellow2016deep`。
 
 ## 本章预览
 
 本章我们将从{ref}`computational-graph`开始，建立"数据流"的直觉视角。然后理解{ref}`activation-functions`如何用非线性变换在空间中划分决策边界。接着探讨{ref}`loss-functions`如何定义优化目标、塑造损失曲面的几何形状。之后理解{ref}`back-propagation`如何高效地完成"信用分配"——把最终误差分摊给每个参数。最后探索{ref}`gradient-descent`如何在损失曲面上寻找最优解。
 
 掌握这些核心机制后，{doc}`the-end`将回顾本章要点，然后下一章我们将用PyTorch构建实际的神经网络，在MNIST任务上观察这些理论如何转化为训练动态。
+
+---
+
+## 参考文献
+
+```{bibliography}
+:filter: docname in docnames
+```
+

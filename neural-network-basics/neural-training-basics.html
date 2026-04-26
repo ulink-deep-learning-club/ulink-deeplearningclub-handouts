@@ -49,8 +49,8 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'neural-network-basics/neural-training-basics';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="全连接神经网络" href="fc-layer-basics.html" />
-    <link rel="prev" title="引言" href="introduction.html" />
+    <link rel="next" title="实验对比：全连接 vs CNN" href="exp-cmp.html" />
+    <link rel="prev" title="LeNet-5架构详解" href="le-net.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
   </head>
@@ -169,12 +169,12 @@
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">神经网络基础</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">神经网络训练基础</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fc-layer-basics.html">全连接神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cnn-basics.html">卷积神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="le-net.html">LeNet-5架构详解</a></li>
-<li class="toctree-l2"><a class="reference internal" href="exp-cmp.html">实验与比较</a></li>
-<li class="toctree-l2"><a class="reference internal" href="scaling-law.html">神经网络缩放定律</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scaling-law.html">缩放定律：模型越大越好吗？</a></li>
 <li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
@@ -450,33 +450,44 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">基本训练术语</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">损失函数的选择</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">训练过程与验证</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">训练集与测试集的划分</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">训练过程的监控</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">训练的本质：从数据到能力</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">核心训练概念</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">损失函数的选择</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">过拟合与欠拟合：学习的两种失败</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">欠拟合：学得太少</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">过拟合：死记硬背</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">过拟合与欠拟合</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#underfitting">欠拟合（Underfitting）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#overfitting">过拟合（Overfitting）</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">数据划分：训练集、验证集、测试集</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">正则化：防止死记硬背的四种方法</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#l2">1. L2正则化（权重衰减）：强制"粗笔画"</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">为什么L2惩罚能实现这一点？</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">正则化技术：防止过拟合的实用方法</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">什么是正则化？</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#l1l2">L1和L2正则化：最简单的正则化方法</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dropout">Dropout：随机“失忆”技术</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">早停法：聪明的“刹车”技术</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">数据增强：免费的“新数据”</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">如何选择正则化方法？</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dropout">2. Dropout：随机"罢工"迫使协作</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">为什么冗余表示能防止过拟合？</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">批量大小与学习率调度</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">批量大小的影响</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">学习率调度</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">3. 早停法：在"最佳点"刹车</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">为什么验证损失上升意味着过拟合？</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">评价指标</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">4. 数据增强：免费的"新数据"</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">为什么有效？</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">如何选择正则化方法？</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">批量大小与学习率</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">批量大小的权衡</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">学习率调度</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">训练监控指标</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">总结：训练检查清单</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">下一步</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">参考文献</a></li>
 </ul>
             </nav>
         </div>
@@ -488,457 +499,497 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="id1">
-<h1>神经网络训练基础<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="neural-training-basics">
+<span id="id1"></span><h1>神经网络训练基础<a class="headerlink" href="#neural-training-basics" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="fc-layer-basics.html"><span class="doc">全连接神经网络</span></a>和<a class="reference internal" href="cnn-basics.html"><span class="doc">卷积神经网络</span></a>中我们学习了如何<strong>搭建</strong>神经网络架构。但知道&quot;建什么&quot;不等于知道&quot;怎么训练&quot;——就像有了一辆车不等于会开车。本节我们将从<a class="reference internal" href="../math-fundamentals/gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>和<a class="reference internal" href="../math-fundamentals/back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>的理论出发，掌握让神经网络真正&quot;学会&quot;的实战技巧。</p>
 <section id="id2">
-<h2>基本训练术语<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>在深入探讨神经网络架构之前，我们需要明确一些基本的训练概念和术语：</p>
+<h2>训练的本质：从数据到能力<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>想象你在教小孩认数字。你不会只给他看一遍卡片就指望他记住，而是需要：</p>
+<ul class="simple">
+<li><p><strong>反复练习</strong>：同一组卡片看很多遍（多轮训练）</p></li>
+<li><p><strong>及时反馈</strong>：猜对了表扬，猜错了纠正（计算损失）</p></li>
+<li><p><strong>循序渐进</strong>：从简单到复杂，调整学习节奏（学习率调度）</p></li>
+<li><p><strong>防止死记</strong>：确保他理解数字的本质，不只是记住卡片（防止过拟合）</p></li>
+</ul>
+<p>神经网络训练完全遵循同样的逻辑。<a class="reference internal" href="../math-fundamentals/gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>告诉我们沿着梯度方向更新参数，但实践中还有大量细节需要把握。</p>
+</section>
+<hr class="docutils" />
+<section id="id3">
+<h2>核心训练概念<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>在深入之前，我们需要统一几个基本概念：</p>
+<p><strong>Epoch（轮次）</strong>：完整遍历整个训练数据集一次。就像把整副卡片从头到尾看一遍。MNIST有60,000张训练图片，一个epoch就是看完全部60,000张。</p>
+<p><strong>Batch（批次）</strong>：一次更新参数时使用的样本集合。如果一次看一张就更新，效率太低；如果看完60,000张才更新，内存可能不够。<strong>Batch Size</strong>就是每批的样本数，常用32、64、128等2的幂次。</p>
+<p><strong>Iteration（迭代）</strong>：完成一个批次的训练。一个epoch包含的迭代次数 = 总样本数 ÷ Batch Size。</p>
 <div class="admonition note">
 <p class="admonition-title">备注</p>
-<p><strong>核心训练术语</strong></p>
+<p>MNIST训练示例</p>
 <ul class="simple">
-<li><p><strong>Epoch（轮次）</strong>：完整遍历整个训练数据集一次的过程</p></li>
-<li><p><strong>Batch（批次）</strong>：一次训练迭代中使用的样本集合</p></li>
-<li><p><strong>Batch Size（批大小）</strong>：每个批次中的样本数量，影响训练稳定性和内存使用</p></li>
-<li><p><strong>Iteration（迭代）</strong>：完成一个批次的训练步骤</p></li>
-<li><p><strong>Learning Rate（学习率）</strong>：控制模型参数更新步长的超参数</p></li>
-<li><p><strong>Loss Function（损失函数）</strong>：衡量模型预测与真实标签差异的函数</p></li>
+<li><p>总训练样本：60,000张</p></li>
+<li><p>Batch Size：64</p></li>
+<li><p>每epoch的迭代次数：60,000 ÷ 64 ≈ 938次</p></li>
+<li><p>训练10个epoch：总共迭代9,380次，更新参数9,380次</p></li>
 </ul>
 </div>
 </section>
-<section id="id3">
-<h2>损失函数的选择<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
-<p>损失函数是神经网络训练的核心，不同的任务需要不同的损失函数：</p>
-<div class="pst-scrollable-table-container"><table class="table" id="id17">
-<caption><span class="caption-text">常见损失函数对比</span><a class="headerlink" href="#id17" title="Link to this table">#</a></caption>
-<colgroup>
-<col style="width: 30.0%" />
-<col style="width: 40.0%" />
-<col style="width: 30.0%" />
-</colgroup>
+<hr class="docutils" />
+<section id="id4">
+<h2>损失函数的选择<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="../math-fundamentals/loss-functions.html#loss-functions"><span class="std std-ref">损失函数</span></a>中我们讨论了不同任务的损失函数设计。在实战中，选择主要取决于<strong>任务类型</strong>：</p>
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
-<tr class="row-odd"><th class="head"><p><strong>任务类型</strong></p></th>
-<th class="head"><p><strong>损失函数</strong></p></th>
-<th class="head"><p><strong>数学表达式</strong></p></th>
+<tr class="row-odd"><th class="head"><p>任务类型</p></th>
+<th class="head"><p>推荐损失函数</p></th>
+<th class="head"><p>为什么</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>回归任务</p></td>
-<td><p>均方误差（MSE）</p></td>
-<td><p><span class="math notranslate nohighlight">\(\displaystyle \frac{1}{n}\sum_{i=1}^n (y_i - \hat{y}_i)^2\)</span></p></td>
+<tr class="row-even"><td><p>回归</p></td>
+<td><p>MSE / MAE</p></td>
+<td><p>直接衡量数值偏差</p></td>
 </tr>
-<tr class="row-odd"><td><p>分类任务</p></td>
-<td><p>交叉熵损失</p></td>
-<td><p><span class="math notranslate nohighlight">\(\displaystyle -\sum_{i=1}^n y_i \log(\hat{y}_i)\)</span></p></td>
+<tr class="row-odd"><td><p>二分类</p></td>
+<td><p>BCE Loss</p></td>
+<td><p>衡量概率校准程度</p></td>
 </tr>
-<tr class="row-even"><td><p>二分类任务</p></td>
-<td><p>二元交叉熵</p></td>
-<td><p><span class="math notranslate nohighlight">\(\displaystyle -\frac{1}{n}\sum_{i=1}^n [y_i \log(\hat{y}_i) + (1-y_i)\log(1-\hat{y}_i)]\)</span></p></td>
+<tr class="row-even"><td><p>多分类</p></td>
+<td><p>CrossEntropy</p></td>
+<td><p>结合Softmax，梯度更稳定</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<div class="example admonition">
-<p class="admonition-title">MNIST分类的损失函数</p>
-<p>对于MNIST手写数字识别这样的10类分类任务，我们使用<strong>分类交叉熵损失函数</strong>：</p>
+<div class="tip admonition">
+<p class="admonition-title">MNIST的交叉熵</p>
+<p>MNIST是10类分类，使用<strong>交叉熵损失</strong>：</p>
 <div class="math notranslate nohighlight">
 \[
 \mathcal{L} = -\sum_{c=1}^{10} y_c \log(p_c)
 \]</div>
-<p>其中：</p>
 <ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(y_c\)</span>：真实标签的one-hot编码（0或1）</p></li>
-<li><p><span class="math notranslate nohighlight">\(p_c\)</span>：模型预测属于类别<span class="math notranslate nohighlight">\(c\)</span>的概率</p></li>
-<li><p>求和遍历所有10个数字类别</p></li>
+<li><p><span class="math notranslate nohighlight">\(y_c\)</span>：真实标签的one-hot编码（目标类别为1，其余为0）</p></li>
+<li><p><span class="math notranslate nohighlight">\(p_c\)</span>：Softmax输出的概率</p></li>
 </ul>
-<p><strong>为什么选择交叉熵而不是MSE？</strong> 交叉熵对概率分布的差异更敏感，且在分类任务中梯度更稳定。</p>
+<p><strong>为什么不用MSE？</strong> 分类任务的输出是概率分布，交叉熵对这种&quot;分布间的差异&quot;更敏感，且避免了梯度消失问题（见<a class="reference internal" href="../math-fundamentals/back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>）。</p>
 </div>
 </section>
-<section id="id4">
-<h2>训练过程与验证<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<hr class="docutils" />
 <section id="id5">
-<h3>训练集与测试集的划分<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
-<p>在机器学习中，我们将数据划分为不同的集合：</p>
+<h2>过拟合与欠拟合：学习的两种失败<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<p>训练神经网络就像准备考试——有两种典型的失败模式：</p>
+<section id="id6">
+<h3>欠拟合：学得太少<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p>想象一个学生只翻了翻课本，没做练习题就去考试：</p>
 <ul class="simple">
-<li><p><strong>训练集（Training Set）</strong>：用于模型参数的学习</p></li>
-<li><p><strong>验证集（Validation Set）</strong>：用于超参数调优和模型选择</p></li>
-<li><p><strong>测试集（Test Set）</strong>：用于最终模型性能评估</p></li>
+<li><p>训练时表现就不好（训练损失高）</p></li>
+<li><p>考试时更差（验证损失也高）</p></li>
+<li><p><strong>原因</strong>：模型太简单，没能捕捉数据的基本规律</p></li>
+<li><p><strong>解决</strong>：增加网络深度、训练更长时间、降低正则化强度</p></li>
+</ul>
+</section>
+<section id="id7">
+<h3>过拟合：死记硬背<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<p>另一个学生把所有练习题都背下来了：</p>
+<ul class="simple">
+<li><p>做练习题时几乎全对（训练损失很低）</p></li>
+<li><p>遇到新题就不会（验证损失高，差距大）</p></li>
+<li><p><strong>原因</strong>：模型记住了训练数据的噪声，而非学习通用规律</p></li>
+<li><p><strong>解决</strong>：使用正则化、早停、数据增强、降低模型复杂度</p></li>
+</ul>
+<div class="figure" id="id100" style="text-align: center"><p><img  src="../_images/tikz-67b89bbfd840701fc983520ba081eef2335a15be.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">模型复杂度与泛化性能</span></p>
+</div><p>图中的&quot;最佳点&quot;是我们追求的目标：足够复杂的模型捕捉规律，但不至于过拟合。找到这个点需要<strong>验证集</strong>——用训练集学习，用验证集调参，最后用测试集评估。</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id8">
+<h2>数据划分：训练集、验证集、测试集<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<p>为什么需要三组数据？</p>
+<ul class="simple">
+<li><p><strong>训练集</strong>：学习参数（权重和偏置）</p></li>
+<li><p><strong>验证集</strong>：选择超参数（学习率、网络结构、正则化强度）</p></li>
+<li><p><strong>测试集</strong>：最终评估（只能用一次！）</p></li>
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">警告</p>
-<p><strong>数据划分的重要性</strong></p>
-<ul class="simple">
-<li><p>避免过拟合：确保模型在未见过的数据上表现良好</p></li>
-<li><p>公平评估：测试集只能在最终评估时使用一次</p></li>
-<li><p>模型选择：验证集帮助我们选择最佳超参数</p></li>
-</ul>
+<p><strong>测试集的禁忌</strong></p>
+<p>测试集只能用于最终报告，绝不能用来调参或选择模型。否则就像考试时偷看答案——分数虚高，真实能力被高估。</p>
 </div>
+<p>MNIST的标准划分：60,000训练 + 10,000测试。实践中，我们会从训练集中分出10%（6,000张）作为验证集，剩下54,000张真正用于训练。</p>
 </section>
-<section id="id6">
-<h3>训练过程的监控<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
-<p>有效的训练需要监控多个指标：</p>
-<div class="admonition note">
-<p class="admonition-title">备注</p>
-<p><strong>关键监控指标</strong></p>
-<ul class="simple">
-<li><p><strong>训练损失</strong>：模型在训练集上的表现，应该逐渐下降</p></li>
-<li><p><strong>验证损失</strong>：模型在验证集上的表现，反映泛化能力</p></li>
-<li><p><strong>训练准确率</strong>：模型在训练集上的分类正确率</p></li>
-<li><p><strong>验证准确率</strong>：模型在验证集上的分类正确率</p></li>
-</ul>
-</div>
-</section>
-</section>
-<section id="id7">
-<h2>过拟合与欠拟合<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
-<section id="underfitting">
-<h3>欠拟合（Underfitting）<a class="headerlink" href="#underfitting" title="Link to this heading">#</a></h3>
-<p>当模型过于简单，无法捕捉数据中的基本模式时发生：</p>
-<ul class="simple">
-<li><p>训练损失和验证损失都很高</p></li>
-<li><p>模型在训练集上表现不佳</p></li>
-<li><p>解决方法：增加模型复杂度、减少正则化、训练更长时间</p></li>
-</ul>
-</section>
-<section id="overfitting">
-<h3>过拟合（Overfitting）<a class="headerlink" href="#overfitting" title="Link to this heading">#</a></h3>
-<p>想象你在学习一门新课程：</p>
-<ul class="simple">
-<li><p><strong>正常学习</strong>：理解基本概念，能够解决类似问题</p></li>
-<li><p><strong>死记硬背</strong>：记住所有例题，但遇到新题型就不会</p></li>
-</ul>
-<p>当模型过于复杂，记忆了训练数据中的噪声而非真实模式时发生：</p>
-<ul class="simple">
-<li><p>训练损失很低，但验证损失很高</p></li>
-<li><p>模型在训练集上表现很好，但在新数据上表现差</p></li>
-<li><p>解决方法：增加训练数据、使用正则化、早停法、降低模型复杂度</p></li>
-</ul>
-<div class="figure" id="id18" style="text-align: center"><p><img  src="../_images/tikz-d9a8b54b17154b1165de3981b24391f1048ef38a.svg" alt="Figure made with TikZ" /></p>
-<p><span class="caption-text">模型复杂度与损失的关系（示意图）</span></p>
-</div><div class="admonition note">
-<p class="admonition-title">备注</p>
-<p>有点牵强的总结：学而不思则过拟合，思而不学则欠拟合。</p>
-</div>
-</section>
-</section>
-<section id="id8">
-<h2>正则化技术：防止过拟合的实用方法<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<hr class="docutils" />
 <section id="id9">
-<h3>什么是正则化？<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
-<p>在神经网络中，正则化就是帮助我们训练出“聪明”而不是“死记硬背”的模型的技术。</p>
-<div class="pst-scrollable-table-container"><table class="table" id="id19">
-<caption><span class="caption-text">正则化的直观理解</span><a class="headerlink" href="#id19" title="Link to this table">#</a></caption>
-<colgroup>
-<col style="width: 50.0%" />
-<col style="width: 50.0%" />
-</colgroup>
+<h2>正则化：防止死记硬背的四种方法<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
+<p>正则化的核心思想：<strong>限制模型的&quot;记忆能力&quot;，逼迫它学习&quot;理解能力&quot;</strong>。</p>
+<p>为什么需要限制？想象一个拥有超强记忆力的学生——他可以背下所有练习题答案，考试时遇到原题全对，但稍微变化就不会。神经网络也有这种&quot;过强记忆&quot;的能力，特别是参数量大时。正则化就是防止这种&quot;死记硬背&quot;。</p>
+<hr class="docutils" />
+<section id="l2">
+<h3>1. L2正则化（权重衰减）：强制&quot;粗笔画&quot;<a class="headerlink" href="#l2" title="Link to this heading">#</a></h3>
+<div class="tip admonition">
+<p class="admonition-title">核心洞察：权重大小决定决策边界的&quot;粗细&quot;</p>
+<p>想象用画笔画画：</p>
+<ul class="simple">
+<li><p><strong>细笔画</strong>（大权重）：可以画出非常锐利、复杂的边界，精确勾勒每个训练样本的细节——就像用0.5mm的针管笔，能画出极细的线条</p></li>
+<li><p><strong>粗笔画</strong>（小权重）：只能画出平滑、模糊的轮廓，捕捉大体形状——就像用毛笔，线条自然柔和</p></li>
+</ul>
+<p>神经网络的决策边界也是由权重决定的。大权重让边界变得&quot;尖锐&quot;，可以&quot;钻牛角尖&quot;去拟合每个训练点；小权重让边界保持&quot;平滑&quot;，只能学习通用的模式。</p>
+</div>
+<section id="id10">
+<h4>为什么L2惩罚能实现这一点？<a class="headerlink" href="#id10" title="Link to this heading">#</a></h4>
+<p>L2正则化在损失函数中加入权重的平方和：</p>
+<div class="math notranslate nohighlight">
+\[
+\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{original}} + \frac{\lambda}{2} \sum_{i} w_i^2
+\]</div>
+<p><strong>关键洞察</strong>：平方惩罚对大权重的&quot;惩罚力度&quot;远大于小权重。</p>
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
-<tr class="row-odd"><th class="head"><p><strong>学生学习</strong></p></th>
-<th class="head"><p><strong>神经网络训练</strong></p></th>
+<tr class="row-odd"><th class="head"><p>权重值</p></th>
+<th class="head"><p>原始损失惩罚</p></th>
+<th class="head"><p>平方惩罚</p></th>
+<th class="head"><p>相对增加</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>理解概念</p></td>
-<td><p>学习通用特征</p></td>
+<tr class="row-even"><td><p>0.1</p></td>
+<td><p>1</p></td>
+<td><p>0.01</p></td>
+<td><p>1%</p></td>
 </tr>
-<tr class="row-odd"><td><p>举一反三</p></td>
-<td><p>泛化到新数据</p></td>
+<tr class="row-odd"><td><p>1.0</p></td>
+<td><p>1</p></td>
+<td><p>0.5</p></td>
+<td><p>50%</p></td>
 </tr>
-<tr class="row-even"><td><p>正则化帮助学生避免死记硬背</p></td>
-<td><p>正则化帮助模型避免过拟合</p></td>
+<tr class="row-even"><td><p>10.0</p></td>
+<td><p>1</p></td>
+<td><p>50</p></td>
+<td><p>5000%</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-</section>
-<section id="l1l2">
-<h3>L1和L2正则化：最简单的正则化方法<a class="headerlink" href="#l1l2" title="Link to this heading">#</a></h3>
-<p><strong>核心思想：</strong> 让模型的权重不要变得太大</p>
-<p>正则化通过在原始损失函数中添加参数惩罚项来实现：</p>
-<div class="note admonition">
-<p class="admonition-title">L1正则化（Lasso回归）</p>
-<div class="math notranslate nohighlight">
-\[\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{original}} + \lambda \sum_{i=1}^{n} |w_i|\]</div>
-</div>
-<p><strong>特点：</strong></p>
-<ul class="simple">
-<li><p>产生稀疏解，许多参数会变为0</p></li>
-<li><p>具有特征选择功能，自动选择重要特征</p></li>
-<li><p>对异常值相对鲁棒</p></li>
-<li><p>不可导，需要特殊优化方法</p></li>
-</ul>
-<div class="note admonition">
-<p class="admonition-title">L2正则化（Ridge回归）</p>
-<div class="math notranslate nohighlight">
-\[\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{original}} + \frac{\lambda}{2} \sum_{i=1}^{n} w_i^2\]</div>
-</div>
-<p><strong>特点：</strong></p>
-<ul class="simple">
-<li><p>参数趋向于小而非零的值</p></li>
-<li><p>数学处理更简单，可导</p></li>
-<li><p>对异常值敏感</p></li>
-<li><p>是最常用的正则化形式</p></li>
-</ul>
-<div class="example admonition">
-<p class="admonition-title">类比</p>
-<p>想象你在调音：</p>
-<ul class="simple">
-<li><p><strong>L1正则化</strong>：直接告诉某些旋钮“完全不要动”（变成0）</p></li>
-<li><p><strong>L2正则化</strong>：告诉所有旋钮“不要调得太大”（保持小值）</p></li>
-</ul>
-</div>
-<div class="admonition warning">
-<p class="admonition-title">警告</p>
-<p><strong>为什么有效？</strong></p>
-<ul class="simple">
-<li><p>权重太大 → 模型过于敏感 → 容易记住训练数据</p></li>
-<li><p>权重较小 → 模型更加平滑 → 能够泛化到新数据</p></li>
-<li><p>就像用粗笔画画，不会画出过于复杂的细节</p></li>
-</ul>
-</div>
-<div class="example admonition">
-<p class="admonition-title">PyTorch中的L2正则化</p>
-<p>在PyTorch中，L2正则化被称为“权重衰减”（weight decay）：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span>
+<p><strong>结果</strong>：优化器会发现，与其让少数权重变得很大（承担巨额平方惩罚），不如让所有权重都保持较小。这就像税收——平方税率对大收入者更严厉，促使财富分布更均匀。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># PyTorch中的L2正则化（weight_decay）</span>
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span>
     <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
     <span class="n">lr</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
-    <span class="n">weight_decay</span><span class="o">=</span><span class="mf">0.0001</span>  <span class="c1"># L2正则化</span>
+    <span class="n">weight_decay</span><span class="o">=</span><span class="mf">1e-4</span>  <span class="c1"># λ = 0.0001</span>
 <span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<p><strong>实践建议：</strong> 从0.0001开始尝试，根据验证效果调整</p>
+<p><strong>为什么有效？</strong> 小权重的网络更&quot;保守&quot;，不会为了拟合某个训练样本的噪声而剧烈调整输出。它必须找到更通用的规律，才能在保持权重小的同时降低原始损失。</p>
 </section>
+</section>
+<hr class="docutils" />
 <section id="dropout">
-<h3>Dropout：随机“失忆”技术<a class="headerlink" href="#dropout" title="Link to this heading">#</a></h3>
-<p><strong>核心思想：</strong> 训练时随机让一些神经元“罢工”，迫使网络学习冗余的特征</p>
-<div class="figure" id="id20" style="text-align: center"><p><img  src="../_images/tikz-2cbc677704c46317a534ab888bb94f9782c8d564.svg" alt="Figure made with TikZ" /></p>
-<p><span class="caption-text">Dropout：随机让部分神经元“罢工”</span></p>
-</div><div class="example admonition">
-<p class="admonition-title">直观的理解</p>
-<p><strong>训练阶段：</strong> “同学们，今天随机抽一半同学回答问题，其他人休息”</p>
+<h3>2. Dropout：随机&quot;罢工&quot;迫使协作<a class="headerlink" href="#dropout" title="Link to this heading">#</a></h3>
+<p>Dropout 由 Srivastava 等人在 2014 年提出 <span id="id11">[<a class="reference internal" href="#id68" title="Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan Salakhutdinov. Dropout: a simple way to prevent neural networks from overfitting. The journal of machine learning research, 15(1):1929–1958, 2014.">SHK+14</a>]</span>，是防止神经网络过拟合的有效方法。</p>
+<div class="tip admonition">
+<p class="admonition-title">核心洞察：随机&quot;点名&quot;防止依赖&quot;学霸&quot;</p>
+<p>想象一个班级有50人，老师提问时总是叫同一个&quot;学霸&quot;回答：</p>
 <ul class="simple">
-<li><p>每个人都要准备好，因为不知道会不会被抽到</p></li>
-<li><p>不能依赖某个“学霸”同学，必须自己理解</p></li>
+<li><p>学霸越来越厉害（某些神经元权重变得极大）</p></li>
+<li><p>其他同学从不思考（其他神经元权重趋于0）</p></li>
+<li><p>结果：班级极度依赖学霸，一旦学霸生病（过拟合到新数据），全班表现崩盘</p></li>
 </ul>
-<p><strong>测试阶段：</strong> “现在全班一起回答问题，把大家的答案平均一下”</p>
+<p>Dropout就像<strong>随机点名</strong>：每次提问随机抽一半同学，学霸也可能被抽中休息。</p>
 <ul class="simple">
-<li><p>相当于多个“子班级”的集体智慧</p></li>
-<li><p>结果更加稳定可靠</p></li>
+<li><p><strong>后果</strong>：每个人都必须准备好回答问题</p></li>
+<li><p><strong>结果</strong>：知识必须在全班<strong>分布式存储</strong>，形成<strong>冗余表示</strong></p></li>
 </ul>
 </div>
-<div class="example admonition">
-<p class="admonition-title">Dropout的PyTorch实现</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">SimpleNet</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<section id="id12">
+<h4>为什么冗余表示能防止过拟合？<a class="headerlink" href="#id12" title="Link to this heading">#</a></h4>
+<p>过拟合的本质是&quot;记忆&quot;——模型记住了训练数据的具体特征（包括噪声）。如果知识只存储在少数几个神经元中，这些神经元就会&quot;死记硬背&quot;训练样本。</p>
+<p>Dropout迫使知识分散存储：</p>
+<ul class="simple">
+<li><p>识别&quot;横线&quot;的特征不是由某1个神经元专门负责，而是由10个神经元共同分担</p></li>
+<li><p>即使其中5个被&quot;dropout&quot;了，剩下5个还能大致识别横线</p></li>
+<li><p>每个神经元都不能&quot;偷懒&quot;记忆特定样本，必须学习通用特征</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Net</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">SimpleNet</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fc1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">784</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>  <span class="c1"># 50%的dropout率</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>  <span class="c1"># 50%的dropout</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fc2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
         
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># 只在训练时随机“丢弃”</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">x</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># 训练时随机丢弃，测试时自动关闭</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<p><strong>参数选择：</strong></p>
-<ul class="simple">
-<li><p>输入层：通常不用dropout（0%）</p></li>
-<li><p>隐藏层：0.3-0.5（30%-50%）</p></li>
-<li><p>输出层：不用dropout</p></li>
-</ul>
+<p><strong>测试时为什么关闭Dropout？</strong> 训练时的随机丢弃相当于训练了多个&quot;子网络&quot;（2^N种可能的组合）。测试时我们使用完整网络，相当于**集成（ensemble）**了所有这些子网络的预测，取平均——这通常比任何单个子网络更稳定。</p>
 </section>
-<section id="id10">
-<h3>早停法：聪明的“刹车”技术<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
-<p><strong>核心思想：</strong> 看到验证效果开始变差时就停止训练</p>
-<div class="figure" id="id21" style="text-align: center"><p><img  src="../_images/tikz-00f87ca0fc9febcb7bc1f664cb3df7c1067a7fda.svg" alt="Figure made with TikZ" /></p>
-<p><span class="caption-text">早停法示意图</span></p>
-</div><div class="admonition warning">
-<p class="admonition-title">警告</p>
-<p><strong>什么时候该停止？</strong></p>
-<ul class="simple">
-<li><p>验证损失连续几个epoch没有改善</p></li>
-<li><p>验证准确率开始下降</p></li>
-<li><p>训练损失还在下降，但验证损失开始上升</p></li>
-</ul>
-<p><strong>就像考试前：</strong> 发现模拟考试成绩开始下降，就应该停止“熬夜突击”，保持当前水平</p>
-</div>
 </section>
-<section id="id11">
-<h3>数据增强：免费的“新数据”<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
-<p><strong>核心思想：</strong> 通过对现有数据进行合理变换，创造“新”的训练样本</p>
-<div class="example admonition">
-<p class="admonition-title">MNIST数据增强实例</p>
-<p>原始图像：手写数字“3”</p>
-<ul class="simple">
-<li><p><strong>轻微旋转：</strong> 顺时针转5度，还是“3”</p></li>
-<li><p><strong>平移：</strong> 向左移动2像素，还是“3”</p></li>
-<li><p><strong>轻微缩放：</strong> 放大到1.1倍，还是“3”</p></li>
-<li><p><strong>加噪声：</strong> 加一点“雪花点”，还是“3”</p></li>
-</ul>
+<hr class="docutils" />
+<section id="id13">
+<h3>3. 早停法：在&quot;最佳点&quot;刹车<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<div class="tip admonition">
+<p class="admonition-title">核心洞察：训练就像在山谷中行走，不要越过谷底</p>
+<p>想象你在一个山谷中（损失函数的Loss Landscape），从高处往低处走（梯度下降）：</p>
+<p><strong>初期</strong>：你在宽阔的山谷顶部，大步流星地向谷底走去——训练损失和验证损失都在下降，方向基本一致。</p>
+<p><strong>中期</strong>：你接近谷底，步伐变小，损失下降变慢——但仍朝着正确的方向微调。</p>
+<p><strong>后期</strong>：如果你继续走，可能会<strong>越过谷底</strong>，走上另一侧山坡——训练损失还在下降（因为你更贴合训练数据），但验证损失开始上升（因为你开始&quot;钻牛角尖&quot;，拟合了训练集的噪声）。</p>
 </div>
-<div class="admonition note">
-<p class="admonition-title">备注</p>
-<p><strong>数据增强的注意事项</strong></p>
-<ul class="simple">
-<li><p><strong>保持类别不变：</strong> 增强后的数据应该还是同一个数字</p></li>
-<li><p><strong>避免过度增强：</strong> 不要把“6”转得看起来像“9”</p></li>
-<li><p><strong>任务相关：</strong> 手写数字识别不需要颜色变换</p></li>
-<li><p><strong>渐进式：</strong> 从轻微变换开始，逐步增加强度</p></li>
-</ul>
-</div>
-<div class="example admonition">
-<p class="admonition-title">PyTorch中的MNIST数据增强</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchvision</span><span class="w"> </span><span class="kn">import</span> <span class="n">transforms</span>
-
-<span class="c1"># 定义数据增强变换</span>
-<span class="n">train_transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
-    <span class="n">transforms</span><span class="o">.</span><span class="n">RandomRotation</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>      <span class="c1"># 随机旋转±10度</span>
-    <span class="n">transforms</span><span class="o">.</span><span class="n">RandomAffine</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">translate</span><span class="o">=</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)),</span>  <span class="c1"># 随机平移10%</span>
-    <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
-    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.1307</span><span class="p">,),</span> <span class="p">(</span><span class="mf">0.3081</span><span class="p">,))</span>  <span class="c1"># MNIST数据的标准化</span>
-<span class="p">])</span>
-
-<span class="c1"># 应用到训练数据</span>
-<span class="n">train_dataset</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;./data&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                     <span class="n">transform</span><span class="o">=</span><span class="n">train_transform</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
+<div class="figure" id="id101" style="text-align: center"><p><img  src="../_images/tikz-d3e00549d6cac1c1d1fef388e2ddc7d7eb86b1db.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">早停法：在谷底停止，不要越过</span></p>
+</div><section id="id14">
+<h4>为什么验证损失上升意味着过拟合？<a class="headerlink" href="#id14" title="Link to this heading">#</a></h4>
+<p>训练损失只衡量模型在<strong>训练数据</strong>上的表现。当你训练太久，模型开始&quot;记住&quot;训练数据中的噪声——那些只存在于训练集、不存在于真实世界的随机波动。</p>
+<p>验证集是<strong>独立的</strong>数据，不包含训练集的噪声。所以当模型开始拟合训练噪声时，它在验证集上的表现反而会变差。</p>
+<p><strong>早停法的本质</strong>：在&quot;学习真实规律&quot;和&quot;记忆训练噪声&quot;的临界点停止训练。</p>
 </section>
-<section id="id12">
-<h3>如何选择正则化方法？<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
-<div class="pst-scrollable-table-container"><table class="table" id="id22">
-<caption><span class="caption-text">正则化方法选择指南</span><a class="headerlink" href="#id22" title="Link to this table">#</a></caption>
-<colgroup>
-<col style="width: 40.0%" />
-<col style="width: 60.0%" />
-</colgroup>
+</section>
+<hr class="docutils" />
+<section id="id15">
+<h3>4. 数据增强：免费的&quot;新数据&quot;<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<div class="tip admonition">
+<p class="admonition-title">核心洞察：更多数据帮助区分&quot;本质&quot;与&quot;偶然&quot;</p>
+<p>想象你要学会&quot;识别圆形&quot;：</p>
+<ul class="simple">
+<li><p>只看过1个圆 → 你可能以为&quot;红色、半径5cm、在画面中央&quot;才是圆的本质特征</p></li>
+<li><p>看过100个圆（不同颜色、不同大小、不同位置）→ 你意识到&quot;到中心点距离相等&quot;才是本质，颜色和大小只是偶然特征</p></li>
+</ul>
+<p><strong>过拟合的本质是&quot;将偶然当成必然&quot;</strong>——把训练数据中的特定属性（如&quot;这个位置的像素总是白色&quot;）当成了类别的本质特征。</p>
+<p>数据增强通过创造<strong>人工变体</strong>，让模型看到更多样的样本：</p>
+</div>
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
-<tr class="row-odd"><th class="head"><p><strong>方法</strong></p></th>
-<th class="head"><p><strong>什么时候用</strong></p></th>
+<tr class="row-odd"><th class="head"><p>原始样本</p></th>
+<th class="head"><p>增强变体</p></th>
+<th class="head"><p>学到的规律</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>L2正则化</p></td>
-<td><p>几乎所有情况</p></td>
+<tr class="row-even"><td><p>数字&quot;3&quot;在中央</p></td>
+<td><p>数字&quot;3&quot;向左移2像素</p></td>
+<td><p>位置不重要，形状才重要</p></td>
 </tr>
-<tr class="row-odd"><td><p>Dropout</p></td>
-<td><p>深层网络，参数量大</p></td>
+<tr class="row-odd"><td><p>数字&quot;3&quot;正常大小</p></td>
+<td><p>数字&quot;3&quot;放大10%</p></td>
+<td><p>大小不重要，比例才重要</p></td>
 </tr>
+<tr class="row-even"><td><p>数字&quot;3&quot;竖直</p></td>
+<td><p>数字&quot;3&quot;轻微旋转</p></td>
+<td><p>方向不重要，拓扑结构才重要</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">train_transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">RandomRotation</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>      <span class="c1"># ±10度旋转</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">RandomAffine</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">translate</span><span class="o">=</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)),</span>  <span class="c1"># ±10%平移</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.1307</span><span class="p">,),</span> <span class="p">(</span><span class="mf">0.3081</span><span class="p">,))</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+<section id="id16">
+<h4>为什么有效？<a class="headerlink" href="#id16" title="Link to this heading">#</a></h4>
+<p>数据增强迫使模型学习<strong>不变性</strong>（invariance）——哪些特征在变换下保持不变。模型发现：</p>
+<ul class="simple">
+<li><p>无论&quot;3&quot;在什么位置，它都是&quot;3&quot;</p></li>
+<li><p>无论&quot;3&quot;多大，它都是&quot;3&quot;</p></li>
+<li><p>无论&quot;3&quot;是否倾斜，它都是&quot;3&quot;</p></li>
+</ul>
+<p>因此，模型必须抓住<strong>本质特征</strong>（形状、拓扑结构），而不能依赖<strong>偶然特征</strong>（位置、大小、角度）。这些偶然特征在不同样本间变化，无法作为可靠的分类依据。</p>
+</section>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id17">
+<h2>如何选择正则化方法？<a class="headerlink" href="#id17" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="fc-layer-basics.html"><span class="doc">全连接神经网络</span></a>中我们讨论了全连接网络的参数量爆炸问题，<a class="reference internal" href="cnn-basics.html"><span class="doc">卷积神经网络</span></a>中则看到CNN如何通过归纳偏置减少参数。但无论架构如何，<strong>正则化都是必需的</strong>——它是防止模型&quot;死记硬背&quot;的最后防线。</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>方法</p></th>
+<th class="head"><p>使用场景</p></th>
+<th class="head"><p>实现难度</p></th>
+</tr>
+</thead>
+<tbody>
 <tr class="row-even"><td><p>早停法</p></td>
-<td><p>总是使用</p></td>
+<td><p><strong>总是使用</strong></p></td>
+<td><p>⭐ 最简单</p></td>
+</tr>
+<tr class="row-odd"><td><p>L2正则化</p></td>
+<td><p>几乎所有情况</p></td>
+<td><p>⭐ 添加一个参数</p></td>
+</tr>
+<tr class="row-even"><td><p>Dropout</p></td>
+<td><p>深层网络、过拟合严重时</p></td>
+<td><p>⭐⭐ 需调整比例</p></td>
 </tr>
 <tr class="row-odd"><td><p>数据增强</p></td>
 <td><p>图像、语音等数据</p></td>
-</tr>
-<tr class="row-even"><td><p>L1正则化</p></td>
-<td><p>需要特征选择时</p></td>
+<td><p>⭐⭐ 需设计变换</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<div class="admonition warning">
-<p class="admonition-title">警告</p>
-<p><strong>初学者建议（从简单到复杂）</strong></p>
+<p><strong>初学者路径</strong>：</p>
 <ol class="arabic simple">
-<li><p><strong>第一步：</strong> 只用早停法（最简单，零成本）</p></li>
-<li><p><strong>第二步：</strong> 加上L2正则化（weight_decay=0.0001）</p></li>
-<li><p><strong>第三步：</strong> 在隐藏层加Dropout（0.3-0.5）</p></li>
-<li><p><strong>第四步：</strong> 尝试数据增强（如果适用）</p></li>
-<li><p><strong>高级：</strong> 组合多种方法，交叉验证调参</p></li>
+<li><p><strong>第一步</strong>：只用早停法（零成本，必做）</p></li>
+<li><p><strong>第二步</strong>：加上L2正则化（weight_decay=1e-4）</p></li>
+<li><p><strong>第三步</strong>：添加Dropout（0.3-0.5）</p></li>
+<li><p><strong>第四步</strong>：尝试数据增强</p></li>
 </ol>
-</div>
 </section>
-</section>
-<section id="id13">
-<h2>批量大小与学习率调度<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
-<section id="id14">
-<h3>批量大小的影响<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
-<p>不同的批量大小对训练有不同影响：</p>
-<div class="pst-scrollable-table-container"><table class="table" id="id23">
-<caption><span class="caption-text">不同批量大小的对比</span><a class="headerlink" href="#id23" title="Link to this table">#</a></caption>
-<colgroup>
-<col style="width: 30.0%" />
-<col style="width: 35.0%" />
-<col style="width: 35.0%" />
-</colgroup>
+<hr class="docutils" />
+<section id="id18">
+<h2>批量大小与学习率<a class="headerlink" href="#id18" title="Link to this heading">#</a></h2>
+<section id="id19">
+<h3>批量大小的权衡<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
-<tr class="row-odd"><th class="head"><p><strong>批量大小</strong></p></th>
-<th class="head"><p><strong>优点</strong></p></th>
-<th class="head"><p><strong>缺点</strong></p></th>
+<tr class="row-odd"><th class="head"><p>批量大小</p></th>
+<th class="head"><p>优点</p></th>
+<th class="head"><p>缺点</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>小批量（如32）</p></td>
-<td><p>泛化性好，内存需求低</p></td>
-<td><p>训练不稳定，梯度噪声大</p></td>
+<tr class="row-even"><td><p>小（32-64）</p></td>
+<td><p>泛化性好，内存占用低</p></td>
+<td><p>梯度噪声大，训练不稳定</p></td>
 </tr>
-<tr class="row-odd"><td><p>大批量（如256）</p></td>
-<td><p>训练稳定，并行度高</p></td>
-<td><p>内存需求大，可能陷入局部最优</p></td>
-</tr>
-<tr class="row-even"><td><p>全批量（所有数据）</p></td>
-<td><p>梯度准确，收敛稳定</p></td>
-<td><p>内存需求极大，不适合大数据集</p></td>
+<tr class="row-odd"><td><p>大（256+）</p></td>
+<td><p>梯度准确，可并行加速</p></td>
+<td><p>可能陷入尖锐局部最优，内存需求大</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<p><strong>直觉</strong>：小批量就像用少量样本&quot;试探&quot;方向，虽然每次方向不太准，但不容易被困住；大批量像精准测量，但可能错过更好的路径。</p>
+<p>这与<a class="reference internal" href="../math-fundamentals/gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>中讨论的&quot;噪声帮助逃离局部最优&quot;原理一致——适度的梯度噪声反而有助于找到更好的解。</p>
 </section>
-<section id="id15">
-<h3>学习率调度<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
-<p>学习率不必固定不变，可以采用不同的调度策略：</p>
-<div class="admonition note">
-<p class="admonition-title">备注</p>
-<p><strong>常见学习率调度策略</strong></p>
+<section id="id20">
+<h3>学习率调度<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
+<p>固定学习率不一定是最佳选择。回顾<a class="reference internal" href="../math-fundamentals/gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>中的&quot;下山&quot;类比——刚开始你可能希望大步快走，接近谷底时需要小步微调。常见策略：</p>
 <ul class="simple">
-<li><p><strong>步长衰减：</strong> 每隔一定轮次将学习率乘以固定因子</p></li>
-<li><p><strong>指数衰减：</strong> 学习率按指数函数逐渐减小</p></li>
-<li><p><strong>余弦退火：</strong> 学习率按余弦函数周期性变化</p></li>
-<li><p><strong>自适应方法：</strong> 根据训练进展自动调整学习率</p></li>
+<li><p><strong>预热（Warmup）</strong>：刚开始用较小学习率，逐渐增加——避免初期震荡（防止&quot;一脚踩空&quot;）</p></li>
+<li><p><strong>衰减（Decay）</strong>：训练后期逐渐减小学习率——精细化调整（在谷底附近小心探索）</p></li>
+<li><p><strong>余弦退火（Cosine Annealing）</strong>：周期性变化——帮助逃离局部最优（周期性地&quot;震荡&quot;寻找更好的山谷）</p></li>
 </ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 余弦退火调度</span>
+<span class="n">scheduler</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">CosineAnnealingLR</span><span class="p">(</span>
+    <span class="n">optimizer</span><span class="p">,</span> <span class="n">T_max</span><span class="o">=</span><span class="mi">100</span>  <span class="c1"># 100个epoch为一个周期</span>
+<span class="p">)</span>
+
+<span class="c1"># 训练循环中</span>
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_epochs</span><span class="p">):</span>
+    <span class="n">train</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>  <span class="c1"># 训练</span>
+    <span class="n">scheduler</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>  <span class="c1"># 更新学习率</span>
+</pre></div>
 </div>
 </section>
 </section>
-<section id="id16">
-<h2>评价指标<a class="headerlink" href="#id16" title="Link to this heading">#</a></h2>
-<p>对于分类任务，我们需要多个评价指标来全面评估模型性能：</p>
-<div class="admonition note">
-<p class="admonition-title">备注</p>
-<p><strong>分类任务的核心指标</strong></p>
-<ul>
-<li><p><strong>准确率（Accuracy）：</strong> 正确预测的样本比例</p>
-<div class="math notranslate nohighlight">
-\[\text{Accuracy} = \frac{\text{正确预测数}}{\text{总预测数}}\]</div>
-</li>
-</ul>
+<hr class="docutils" />
+<section id="id21">
+<h2>训练监控指标<a class="headerlink" href="#id21" title="Link to this heading">#</a></h2>
+<p>有效的训练需要实时监控：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>指标</p></th>
+<th class="head"><p>正常趋势</p></th>
+<th class="head"><p>异常信号</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>训练损失</p></td>
+<td><p>逐渐下降</p></td>
+<td><p>不降或震荡</p></td>
+</tr>
+<tr class="row-odd"><td><p>验证损失</p></td>
+<td><p>先降后平</p></td>
+<td><p>上升（过拟合）</p></td>
+</tr>
+<tr class="row-even"><td><p>训练准确率</p></td>
+<td><p>逐渐提高</p></td>
+<td><p>停滞在低位（欠拟合）</p></td>
+</tr>
+<tr class="row-odd"><td><p>验证准确率</p></td>
+<td><p>跟踪训练准确率</p></td>
+<td><p>与训练差距大（过拟合）</p></td>
+</tr>
+</tbody>
+</table>
 </div>
-<ul>
-<li><p><strong>精确率（Precision）：</strong> 预测为正类中真正为正类的比例</p>
-<div class="math notranslate nohighlight">
-\[\text{Precision} = \frac{TP}{TP + FP}\]</div>
-</li>
-<li><p><strong>召回率（Recall）：</strong> 真正为正类中被正确预测的比例</p>
-<div class="math notranslate nohighlight">
-\[\text{Recall} = \frac{TP}{TP + FN}\]</div>
-</li>
-<li><p><strong>F1分数：</strong> 精确率和召回率的调和平均</p>
-<div class="math notranslate nohighlight">
-\[\text{F1} = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}\]</div>
-</li>
-</ul>
-<div class="example admonition">
-<p class="admonition-title">MNIST评价指标选择</p>
-<p>对于MNIST这样的平衡多分类任务，<strong>准确率</strong>是最直观和常用的指标，因为：</p>
+<p><strong>关键观察</strong>：</p>
 <ul class="simple">
-<li><p>10个类别的样本数量大致相等</p></li>
-<li><p>每个类别的重要性相同</p></li>
-<li><p>易于理解和解释</p></li>
+<li><p>训练损失 <span class="math notranslate nohighlight">\(&lt;\)</span> 验证损失：正常现象</p></li>
+<li><p>训练损失 <span class="math notranslate nohighlight">\(\ll\)</span> 验证损失：严重过拟合，加强正则化</p></li>
+<li><p>两者都高：欠拟合，增加模型容量或训练时间</p></li>
 </ul>
+<p>回顾本节讨论的<strong>过拟合与欠拟合</strong>现象——这些监控指标就是诊断工具，帮助你在训练过程中实时判断模型状态。</p>
+</section>
+<hr class="docutils" />
+<section id="id22">
+<h2>总结：训练检查清单<a class="headerlink" href="#id22" title="Link to this heading">#</a></h2>
+<p>开始训练前，确认以下事项：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>检查项</p></th>
+<th class="head"><p>建议</p></th>
+<th class="head"><p>参考章节</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>数据划分</p></td>
+<td><p>训练/验证/测试 = 70%/15%/15% 或类似比例</p></td>
+<td><p>本节&quot;数据划分&quot;部分</p></td>
+</tr>
+<tr class="row-odd"><td><p>损失函数</p></td>
+<td><p>分类用CrossEntropy，回归用MSE</p></td>
+<td><p><a class="reference internal" href="../math-fundamentals/loss-functions.html#loss-functions"><span class="std std-ref">损失函数</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p>优化器</p></td>
+<td><p>Adam <span id="id23">[<a class="reference internal" href="#id69" title="Diederik P Kingma and Jimmy Ba. Adam: a method for stochastic optimization. In International Conference on Learning Representations. 2015.">KB15</a>]</span> 是默认首选，学习率0.001</p></td>
+<td><p><a class="reference internal" href="../math-fundamentals/gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>正则化</p></td>
+<td><p>至少使用早停法和L2正则化</p></td>
+<td><p>本节&quot;正则化&quot;部分</p></td>
+</tr>
+<tr class="row-even"><td><p>批量大小</p></td>
+<td><p>从64或128开始，根据内存调整</p></td>
+<td><p>本节&quot;批量大小&quot;部分</p></td>
+</tr>
+<tr class="row-odd"><td><p>监控指标</p></td>
+<td><p>同时关注训练和验证的表现</p></td>
+<td><p>本节&quot;训练监控指标&quot;部分</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>本节将<a class="reference internal" href="../math-fundamentals/gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>和<a class="reference internal" href="../math-fundamentals/back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>的理论转化为实践——从选择<a class="reference internal" href="../math-fundamentals/loss-functions.html#loss-functions"><span class="std std-ref">损失函数</span></a>、设计正则化策略，到监控训练过程。现在你已经掌握了让神经网络&quot;学会&quot;而不是&quot;记住&quot;的完整工具箱。</p>
+</section>
+<hr class="docutils" />
+<section id="id24">
+<h2>下一步<a class="headerlink" href="#id24" title="Link to this heading">#</a></h2>
+<p>掌握了训练基础后，我们将在<a class="reference internal" href="exp-cmp.html"><span class="doc">实验对比：全连接 vs CNN</span></a>中通过<strong>实验对比</strong>全连接网络和CNN的性能差异，用数据验证：</p>
+<ul class="simple">
+<li><p>CNN的归纳偏置究竟带来了多少提升？</p></li>
+<li><p>参数效率的差距有多大？</p></li>
+<li><p>不同架构在MNIST上的实际表现如何？</p></li>
+</ul>
+<p>从&quot;知道如何训练&quot;进化到&quot;知道哪种架构更适合&quot;！</p>
+</section>
+<hr class="docutils" />
+<section id="id25">
+<h2>参考文献<a class="headerlink" href="#id25" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id26">
+<div role="list" class="citation-list">
+<div class="citation" id="id69" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id23">KB15</a><span class="fn-bracket">]</span></span>
+<p>Diederik P Kingma and Jimmy Ba. Adam: a method for stochastic optimization. In <em>International Conference on Learning Representations</em>. 2015.</p>
+</div>
+<div class="citation" id="id68" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id11">SHK+14</a><span class="fn-bracket">]</span></span>
+<p>Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan Salakhutdinov. Dropout: a simple way to prevent neural networks from overfitting. <em>The journal of machine learning research</em>, 15(1):1929–1958, 2014.</p>
+</div>
+</div>
 </div>
 </section>
 </section>
@@ -947,7 +998,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (3 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -955,6 +1006,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">59126f4</code>
+                2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and add citations
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">cec393d</code>
                 2025-12-11 - <strong>Heyan Zhu</strong>: docs: partially complete migration and restructure course materials
@@ -981,20 +1037,20 @@ document.write(`
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="introduction.html"
+       href="le-net.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">上一页</p>
-        <p class="prev-next-title">引言</p>
+        <p class="prev-next-title">LeNet-5架构详解</p>
       </div>
     </a>
     <a class="right-next"
-       href="fc-layer-basics.html"
+       href="exp-cmp.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">全连接神经网络</p>
+        <p class="prev-next-title">实验对比：全连接 vs CNN</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1014,33 +1070,44 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">基本训练术语</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">损失函数的选择</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">训练过程与验证</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">训练集与测试集的划分</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">训练过程的监控</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">训练的本质：从数据到能力</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">核心训练概念</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">损失函数的选择</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">过拟合与欠拟合：学习的两种失败</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">欠拟合：学得太少</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">过拟合：死记硬背</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">过拟合与欠拟合</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#underfitting">欠拟合（Underfitting）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#overfitting">过拟合（Overfitting）</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">数据划分：训练集、验证集、测试集</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">正则化：防止死记硬背的四种方法</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#l2">1. L2正则化（权重衰减）：强制"粗笔画"</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">为什么L2惩罚能实现这一点？</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">正则化技术：防止过拟合的实用方法</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">什么是正则化？</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#l1l2">L1和L2正则化：最简单的正则化方法</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dropout">Dropout：随机“失忆”技术</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">早停法：聪明的“刹车”技术</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">数据增强：免费的“新数据”</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">如何选择正则化方法？</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dropout">2. Dropout：随机"罢工"迫使协作</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">为什么冗余表示能防止过拟合？</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">批量大小与学习率调度</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">批量大小的影响</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">学习率调度</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">3. 早停法：在"最佳点"刹车</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">为什么验证损失上升意味着过拟合？</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">评价指标</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">4. 数据增强：免费的"新数据"</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">为什么有效？</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">如何选择正则化方法？</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">批量大小与学习率</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">批量大小的权衡</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">学习率调度</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">训练监控指标</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">总结：训练检查清单</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">下一步</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">参考文献</a></li>
 </ul>
   </nav></div>
 

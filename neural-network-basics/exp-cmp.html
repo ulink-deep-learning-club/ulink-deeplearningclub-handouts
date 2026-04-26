@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>实验与比较 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+    <title>实验对比：全连接 vs CNN &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
   
   
   
@@ -44,13 +44,11 @@
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script src="../_static/translations.js?v=beaddf03"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'neural-network-basics/exp-cmp';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="神经网络缩放定律" href="scaling-law.html" />
-    <link rel="prev" title="LeNet-5架构详解" href="le-net.html" />
+    <link rel="next" title="缩放定律：模型越大越好吗？" href="scaling-law.html" />
+    <link rel="prev" title="神经网络训练基础" href="neural-training-basics.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
   </head>
@@ -169,12 +167,12 @@
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">神经网络基础</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="neural-training-basics.html">神经网络训练基础</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fc-layer-basics.html">全连接神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cnn-basics.html">卷积神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="le-net.html">LeNet-5架构详解</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">实验与比较</a></li>
-<li class="toctree-l2"><a class="reference internal" href="scaling-law.html">神经网络缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scaling-law.html">缩放定律：模型越大越好吗？</a></li>
 <li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
@@ -440,7 +438,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>实验与比较</h1>
+    <h1>实验对比：全连接 vs CNN</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -450,27 +448,40 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">为什么需要对比分析？</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">信息处理方式的对比</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">全连接网络的信息处理</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn">CNN的信息处理</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">实验设计</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">对比对象</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">实验设置</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">参数效率的数学分析</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">什么是归纳偏置？</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">归纳偏置的深层分析</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">全连接网络的归纳偏置</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">CNN的归纳偏置</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">参数效率对比</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">理论计算</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">实际性能对比实验</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">训练设置</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">性能比较</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">结果分析</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">性能对比结果</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">训练过程</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">最终性能对比</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">何时选择哪种架构？</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">结论</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn">为什么CNN表现更好？</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">信息处理方式的差异</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">全连接网络：展平为向量</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">CNN：保留空间结构的分层处理</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">CNN的归纳偏置：三个核心假设</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#locality">1. 局部性（Locality）：相邻像素更相关</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#translation-invariance">2. 平移不变性（Translation Invariance）：特征位置不重要</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#compositionality">3. 组合性（Compositionality）：复杂模式由简单特征组合</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">从错误案例分析</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">归纳偏置的实践验证</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">架构选择指南</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">下一步：从实验到理论</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">参考文献</a></li>
 </ul>
             </nav>
         </div>
@@ -482,203 +493,55 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="id1">
-<h1>实验与比较<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="vs-cnn">
+<span id="exp-cmp"></span><h1>实验对比：全连接 vs CNN<a class="headerlink" href="#vs-cnn" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="introduction.html"><span class="doc">引言</span></a>中我们讨论了<strong>归纳偏置</strong> <span id="id1">[<a class="reference internal" href="introduction.html#id80" title="Tom M Mitchell. The need for biases in learning generalizations. Technical Report, Department of Computer Science, Laboratory for Computer Science Research, Rutgers University, 1980.">Mit80</a>]</span> 的概念——CNN通过局部感受野和权值共享引入&quot;空间结构&quot;的先验假设，而全连接网络没有这种假设。<a class="reference internal" href="fc-layer-basics.html"><span class="doc">全连接神经网络</span></a>和<a class="reference internal" href="cnn-basics.html"><span class="doc">卷积神经网络</span></a>展示了两种架构的具体实现，<a class="reference internal" href="le-net.html"><span class="doc">LeNet-5架构详解</span></a>分析了经典架构的设计思想。</p>
+<p>但理论优雅不等于实际有效。<strong>本节用实验数据验证</strong>：归纳偏置的差异在真实训练中有何体现？参数效率的提升能否转化为性能优势？</p>
 <section id="id2">
-<h2>为什么需要对比分析？<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>在深度学习的发展历程中，理解不同架构的优劣对于选择合适的模型至关重要。MNIST数据集为我们提供了一个理想的实验平台，因为它足够简单，可以让我们清晰地看到不同架构的本质差异。</p>
-<div class="admonition warning">
-<p class="admonition-title">警告</p>
-<p><strong>核心问题</strong></p>
-<ul class="simple">
-<li><p>为什么CNN在图像任务上表现更好？</p></li>
-<li><p>全连接网络的局限性在哪里？</p></li>
-<li><p>参数数量与性能之间的关系是什么？</p></li>
-<li><p>如何根据任务需求选择合适的架构？</p></li>
-</ul>
-</div>
-</section>
+<h2>实验设计<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
 <section id="id3">
-<h2>信息处理方式的对比<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<h3>对比对象<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>模型</p></th>
+<th class="head"><p>来源</p></th>
+<th class="head"><p>核心特点</p></th>
+<th class="head"><p>预期优势</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>全连接网络</p></td>
+<td><p><a class="reference internal" href="fc-layer-basics.html"><span class="doc">全连接神经网络</span></a></p></td>
+<td><p>展平图像为向量，全连接层堆叠</p></td>
+<td><p>实现简单，通用性强</p></td>
+</tr>
+<tr class="row-odd"><td><p>LeNet-5</p></td>
+<td><p><a class="reference internal" href="le-net.html"><span class="doc">LeNet-5架构详解</span></a></p></td>
+<td><p>卷积+池化+全连接的经典架构</p></td>
+<td><p>参数共享，空间归纳偏置</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <section id="id4">
-<h3>全连接网络的信息处理<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
-<p>全连接网络将图像视为一个长向量，完全忽略了像素之间的空间关系：</p>
-<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-4ae9d56a7ff1e002660f01c68cdc56e6a5317936.svg" alt="Figure made with TikZ" /></p>
-</div><div class="warning admonition">
-<p class="admonition-title">问题</p>
+<h3>实验设置<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p>基于<a class="reference internal" href="neural-training-basics.html"><span class="doc">神经网络训练基础</span></a>中的训练原则：</p>
 <ul class="simple">
-<li><p>空间结构信息完全丢失</p></li>
-<li><p>相邻像素关系被破坏</p></li>
-<li><p>需要从头学习所有模式</p></li>
+<li><p><strong>数据</strong>：MNIST数据集（60,000训练 / 10,000测试）</p></li>
+<li><p><strong>优化器</strong>：Adam，学习率0.001</p></li>
+<li><p><strong>批次大小</strong>：64</p></li>
+<li><p><strong>训练轮数</strong>：10 epochs</p></li>
+<li><p><strong>硬件</strong>：单GPU（或CPU）</p></li>
+<li><p><strong>正则化</strong>：仅使用早停法（控制变量，专注架构对比）</p></li>
 </ul>
-</div>
-</section>
-<section id="cnn">
-<h3>CNN的信息处理<a class="headerlink" href="#cnn" title="Link to this heading">#</a></h3>
-<p>CNN通过局部感受野和参数共享，保留了图像的空间结构：</p>
-<div class="figure" id="id16" style="text-align: center"><p><img  src="../_images/tikz-36f04e11d33c9bb36a0d265347d6b7b20e5fe263.svg" alt="Figure made with TikZ" /></p>
-<p><span class="caption-text">CNN的分层特征提取</span></p>
-</div><div class="note admonition">
-<p class="admonition-title">优势</p>
-<ul class="simple">
-<li><p>分层特征提取</p></li>
-<li><p>空间结构保留</p></li>
-<li><p>参数共享</p></li>
-</ul>
-</div>
-</section>
-</section>
-<section id="id5">
-<h2>参数效率的数学分析<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
-<p>让我们通过一个具体的例子来比较两种架构的参数效率：</p>
-<div class="example admonition">
-<p class="admonition-title">参数数量对比实例</p>
-<p><strong>全连接网络方案：</strong></p>
-<ul class="simple">
-<li><p>输入层：784个神经元（28×28）</p></li>
-<li><p>隐藏层1：256个神经元</p></li>
-<li><p>隐藏层2：128个神经元</p></li>
-<li><p>输出层：10个神经元</p></li>
-</ul>
-<p><strong>参数计算：</strong></p>
-<div class="math notranslate nohighlight">
-\[\begin{split}
-\begin{align}
-\text{Layer 1} &amp;: 784 \times 256 + 256 = 200,960 \\
-\text{Layer 2} &amp;: 256 \times 128 + 128 = 32,896 \\
-\text{Layer 3} &amp;: 128 \times 10 + 10 = 1,290 \\
-\text{Total} &amp;: 235,146 \text{ 参数}
-\end{align}
-\end{split}\]</div>
-<p><strong>LeNet方案：</strong></p>
-<ul class="simple">
-<li><p>C1：6个5×5卷积核 → 156参数</p></li>
-<li><p>C3：16个5×5卷积核 → 2,416参数</p></li>
-<li><p>FC1：16×5×5 → 120 → 48,120参数</p></li>
-<li><p>FC2：120 → 84 → 10,164参数</p></li>
-<li><p>FC3：84 → 10 → 850参数</p></li>
-</ul>
-<p><strong>总参数：</strong> 61,706参数</p>
-</div>
-<div class="admonition warning">
-<p class="admonition-title">警告</p>
-<p><strong>关键发现</strong></p>
-<p>LeNet的参数数量仅为全连接网络的<strong>26%</strong>，但在准确率上表现出色。这证明了：</p>
-<ul class="simple">
-<li><p>参数共享的有效性</p></li>
-<li><p>归纳偏置的价值</p></li>
-<li><p>架构设计的重要性</p></li>
-</ul>
-</div>
-</section>
-<section id="id6">
-<h2>什么是归纳偏置？<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
-<p>在深入比较两种架构的归纳偏置之前，我们需要先理解什么是归纳偏置以及为什么它如此重要。</p>
-<div class="admonition note">
-<p class="admonition-title">备注</p>
-<p><strong>归纳偏置的定义</strong></p>
-<p>归纳偏置（Inductive Bias）是指学习算法对可能解空间所做的假设集合。换句话说，它是模型在没有任何数据之前，对学习问题所做的先验假设。</p>
-<p><strong>关键特征：</strong></p>
-<ul class="simple">
-<li><p><strong>先验性：</strong> 在学习开始之前就存在的假设</p></li>
-<li><p><strong>限制性：</strong> 限制了模型可以考虑的解空间</p></li>
-<li><p><strong>引导性：</strong> 帮助模型从有限数据中推广到未见情况</p></li>
-<li><p><strong>权衡性：</strong> 更强的偏置意味着需要更少的数据，但可能错过真实解</p></li>
-</ul>
-</div>
-<div class="example admonition">
-<p class="admonition-title">直观的类比</p>
-<p>想象你在学习识别动物：</p>
-<p><strong>没有归纳偏置的情况：</strong> 你需要看到所有可能的狗的照片才能识别狗，包括各种角度、光照、品种等。</p>
-<p><strong>有归纳偏置的情况：</strong> 你假设&quot;有四条腿、有尾巴、有特定面部特征的动物可能是狗&quot;。这个假设帮助你从少量例子中学习识别狗。</p>
-<p>神经网络的归纳偏置就是类似的假设，只是它们体现在网络结构和连接方式中。</p>
-</div>
-<div class="admonition warning">
-<p class="admonition-title">警告</p>
-<p><strong>为什么归纳偏置至关重要？</strong></p>
-<ol class="arabic simple">
-<li><p><strong>解决欠定问题：</strong> 从有限数据中学习需要额外的约束</p></li>
-<li><p><strong>提高泛化能力：</strong> 帮助模型在未见数据上表现良好</p></li>
-<li><p><strong>减少样本复杂度：</strong> 需要更少的训练数据</p></li>
-<li><p><strong>加速收敛：</strong> 让学习过程更加高效</p></li>
-</ol>
-<p><strong>没有归纳偏置的机器学习方法往往：</strong></p>
-<ul class="simple">
-<li><p>需要海量数据才能学习</p></li>
-<li><p>容易过拟合训练数据</p></li>
-<li><p>泛化能力差</p></li>
-<li><p>训练时间长</p></li>
-</ul>
-</div>
-</section>
-<section id="id7">
-<h2>归纳偏置的深层分析<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
-<section id="id8">
-<h3>全连接网络的归纳偏置<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
-<p>全连接网络的基本假设是：所有输入特征都是同等重要的，且可以任意组合。这种假设：</p>
-<ul class="simple">
-<li><p><strong>优点：</strong> 通用性强，不依赖于特定的数据结构</p></li>
-<li><p><strong>缺点：</strong> 对于图像等具有空间结构的数据，需要从零开始学习所有空间关系</p></li>
-</ul>
-<div class="admonition note">
-<p class="admonition-title">备注</p>
-<p><strong>数学表达</strong></p>
-<p>对于图像分类任务，全连接网络需要学习映射：</p>
-<div class="math notranslate nohighlight">
-\[
-f: \mathbb{R}^{784} \rightarrow \mathbb{R}^{10}
-\]</div>
-<p>其中所有784个像素都被视为独立的特征，没有利用像素间的空间相关性。</p>
-</div>
-</section>
-<section id="id9">
-<h3>CNN的归纳偏置<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
-<p>CNN引入了三个关键的归纳偏置：</p>
-<ol class="arabic simple">
-<li><p><strong>局部性（Locality）：</strong> 附近的像素更可能相关</p></li>
-<li><p><strong>平移不变性（Translation Invariance）：</strong> 相同的特征可以在不同位置出现</p></li>
-<li><p><strong>组合性（Compositionality）：</strong> 复杂特征可以由简单特征组合而成</p></li>
-</ol>
-<div class="admonition note">
-<p class="admonition-title">备注</p>
-<p><strong>数学表达</strong></p>
-<p>CNN通过卷积操作实现这些偏置：</p>
-<div class="math notranslate nohighlight">
-\[Y[i,j] = \sum_{u=-k}^{k}\sum_{v=-k}^{k} X[i+u, j+v] \cdot K[u,v] + b\]</div>
-<p>其中<span class="math notranslate nohighlight">\(k\)</span>定义了局部感受野的大小，相同的核<span class="math notranslate nohighlight">\(K\)</span>在整个图像上共享。</p>
-</div>
-</section>
-</section>
-<section id="id10">
-<h2>实际性能对比实验<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
-<p>让我们通过一个具体的实验来对比两种架构的性能。这种对比分析方法受到了现代深度学习研究的启发：</p>
-<div class="example admonition">
-<p class="admonition-title">实验设置</p>
-<ul class="simple">
-<li><p>训练轮数：10 epochs</p></li>
-<li><p>优化器：AdamW，学习率0.001</p></li>
-<li><p>批大小：64</p></li>
-<li><p>硬件：单个GPU（CPU也行）</p></li>
-<li><p>数据增强：无</p></li>
-</ul>
-</div>
-<section id="id11">
-<h3>训练设置<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.optim</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">optim</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataLoader</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torchvision</span><span class="w"> </span><span class="kn">import</span> <span class="n">datasets</span><span class="p">,</span> <span class="n">transforms</span>
 
-<span class="c1"># 超参数配置</span>
-<span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;batch_size&#39;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
-    <span class="s1">&#39;learning_rate&#39;</span><span class="p">:</span> <span class="mf">0.001</span><span class="p">,</span>
-    <span class="s1">&#39;num_epochs&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
-    <span class="s1">&#39;device&#39;</span><span class="p">:</span> <span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span>
-<span class="p">}</span>
-
-<span class="c1"># 数据加载</span>
+<span class="c1"># 数据加载（无数据增强，公平对比架构本身）</span>
 <span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
     <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
     <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.1307</span><span class="p">,),</span> <span class="p">(</span><span class="mf">0.3081</span><span class="p">,))</span>
@@ -687,132 +550,320 @@ f: \mathbb{R}^{784} \rightarrow \mathbb{R}^{10}
 <span class="n">train_dataset</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">MNIST</span><span class="p">(</span><span class="s1">&#39;./data&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">)</span>
 <span class="n">test_dataset</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">MNIST</span><span class="p">(</span><span class="s1">&#39;./data&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">)</span>
 
-<span class="n">train_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">test_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">train_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">test_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-<span class="c1"># 创建模型</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fc_layer_basics</span><span class="w"> </span><span class="kn">import</span> <span class="n">FullyConnectedNet</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">le_net</span><span class="w"> </span><span class="kn">import</span> <span class="n">LeNetMNIST</span>
-
-<span class="n">fcn_model</span> <span class="o">=</span> <span class="n">FullyConnectedNet</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;device&#39;</span><span class="p">])</span>
-<span class="n">cnn_model</span> <span class="o">=</span> <span class="n">LeNetMNIST</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;device&#39;</span><span class="p">])</span>
-
-<span class="c1"># 优化器</span>
-<span class="n">fcn_optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">fcn_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">])</span>
-<span class="n">cnn_optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">cnn_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">])</span>
-
-<span class="c1"># 损失函数</span>
+<span class="c1"># 损失函数：多分类交叉熵（见neural-training-basics）</span>
 <span class="n">criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
-<section id="id12">
-<h3>性能比较<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
-<div class="pst-scrollable-table-container"><table class="table" id="id17">
-<caption><span class="caption-text">模型性能比较</span><a class="headerlink" href="#id17" title="Link to this table">#</a></caption>
-<colgroup>
-<col style="width: 20.0%" />
-<col style="width: 20.0%" />
-<col style="width: 20.0%" />
-<col style="width: 20.0%" />
-<col style="width: 20.0%" />
-</colgroup>
+</section>
+<hr class="docutils" />
+<section id="id5">
+<h2>参数效率对比<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<section id="id6">
+<h3>理论计算<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p>回顾<a class="reference internal" href="fc-layer-basics.html"><span class="doc">全连接神经网络</span></a>中的参数计算：</p>
+<p><strong>全连接网络</strong>：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Layer 1: 784 × 256 + 256 = 200,960
+Layer 2: 256 × 128 + 128 = 32,896
+Layer 3: 128 × 10 + 10 = 1,290
+Total: 235,146 参数
+</pre></div>
+</div>
+<p><strong>LeNet-5</strong>（来自<a class="reference internal" href="le-net.html"><span class="doc">LeNet-5架构详解</span></a>）：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>C1: 6个5×5卷积核 = 156
+C3: 16个5×5卷积核 = 2,416
+FC1: 16×5×5 → 120 = 48,120
+FC2: 120 → 84 = 10,164
+FC3: 84 → 10 = 850
+Total: 61,706 参数
+</pre></div>
+</div>
+<p><strong>参数比例</strong>：61,706 / 235,146 = <strong>26.2%</strong></p>
+<p>CNN仅用<strong>1/4的参数</strong>，却能完成相同的任务。这就是<a class="reference internal" href="introduction.html"><span class="doc">引言</span></a>中讨论的<strong>归纳偏置</strong>的威力——通过架构设计引入先验知识，大幅提升参数效率。</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id7">
+<h2>性能对比结果<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<section id="id8">
+<h3>训练过程<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<div class="figure" id="id94" style="text-align: center"><p><img  src="../_images/tikz-99abd94bfecbd844e6f3c735a1e7d601c00e9e64.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">训练曲线对比（示意图）</span></p>
+</div><p>从训练曲线可以观察到：</p>
+<ul class="simple">
+<li><p><strong>收敛速度</strong>：CNN更快达到高准确率（归纳偏置提供了好的初始化）</p></li>
+<li><p><strong>过拟合程度</strong>：全连接的测试-训练差距更大（缺乏正则化时更容易过拟合）</p></li>
+<li><p><strong>最终性能</strong>：CNN测试准确率更高</p></li>
+</ul>
+</section>
+<section id="id9">
+<h3>最终性能对比<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
-<tr class="row-odd"><th class="head"><p><strong>模型</strong></p></th>
-<th class="head"><p><strong>参数数量</strong></p></th>
-<th class="head"><p><strong>训练准确率</strong></p></th>
-<th class="head"><p><strong>测试准确率</strong></p></th>
-<th class="head"><p><strong>训练时间</strong></p></th>
+<tr class="row-odd"><th class="head"><p>指标</p></th>
+<th class="head"><p>全连接网络</p></th>
+<th class="head"><p>LeNet-5</p></th>
+<th class="head"><p>差异分析</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>全连接网络</p></td>
+<tr class="row-even"><td><p><strong>参数量</strong></p></td>
 <td><p>235,146</p></td>
-<td><p>98.5%</p></td>
-<td><p>97.8%</p></td>
-<td><p>45分钟</p></td>
-</tr>
-<tr class="row-odd"><td><p>LeNet-5</p></td>
 <td><p>61,706</p></td>
+<td><p>CNN减少74%</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>训练准确率</strong></p></td>
+<td><p>98.5%</p></td>
 <td><p>99.2%</p></td>
+<td><p>CNN学习更快</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>测试准确率</strong></p></td>
+<td><p>97.8%</p></td>
 <td><p>98.9%</p></td>
+<td><p><strong>CNN提升1.1%</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>训练时间</strong></p></td>
+<td><p>45分钟</p></td>
 <td><p>30分钟</p></td>
+<td><p>CNN快33%</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>模型大小</strong></p></td>
+<td><p>940KB</p></td>
+<td><p>247KB</p></td>
+<td><p>CNN更小</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<div class="important admonition">
+<p class="admonition-title">关键发现</p>
+<ol class="arabic simple">
+<li><p><strong>参数效率</strong>：CNN用26%的参数达到更好的性能</p></li>
+<li><p><strong>泛化能力</strong>：CNN测试-训练差距更小（0.3% vs 0.7%），过拟合更轻</p></li>
+<li><p><strong>计算效率</strong>：卷积操作虽然涉及更多计算，但并行度高，实际训练更快</p></li>
+<li><p><strong>准确率提升</strong>：1.1%的提升在手写识别中意味着每1000个数字少错11个</p></li>
+</ol>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="cnn">
+<h2>为什么CNN表现更好？<a class="headerlink" href="#cnn" title="Link to this heading">#</a></h2>
+<section id="id10">
+<h3>信息处理方式的差异<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<p>首先，让我们直观对比两种架构如何处理输入图像：</p>
+<section id="id11">
+<h4>全连接网络：展平为向量<a class="headerlink" href="#id11" title="Link to this heading">#</a></h4>
+<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-4ae9d56a7ff1e002660f01c68cdc56e6a5317936.svg" alt="Figure made with TikZ" /></p>
+</div><div class="warning admonition">
+<p class="admonition-title">全连接网络的问题</p>
+<ul class="simple">
+<li><p><strong>空间结构丢失</strong>：28×28的二维关系变成784维的一维向量</p></li>
+<li><p><strong>局部性破坏</strong>：相邻像素在向量中可能相距很远</p></li>
+<li><p><strong>归纳偏置弱</strong>：必须从零学习&quot;哪些像素相关&quot;</p></li>
+</ul>
+</div>
+</section>
+<section id="id12">
+<h4>CNN：保留空间结构的分层处理<a class="headerlink" href="#id12" title="Link to this heading">#</a></h4>
+<div class="figure" id="id95" style="text-align: center"><p><img  src="../_images/tikz-36f04e11d33c9bb36a0d265347d6b7b20e5fe263.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">CNN的分层特征提取</span></p>
+</div><div class="note admonition">
+<p class="admonition-title">CNN的优势</p>
+<ul class="simple">
+<li><p><strong>分层特征提取</strong>：浅层学边缘，中层学形状，高层学语义</p></li>
+<li><p><strong>空间结构保留</strong>：卷积操作保持二维关系</p></li>
+<li><p><strong>归纳偏置强</strong>：内置&quot;相邻像素相关&quot;的先验知识</p></li>
+</ul>
+</div>
+</section>
 </section>
 <section id="id13">
-<h3>结果分析<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
-<p>从实验结果可以看出：</p>
-<ol class="arabic simple">
-<li><p><strong>CNN参数更少但性能更好</strong>：得益于参数共享和局部连接</p></li>
-<li><p><strong>训练效率更高</strong>：CNN训练时间更短</p></li>
-<li><p><strong>泛化能力更强</strong>：CNN在测试集上表现更好，过拟合程度更低</p></li>
-</ol>
+<h3>CNN的归纳偏置：三个核心假设<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="introduction.html"><span class="doc">引言</span></a>介绍了归纳偏置的概念——学习算法对解空间的先验假设。CNN在图像任务上的优势，正源于它的三个关键归纳偏置：</p>
+<section id="locality">
+<h4>1. 局部性（Locality）：相邻像素更相关<a class="headerlink" href="#locality" title="Link to this heading">#</a></h4>
+<p><strong>直觉</strong>：看一张图片时，你不会先看左上角的像素，再看右下角的像素，然后把它们关联起来。你会先看一个局部区域——比如一个边缘、一个角点。</p>
+<p><strong>数学体现</strong>：卷积核只覆盖3×3或5×5的局部区域，而非整张图像。</p>
+<p><strong>为什么有效</strong>：物理世界中，物体的局部结构（边缘、纹理、形状）是识别的基础。CNN强制模型先学习局部特征，再组合成复杂模式，而不是试图直接建立像素到类别的全局映射。</p>
+</section>
+<section id="translation-invariance">
+<h4>2. 平移不变性（Translation Invariance）：特征位置不重要<a class="headerlink" href="#translation-invariance" title="Link to this heading">#</a></h4>
+<p><strong>直觉</strong>：一只猫在图片左上角还是右下角，它都是猫。识别&quot;猫&quot;的特征（尖耳朵、胡须）不应该依赖于它们在图像中的具体位置。</p>
+<p><strong>数学体现</strong>：同一个卷积核滑过整张图像，无论特征出现在哪里，都用相同的权重检测。</p>
+<p><strong>为什么有效</strong>：全连接网络需要为每个位置的每个特征单独学习（784个位置 × 多种特征 = 灾难）。CNN只需学习一次&quot;横线&quot;的特征，就能在任何位置检测它——参数量从&quot;位置数×特征数&quot;降到&quot;特征数&quot;。</p>
+</section>
+<section id="compositionality">
+<h4>3. 组合性（Compositionality）：复杂模式由简单特征组合<a class="headerlink" href="#compositionality" title="Link to this heading">#</a></h4>
+<p><strong>直觉</strong>：识别&quot;数字8&quot;不需要直接学习8的形状。你可以先学习&quot;圆圈&quot;，然后发现&quot;8 = 上圆圈 + 下圆圈&quot;。</p>
+<p><strong>数学体现</strong>：CNN的分层结构——浅层检测边缘和纹理，中层组合成形状，高层组合成完整对象。</p>
+<p><strong>为什么有效</strong>：这种层次化的特征学习让CNN能够：</p>
+<ul class="simple">
+<li><p>用少量基础特征（边缘、角点）组合出无限复杂模式</p></li>
+<li><p>在高层使用更抽象、更鲁棒的表示</p></li>
+<li><p>实现特征复用——学到&quot;圆圈&quot;后，“6”、“8”、&quot;9&quot;都能用</p></li>
+</ul>
 </section>
 </section>
 <section id="id14">
-<h2>何时选择哪种架构？<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
-<p>基于我们的分析，选择架构时应考虑：</p>
-<div class="pst-scrollable-table-container"><table class="table" id="id18">
-<caption><span class="caption-text">架构选择指南</span><a class="headerlink" href="#id18" title="Link to this table">#</a></caption>
-<colgroup>
-<col style="width: 50.0%" />
-<col style="width: 50.0%" />
-</colgroup>
+<h3>从错误案例分析<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
+<p>观察两种模型在测试集上的错误样本，可以验证归纳偏置的作用：</p>
+<p><strong>全连接网络的典型错误</strong>：</p>
+<ul class="simple">
+<li><p>数字&quot;7&quot;带横线时被错认为&quot;1&quot;（未学习到&quot;横线&quot;这一局部特征，缺乏局部性归纳偏置）</p></li>
+<li><p>旋转的数字识别率低（没有平移不变性，每个位置需单独学习）</p></li>
+<li><p>笔画断裂的数字容易出错（缺乏对局部结构的鲁棒性，无法组合底层特征）</p></li>
+</ul>
+<p><strong>CNN的典型错误</strong>：</p>
+<ul class="simple">
+<li><p>极度扭曲的数字（人类也难识别，超越了合理的变化范围）</p></li>
+<li><p>与训练集分布差异大的样本（这是所有模型的共同局限）</p></li>
+</ul>
+</section>
+<section id="id15">
+<h3>归纳偏置的实践验证<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="introduction.html"><span class="doc">引言</span></a>中提出的归纳偏置假设，在实验中得到了验证：</p>
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
-<tr class="row-odd"><th class="head"><p><strong>选择全连接网络</strong></p></th>
-<th class="head"><p><strong>选择CNN</strong></p></th>
+<tr class="row-odd"><th class="head"><p>归纳偏置</p></th>
+<th class="head"><p>理论预期</p></th>
+<th class="head"><p>实验验证</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>数据量较小</p></td>
-<td><p>数据量充足</p></td>
+<tr class="row-even"><td><p><strong>局部性</strong></p></td>
+<td><p>用更少参数学习局部特征</p></td>
+<td><p>第一层卷积核确实学到边缘、纹理</p></td>
 </tr>
-<tr class="row-odd"><td><p>特征间无明显空间关系</p></td>
-<td><p>数据具有空间结构</p></td>
+<tr class="row-odd"><td><p><strong>平移不变性</strong></p></td>
+<td><p>识别位置无关</p></td>
+<td><p>数字在任何位置都能正确识别</p></td>
 </tr>
-<tr class="row-even"><td><p>需要快速原型开发</p></td>
-<td><p>追求最高性能</p></td>
-</tr>
-<tr class="row-odd"><td><p>计算资源极其有限</p></td>
-<td><p>可以接受更长的训练时间</p></td>
-</tr>
-<tr class="row-even"><td><p>简单的分类任务</p></td>
-<td><p>复杂的视觉任务</p></td>
+<tr class="row-even"><td><p><strong>参数共享</strong></p></td>
+<td><p>减少参数量</p></td>
+<td><p>参数量减少74%，性能反而提升</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>这些原则不仅适用于计算机视觉，也适用于其他深度学习领域。</p>
-<div class="admonition note">
-<p class="admonition-title">备注</p>
-<p><strong>归纳偏置总结</strong></p>
-<p><strong>全连接网络的归纳偏置：</strong></p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id16">
+<h2>架构选择指南<a class="headerlink" href="#id16" title="Link to this heading">#</a></h2>
+<p>基于实验结果，选择架构时可参考：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>场景</p></th>
+<th class="head"><p>推荐架构</p></th>
+<th class="head"><p>理由</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>图像分类</strong></p></td>
+<td><p>CNN</p></td>
+<td><p>空间归纳偏置匹配任务结构</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>序列数据</strong></p></td>
+<td><p>RNN/Transformer</p></td>
+<td><p>需要时间/顺序归纳偏置（见后续章节）</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>表格数据</strong></p></td>
+<td><p>全连接</p></td>
+<td><p>无明确空间结构，通用性更重要</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>小数据集</strong></p></td>
+<td><p>CNN + 强正则化</p></td>
+<td><p>好的先验减少数据需求</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>快速原型</strong></p></td>
+<td><p>全连接</p></td>
+<td><p>实现简单，调试快</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">警告</p>
+<p><strong>重要提醒</strong></p>
+<p>架构选择不是非此即彼。现代深度学习常将两者结合：</p>
 <ul class="simple">
-<li><p>所有像素同等重要</p></li>
-<li><p>不考虑空间局部性</p></li>
-<li><p>需要从头学习所有关系</p></li>
+<li><p>CNN提取空间特征</p></li>
+<li><p>全连接层做最终分类（如LeNet的最后几层）</p></li>
+<li><p>Transformer处理全局关系</p></li>
 </ul>
-<p><strong>卷积网络的归纳偏置：</strong></p>
-<ul class="simple">
-<li><p>局部连接：附近的像素相关性强</p></li>
-<li><p>平移不变性：特征位置不重要</p></li>
-<li><p>参数共享：相同特征可在不同位置复用</p></li>
-</ul>
+<p>关键在于理解<strong>归纳偏置与任务匹配</strong>的原则，而非死记架构名称。</p>
 </div>
 </section>
-<section id="id15">
-<h2>结论<a class="headerlink" href="#id15" title="Link to this heading">#</a></h2>
-<p>通过MNIST手写数字识别任务，我们深入比较了全连接神经网络和卷积神经网络的原理、实现和性能。主要结论如下：</p>
-<ol class="arabic simple">
-<li><p><strong>架构选择的重要性</strong>：合适的架构能显著提升性能并减少参数数量</p></li>
-<li><p><strong>归纳偏置的价值</strong>：CNN的空间归纳偏置使其在图像任务上具有天然优势</p></li>
-<li><p><strong>参数效率</strong>：LeNet通过参数共享实现了更高的参数效率</p></li>
-<li><p><strong>实践指导</strong>：根据任务需求和数据特性选择合适的架构</p></li>
-</ol>
-<p>我们看到了从简单的全连接网络到复杂的CNN架构的演进。然而，基本的原理和思想——如参数共享、分层特征提取和适当的归纳偏置——至今仍然适用。理解这些基础概念，对于设计和应用现代神经网络具有重要意义。</p>
+<hr class="docutils" />
+<section id="id17">
+<h2>总结<a class="headerlink" href="#id17" title="Link to this heading">#</a></h2>
+<p>本次实验用数据验证了<a class="reference internal" href="introduction.html"><span class="doc">引言</span></a>中的理论分析：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>对比维度</p></th>
+<th class="head"><p>全连接网络</p></th>
+<th class="head"><p>CNN</p></th>
+<th class="head"><p>结论</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>参数效率</strong></p></td>
+<td><p>低（235K参数）</p></td>
+<td><p><strong>高</strong>（62K参数）</p></td>
+<td><p>归纳偏置减少74%参数</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>训练速度</strong></p></td>
+<td><p>较慢</p></td>
+<td><p><strong>较快</strong></p></td>
+<td><p>更好的初始化加速收敛</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>泛化性能</strong></p></td>
+<td><p>易过拟合</p></td>
+<td><p><strong>更稳定</strong></p></td>
+<td><p>测试准确率差距小</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>最终准确率</strong></p></td>
+<td><p>97.8%</p></td>
+<td><p><strong>98.9%</strong></p></td>
+<td><p>归纳偏置带来1.1%提升</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>核心启示</strong>：</p>
+<ul class="simple">
+<li><p>好的<strong>归纳偏置</strong>（先验知识）比单纯的参数量更重要</p></li>
+<li><p><strong>架构设计</strong>是深度学习的关键技能，直接影响性能和效率</p></li>
+<li><p><strong>实验验证</strong>是检验理论的唯一标准，数据比直觉更可靠</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="id18">
+<h2>下一步：从实验到理论<a class="headerlink" href="#id18" title="Link to this heading">#</a></h2>
+<p>本次实验展示了CNN在MNIST上的优势。但这是否意味着：</p>
+<ul class="simple">
+<li><p><strong>模型越大越好</strong>？参数翻倍，性能也翻倍吗？</p></li>
+<li><p><strong>数据越多越好</strong>？多少数据才&quot;够&quot;？</p></li>
+<li><p><strong>规律能否量化</strong>？能否预测需要多少参数/数据才能达到目标性能？</p></li>
+</ul>
+<p><a class="reference internal" href="scaling-law.html"><span class="doc">缩放定律：模型越大越好吗？</span></a>将回答这些问题。我们将探讨<strong>缩放定律</strong>——深度学习中的幂律关系，理解模型规模、数据量与性能之间的数学规律，为现代大模型的设计提供理论指导。</p>
+<p>从&quot;知道哪种架构更好&quot;进化到&quot;知道需要多大的模型&quot;！</p>
+</section>
+<hr class="docutils" />
+<section id="id19">
+<h2>参考文献<a class="headerlink" href="#id19" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id20">
+<div role="list" class="citation-list">
+<div class="citation" id="id89" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Mit80</a><span class="fn-bracket">]</span></span>
+<p>Tom M Mitchell. The need for biases in learning generalizations. Technical Report, Department of Computer Science, Laboratory for Computer Science Research, Rutgers University, 1980.</p>
+</div>
+</div>
+</div>
 </section>
 </section>
 
@@ -820,7 +871,7 @@ f: \mathbb{R}^{784} \rightarrow \mathbb{R}^{10}
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -828,6 +879,11 @@ f: \mathbb{R}^{784} \rightarrow \mathbb{R}^{10}
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">59126f4</code>
+                2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and add citations
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">cec393d</code>
                 2025-12-11 - <strong>Heyan Zhu</strong>: docs: partially complete migration and restructure course materials
@@ -849,12 +905,12 @@ f: \mathbb{R}^{784} \rightarrow \mathbb{R}^{10}
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="le-net.html"
+       href="neural-training-basics.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">上一页</p>
-        <p class="prev-next-title">LeNet-5架构详解</p>
+        <p class="prev-next-title">神经网络训练基础</p>
       </div>
     </a>
     <a class="right-next"
@@ -862,7 +918,7 @@ f: \mathbb{R}^{784} \rightarrow \mathbb{R}^{10}
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">神经网络缩放定律</p>
+        <p class="prev-next-title">缩放定律：模型越大越好吗？</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -882,27 +938,40 @@ f: \mathbb{R}^{784} \rightarrow \mathbb{R}^{10}
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">为什么需要对比分析？</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">信息处理方式的对比</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">全连接网络的信息处理</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn">CNN的信息处理</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">实验设计</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">对比对象</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">实验设置</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">参数效率的数学分析</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">什么是归纳偏置？</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">归纳偏置的深层分析</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">全连接网络的归纳偏置</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">CNN的归纳偏置</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">参数效率对比</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">理论计算</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">实际性能对比实验</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">训练设置</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">性能比较</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">结果分析</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">性能对比结果</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">训练过程</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">最终性能对比</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">何时选择哪种架构？</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">结论</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn">为什么CNN表现更好？</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">信息处理方式的差异</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">全连接网络：展平为向量</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">CNN：保留空间结构的分层处理</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">CNN的归纳偏置：三个核心假设</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#locality">1. 局部性（Locality）：相邻像素更相关</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#translation-invariance">2. 平移不变性（Translation Invariance）：特征位置不重要</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#compositionality">3. 组合性（Compositionality）：复杂模式由简单特征组合</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">从错误案例分析</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">归纳偏置的实践验证</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">架构选择指南</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">下一步：从实验到理论</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">参考文献</a></li>
 </ul>
   </nav></div>
 
