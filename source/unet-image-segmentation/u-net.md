@@ -1,244 +1,369 @@
-# U-Net架构详解
+(unet-arch)=
+# U 形架构详解
 
-## U形对称结构
+## 直觉：U-Net 的整体结构
 
-U-Net的核心创新在于其U形对称架构，包含两个主要部分：
+{ref}`unet-introduction` 我们提出了核心问题：**如何把缩小的特征图恢复回原始分辨率，同时不丢失空间细节？**
 
-1. **编码器（收缩路径）**：通过卷积和池化逐步提取高级特征，减少空间维度
-2. **解码器（扩张路径）**：通过转置卷积和跳跃连接逐步恢复空间维度，生成分割掩码
+U-Net 的答案是一个对称的 U 形：
 
-```{figure} https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/u-net-architecture.png
-:width: 80%
+```{figure} ../../_static/images/u-net-architecture.png
+:width: 640px
 :align: center
 
-U-Net的U形对称架构示意图（图片来源：原论文）
+U-Net 的 U 形对称架构（原论文 {cite}`ronneberger2015u`）
 ```
 
-### 架构参数概览
+### 架构速览
 
-原始U-Net的具体配置如下：
+从图中可以看出核心设计：左侧编码器逐步下采样（空间缩小、通道增加），右侧解码器逐步上采样（空间恢复、通道减少），底部是信息瓶颈，灰色箭头是**跳跃连接**。
 
-| 层级 | 操作 | 输出尺寸 (H×W×C) | 卷积核 | 步长 | 填充 |
-|------|------|-------------------|--------|------|------|
-| 输入 | - | 572×572×1 | - | - | - |
-| 卷积块1 | 3×3 Conv + ReLU ×2 | 568×568×64 | 3×3 | 1 | 有效 |
-| 池化1 | 2×2 MaxPool | 284×284×64 | 2×2 | 2 | - |
-| 卷积块2 | 3×3 Conv + ReLU ×2 | 280×280×128 | 3×3 | 1 | 有效 |
-| 池化2 | 2×2 MaxPool | 140×140×128 | 2×2 | 2 | - |
-| 卷积块3 | 3×3 Conv + ReLU ×2 | 136×136×256 | 3×3 | 1 | 有效 |
-| 池化3 | 2×2 MaxPool | 68×68×256 | 2×2 | 2 | - |
-| 卷积块4 | 3×3 Conv + ReLU ×2 | 64×64×512 | 3×3 | 1 | 有效 |
-| 池化4 | 2×2 MaxPool | 32×32×512 | 2×2 | 2 | - |
-| 底部卷积块 | 3×3 Conv + ReLU ×2 | 28×28×1024 | 3×3 | 1 | 有效 |
-| 上采样1 | 2×2 转置卷积 | 56×56×512 | 2×2 | 2 | - |
-| 跳跃连接1 | 与编码器特征拼接 | 56×56×1024 | - | - | - |
-| 卷积块5 | 3×3 Conv + ReLU ×2 | 52×52×512 | 3×3 | 1 | 有效 |
-| 上采样2 | 2×2 转置卷积 | 104×104×256 | 2×2 | 2 | - |
-| 跳跃连接2 | 与编码器特征拼接 | 104×104×512 | - | - | - |
-| 卷积块6 | 3×3 Conv + ReLU ×2 | 100×100×256 | 3×3 | 1 | 有效 |
-| 上采样3 | 2×2 转置卷积 | 200×200×128 | 2×2 | 2 | - |
-| 跳跃连接3 | 与编码器特征拼接 | 200×200×256 | - | - | - |
-| 卷积块7 | 3×3 Conv + ReLU ×2 | 196×196×128 | 3×3 | 1 | 有效 |
-| 上采样4 | 2×2 转置卷积 | 392×392×64 | 2×2 | 2 | - |
-| 跳跃连接4 | 与编码器特征拼接 | 392×392×128 | - | - | - |
-| 卷积块8 | 3×3 Conv + ReLU ×2 | 388×388×64 | 3×3 | 1 | 有效 |
-| 输出层 | 1×1 Conv | 388×388×2 | 1×1 | 1 | - |
+几个关键数字：
+- **输入 572×572×1** → **输出 388×388×2**（有效填充导致边界丢失 92 像素）
+- **通道数变化**：1 → 64 → 128 → 256 → 512 → 1024 → 512 → ... → 64 → 2
+- **每层跳跃连接拼接**：编码器特征（保留精确位置）与解码器特征（携带语义信息）在通道维度拼接
 
-**注意**：原始U-Net使用"有效"填充（无填充），因此每次卷积后尺寸会缩小。现代实现通常使用"相同"填充以保持尺寸。
+### 三部分的角色
 
-## 编码器路径
+| 部分 | 做什么 | 效果 |
+|------|--------|------|
+| **编码器（左半）** | 卷积+池化，逐步下采样 | 空间变小，通道变多，语义变强 |
+| **瓶颈（底部）** | 最深的卷积，特征最抽象 | 感受野最大，知道"整体是什么" |
+| **解码器（右半）** | 转置卷积+跳跃拼接，逐步上采样 | 空间变大，恢复细节 |
 
-编码器路径采用典型的CNN架构，通过重复应用以下操作：
+## 编码器路径：提取语义
 
-```{math}
-\text{卷积块} = \text{Conv2D} \rightarrow \text{BatchNorm} \rightarrow \text{ReLU} \rightarrow \text{Conv2D} \rightarrow \text{BatchNorm} \rightarrow \text{ReLU}
-```
+编码器和 {doc}`../neural-network-basics/le-net` 前半部分几乎一样——重复的卷积块 + 最大池化。
 
-每个编码器块后接一个2×2最大池化层，将特征图尺寸减半，同时通道数加倍。
-
-### 编码器设计原理
-
-```{admonition} 编码器设计理由
-:class: tip
-
-1. **特征层次化**：浅层学习边缘和纹理，深层学习语义信息
-
-   **详细解释**：在编码器的不同层次，网络学习到不同抽象程度的特征。第一层卷积主要检测简单的边缘、角点和纹理模式；第二层可能学习到简单的形状和模式组合；更深的层次能够识别复杂的语义对象。这种层次化特征学习模仿了人类视觉系统的处理机制，从简单到复杂逐步抽象。
-
-2. **感受野扩大**：下采样增大感受野，捕获全局上下文
-
-   **数学原理**：感受野的计算公式为：
-   $$RF_{l} = RF_{l-1} + (k_{l} - 1) \times \prod_{i=1}^{l-1} s_{i}$$
-   其中$RF_l$是第$l$层的感受野，$k_l$是卷积核大小，$s_i$是第$i$层的步长。通过每次下采样，感受野呈指数级增长，使得深层神经元能够看到更大的输入区域，从而捕获全局上下文信息。
-
-3. **参数效率**：减少空间维度，降低计算复杂度
-
-   **计算分析**：假设输入图像大小为$H \times W \times C$，经过一层卷积后特征图大小为$H' \times W' \times C'$，计算复杂度为$O(H' \times W' \times C \times C' \times k^2)$。通过下采样将空间维度减半，后续层的计算量减少为原来的$1/4$，显著提高了计算效率。
-
-4. **平移不变性**：池化操作增强模型的平移不变性
-
-   **机制说明**：最大池化选择局部区域内的最大值，使得当目标在输入中发生小范围平移时，池化后的特征表示相对稳定。这种平移不变性对于生物医学图像分割尤为重要，因为医学图像中的目标（如细胞、器官）可能出现在图像的不同位置。
-```
-
-### 特征图尺寸变化
-
-设输入图像尺寸为 $H \times W$，经过每个编码器块后：
-
-1. **卷积操作**：使用3×3卷积，步长1，无填充时尺寸减少为 $(H-2) \times (W-2)$
-2. **池化操作**：2×2最大池化，步长2，尺寸减半为 $\left\lfloor \frac{H-2}{2} \right\rfloor \times \left\lfloor \frac{W-2}{2} \right\rfloor$
-
-经过4次下采样后，特征图尺寸减少为原始尺寸的约 $\frac{1}{16}$。
-
-## 解码器路径
-
-解码器路径通过转置卷积（上采样）逐步恢复空间分辨率：
-
-```{math}
-\text{上采样块} = \text{ConvTranspose2D} \rightarrow \text{跳跃连接} \rightarrow \text{卷积块}
-```
-
-关键创新在于**跳跃连接**，将编码器路径中的特征图与解码器路径对应层的特征图拼接，保留低级细节信息。
-
-### 解码器设计原理
-
-```{admonition} 解码器设计原理
-:class: tip
-
-1. **空间恢复**：上采样操作逐步恢复空间分辨率
-
-   **转置卷积机制**：转置卷积（也称为反卷积）通过在特征图元素之间插入零值，然后应用标准卷积来实现上采样。数学上，转置卷积是卷积操作的转置：
-   $$y = W^T \cdot x$$
-   其中$W^T$是卷积核$W$的转置，$x$是输入特征。这种方法能够学习上采样过程中的最优权重，而不是简单的插值。
-
-2. **特征融合**：拼接操作结合高层语义和低层细节
-
-   **拼接策略**：假设编码器特征为$F_{enc} \in \mathbb{R}^{H \times W \times C_1}$，解码器特征为$F_{dec} \in \mathbb{R}^{H \times W \times C_2}$，拼接操作生成：
-   $$F_{concat} = \text{concat}(F_{enc}, F_{dec}) \in \mathbb{R}^{H \times W \times (C_1 + C_2)}$$
-   这种拼接保持了原始特征的所有信息，相比相加操作更丰富。
-
-3. **信息补偿**：弥补下采样过程中丢失的空间信息
-
-   **信息流分析**：在编码过程中，下采样会丢失一些空间细节。例如，2×2最大池化会丢失3/4的位置信息。跳跃连接直接传递高分辨率的编码器特征，为解码器提供精确的空间坐标信息，这些信息对于像素级分割至关重要。
-
-4. **精确边界**：利用跳跃连接信息实现精确的边界定位
-
-   **边界检测机制**：浅层特征包含丰富的边缘和纹理信息，这些信息对边界定位非常敏感。通过跳跃连接，这些边界感知特征直接传递给解码器，使得最终分割能够保持清晰的边界轮廓。这在生物医学图像中尤为重要，因为细胞和器官的边界通常很模糊且不规则。
-```
-
-### 上采样方法比较
-
-U-Net使用转置卷积进行上采样，其他常见方法包括：
-
-| 方法 | 原理 | 优点 | 缺点 |
-|------|------|------|------|
-| **转置卷积** | 学习上采样权重 | 可学习，适应数据 | 可能产生棋盘伪影 |
-| **双线性插值** | 线性插值 | 简单快速，无参数 | 无法学习复杂模式 |
-| **最近邻插值** | 复制最近像素 | 保持边缘锐利 | 产生块状伪影 |
-| **像素洗牌** | 通道重排 | 高效，无参数 | 需要预先增加通道数 |
-
-## 跳跃连接机制
-
-跳跃连接是U-Net成功的关键，它解决了深度网络中信息丢失的问题：
-
-```{admonition} 跳跃连接的作用
-:class: tip
-
-1. **保留空间信息**：编码器的低级特征包含精确的空间位置信息
-2. **梯度传播**：缓解梯度消失问题，改善训练稳定性
-3. **特征复用**：避免重复学习相同特征，提高训练效率
-4. **边界精度**：显著改善分割边界的精确度
-```
-
-### 数学表述
-
-数学上，跳跃连接可以表示为：
-
-```{math}
-x_{\text{decoder}}^{(l)} = f\left([x_{\text{encoder}}^{(L-l)}, \text{upsample}(x_{\text{decoder}}^{(l-1)})]\right)
-```
-
-其中 $L$ 是网络总层数，$[·,·]$ 表示通道维度上的拼接。
-
-### 梯度流动分析
-
-```{admonition} 梯度流动机制
+```{admonition} 编码器的直觉
 :class: note
 
-在深度神经网络中，梯度通过链式法则反向传播时需要经历多次乘法操作。当梯度绝对值小于1时，连续相乘会导致梯度指数级衰减，这就是梯度消失问题。
+每一步都在做"退一步看全局"：
+- 3×3 卷积看局部模式（边缘、纹理）
+- 2×2 池化取最显著特征，空间减半
+- 通道数加倍，给更多"记忆空间"存储提炼出的信息
 
-**数学分析**：考虑一个L层的网络，没有跳跃连接时，第$l$层的梯度为：
-$$\frac{\partial L}{\partial W_l} = \frac{\partial L}{\partial \hat{y}} \prod_{i=l+1}^{L} \frac{\partial z_i}{\partial z_{i-1}} \frac{\partial z_i}{\partial W_i}$$
-
-有跳跃连接时，梯度可以直接跳跃到浅层：
-$$\frac{\partial L}{\partial W_l} = \frac{\partial L}{\partial \hat{y}} \left( \prod_{i=l+1}^{L} \frac{\partial z_i}{\partial z_{i-1}} \frac{\partial z_i}{\partial W_i} + \frac{\partial z_{skip}}{\partial W_l} \right)$$
-
-跳跃连接为梯度提供了一条"高速公路"，避免了深层网络中梯度的指数级衰减。
+就像写摘要：先逐段阅读（卷积），再浓缩成要点（池化）。反复几次后，你就从具体的文字得到了文章主旨。
 ```
 
-### 多尺度特征融合
+### 编码器中的感受野
 
-跳跃连接实现了多尺度特征融合：
+{ref}`receptive-field` 中我们学了感受野的递推公式。U-Net 中每个编码器块的感受野：
 
-```{admonition} 多尺度融合优势
+| 层 | 累积感受野 | 看到什么 |
+|----|-----------|----------|
+| 第 1 层 | 3×3 | 边缘、角点、纹理 |
+| 第 2 层 | 5×5 | 简单的形状组合 |
+| 第 3 层 | 9×9 | 局部结构模式 |
+| 第 4 层 | 17×17 | 较大的语义部件 |
+| 底部 | 33×33 | 完整的语义对象 |
+
+感受野逐层扩大，意味着一路向下，每个神经元看到的输入区域越来越大，学到的特征从"具体边缘"变成了"抽象语义"。
+
+### 特征图尺寸变化公式
+
+原始 U-Net 用有效填充，每步卷积后尺寸变化为：
+
+```{math}
+H_{\text{out}} = H_{\text{in}} - k + 1
+```
+
+其中 $k=3$ 是卷积核大小，所以每次卷积后宽高各减 2。池化后尺寸减半。
+
+## 解码器路径：恢复空间
+
+解码器是编码器的"镜像"——把缩小的特征图一步步放大回原始分辨率。核心操作有两个：
+
+### 1. 上采样（Upsampling）
+
+U-Net 使用**转置卷积（Transposed Convolution）** 进行上采样。直觉上，它和卷积做的事相反：
+
+```{tikz} 转置卷积：2×2 → 4×4
+\begin{tikzpicture}[scale=0.7]
+  % 输入 2x2
+  \draw[fill=blue!20, thick] (0,0) rectangle (1,1);
+  \draw[fill=blue!20, thick] (1,0) rectangle (2,1);
+  \draw[fill=blue!20, thick] (0,1) rectangle (1,2);
+  \draw[fill=blue!20, thick] (1,1) rectangle (2,2);
+  \node at (0.5,0.5) {$x_1$};
+  \node at (1.5,0.5) {$x_2$};
+  \node at (0.5,1.5) {$x_3$};
+  \node at (1.5,1.5) {$x_4$};
+  \node at (1, -0.6) {输入 2×2};
+
+  % 箭头
+  \draw[->, thick] (2.5, 1) -- (3.5, 1);
+  \node at (3, 1.8) {插入零};
+
+  % 中间 4x4（插零）
+  \draw[fill=blue!5, thick] (4,0) rectangle (5,1);
+  \draw[fill=blue!5, thick] (5,0) rectangle (6,1);
+  \draw[fill=blue!5, thick] (6,0) rectangle (7,1);
+  \draw[fill=blue!5, thick] (4,1) rectangle (5,2);
+  \draw[fill=blue!5, thick] (5,1) rectangle (6,2);
+  \draw[fill=blue!5, thick] (6,1) rectangle (7,2);
+  \draw[fill=blue!5, thick] (4,2) rectangle (5,3);
+  \draw[fill=blue!5, thick] (5,2) rectangle (6,3);
+  \draw[fill=blue!5, thick] (6,2) rectangle (7,3);
+  \node at (4.5,0.5) {$x_1$};
+  \node at (5.5,1.5) {$x_2$};
+  \node at (4.5,2.5) {$x_3$};
+  \node at (5.5,2.5) {$x_4$};
+  \node[font=\tiny, gray] at (4.5,1.5) {0};
+  \node[font=\tiny, gray] at (5.5,0.5) {0};
+  \node[font=\tiny, gray] at (6.5,0.5) {0};
+  \node[font=\tiny, gray] at (5.5,1.5) {0};
+  \node at (5.5, -0.6) {插零 4×4};
+
+  % 箭头
+  \draw[->, thick] (7.5, 1.5) -- (8.5, 1.5);
+  \node at (8, 2.3) {3×3 卷积};
+
+  % 输出 4x4
+  \draw[fill=green!20, thick] (9,0) rectangle (10,1);
+  \draw[fill=green!20, thick] (10,0) rectangle (11,1);
+  \draw[fill=green!20, thick] (11,0) rectangle (12,1);
+  \draw[fill=green!20, thick] (9,1) rectangle (10,2);
+  \draw[fill=green!20, thick] (10,1) rectangle (11,2);
+  \draw[fill=green!20, thick] (11,1) rectangle (12,2);
+  \draw[fill=green!20, thick] (9,2) rectangle (10,3);
+  \draw[fill=green!20, thick] (10,2) rectangle (11,3);
+  \draw[fill=green!20, thick] (11,2) rectangle (12,3);
+  \node at (10.5, -0.6) {输出 4×4};
+\end{tikzpicture}
+```
+
+```{admonition} 转置卷积的直觉
 :class: note
 
-U-Net中不同层次的特征图具有不同的感受野：
-\begin{align}
-RF_1 &= 3 \times 3 \\
-RF_2 &= 5 \times 5 \\
-RF_3 &= 9 \times 9 \\
-RF_4 &= 17 \times 17 \\
-RF_5 &= 33 \times 33
-\end{align}
-
-跳跃连接将不同感受野的特征进行融合，使得每个解码器层都能同时获得局部细节和全局上下文。这种多尺度信息融合能力是U-Net成功的关键因素之一。
+普通卷积：3×3 窗口滑过输入 → 输出更小
+转置卷积：每个输入点"膨胀"成 2×2 区域 → 输出更大
 ```
 
-## 激活函数与归一化选择
+转置卷积通过在每个输入元素之间插入零值，然后做标准卷积来实现尺寸加倍。它的参数也是**可学习的**，不像双线性插值是固定的。
 
-### ReLU激活函数的合理性
+### 2. 跳跃连接（Skip Connection）
 
-U-Net使用ReLU（Rectified Linear Unit）作为激活函数，主要原因包括：
+这是 U-Net 的灵魂。上采样后的特征图与**编码器对应层的特征图在通道维度上拼接**（concatenate）。
 
-1. **计算效率**：简单的max操作，计算开销小
-2. **梯度特性**：避免梯度消失，加速训练收敛
-3. **稀疏激活**：产生稀疏表示，提高网络效率
-4. **生物启发**：模拟神经元的激活特性
+```{math}
+F_{\text{concat}} = \text{concat}(F_{\text{encoder}}, F_{\text{decoder}}) \in \mathbb{R}^{H \times W \times (C_{\text{enc}} + C_{\text{dec}})}
+```
 
-### 批归一化的考虑
+**为什么拼接而不是相加？**
 
-虽然原始U-Net未使用批归一化，但现代实现通常添加批归一化层：
+FCN 用相加，U-Net 用拼接。拼接**保留了编码器特征的全部信息**（不压缩），让解码器可以"看到"原始细节。
 
-1. **训练稳定性**：减少内部协变量偏移，稳定训练过程
-2. **收敛加速**：允许使用更高的学习率
-3. **梯度流改善**：缓解梯度消失和爆炸问题
+```{admonition} 跳跃连接的三个作用
+:class: tip
+
+1. **保留空间信息**：编码器浅层知道"边缘在第 35 行"，解码器需要这个信息
+2. **改善梯度流动**：梯度可以"抄近道"直接传到浅层，缓解梯度消失
+3. **多尺度特征融合**：不同感受野的特征同时被利用
+```
+
+### 跳跃连接的梯度分析
+
+跳跃连接对训练的最大贡献是**解决了梯度消失问题**。{ref}`gradient-vanishing` 中我们详细讨论过梯度消失的成因——反向传播时梯度经过多层连乘会指数级衰减，导致浅层无法学习。
+
+要理解跳跃连接为什么能缓解这个问题，需要先理解 Jacobian 矩阵。
+
+#### 预备知识：导数 → 梯度 → Jacobian 矩阵
+
+{doc}`../math-fundamentals/computational-graph` 中我们学过：标量函数的导数 $\frac{df}{dx}$ 告诉你"输入 $x$ 变一点点，输出 $f$ 变多少"。
+
+在神经网络中，每一层的输入和输出都是**向量**（几百个神经元的值），而不是标量。所以我们需要一个推广版的导数——**Jacobian 矩阵**。
+
+```{admonition} 从标量导数到 Jacobian
+:class: note
+
+| 概念 | 数学表示 | 输入维度 | 输出维度 | 矩阵形状 |
+|------|---------|---------|---------|---------|
+| **标量导数** | $\frac{df}{dx}$ | 1 | 1 | 1×1 |
+| **梯度** | $\nabla f = [\frac{\partial f}{\partial x_1}, \frac{\partial f}{\partial x_2}, ...]$ | N | 1 | 1×N 行向量 |
+| **Jacobian 矩阵** | $\frac{\partial \mathbf{h}}{\partial \mathbf{x}}$ | N | M | **M×N 矩阵** |
+
+
+每个元素 $(i,j)$ 的意思："第 $j$ 个输入变一点点，第 $i$ 个输出变多少"。
+
+形状：$(\text{输出维度}) \times (\text{输入维度})$。
+
+例如一个全连接层 $\mathbf{h} = W\mathbf{x} + \mathbf{b}$，输入 $\mathbf{x}$ 是 100 维，输出 $\mathbf{h}$ 是 64 维，那么 Jacobian $\frac{\partial \mathbf{h}}{\partial \mathbf{x}} = W$ 就是一个 64×100 的矩阵。
+```
+
+#### 没有跳跃连接时：Jacobian 连乘
+
+链式法则告诉我们，损失 $L$ 对第 $l$ 层权重 $W_l$ 的梯度相当于**每一层 Jacobian 的连乘**：
+
+```{math}
+\frac{\partial L}{\partial W_l} = \frac{\partial L}{\partial \hat{y}} \cdot
+\underbrace{\frac{\partial h_{L}}{\partial h_{L-1}} \cdot
+\frac{\partial h_{L-1}}{\partial h_{L-2}} \cdot \dots \cdot
+\frac{\partial h_{l+1}}{\partial h_{l}}}_{L-l \text{ 个 Jacobian 相乘}}
+```
+
+每乘一个 Jacobian 都可能缩小或放大梯度。如果每层的"放大倍数"都小于 1，$L-l$ 个 Jacobian 连乘后梯度就会指数级衰减——梯度消失。
+
+#### 有了跳跃连接：梯度抄近道
+
+跳跃连接在反向传播中创建了一条**直达路径**，绕过了中间的深度：
+
+```{math}
+\frac{\partial L}{\partial W_l} = \underbrace{\text{主路径（$L-l$ 个 Jacobian 连乘）}}_{\text{可能消失}} + \underbrace{\text{跳跃路径（仅 1-2 个 Jacobian）}}_{\text{几乎不衰减}}
+```
+
+第二条路径的 Jacobian 链极短——编码器第 2 层的梯度可以通过跳跃连接直接传到解码器第 2 层，中间只经过 1-2 个变换，而不是从底部绕上来的 8-10 个。
+
+```{admonition} 数值对比：64 倍的差距
+:class: note
+
+假设每层 Jacobian 的放大倍数 = 0.8：
+
+原始路径（穿过 20 层）：$0.8^{20} \approx 0.01$（衰减了 99%）
+
+跳跃路径（只穿过 2 层）：$0.8^{2} \approx 0.64$（只衰减了 36%）
+
+差距：$0.01$ vs $0.64$，整整 **64 倍**。有了跳跃连接，浅层收到的梯度信号强了几十倍。
+```
+
+这就是跳跃连接被称为"梯度高速公路"的原因——它为梯度提供了**绕过深度、直达浅层**的捷径。这个思路与 ResNet {cite}`he2016deep` 的残差连接一脉相承：都是通过短路连接为梯度创造高速公路。{doc}`../cnn-ablation-study/experiment-design` 中的消融实验也可以验证：去掉跳跃连接后，深层网络的浅层几乎学不到东西。
 
 ## 输出层设计
 
-U-Net的输出层使用1×1卷积将特征映射到类别数：
+输出层用 1×1 卷积把通道数映射到类别数：
 
 ```{math}
-\text{输出} = \text{Conv2D}(C_{\text{in}}, C_{\text{out}}, \text{kernel\_size}=1)
+\text{输出} = \text{Conv2D}(C_{\text{in}}, C_{\text{out}}, \text{kernel_size}=1)
 ```
 
-对于二分类任务，$C_{\text{out}} = 2$（背景和前景），通常后接softmax或sigmoid激活函数。
+对于二分类任务（如细胞 vs 背景），$C_{\text{out}} = 2$，后接 softmax。每个像素的 2 个值表示"属于背景的概率"和"属于细胞的概率"。
 
-### 输出尺寸对齐
+## 为什么 U 形架构这么成功？
 
-由于卷积操作中的尺寸缩减，U-Net的输出尺寸通常小于输入尺寸。原始U-Net中，输入572×572，输出388×388，边界丢失了92个像素。在实际应用中，可以通过以下方式处理：
+回顾 {ref}`unet-introduction` 中讨论的核心矛盾，现在看 U-Net 如何一一解决：
 
-1. **镜像填充**：在输入图像周围添加镜像填充
-2. **重叠切片**：将大图像分割为重叠的小块，分别处理后再拼接
-3. **尺寸调整**：训练时使用随机裁剪，推理时使用滑动窗口
+| 矛盾 | 编码器的做法 | 解码器的做法 | 跳跃连接的作用 |
+|------|-------------|-------------|---------------|
+| 需要语义理解 | 下采样扩大感受野 | - | 深层特征传到解码器 |
+| 需要空间精度 | 浅层保留边缘信息 | - | 浅层特征直接"抄近道" |
+| 需要端到端训练 | - | 可学习的上采样 | 梯度直达浅层 |
 
-## 现代实现变体
+三个组件缺一不可。没有解码器，输出分辨率不够；没有跳跃连接，恢复的细节不够；没有编码器，没有语义理解。
 
-现代U-Net实现通常进行以下改进：
+## 嵌入核心代码：核心组件
 
-1. **使用相同填充**：保持特征图尺寸不变，简化实现
-2. **添加批归一化**：提高训练稳定性
-3. **使用LeakyReLU**：避免神经元死亡
-4. **深度可分离卷积**：减少参数数量
-5. **注意力机制**：自适应关注重要区域
+下面先看 U-Net 的四个核心组件，完整的 U-Net 组装会在 {doc}`core-impl` 中展示。
 
-这些改进在保持U-Net核心思想的同时，进一步提升了性能和效率。
+### 双卷积块（核心构建单元）
+
+```python
+class DoubleConv(nn.Module):
+    """U-Net 中的基本构建单元：两个 3×3 卷积
+    
+    参数量计算（输入 C_in，输出 C_out）：
+    第一个卷积: C_in × 3 × 3 × C_out
+    第二个卷积: C_out × 3 × 3 × C_out
+    总计: 9 × (C_in × C_out + C_out²)
+    例如 64→64: 9×(64×64+64²) = 73,728
+    """
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
+    
+    def forward(self, x):
+        return self.conv(x)
+```
+
+**为什么两个 3×3 卷积堆叠？**
+
+一个 3×3 卷积感受野是 3×3。堆叠两个 3×3，感受野变成 5×5（{ref}`receptive-field` 的递推公式）。但参数量比一个 5×5 少——$2 \times 9 \times C^2$ vs $25 \times C^2$，减少了 28%。如果堆叠三个 3×3，感受野达到 7×7，参数比一个 7×7 减少 45%。这个设计思路最早来自 VGG 网络 {cite}`simonyan2014very`——用小卷积核的堆叠代替大卷积核，在保证感受野的同时减少参数。
+
+每个卷积后接一个 BatchNorm {cite}`ioffe2015batch`，作用是稳定训练：把激活值拉回到零均值单位方差，防止深层网络的激活值剧烈漂移。
+
+### 下采样模块
+
+```python
+class DownSample(nn.Module):
+    """编码器下采样：MaxPool → DoubleConv
+
+    输入: (B, C_in,  H,   W )
+    输出: (B, C_out, H/2, W/2)
+    """
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+        self.maxpool_conv = nn.Sequential(
+            nn.MaxPool2d(2),
+            DoubleConv(in_channels, out_channels)
+        )
+    
+    def forward(self, x):
+        return self.maxpool_conv(x)
+```
+
+### 上采样模块（带跳跃连接）
+
+```python
+class UpSample(nn.Module):
+    """解码器上采样：转置卷积 → 跳跃拼接 → DoubleConv
+    
+    输入 x1: (B, C_dec,  H,   W )
+    输入 x2: (B, C_enc, 2H, 2W )
+    输出:   (B, C_out, 2H, 2W )
+    
+    转置卷积把 C_dec 减半、尺寸加倍；
+    拼接编码器特征后，DoubleConv 缩回 C_out
+    """
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+        self.up = nn.ConvTranspose2d(
+            in_channels, in_channels // 2, kernel_size=2, stride=2
+        )
+        self.conv = DoubleConv(in_channels, out_channels)
+    
+    def forward(self, x1, x2):
+        x1 = self.up(x1)
+        # 原始 U-Net 用有效填充，尺寸可能不匹配，需要填充对齐
+        diffY = x2.size()[2] - x1.size()[2]
+        diffX = x2.size()[3] - x1.size()[3]
+        x1 = F.pad(x1, [diffX // 2, diffX - diffX // 2,
+                        diffY // 2, diffY - diffY // 2])
+        # 跳跃连接：通道拼接
+        x = torch.cat([x2, x1], dim=1)
+        return self.conv(x)
+```
+
+### 输出层
+
+```python
+class OutConv(nn.Module):
+    """输出层：1×1 卷积
+    
+    输入: (B, C_in,  H, W)
+    输出: (B, n_classes, H, W)
+    
+    1×1 卷积不改变空间尺寸，只改变通道数
+    """
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=1)
+    
+    def forward(self, x):
+        return self.conv(x)
+```
+
+这些组件的完整组装见 {doc}`core-impl`。下一节 {doc}`loss-func` 我们先来谈谈一个问题：分割任务的损失函数为什么和分类任务不一样？
+
+---
+
+## 参考文献
+
+```{bibliography}
+:filter: docname in docnames
+```
