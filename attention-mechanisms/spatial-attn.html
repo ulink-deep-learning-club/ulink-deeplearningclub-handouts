@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>空间注意力机制 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+    <title>空间注意力 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
   
   
   
@@ -46,11 +46,375 @@
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'attention-mechanisms/spatial-attn';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="Convolutional Block Attention Module (CBAM)" href="cbam.html" />
-    <link rel="prev" title="Squeeze-and-Excitation Networks (SE-Net)" href="se-net.html" />
+    <link rel="next" title="通道+空间注意力：CBAM" href="cbam.html" />
+    <link rel="prev" title="通道注意力：SE-Net" href="se-net.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
   </head>
@@ -205,17 +569,14 @@
 <li class="toctree-l2"><a class="reference internal" href="../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">CNN中的注意力机制：从 SE-Net 到 CBAM</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="se-net.html">Squeeze-and-Excitation Networks (SE-Net)</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">空间注意力机制</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cbam.html">Convolutional Block Attention Module (CBAM)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="channel-spatial-attm-cmp.html">通道与空间注意力的比较</a></li>
-<li class="toctree-l2"><a class="reference internal" href="experiments.html">实验与性能分析</a></li>
-<li class="toctree-l2"><a class="reference internal" href="attn-math.html">注意力机制的数学基础</a></li>
-<li class="toctree-l2"><a class="reference internal" href="practical-guide.html">实际应用指南</a></li>
-<li class="toctree-l2"><a class="reference internal" href="extensions-variations.html">扩展与变体</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">CNN中的注意力机制</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">为什么CNN需要注意力机制？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="se-net.html">通道注意力：SE-Net</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">空间注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cbam.html">通道+空间注意力：CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comparison.html">注意力机制的选择与应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html">实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与延伸</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net架构：生物医学图像分割的革命性方法</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -434,7 +795,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>空间注意力机制</h1>
+    <h1>空间注意力</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -444,27 +805,15 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">基本原理</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">数学形式化</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">注意力图生成</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">核心思想</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">数学形式</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cbam">CBAM风格的空间注意力</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">空间注意力的其他形式</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vs">通道 vs 空间：类比总结</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">下一步</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">实现方法</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cbam">1. 基于通道池化的空间注意力（CBAM风格）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">2. 卷积生成的空间注意力</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#non-local-network">3. 自注意力空间注意力（Non-local Network风格）</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">性能分析</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">计算复杂度比较</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">适用场景</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn">集成到CNN中</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#resnet">示例：空间注意力ResNet块</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">参考文献</a></li>
 </ul>
             </nav>
         </div>
@@ -476,308 +825,154 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="id1">
-<h1>空间注意力机制<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="spatial-attn">
+<span id="id1"></span><h1>空间注意力<a class="headerlink" href="#spatial-attn" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="se-net.html#se-net"><span class="std std-ref">通道注意力：SE-Net</span></a> 中，我们学习了通道注意力——让网络关注&quot;什么特征重要&quot;。但还有一个维度没覆盖：<strong>特征出现在哪里</strong>？一张猫的图片中，猫所在的空间位置比背景更重要。这就是空间注意力要解决的问题。</p>
 <section id="id2">
-<h2>基本原理<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>空间注意力（Spatial Attention）机制旨在让神经网络能够动态地关注特征图中的重要空间区域。与通道注意力（关注“什么特征重要”）不同，空间注意力关注“哪里重要”，即特征图中的哪些空间位置对当前任务更为关键。</p>
+<h2>核心思想<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>空间注意力（Spatial Attention）的目标是生成一个<strong>空间注意力图</strong>——一个与输入特征图同等宽高的二维权重图，每个位置的值表示该位置的重要性。</p>
 <div class="tip admonition">
-<p class="admonition-title">空间注意力的特点</p>
-<ol class="arabic simple">
-<li><p><strong>位置敏感</strong>：关注重要的空间区域，例如物体边界、纹理细节等</p></li>
-<li><p><strong>任务相关</strong>：不同任务（分类、检测、分割）关注不同区域</p></li>
-<li><p><strong>动态调整</strong>：根据输入内容实时生成注意力图，无需固定模板</p></li>
-<li><p><strong>计算高效</strong>：通常比通道注意力更轻量，参数量少</p></li>
-<li><p><strong>与通道注意力互补</strong>：两者结合可实现更全面的特征优化</p></li>
-</ol>
+<p class="admonition-title">空间注意力的直觉</p>
+<p>通道注意力是&quot;给每个频道调音量&quot;，空间注意力则是**“给屏幕的每个区域调亮度”**——重要的区域（如物体位置）更亮，不重要的区域（如背景）更暗。</p>
 </div>
+<object data="../_images/mermaid-05016dfef3ba6fd0edaf0c130fbdb3bb5efd9ae9.svg" type="image/svg+xml">
+            <p class="warning">graph LR
+    A[输入特征图&lt;br/&gt;C×H×W] --&gt; B[空间注意力生成器]
+    B --&gt; C[空间注意力图&lt;br/&gt;1×H×W]
+    C --&gt; D[逐元素相乘]
+    A --&gt; D
+    D --&gt; E[加权后的特征图&lt;br/&gt;C×H×W]</p></object>
 </section>
 <section id="id3">
-<h2>数学形式化<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
-<p>给定输入特征图 <span class="math notranslate nohighlight">\(F \in \mathbb{R}^{C \times H \times W}\)</span>，空间注意力模块生成一个二维的注意力图 <span class="math notranslate nohighlight">\(M_s \in \mathbb{R}^{1 \times H \times W}\)</span>，其中每个元素 <span class="math notranslate nohighlight">\(M_s(i,j)\)</span> 表示位置 <span class="math notranslate nohighlight">\((i,j)\)</span> 的重要性权重。加权后的特征图计算为：</p>
+<h2>数学形式<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>输入特征图 <span class="math notranslate nohighlight">\(F \in \mathbb{R}^{C \times H \times W}\)</span>，空间注意力模块生成注意力图 <span class="math notranslate nohighlight">\(M_s \in \mathbb{R}^{1 \times H \times W}\)</span>：</p>
 <div class="math notranslate nohighlight">
-\[\tilde{F} = F \otimes M_s\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(\otimes\)</span> 表示逐元素乘法（广播到通道维度）。</p>
-<section id="id4">
-<h3>注意力图生成<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
-<p>常见的生成方式包括：</p>
-<ol class="arabic">
-<li><p><strong>基于通道统计</strong>：沿通道维度聚合信息，例如计算每个位置的平均激活和最大激活：</p>
-<div class="math notranslate nohighlight">
-\[M_s = \sigma \left( f^{k \times k} \left( \left[ \text{AvgPool}^c(F); \text{MaxPool}^c(F) \right] \right) \right)\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(\text{AvgPool}^c\)</span> 和 <span class="math notranslate nohighlight">\(\text{MaxPool}^c\)</span> 分别表示沿通道维度的平均池化和最大池化，<span class="math notranslate nohighlight">\([;]\)</span> 表示通道拼接，<span class="math notranslate nohighlight">\(f^{k \times k}\)</span> 是一个 <span class="math notranslate nohighlight">\(k \times k\)</span> 卷积层，<span class="math notranslate nohighlight">\(\sigma\)</span> 是Sigmoid激活函数。</p>
-</li>
-<li><p><strong>自注意力机制</strong>：计算空间位置之间的相似度矩阵，生成全局注意力图：</p>
-<div class="math notranslate nohighlight">
-\[M_s = \text{softmax} \left( \frac{Q K^\top}{\sqrt{d}} \right) V\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(Q, K, V\)</span> 由特征图通过线性变换得到。</p>
-</li>
-</ol>
+\[\tilde{F} = F \odot M_s\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\odot\)</span> 表示逐元素乘法（注意力图广播到所有通道）。</p>
+<p><strong>关键问题</strong>：如何从 <span class="math notranslate nohighlight">\(C\)</span> 个通道的特征图生成 <span class="math notranslate nohighlight">\(1\)</span> 个通道的空间注意力图？答案是<strong>沿通道维度聚合信息</strong>。</p>
 </section>
+<section id="cbam">
+<h2>CBAM风格的空间注意力<a class="headerlink" href="#cbam" title="Link to this heading">#</a></h2>
+<p>最常用的空间注意力方法来自 CBAM <span id="id4">[<a class="reference internal" href="#id91" title="Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In Proceedings of the European Conference on Computer Vision (ECCV), 3–19. 2018.">WPLK18</a>]</span>，步骤如下：</p>
+<ol class="arabic simple">
+<li><p><strong>通道池化</strong>：对每个空间位置，分别计算该位置在所有通道上的平均值和最大值，得到两个 <span class="math notranslate nohighlight">\(1 \times H \times W\)</span> 的聚合特征图。</p></li>
+<li><p><strong>拼接</strong>：把两个聚合图拼成 <span class="math notranslate nohighlight">\(2 \times H \times W\)</span>。</p></li>
+<li><p><strong>卷积</strong>：用一个 <span class="math notranslate nohighlight">\(7 \times 7\)</span> 卷积层将 <span class="math notranslate nohighlight">\(2\)</span> 个通道压缩回 <span class="math notranslate nohighlight">\(1\)</span> 个通道。</p></li>
+<li><p><strong>激活</strong>：Sigmoid 将值映射到 <span class="math notranslate nohighlight">\((0,1)\)</span>，得到空间注意力图。</p></li>
+</ol>
+<div class="math notranslate nohighlight">
+\[M_s = \sigma(f^{7\times7}([\text{AvgPool}^c(F); \text{MaxPool}^c(F)]))\]</div>
+<div class="note admonition">
+<p class="admonition-title">为什么同时用平均池化和最大池化？</p>
+<p>平均池化捕获&quot;该位置的整体激活强度&quot;——相当于问&quot;这个区域整体上多活跃？“。最大池化捕获&quot;该位置的最强响应”——相当于问&quot;这个区域最突出的特征是什么？&quot;。两者互补，结合起来能更全面地描述每个空间位置的信息量。</p>
+</div>
+<div class="literal-block-wrapper docutils container" id="id94">
+<div class="code-block-caption"><span class="caption-text">CBAM风格的空间注意力实现</span><a class="headerlink" href="#id94" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="linenos"> 3</span>
+<span class="linenos"> 4</span><span class="k">class</span><span class="w"> </span><span class="nc">SpatialAttention</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="linenos"> 5</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 6</span><span class="sd">    CBAM 风格的空间注意力模块</span>
+<span class="linenos"> 7</span>
+<span class="linenos"> 8</span><span class="sd">    沿通道维度聚合信息, 生成空间注意力图 (1×H×W):</span>
+<span class="linenos"> 9</span><span class="sd">    1. 通道平均池化 + 通道最大池化 → 2×H×W</span>
+<span class="linenos">10</span><span class="sd">    2. 7×7 卷积压缩为 1×H×W</span>
+<span class="linenos">11</span><span class="sd">    3. Sigmoid 激活</span>
+<span class="linenos">12</span>
+<span class="linenos">13</span><span class="sd">    参数量: 2 * 7 * 7 = 98 (k=7 时)</span>
+<span class="linenos">14</span><span class="sd">    输入: (B, C, H, W)</span>
+<span class="linenos">15</span><span class="sd">    输出: (B, 1, H, W)  — 空间注意力图</span>
+<span class="linenos">16</span><span class="sd">    &quot;&quot;&quot;</span>
+<span class="linenos">17</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">7</span><span class="p">):</span>
+<span class="linenos">18</span>        <span class="nb">super</span><span class="p">(</span><span class="n">SpatialAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+<span class="linenos">19</span>
+<span class="linenos">20</span>        <span class="k">assert</span> <span class="n">kernel_size</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="s1">&#39;kernel size must be 3 or 7&#39;</span>
+<span class="linenos">21</span>        <span class="n">padding</span> <span class="o">=</span> <span class="mi">3</span> <span class="k">if</span> <span class="n">kernel_size</span> <span class="o">==</span> <span class="mi">7</span> <span class="k">else</span> <span class="mi">1</span>
+<span class="linenos">22</span>
+<span class="linenos">23</span>        <span class="c1"># 输入 2 通道 (avg + max), 输出 1 通道 (注意力图)</span>
+<span class="linenos">24</span>        <span class="c1"># 参数量: 2 * 1 * k * k = 2k²</span>
+<span class="linenos">25</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="linenos">26</span>        <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()</span>
+<span class="linenos">27</span>
+<span class="linenos">28</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="linenos">29</span>        <span class="c1"># 沿通道维度 (dim=1) 聚合</span>
+<span class="linenos">30</span>        <span class="c1"># avg_out: (B, 1, H, W), 每个位置的平均激活强度</span>
+<span class="linenos">31</span>        <span class="n">avg_out</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="linenos">32</span>        <span class="c1"># max_out: (B, 1, H, W), 每个位置的最强响应</span>
+<span class="linenos">33</span>        <span class="n">max_out</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="linenos">34</span>
+<span class="linenos">35</span>        <span class="c1"># 拼接: (B, 2, H, W)</span>
+<span class="linenos">36</span>        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">avg_out</span><span class="p">,</span> <span class="n">max_out</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="linenos">37</span>        <span class="c1"># 卷积压缩 + Sigmoid: (B, 1, H, W)</span>
+<span class="linenos">38</span>        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos">39</span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos">40</span>
+<span class="linenos">41</span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="linenos">42</span>    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+<span class="linenos">43</span>    <span class="n">sa</span> <span class="o">=</span> <span class="n">SpatialAttention</span><span class="p">(</span><span class="n">kernel_size</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+<span class="linenos">44</span>    <span class="n">y</span> <span class="o">=</span> <span class="n">sa</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos">45</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input shape: </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">46</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attention shape: </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">47</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SpatialAttention params: </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">sa</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span><span class="si">}</span><span class="s2">  (2*7²=98)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </section>
 <section id="id5">
-<h2>实现方法<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
-<section id="cbam">
-<h3>1. 基于通道池化的空间注意力（CBAM风格）<a class="headerlink" href="#cbam" title="Link to this heading">#</a></h3>
-<p>这是CBAM（Convolutional Block Attention Module）中采用的方法，通过平均池化和最大池化获取通道统计信息，然后通过卷积层生成注意力图。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
-<span class="linenos"> 3</span>
-<span class="linenos"> 4</span>
-<span class="linenos"> 5</span><span class="k">class</span><span class="w"> </span><span class="nc">SpatialAttention</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="linenos"> 6</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;CBAM的空间注意力模块&quot;&quot;&quot;</span>
-<span class="linenos"> 7</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">7</span><span class="p">):</span>
-<span class="linenos"> 8</span>        <span class="nb">super</span><span class="p">(</span><span class="n">SpatialAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-<span class="linenos"> 9</span>        
-<span class="linenos">10</span>        <span class="k">assert</span> <span class="n">kernel_size</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="s1">&#39;kernel size must be 3 or 7&#39;</span>
-<span class="linenos">11</span>        <span class="n">padding</span> <span class="o">=</span> <span class="mi">3</span> <span class="k">if</span> <span class="n">kernel_size</span> <span class="o">==</span> <span class="mi">7</span> <span class="k">else</span> <span class="mi">1</span>
-<span class="linenos">12</span>        
-<span class="linenos">13</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="linenos">14</span>        <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()</span>
-<span class="linenos">15</span>        
-<span class="linenos">16</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-<span class="linenos">17</span>        <span class="c1"># 沿通道维度进行平均池化和最大池化</span>
-<span class="linenos">18</span>        <span class="n">avg_out</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="linenos">19</span>        <span class="n">max_out</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="linenos">20</span>        
-<span class="linenos">21</span>        <span class="c1"># 拼接并卷积</span>
-<span class="linenos">22</span>        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">avg_out</span><span class="p">,</span> <span class="n">max_out</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="linenos">23</span>        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="linenos">24</span>        
-<span class="linenos">25</span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="linenos">26</span>
-<span class="linenos">27</span>
-<span class="linenos">28</span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-<span class="linenos">29</span>    <span class="c1"># 测试SpatialAttention</span>
-<span class="linenos">30</span>    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
-<span class="linenos">31</span>    <span class="n">sa</span> <span class="o">=</span> <span class="n">SpatialAttention</span><span class="p">(</span><span class="n">kernel_size</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
-<span class="linenos">32</span>    <span class="n">y</span> <span class="o">=</span> <span class="n">sa</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="linenos">33</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input shape: </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="linenos">34</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attention shape: </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
+<h2>空间注意力的其他形式<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<p>除了 CBAM 风格外，还有其他实现方式：</p>
+<ul class="simple">
+<li><p><strong>卷积生成</strong>：直接用 <span class="math notranslate nohighlight">\(1 \times 1\)</span> 卷积降维后接 <span class="math notranslate nohighlight">\(3 \times 3\)</span> 卷积生成注意力图。参数量更多，但可学习性更强。</p></li>
+<li><p><strong>自注意力（Non-local）</strong> <span id="id6">[<a class="reference internal" href="the-end.html#id95" title="Xiaolong Wang, Ross Girshick, Abhinav Gupta, and Kaiming He. Non-local neural networks. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 7794–7803. 2018.">WGGH18</a>]</span>：计算所有空间位置两两之间的相似度，生成全局注意力图。计算量大（<span class="math notranslate nohighlight">\(O(H^2W^2)\)</span>），但能捕捉长距离依赖。</p></li>
+</ul>
+<p>对于初学者，建议从 CBAM风格开始——它最简单、最轻量，在大多数任务上效果也足够好。</p>
 </section>
-<section id="id6">
-<h3>2. 卷积生成的空间注意力<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
-<p>直接使用卷积层从特征图学习注意力图，通常采用 <span class="math notranslate nohighlight">\(1 \times 1\)</span> 卷积降维后接 <span class="math notranslate nohighlight">\(3 \times 3\)</span> 卷积。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
-<span class="linenos"> 3</span>
-<span class="linenos"> 4</span>
-<span class="linenos"> 5</span><span class="k">class</span><span class="w"> </span><span class="nc">ConvSpatialAttention</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="linenos"> 6</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;卷积生成的空间注意力&quot;&quot;&quot;</span>
-<span class="linenos"> 7</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
-<span class="linenos"> 8</span>        <span class="nb">super</span><span class="p">(</span><span class="n">ConvSpatialAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-<span class="linenos"> 9</span>        
-<span class="linenos">10</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
-<span class="linenos">11</span>            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">in_channels</span> <span class="o">//</span> <span class="n">reduction</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-<span class="linenos">12</span>            <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">in_channels</span> <span class="o">//</span> <span class="n">reduction</span><span class="p">),</span>
-<span class="linenos">13</span>            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-<span class="linenos">14</span>            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span> <span class="o">//</span> <span class="n">reduction</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-<span class="linenos">15</span>            <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()</span>
-<span class="linenos">16</span>        <span class="p">)</span>
-<span class="linenos">17</span>        
-<span class="linenos">18</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-<span class="linenos">19</span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="linenos">20</span>
-<span class="linenos">21</span>
-<span class="linenos">22</span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-<span class="linenos">23</span>    <span class="c1"># 测试ConvSpatialAttention</span>
-<span class="linenos">24</span>    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
-<span class="linenos">25</span>    <span class="n">csa</span> <span class="o">=</span> <span class="n">ConvSpatialAttention</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
-<span class="linenos">26</span>    <span class="n">y</span> <span class="o">=</span> <span class="n">csa</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="linenos">27</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input shape: </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="linenos">28</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attention shape: </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="non-local-network">
-<h3>3. 自注意力空间注意力（Non-local Network风格）<a class="headerlink" href="#non-local-network" title="Link to this heading">#</a></h3>
-<p>利用自注意力机制捕捉长距离空间依赖。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
-<span class="linenos"> 3</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
-<span class="linenos"> 4</span>
-<span class="linenos"> 5</span>
-<span class="linenos"> 6</span><span class="k">class</span><span class="w"> </span><span class="nc">SelfAttentionSpatial</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="linenos"> 7</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;自注意力空间注意力模块&quot;&quot;&quot;</span>
-<span class="linenos"> 8</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">):</span>
-<span class="linenos"> 9</span>        <span class="nb">super</span><span class="p">(</span><span class="n">SelfAttentionSpatial</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-<span class="linenos">10</span>        
-<span class="linenos">11</span>        <span class="bp">self</span><span class="o">.</span><span class="n">query</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">in_channels</span> <span class="o">//</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="linenos">12</span>        <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">in_channels</span> <span class="o">//</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="linenos">13</span>        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="linenos">14</span>        <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-<span class="linenos">15</span>        
-<span class="linenos">16</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-<span class="linenos">17</span>        <span class="n">batch_size</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
-<span class="linenos">18</span>        
-<span class="linenos">19</span>        <span class="c1"># 生成query, key, value</span>
-<span class="linenos">20</span>        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">H</span> <span class="o">*</span> <span class="n">W</span><span class="p">)</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># (B, N, C&#39;)</span>
-<span class="linenos">21</span>        <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">H</span> <span class="o">*</span> <span class="n">W</span><span class="p">)</span>                     <span class="c1"># (B, C&#39;, N)</span>
-<span class="linenos">22</span>        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">H</span> <span class="o">*</span> <span class="n">W</span><span class="p">)</span>                   <span class="c1"># (B, C, N)</span>
-<span class="linenos">23</span>        
-<span class="linenos">24</span>        <span class="c1"># 计算注意力图</span>
-<span class="linenos">25</span>        <span class="n">attn</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">bmm</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>  <span class="c1"># (B, N, N)</span>
-<span class="linenos">26</span>        <span class="n">attn</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">attn</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-<span class="linenos">27</span>        
-<span class="linenos">28</span>        <span class="c1"># 应用注意力</span>
-<span class="linenos">29</span>        <span class="n">out</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">bmm</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">attn</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>  <span class="c1"># (B, C, N)</span>
-<span class="linenos">30</span>        <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span><span class="p">)</span>
-<span class="linenos">31</span>        
-<span class="linenos">32</span>        <span class="c1"># 残差连接</span>
-<span class="linenos">33</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">out</span> <span class="o">+</span> <span class="n">x</span>
-<span class="linenos">34</span>        
-<span class="linenos">35</span>        <span class="k">return</span> <span class="n">out</span>
-<span class="linenos">36</span>
-<span class="linenos">37</span>
-<span class="linenos">38</span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-<span class="linenos">39</span>    <span class="c1"># 测试SelfAttentionSpatial</span>
-<span class="linenos">40</span>    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
-<span class="linenos">41</span>    <span class="n">sas</span> <span class="o">=</span> <span class="n">SelfAttentionSpatial</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span>
-<span class="linenos">42</span>    <span class="n">y</span> <span class="o">=</span> <span class="n">sas</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="linenos">43</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input shape: </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="linenos">44</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Output shape: </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="id7">
-<h2>性能分析<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
-<section id="id8">
-<h3>计算复杂度比较<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<section id="vs">
+<h2>通道 vs 空间：类比总结<a class="headerlink" href="#vs" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
-<tr class="row-odd"><th class="head"><p>方法</p></th>
-<th class="head"><p>参数量</p></th>
-<th class="head"><p>FLOPs (对于 <span class="math notranslate nohighlight">\(C=256, H=W=56\)</span>)</p></th>
-<th class="head"><p>特点</p></th>
+<tr class="row-odd"><th class="head"><p>维度</p></th>
+<th class="head"><p>关心的问题</p></th>
+<th class="head"><p>输出形状</p></th>
+<th class="head"><p>生活类比</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>通道池化 (CBAM)</p></td>
-<td><p><span class="math notranslate nohighlight">\(k^2\)</span> (e.g., 49 for 7×7)</p></td>
-<td><p><span class="math notranslate nohighlight">\(\approx 2 \times H \times W + k^2 \times H \times W\)</span></p></td>
-<td><p>轻量，局部感受野</p></td>
+<tr class="row-even"><td><p>通道注意力</p></td>
+<td><p>什么特征重要</p></td>
+<td><p><span class="math notranslate nohighlight">\(C \times 1 \times 1\)</span></p></td>
+<td><p>选频道</p></td>
 </tr>
-<tr class="row-odd"><td><p>卷积生成</p></td>
-<td><p><span class="math notranslate nohighlight">\(\frac{C}{r} \times C + 9\)</span></p></td>
-<td><p><span class="math notranslate nohighlight">\(\approx \frac{C^2}{r} \times H \times W\)</span></p></td>
-<td><p>可学习性强，参数量中等</p></td>
-</tr>
-<tr class="row-even"><td><p>自注意力</p></td>
-<td><p><span class="math notranslate nohighlight">\(\frac{3C^2}{8} + C\)</span></p></td>
-<td><p><span class="math notranslate nohighlight">\(\approx 3 \times C \times (H \times W)^2\)</span></p></td>
-<td><p>全局依赖，计算量大</p></td>
+<tr class="row-odd"><td><p>空间注意力</p></td>
+<td><p>哪里重要</p></td>
+<td><p><span class="math notranslate nohighlight">\(1 \times H \times W\)</span></p></td>
+<td><p>调区域亮度</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-</section>
-<section id="id9">
-<h3>适用场景<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
-<ol class="arabic simple">
-<li><p><strong>通道池化</strong>：适合大多数CNN架构，计算开销极小，适合实时应用。</p></li>
-<li><p><strong>卷积生成</strong>：当需要更复杂的空间关系建模时使用，例如细粒度分类。</p></li>
-<li><p><strong>自注意力</strong>：适合需要长距离依赖的任务，如图像生成、语义分割。</p></li>
-</ol>
+<p>两者不冲突，而是互补。下一节我们将学习如何将它们结合起来。</p>
+<section id="id7">
+<h3>下一步<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="cbam.html"><span class="doc">通道+空间注意力：CBAM</span></a> 将展示如何把通道注意力和空间注意力组合成一个更强大的模块。</p>
 </section>
 </section>
-<section id="cnn">
-<h2>集成到CNN中<a class="headerlink" href="#cnn" title="Link to this heading">#</a></h2>
-<p>空间注意力模块可以灵活地插入到CNN的各个阶段。常见的位置包括：</p>
-<ol class="arabic simple">
-<li><p><strong>残差块内部</strong>：在残差连接之前应用空间注意力（如CBAM）。</p></li>
-<li><p><strong>特征金字塔网络</strong>：在不同尺度的特征图上应用空间注意力，增强多尺度感知。</p></li>
-<li><p><strong>跳跃连接</strong>：在U-Net等编码器-解码器架构中，对跳跃连接的特征应用空间注意力。</p></li>
-</ol>
-<section id="resnet">
-<h3>示例：空间注意力ResNet块<a class="headerlink" href="#resnet" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
-<span class="linenos"> 3</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
-<span class="linenos"> 4</span>
-<span class="linenos"> 5</span>
-<span class="linenos"> 6</span><span class="k">class</span><span class="w"> </span><span class="nc">SpatialAttentionResBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="linenos"> 7</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;带有空间注意力的残差块&quot;&quot;&quot;</span>
-<span class="linenos"> 8</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">downsample</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attention_type</span><span class="o">=</span><span class="s1">&#39;conv&#39;</span><span class="p">):</span>
-<span class="linenos"> 9</span>        <span class="nb">super</span><span class="p">(</span><span class="n">SpatialAttentionResBlock</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-<span class="linenos">10</span>        
-<span class="linenos">11</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="linenos">12</span>        <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">)</span>
-<span class="linenos">13</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="linenos">14</span>        <span class="bp">self</span><span class="o">.</span><span class="n">bn2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">)</span>
-<span class="linenos">15</span>        <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span> <span class="o">=</span> <span class="n">downsample</span>
-<span class="linenos">16</span>        
-<span class="linenos">17</span>        <span class="c1"># 空间注意力模块</span>
-<span class="linenos">18</span>        <span class="k">if</span> <span class="n">attention_type</span> <span class="o">==</span> <span class="s1">&#39;conv&#39;</span><span class="p">:</span>
-<span class="linenos">19</span>            <span class="bp">self</span><span class="o">.</span><span class="n">spatial_attention</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
-<span class="linenos">20</span>                <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-<span class="linenos">21</span>                <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()</span>
-<span class="linenos">22</span>            <span class="p">)</span>
-<span class="linenos">23</span>        <span class="k">elif</span> <span class="n">attention_type</span> <span class="o">==</span> <span class="s1">&#39;pool&#39;</span><span class="p">:</span>
-<span class="linenos">24</span>            <span class="bp">self</span><span class="o">.</span><span class="n">spatial_attention</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
-<span class="linenos">25</span>                <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-<span class="linenos">26</span>                <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()</span>
-<span class="linenos">27</span>            <span class="p">)</span>
-<span class="linenos">28</span>        <span class="k">else</span><span class="p">:</span>
-<span class="linenos">29</span>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown attention_type: </span><span class="si">{</span><span class="n">attention_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="linenos">30</span>        
-<span class="linenos">31</span>        <span class="bp">self</span><span class="o">.</span><span class="n">attention_type</span> <span class="o">=</span> <span class="n">attention_type</span>
-<span class="linenos">32</span>        
-<span class="linenos">33</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-<span class="linenos">34</span>        <span class="n">identity</span> <span class="o">=</span> <span class="n">x</span>
-<span class="linenos">35</span>        
-<span class="linenos">36</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="linenos">37</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-<span class="linenos">38</span>        <span class="n">out</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-<span class="linenos">39</span>        
-<span class="linenos">40</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-<span class="linenos">41</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn2</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-<span class="linenos">42</span>        
-<span class="linenos">43</span>        <span class="c1"># 应用空间注意力</span>
-<span class="linenos">44</span>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attention_type</span> <span class="o">==</span> <span class="s1">&#39;conv&#39;</span><span class="p">:</span>
-<span class="linenos">45</span>            <span class="n">attn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_attention</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-<span class="linenos">46</span>        <span class="k">else</span><span class="p">:</span>  <span class="c1"># pool</span>
-<span class="linenos">47</span>            <span class="n">avg_out</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="linenos">48</span>            <span class="n">max_out</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="linenos">49</span>            <span class="n">concat</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">avg_out</span><span class="p">,</span> <span class="n">max_out</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="linenos">50</span>            <span class="n">attn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_attention</span><span class="p">(</span><span class="n">concat</span><span class="p">)</span>
-<span class="linenos">51</span>        
-<span class="linenos">52</span>        <span class="n">out</span> <span class="o">=</span> <span class="n">out</span> <span class="o">*</span> <span class="n">attn</span>
-<span class="linenos">53</span>        
-<span class="linenos">54</span>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<span class="linenos">55</span>            <span class="n">identity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="linenos">56</span>        
-<span class="linenos">57</span>        <span class="n">out</span> <span class="o">+=</span> <span class="n">identity</span>
-<span class="linenos">58</span>        <span class="n">out</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-<span class="linenos">59</span>        
-<span class="linenos">60</span>        <span class="k">return</span> <span class="n">out</span>
-<span class="linenos">61</span>
-<span class="linenos">62</span>
-<span class="linenos">63</span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-<span class="linenos">64</span>    <span class="c1"># 测试SpatialAttentionResBlock</span>
-<span class="linenos">65</span>    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
-<span class="linenos">66</span>    
-<span class="linenos">67</span>    <span class="c1"># 测试conv类型</span>
-<span class="linenos">68</span>    <span class="n">block1</span> <span class="o">=</span> <span class="n">SpatialAttentionResBlock</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">attention_type</span><span class="o">=</span><span class="s1">&#39;conv&#39;</span><span class="p">)</span>
-<span class="linenos">69</span>    <span class="n">y1</span> <span class="o">=</span> <span class="n">block1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="linenos">70</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input shape: </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="linenos">71</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Output shape (conv attention): </span><span class="si">{</span><span class="n">y1</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="linenos">72</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Block parameters: </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">block1</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="linenos">73</span>    
-<span class="linenos">74</span>    <span class="c1"># 测试pool类型</span>
-<span class="linenos">75</span>    <span class="n">block2</span> <span class="o">=</span> <span class="n">SpatialAttentionResBlock</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">attention_type</span><span class="o">=</span><span class="s1">&#39;pool&#39;</span><span class="p">)</span>
-<span class="linenos">76</span>    <span class="n">y2</span> <span class="o">=</span> <span class="n">block2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="linenos">77</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Output shape (pool attention): </span><span class="si">{</span><span class="n">y2</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
+<hr class="docutils" />
+<section id="id8">
+<h2>参考文献<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id9">
+<div role="list" class="citation-list">
+<div class="citation" id="id92" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">WGGH18</a><span class="fn-bracket">]</span></span>
+<p>Xiaolong Wang, Ross Girshick, Abhinav Gupta, and Kaiming He. Non-local neural networks. In <em>Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)</em>, 7794–7803. 2018.</p>
 </div>
-</section>
-</section>
-<section id="id10">
-<h2>总结<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
-<p>空间注意力机制通过动态调整特征图中不同位置的重要性，使网络能够更有效地利用空间信息。与通道注意力结合（如CBAM）可以取得更好的性能提升。在实际应用中，应根据任务需求、计算资源和模型复杂度选择合适的空间注意力实现方式。</p>
-<p>随着注意力机制研究的深入，空间注意力也在不断发展，如动态卷积、可变形注意力等变体进一步提升了空间建模能力。理解空间注意力的原理和实现，有助于设计更高效的计算机视觉模型。</p>
+<div class="citation" id="id91" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">WPLK18</a><span class="fn-bracket">]</span></span>
+<p>Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In <em>Proceedings of the European Conference on Computer Vision (ECCV)</em>, 3–19. 2018.</p>
+</div>
+</div>
+</div>
 </section>
 </section>
 
@@ -785,7 +980,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (3 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -793,6 +988,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">2231276</code>
+                2026-04-28 - <strong>Heyan Zhu</strong>: feat(attention-mechanisms): restructure and enhance attention mechanisms documentation
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">4b228f7</code>
                 2026-03-09 - <strong>Heyan Zhu</strong>: Fix tikz diagrams
@@ -824,7 +1024,7 @@ document.write(`
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">上一页</p>
-        <p class="prev-next-title">Squeeze-and-Excitation Networks (SE-Net)</p>
+        <p class="prev-next-title">通道注意力：SE-Net</p>
       </div>
     </a>
     <a class="right-next"
@@ -832,7 +1032,7 @@ document.write(`
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">Convolutional Block Attention Module (CBAM)</p>
+        <p class="prev-next-title">通道+空间注意力：CBAM</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -852,27 +1052,15 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">基本原理</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">数学形式化</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">注意力图生成</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">核心思想</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">数学形式</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cbam">CBAM风格的空间注意力</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">空间注意力的其他形式</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vs">通道 vs 空间：类比总结</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">下一步</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">实现方法</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cbam">1. 基于通道池化的空间注意力（CBAM风格）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">2. 卷积生成的空间注意力</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#non-local-network">3. 自注意力空间注意力（Non-local Network风格）</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">性能分析</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">计算复杂度比较</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">适用场景</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn">集成到CNN中</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#resnet">示例：空间注意力ResNet块</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">参考文献</a></li>
 </ul>
   </nav></div>
 

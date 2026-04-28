@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>CNN中的注意力机制：从 SE-Net 到 CBAM &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+    <title>CNN中的注意力机制 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
   
   
   
@@ -44,10 +44,374 @@
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script src="../_static/translations.js?v=beaddf03"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'attention-mechanisms/index';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="引言" href="introduction.html" />
+    <link rel="next" title="为什么CNN需要注意力机制？" href="introduction.html" />
     <link rel="prev" title="结语：站在巨人的肩膀上" href="../transfer-learning/the-end.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
@@ -203,17 +567,14 @@
 <li class="toctree-l2"><a class="reference internal" href="../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">CNN中的注意力机制：从 SE-Net 到 CBAM</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="se-net.html">Squeeze-and-Excitation Networks (SE-Net)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spatial-attn.html">空间注意力机制</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cbam.html">Convolutional Block Attention Module (CBAM)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="channel-spatial-attm-cmp.html">通道与空间注意力的比较</a></li>
-<li class="toctree-l2"><a class="reference internal" href="experiments.html">实验与性能分析</a></li>
-<li class="toctree-l2"><a class="reference internal" href="attn-math.html">注意力机制的数学基础</a></li>
-<li class="toctree-l2"><a class="reference internal" href="practical-guide.html">实际应用指南</a></li>
-<li class="toctree-l2"><a class="reference internal" href="extensions-variations.html">扩展与变体</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">CNN中的注意力机制</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">为什么CNN需要注意力机制？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="se-net.html">通道注意力：SE-Net</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spatial-attn.html">空间注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cbam.html">通道+空间注意力：CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comparison.html">注意力机制的选择与应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html">实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与延伸</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net架构：生物医学图像分割的革命性方法</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -432,7 +793,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>CNN中的注意力机制：从 SE-Net 到 CBAM</h1>
+    <h1>CNN中的注意力机制</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -442,7 +803,10 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">摘要</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">学习目标</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">本章概览</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">本章定位</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">目录</a></li>
 </ul>
             </nav>
         </div>
@@ -454,97 +818,160 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="cnn-se-net-cbam">
-<h1>CNN中的注意力机制：从 SE-Net 到 CBAM<a class="headerlink" href="#cnn-se-net-cbam" title="Link to this heading">#</a></h1>
-<p><strong>作者</strong>: Anson, 深度学习社（与 DeepSeek V3.2 合作）</p>
-<p><strong>日期</strong>: 2025-12-05</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="cnn">
+<span id="attention-mechanisms"></span><h1>CNN中的注意力机制<a class="headerlink" href="#cnn" title="Link to this heading">#</a></h1>
 <section id="id1">
-<h2>摘要<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
-<p>本文全面探讨了卷积神经网络（CNN）中的注意力机制，从基础的Squeeze-and-Excitation Networks（SE-Net）到更复杂的Convolutional Block Attention Module（CBAM）。文章首先介绍了注意力机制的生物学灵感和数学基础，然后详细分析了SE-Net如何通过通道注意力重新校准特征图的重要性。接着，我们深入探讨了CBAM如何结合通道注意力和空间注意力，实现更全面的特征优化。通过详细的数学推导、线性代数分析和信息论视角，我们解释了这些注意力机制的工作原理。文章包含完整的PyTorch实现代码、性能比较和实际应用指南，帮助读者深入理解注意力机制在CNN中的重要作用。</p>
-<div class="note admonition">
-<p class="admonition-title">目录</p>
+<h2>学习目标<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>理解为什么需要注意力</strong>：解释CNN平等对待所有特征的局限性</p></li>
+<li><p><strong>掌握通道注意力</strong>：理解SE-Net的Squeeze-Excitation机制及其实现</p></li>
+<li><p><strong>掌握空间注意力</strong>：理解空间注意力的作用和实现方式</p></li>
+<li><p><strong>理解CBAM</strong>：掌握通道与空间注意力的组合策略</p></li>
+<li><p><strong>学会选择</strong>：根据任务特点选择适合的注意力模块</p></li>
+</ul>
+<div class="important admonition">
+<p class="admonition-title">前置知识</p>
+<p>本章假设你已掌握以下内容：</p>
+<ol class="arabic simple">
+<li><p><strong>CNN基础知识</strong>：卷积层、池化层、全连接层的作用（<a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a>）</p></li>
+<li><p><strong>CNN各组件的贡献</strong>：通过消融研究理解每个组件的重要性（<a class="reference internal" href="../cnn-ablation-study/index.html"><span class="doc">CNN消融研究：理解卷积神经网络各组件的作用</span></a>）</p></li>
+<li><p><strong>PyTorch基础</strong>：能独立搭建和训练模型（<a class="reference internal" href="../pytorch-practice/neural-network-module.html"><span class="doc">神经网络模块：搭建计算图</span></a>）</p></li>
+</ol>
+</div>
+</section>
+<section id="id2">
+<h2>本章概览<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>章节</p></th>
+<th class="head"><p>内容</p></th>
+<th class="head"><p>核心收获</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="introduction.html"><span class="doc">为什么CNN需要注意力机制？</span></a></p></td>
+<td><p>为什么CNN需要注意力？</p></td>
+<td><p>问题驱动：平等处理特征的局限</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="se-net.html"><span class="doc">通道注意力：SE-Net</span></a></p></td>
+<td><p>通道注意力（SE-Net）</p></td>
+<td><p>压缩→激励→缩放的直觉</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="spatial-attn.html"><span class="doc">空间注意力</span></a></p></td>
+<td><p>空间注意力</p></td>
+<td><p>关注&quot;哪里重要&quot;</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="cbam.html"><span class="doc">通道+空间注意力：CBAM</span></a></p></td>
+<td><p>通道+空间注意力（CBAM）</p></td>
+<td><p>两种注意力的组合</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="comparison.html"><span class="doc">注意力机制的选择与应用</span></a></p></td>
+<td><p>选择与应用</p></td>
+<td><p>不同注意力的适用场景和性能数据</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="practice.html"><span class="doc">实践指南</span></a></p></td>
+<td><p>实践指南</p></td>
+<td><p>超参数调优、常见陷阱</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id3">
+<h2>本章定位<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>前面章节我们学习了 CNN 的工作原理和各组件的贡献——卷积核提取特征、池化降维、激活函数引入非线性、批归一化加速训练。但所有这些组件都有一个共同点：<strong>它们对所有输入特征一视同仁</strong>。<a class="reference internal" href="../cnn-ablation-study/experiment-design.html"><span class="doc">实验设计</span></a> 的消融实验告诉我们，不同通道和空间位置的重要性其实差异很大。本章要回答的核心问题是：<strong>如何让网络动态地知道&quot;哪些特征更重要&quot;？</strong> <a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a> 中讨论的 <a class="reference internal" href="../neural-network-basics/introduction.html#inductive-bias"><span class="std std-ref">归纳偏置（Inductive Bias）</span></a> 告诉我们，好的架构设计能把先验知识内置到网络中。注意力机制正是这种思想的延续——通过增加&quot;动态权重&quot;组件，让网络学会关注重要特征、抑制无关特征。它不替换现有的卷积或池化，而是在它们之上叠加一层&quot;可学习的放大镜&quot;。</p>
+<object data="../_images/mermaid-36494059771759e364a2d74bd4f5c7c4595a3a9d.svg" type="image/svg+xml">
+            <p class="warning">graph LR
+    A[&quot;CNN局限&lt;br/&gt;平等对待所有特征&quot;] --&gt; B[&quot;通道注意力&lt;br/&gt;SE-Net&quot;]
+    B --&gt; C[&quot;空间注意力&lt;br/&gt;关注哪里&quot;]
+    C --&gt; D[&quot;CBAM&lt;br/&gt;两者结合&quot;]
+    D --&gt; E[&quot;选择与应用&lt;br/&gt;实践指南&quot;]</p></object>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>前置章节</p></th>
+<th class="head"><p>本章应用</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="../cnn-ablation-study/experiment-design.html"><span class="doc">实验设计</span></a></p></td>
+<td><p>各组件贡献分析→注意力能进一步提升</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a></p></td>
+<td><p>卷积特征提取→通道/空间的重要性差异</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../pytorch-practice/neural-network-module.html"><span class="doc">神经网络模块：搭建计算图</span></a></p></td>
+<td><p>nn.Module实现注意力模块</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id4">
+<h2>目录<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">引言</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="introduction.html#id2">注意力机制的生物学灵感</a></li>
-<li class="toctree-l2"><a class="reference internal" href="introduction.html#cnn">CNN中的注意力需求</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">为什么CNN需要注意力机制？</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#id1">注意力机制的核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#id2">注意力的两个维度</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#id3">为什么注意力机制有效？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#id8">本章路线</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="se-net.html">Squeeze-and-Excitation Networks (SE-Net)</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="se-net.html#id1">架构概述</a></li>
-<li class="toctree-l2"><a class="reference internal" href="se-net.html#se">SE模块的三个阶段</a></li>
-<li class="toctree-l2"><a class="reference internal" href="se-net.html#pytorch">PyTorch实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="se-net.html#id2">数学分析</a></li>
-<li class="toctree-l2"><a class="reference internal" href="se-net.html#se-resnet">SE-ResNet集成</a></li>
+<li class="toctree-l1"><a class="reference internal" href="se-net.html">通道注意力：SE-Net</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="se-net.html#id3">核心思想：三个步骤的直觉</a></li>
+<li class="toctree-l2"><a class="reference internal" href="se-net.html#id4">三步详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="se-net.html#pytorch">PyTorch 实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="se-net.html#id5">参数量与计算开销</a></li>
+<li class="toctree-l2"><a class="reference internal" href="se-net.html#se-resnet">SE-ResNet 集成</a></li>
+<li class="toctree-l2"><a class="reference internal" href="se-net.html#id6">本章小结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="se-net.html#id8">参考文献</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="spatial-attn.html">空间注意力机制</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="spatial-attn.html#id2">基本原理</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spatial-attn.html#id3">数学形式化</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spatial-attn.html#id5">实现方法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spatial-attn.html#id7">性能分析</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spatial-attn.html#cnn">集成到CNN中</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spatial-attn.html#id10">总结</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spatial-attn.html">空间注意力</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="spatial-attn.html#id2">核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spatial-attn.html#id3">数学形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spatial-attn.html#cbam">CBAM风格的空间注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spatial-attn.html#id5">空间注意力的其他形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spatial-attn.html#vs">通道 vs 空间：类比总结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spatial-attn.html#id8">参考文献</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="cbam.html">Convolutional Block Attention Module (CBAM)</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cbam.html#id1">架构概述</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cbam.html">通道+空间注意力：CBAM</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cbam.html#id3">核心思想：先&quot;选频道&quot;再&quot;调区域&quot;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cbam.html#id4">数学形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cbam.html#se-net-vs-cbam">SE-Net vs CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cbam.html#id10">参考文献</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="channel-spatial-attm-cmp.html">通道与空间注意力的比较</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="channel-spatial-attm-cmp.html#id2">概述</a></li>
-<li class="toctree-l2"><a class="reference internal" href="channel-spatial-attm-cmp.html#id3">信息论分析</a></li>
-<li class="toctree-l2"><a class="reference internal" href="channel-spatial-attm-cmp.html#id5">计算复杂度详细分析</a></li>
-<li class="toctree-l2"><a class="reference internal" href="channel-spatial-attm-cmp.html#id9">适用场景分析</a></li>
-<li class="toctree-l2"><a class="reference internal" href="channel-spatial-attm-cmp.html#id13">组合策略</a></li>
-<li class="toctree-l2"><a class="reference internal" href="channel-spatial-attm-cmp.html#id15">可视化分析</a></li>
-<li class="toctree-l2"><a class="reference internal" href="channel-spatial-attm-cmp.html#id18">实验对比</a></li>
-<li class="toctree-l2"><a class="reference internal" href="channel-spatial-attm-cmp.html#id20">设计指南</a></li>
-<li class="toctree-l2"><a class="reference internal" href="channel-spatial-attm-cmp.html#id23">未来方向</a></li>
-<li class="toctree-l2"><a class="reference internal" href="channel-spatial-attm-cmp.html#id24">总结</a></li>
+<li class="toctree-l1"><a class="reference internal" href="comparison.html">注意力机制的选择与应用</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="comparison.html#se-net-vs-vs-cbam">SE-Net vs 空间注意力 vs CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comparison.html#id6">选择指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comparison.html#id7">插入位置的选择</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comparison.html#id8">常见陷阱</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comparison.html#id11">实践建议总结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comparison.html#id13">参考文献</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="experiments.html">实验与性能分析</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="experiments.html#id2">实验设置</a></li>
-<li class="toctree-l2"><a class="reference internal" href="experiments.html#id7">实际应用建议</a></li>
-<li class="toctree-l2"><a class="reference internal" href="experiments.html#id8">结论</a></li>
+<li class="toctree-l1"><a class="reference internal" href="practice.html">实践指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="practice.html#id2">快速上手：在已有模型中加入注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html#id3">超参数设置</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html#id5">学习率调整</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html#id6">调试技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html#id8">常见问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html#id9">本章小结</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="attn-math.html">注意力机制的数学基础</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="attn-math.html#id2">基本概念</a></li>
-<li class="toctree-l2"><a class="reference internal" href="attn-math.html#id4">数学推导</a></li>
-<li class="toctree-l2"><a class="reference internal" href="attn-math.html#id8">信息论视角</a></li>
-<li class="toctree-l2"><a class="reference internal" href="attn-math.html#id11">优化视角</a></li>
-<li class="toctree-l2"><a class="reference internal" href="attn-math.html#id14">线性代数解释</a></li>
-<li class="toctree-l2"><a class="reference internal" href="attn-math.html#id17">概率图模型视角</a></li>
-<li class="toctree-l2"><a class="reference internal" href="attn-math.html#id18">与经典信号处理方法的联系</a></li>
-<li class="toctree-l2"><a class="reference internal" href="attn-math.html#id21">数学性质总结</a></li>
-<li class="toctree-l2"><a class="reference internal" href="attn-math.html#id22">扩展公式</a></li>
-<li class="toctree-l2"><a class="reference internal" href="attn-math.html#id25">总结</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="practical-guide.html">实际应用指南</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="practical-guide.html#id2">何时使用注意力机制</a></li>
-<li class="toctree-l2"><a class="reference internal" href="practical-guide.html#id8">超参数调优</a></li>
-<li class="toctree-l2"><a class="reference internal" href="practical-guide.html#id11">部署考虑</a></li>
-<li class="toctree-l2"><a class="reference internal" href="practical-guide.html#id15">故障排除</a></li>
-<li class="toctree-l2"><a class="reference internal" href="practical-guide.html#id18">最佳实践总结</a></li>
-<li class="toctree-l2"><a class="reference internal" href="practical-guide.html#id19">未来趋势</a></li>
-<li class="toctree-l2"><a class="reference internal" href="practical-guide.html#id20">结论</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="extensions-variations.html">扩展与变体</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="extensions-variations.html#id2">自注意力机制</a></li>
-<li class="toctree-l2"><a class="reference internal" href="extensions-variations.html#id3">多头注意力</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="the-end.html">总结与展望</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id2">核心贡献</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id3">未来方向</a></li>
+<li class="toctree-l1"><a class="reference internal" href="the-end.html">总结与延伸</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id2">核心概念映射</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id3">注意力与感受野</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id7">延伸：自注意力与多头注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id8">关键数字</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id9">下一步学习方向</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id10">最后的话</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id11">参考文献</a></li>
 </ul>
 </li>
 </ul>
-</div>
 </div>
 </section>
 </section>
@@ -553,7 +980,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -561,6 +988,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">2231276</code>
+                2026-04-28 - <strong>Heyan Zhu</strong>: feat(attention-mechanisms): restructure and enhance attention mechanisms documentation
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">0c291d7</code>
                 2025-12-10 - <strong>Heyan Zhu</strong>: docs: restructure course materials and add new content
@@ -595,7 +1027,7 @@ document.write(`
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">引言</p>
+        <p class="prev-next-title">为什么CNN需要注意力机制？</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -615,7 +1047,10 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">摘要</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">学习目标</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">本章概览</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">本章定位</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">目录</a></li>
 </ul>
   </nav></div>
 

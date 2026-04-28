@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Squeeze-and-Excitation Networks (SE-Net) &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+    <title>通道注意力：SE-Net &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
   
   
   
@@ -49,8 +49,8 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'attention-mechanisms/se-net';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="空间注意力机制" href="spatial-attn.html" />
-    <link rel="prev" title="引言" href="introduction.html" />
+    <link rel="next" title="空间注意力" href="spatial-attn.html" />
+    <link rel="prev" title="为什么CNN需要注意力机制？" href="introduction.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
   </head>
@@ -205,17 +205,14 @@
 <li class="toctree-l2"><a class="reference internal" href="../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">CNN中的注意力机制：从 SE-Net 到 CBAM</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Squeeze-and-Excitation Networks (SE-Net)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spatial-attn.html">空间注意力机制</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cbam.html">Convolutional Block Attention Module (CBAM)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="channel-spatial-attm-cmp.html">通道与空间注意力的比较</a></li>
-<li class="toctree-l2"><a class="reference internal" href="experiments.html">实验与性能分析</a></li>
-<li class="toctree-l2"><a class="reference internal" href="attn-math.html">注意力机制的数学基础</a></li>
-<li class="toctree-l2"><a class="reference internal" href="practical-guide.html">实际应用指南</a></li>
-<li class="toctree-l2"><a class="reference internal" href="extensions-variations.html">扩展与变体</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">CNN中的注意力机制</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">为什么CNN需要注意力机制？</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">通道注意力：SE-Net</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spatial-attn.html">空间注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cbam.html">通道+空间注意力：CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comparison.html">注意力机制的选择与应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html">实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与延伸</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net架构：生物医学图像分割的革命性方法</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -434,7 +431,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Squeeze-and-Excitation Networks (SE-Net)</h1>
+    <h1>通道注意力：SE-Net</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -444,20 +441,21 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">架构概述</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#se">SE模块的三个阶段</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#squeeze">1. Squeeze操作</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#excitation">2. Excitation操作</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scale">3. Scale操作</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">核心思想：三个步骤的直觉</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">三步详解</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#squeeze">1. Squeeze：压缩</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#excitation">2. Excitation：学习权重</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scale">3. Scale：加权</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch实现</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">数学分析</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">参数数量</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">计算复杂度</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch 实现</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">参数量与计算开销</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#se-resnet">SE-ResNet 集成</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">本章小结</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">下一步</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#se-resnet">SE-ResNet集成</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">参考文献</a></li>
 </ul>
             </nav>
         </div>
@@ -469,187 +467,245 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="squeeze-and-excitation-networks-se-net">
-<h1>Squeeze-and-Excitation Networks (SE-Net)<a class="headerlink" href="#squeeze-and-excitation-networks-se-net" title="Link to this heading">#</a></h1>
-<section id="id1">
-<h2>架构概述<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
-<p>SE-Net由Jie Hu等人于2017年提出，核心思想是通过学习通道间的依赖关系，自适应地重新校准通道特征响应。</p>
-<figure class="align-center" id="id5">
-<a class="reference internal image-reference" href="../_images/se-block.png"><img alt="../_images/se-block.png" src="../_images/se-block.png" style="width: 80%;" />
-</a>
-<figcaption>
-<p><span class="caption-text">SE模块结构示意图</span><a class="headerlink" href="#id5" title="Link to this image">#</a></p>
-</figcaption>
-</figure>
+  <section class="tex2jax_ignore mathjax_ignore" id="se-net">
+<span id="id1"></span><h1>通道注意力：SE-Net<a class="headerlink" href="#se-net" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="introduction.html#attn-intro"><span class="std std-ref">为什么CNN需要注意力机制？</span></a> 中我们讨论了注意力的两个维度。先从<strong>通道注意力</strong>开始——这是最简单、最直观的注意力形式，由 SE-Net（Squeeze-and-Excitation Networks）在 2017 年提出 <span id="id2">[<a class="reference internal" href="#id90" title="Jie Hu, Li Shen, and Gang Sun. Squeeze-and-excitation networks. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 7132–7141. 2018.">HSS18</a>]</span>。</p>
+<section id="id3">
+<h2>核心思想：三个步骤的直觉<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>SE-Net 的核心思想可以用三个词概括：<strong>压缩 → 激励 → 缩放</strong>。</p>
+<p>想想你在管理一个团队：你有很多个员工（通道），每个员工都有不同的专长。但你的资源有限，需要决定谁更重要。</p>
+<div class="tip admonition">
+<p class="admonition-title">SE-Net的三步直觉</p>
+<ol class="arabic simple">
+<li><p><strong>压缩（Squeeze）</strong>：你让每个员工交一份&quot;工作总结&quot;——用一句话概括他这周做了什么。对应到网络：把每个通道的整个特征图压缩成一个数字（全局平均池化）。</p></li>
+<li><p><strong>激励（Excite）</strong>：你看了所有总结，判断谁的工作更重要——给每个员工分配一个&quot;重要性分数&quot;。对应到网络：用两个全连接层学习通道间的依赖关系，输出每个通道的权重。</p></li>
+<li><p><strong>缩放（Scale）</strong>：按重要性分配资源——重要员工获得更多支持，不重要员工减少资源。对应到网络：把权重乘回原始特征图，重要通道被增强，不重要通道被抑制。</p></li>
+</ol>
+</div>
+<p><strong>关键洞察</strong>：SE-Net 不改变网络的结构（通道数不变），而是改变&quot;流经每个通道的信息量&quot;——就像调节音量旋钮，而不是换音箱。</p>
 </section>
-<section id="se">
-<h2>SE模块的三个阶段<a class="headerlink" href="#se" title="Link to this heading">#</a></h2>
+<section id="id4">
+<h2>三步详解<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
 <section id="squeeze">
-<h3>1. Squeeze操作<a class="headerlink" href="#squeeze" title="Link to this heading">#</a></h3>
-<p>通过全局平均池化将每个通道的二维特征压缩为一个标量：</p>
+<h3>1. Squeeze：压缩<a class="headerlink" href="#squeeze" title="Link to this heading">#</a></h3>
+<p>输入是一个特征图 <span class="math notranslate nohighlight">\(X \in \mathbb{R}^{C \times H \times W}\)</span>（<span class="math notranslate nohighlight">\(C\)</span> 个通道，每个 <span class="math notranslate nohighlight">\(H \times W\)</span>）。Squeeze 操作把每个通道压缩成单个数字：</p>
 <div class="math notranslate nohighlight">
 \[z_c = \frac{1}{H \times W} \sum_{i=1}^H \sum_{j=1}^W x_c(i,j)\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(x_c\)</span> 是第 <span class="math notranslate nohighlight">\(c\)</span> 个通道的特征图，<span class="math notranslate nohighlight">\(H \times W\)</span> 是空间维度。</p>
+<p>这其实就是全局平均池化（Global Average Pooling）。为什么用平均？因为我们想获取每个通道的&quot;全局统计信息&quot;——不只看局部响应，而是看整个特征图的平均激活强度。</p>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>直觉</strong>：如果一个通道的平均激活值很高，说明该通道编码的特征在整张图片中都很&quot;活跃&quot;，可能很重要。反之，平均激活值低的通道可能对当前任务贡献不大。</p>
+</div>
 </section>
 <section id="excitation">
-<h3>2. Excitation操作<a class="headerlink" href="#excitation" title="Link to this heading">#</a></h3>
-<p>通过两个全连接层学习通道间的非线性关系：</p>
+<h3>2. Excitation：学习权重<a class="headerlink" href="#excitation" title="Link to this heading">#</a></h3>
+<p>有了每个通道的&quot;工作总结&quot;<span class="math notranslate nohighlight">\(z \in \mathbb{R}^C\)</span>，接下来要学习通道间的依赖关系：</p>
 <div class="math notranslate nohighlight">
-\[s = \sigma(W_2 \delta(W_1 z))\]</div>
+\[s = \sigma(W_2 \cdot \delta(W_1 \cdot z))\]</div>
 <p>其中：</p>
 <ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(W_1 \in \mathbb{R}^{C/r \times C}\)</span>：降维层，减少参数和计算量</p></li>
-<li><p><span class="math notranslate nohighlight">\(W_2 \in \mathbb{R}^{C \times C/r}\)</span>：升维层，恢复原始维度</p></li>
-<li><p><span class="math notranslate nohighlight">\(\delta\)</span>：ReLU激活函数</p></li>
-<li><p><span class="math notranslate nohighlight">\(\sigma\)</span>：Sigmoid激活函数，输出[0,1]的注意力权重</p></li>
-<li><p><span class="math notranslate nohighlight">\(r\)</span>：压缩比（通常为16）</p></li>
+<li><p><span class="math notranslate nohighlight">\(W_1 \in \mathbb{R}^{C/r \times C}\)</span>：降维层，先把 <span class="math notranslate nohighlight">\(C\)</span> 维压缩到 <span class="math notranslate nohighlight">\(C/r\)</span> 维</p></li>
+<li><p><span class="math notranslate nohighlight">\(\delta\)</span>：ReLU 激活函数</p></li>
+<li><p><span class="math notranslate nohighlight">\(W_2 \in \mathbb{R}^{C \times C/r}\)</span>：升维层，恢复回 <span class="math notranslate nohighlight">\(C\)</span> 维</p></li>
+<li><p><span class="math notranslate nohighlight">\(\sigma\)</span>：Sigmoid 激活函数，输出 <span class="math notranslate nohighlight">\((0,1)\)</span> 之间的权重</p></li>
 </ul>
+<p><strong>为什么用瓶颈结构（先降维再升维）？</strong></p>
+<div class="note admonition">
+<p class="admonition-title">瓶颈结构的设计动机</p>
+<ol class="arabic simple">
+<li><p><strong>减少参数量</strong>：直接学习 <span class="math notranslate nohighlight">\(C \times C\)</span> 的变换需要 <span class="math notranslate nohighlight">\(C^2\)</span> 个参数。用瓶颈结构只需要 <span class="math notranslate nohighlight">\(2C^2/r\)</span> 个参数，当 <span class="math notranslate nohighlight">\(r=16\)</span> 时减少了 8 倍。</p></li>
+<li><p><strong>引入非线性</strong>：降维→ReLU→升维的结构比单层线性变换有更强的表达能力。</p></li>
+<li><p><strong>学习通道间关系</strong>：瓶颈迫使信息通过一个低维&quot;瓶颈&quot;，这迫使网络学到通道间的紧凑表示。</p></li>
+</ol>
+<p>压缩比 <span class="math notranslate nohighlight">\(r\)</span> 控制瓶颈的宽度：<span class="math notranslate nohighlight">\(r\)</span> 越大参数越少，但表达能力也越弱。通常取 <span class="math notranslate nohighlight">\(r=16\)</span>。</p>
+</div>
 </section>
 <section id="scale">
-<h3>3. Scale操作<a class="headerlink" href="#scale" title="Link to this heading">#</a></h3>
-<p>将学习到的注意力权重与原始特征图逐通道相乘：</p>
+<h3>3. Scale：加权<a class="headerlink" href="#scale" title="Link to this heading">#</a></h3>
+<p>把学习到的权重 <span class="math notranslate nohighlight">\(s_c \in (0,1)\)</span> 乘回原始特征图的对应通道：</p>
 <div class="math notranslate nohighlight">
 \[\tilde{x}_c = s_c \cdot x_c\]</div>
+<p>这就是一个逐通道的缩放操作。权重接近 1 的通道被保留甚至增强，权重接近 0 的通道被抑制。</p>
 </section>
 </section>
 <section id="pytorch">
-<h2>PyTorch实现<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h2>
-<div class="literal-block-wrapper docutils container" id="id6">
-<div class="code-block-caption"><span class="caption-text">SE模块实现</span><a class="headerlink" href="#id6" title="Link to this code">#</a></div>
+<h2>PyTorch 实现<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h2>
+<div class="literal-block-wrapper docutils container" id="id94">
+<div class="code-block-caption"><span class="caption-text">SE模块的PyTorch实现</span><a class="headerlink" href="#id94" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
-<span class="linenos"> 3</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
-<span class="linenos"> 4</span>
-<span class="linenos"> 5</span>
-<span class="linenos"> 6</span><span class="k">class</span><span class="w"> </span><span class="nc">SEBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="linenos"> 7</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;Squeeze-and-Excitation模块&quot;&quot;&quot;</span>
-<span class="linenos"> 8</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
-<span class="linenos"> 9</span>        <span class="nb">super</span><span class="p">(</span><span class="n">SEBlock</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-<span class="linenos">10</span>        
-<span class="linenos">11</span>        <span class="bp">self</span><span class="o">.</span><span class="n">avg_pool</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">AdaptiveAvgPool2d</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="linenos">12</span>        
-<span class="linenos">13</span>        <span class="c1"># 两个全连接层构成瓶颈结构</span>
-<span class="linenos">14</span>        <span class="bp">self</span><span class="o">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
-<span class="linenos">15</span>            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="n">channels</span> <span class="o">//</span> <span class="n">reduction</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-<span class="linenos">16</span>            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-<span class="linenos">17</span>            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">channels</span> <span class="o">//</span> <span class="n">reduction</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-<span class="linenos">18</span>            <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()</span>
-<span class="linenos">19</span>        <span class="p">)</span>
-<span class="linenos">20</span>        
-<span class="linenos">21</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-<span class="linenos">22</span>        <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
-<span class="linenos">23</span>        
-<span class="linenos">24</span>        <span class="c1"># Squeeze: 全局平均池化</span>
-<span class="linenos">25</span>        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">avg_pool</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
-<span class="linenos">26</span>        
-<span class="linenos">27</span>        <span class="c1"># Excitation: 通过全连接层</span>
-<span class="linenos">28</span>        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="linenos">29</span>        
-<span class="linenos">30</span>        <span class="c1"># Scale: 特征重标定</span>
-<span class="linenos">31</span>        <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span><span class="o">.</span><span class="n">expand_as</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos"> 3</span>
+<span class="linenos"> 4</span><span class="k">class</span><span class="w"> </span><span class="nc">SEBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="linenos"> 5</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 6</span><span class="sd">    Squeeze-and-Excitation 模块</span>
+<span class="linenos"> 7</span>
+<span class="linenos"> 8</span><span class="sd">    三步核心操作：</span>
+<span class="linenos"> 9</span><span class="sd">    1. Squeeze: 全局平均池化, 将 C×H×W 压缩为 C×1×1</span>
+<span class="linenos">10</span><span class="sd">    2. Excitation: 两个全连接层学习通道权重 (瓶颈结构)</span>
+<span class="linenos">11</span><span class="sd">    3. Scale: 权重乘回原始特征图</span>
+<span class="linenos">12</span>
+<span class="linenos">13</span><span class="sd">    参数量: 2 * C * (C/r) = 2C²/r</span>
+<span class="linenos">14</span><span class="sd">    输入: (B, C, H, W)</span>
+<span class="linenos">15</span><span class="sd">    输出: (B, C, H, W)</span>
+<span class="linenos">16</span><span class="sd">    &quot;&quot;&quot;</span>
+<span class="linenos">17</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
+<span class="linenos">18</span>        <span class="nb">super</span><span class="p">(</span><span class="n">SEBlock</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+<span class="linenos">19</span>
+<span class="linenos">20</span>        <span class="c1"># Squeeze: 全局平均池化, 每个通道压缩为一个标量</span>
+<span class="linenos">21</span>        <span class="c1"># 输入 (B, C, H, W) → 输出 (B, C, 1, 1)</span>
+<span class="linenos">22</span>        <span class="bp">self</span><span class="o">.</span><span class="n">avg_pool</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">AdaptiveAvgPool2d</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="linenos">23</span>
+<span class="linenos">24</span>        <span class="c1"># Excitation: 瓶颈结构, 压缩比 r=16 减少参数量</span>
+<span class="linenos">25</span>        <span class="c1"># C → C/r → C, 参数: C*(C/r) + (C/r)*C = 2C²/r</span>
+<span class="linenos">26</span>        <span class="bp">self</span><span class="o">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+<span class="linenos">27</span>            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="n">channels</span> <span class="o">//</span> <span class="n">reduction</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>  <span class="c1"># 降维</span>
+<span class="linenos">28</span>            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>                                   <span class="c1"># 非线性</span>
+<span class="linenos">29</span>            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">channels</span> <span class="o">//</span> <span class="n">reduction</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>  <span class="c1"># 升维</span>
+<span class="linenos">30</span>            <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()</span>                                             <span class="c1"># 输出 (0,1) 权重</span>
+<span class="linenos">31</span>        <span class="p">)</span>
 <span class="linenos">32</span>
-<span class="linenos">33</span>
-<span class="linenos">34</span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-<span class="linenos">35</span>    <span class="c1"># 测试SEBlock</span>
-<span class="linenos">36</span>    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
-<span class="linenos">37</span>    <span class="n">se</span> <span class="o">=</span> <span class="n">SEBlock</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
-<span class="linenos">38</span>    <span class="n">y</span> <span class="o">=</span> <span class="n">se</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="linenos">39</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input shape: </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="linenos">40</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Output shape: </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="linenos">41</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SEBlock parameters: </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">se</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">33</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="linenos">34</span>        <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+<span class="linenos">35</span>
+<span class="linenos">36</span>        <span class="c1"># Squeeze: (B, C, H, W) → (B, C, 1, 1) → (B, C)</span>
+<span class="linenos">37</span>        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">avg_pool</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+<span class="linenos">38</span>
+<span class="linenos">39</span>        <span class="c1"># Excitation: (B, C) → (B, C/r) → (B, C) → (B, C, 1, 1)</span>
+<span class="linenos">40</span>        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="linenos">41</span>
+<span class="linenos">42</span>        <span class="c1"># Scale: 逐通道乘法, 广播到 H×W</span>
+<span class="linenos">43</span>        <span class="c1"># 每个通道乘以对应的标量权重</span>
+<span class="linenos">44</span>        <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span><span class="o">.</span><span class="n">expand_as</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos">45</span>
+<span class="linenos">46</span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="linenos">47</span>    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+<span class="linenos">48</span>    <span class="n">se</span> <span class="o">=</span> <span class="n">SEBlock</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="linenos">49</span>    <span class="n">y</span> <span class="o">=</span> <span class="n">se</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos">50</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input shape: </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">51</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Output shape: </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">52</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SEBlock parameters: </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">se</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span><span class="si">}</span><span class="s2">  (2*64²/16 = 512)&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
+<p><strong>代码要点</strong>：</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">AdaptiveAvgPool2d((1,</span> <span class="pre">1))</span></code> 实现 Squeeze：把任意尺寸的特征图压缩到 <span class="math notranslate nohighlight">\(1 \times 1\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Linear</span></code> 层的输入输出维度由压缩比 <span class="math notranslate nohighlight">\(r\)</span> 控制</p></li>
+<li><p>Sigmoid 保证输出在 <span class="math notranslate nohighlight">\((0,1)\)</span> 范围内</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">*</span> <span class="pre">self.scale</span></code> 实现逐通道加权</p></li>
+</ul>
 </section>
-<section id="id2">
-<h2>数学分析<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<section id="id3">
-<h3>参数数量<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
-<p>对于输入通道数 <span class="math notranslate nohighlight">\(C\)</span>，压缩比 <span class="math notranslate nohighlight">\(r\)</span>，SE模块的参数数量为：</p>
+<section id="id5">
+<h2>参数量与计算开销<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<p>SE 模块的参数量为：</p>
 <div class="math notranslate nohighlight">
 \[\text{Params} = \frac{C}{r} \times C + C \times \frac{C}{r} = \frac{2C^2}{r}\]</div>
-<p>当 <span class="math notranslate nohighlight">\(C=256, r=16\)</span> 时，参数数量为 <span class="math notranslate nohighlight">\(2 \times 256^2 / 16 = 8,192\)</span>，相对于卷积层的参数可以忽略不计。</p>
-</section>
-<section id="id4">
-<h3>计算复杂度<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
-<p>SE模块的计算开销主要来自全连接层：</p>
-<div class="math notranslate nohighlight">
-\[\text{FLOPs} \approx \frac{2C^2}{r} + C \times H \times W\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(H \times W\)</span> 是特征图尺寸。通常SE模块增加的计算开销小于1%。</p>
-</section>
+<p>当 <span class="math notranslate nohighlight">\(C=256, r=16\)</span> 时，参数数量为 <span class="math notranslate nohighlight">\(2 \times 256^2 / 16 = 8,192\)</span>——相对于 ResNet-50 的 2500 万参数可以忽略不计。计算开销增加也小于 1%。</p>
+<div class="important admonition">
+<p class="admonition-title">SE-Net的关键贡献</p>
+<ul class="simple">
+<li><p>仅增加约 <strong>1%</strong> 计算量，提升 <strong>1-2%</strong> 准确率</p></li>
+<li><p>即插即用：可集成到任何CNN架构中（ResNet、MobileNet、Inception等）</p></li>
+<li><p>在 ImageNet 上，SE-ResNet-50 达到 <strong>77.62%</strong> Top-1 准确率，比基线提升 <strong>+1.47%</strong></p></li>
+</ul>
+</div>
 </section>
 <section id="se-resnet">
-<h2>SE-ResNet集成<a class="headerlink" href="#se-resnet" title="Link to this heading">#</a></h2>
-<figure class="align-center" id="id7">
-<a class="reference internal image-reference" href="../_images/se-resnet.png"><img alt="../_images/se-resnet.png" src="../_images/se-resnet.png" style="width: 60%;" />
-</a>
-<figcaption>
-<p><span class="caption-text">SE模块在ResNet中的集成方式</span><a class="headerlink" href="#id7" title="Link to this image">#</a></p>
-</figcaption>
-</figure>
-<div class="literal-block-wrapper docutils container" id="id8">
-<div class="code-block-caption"><span class="caption-text">SE-ResNet基础块实现</span><a class="headerlink" href="#id8" title="Link to this code">#</a></div>
+<h2>SE-ResNet 集成<a class="headerlink" href="#se-resnet" title="Link to this heading">#</a></h2>
+<p>SE 模块通常插入到残差块中、残差连接之前：</p>
+<div class="literal-block-wrapper docutils container" id="id95">
+<div class="code-block-caption"><span class="caption-text">SE-ResNet基础块实现</span><a class="headerlink" href="#id95" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="linenos"> 3</span><span class="kn">from</span><span class="w"> </span><span class="nn">.se_block</span><span class="w"> </span><span class="kn">import</span> <span class="n">SEBlock</span>
 <span class="linenos"> 4</span>
 <span class="linenos"> 5</span>
 <span class="linenos"> 6</span><span class="k">class</span><span class="w"> </span><span class="nc">SEBasicBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="linenos"> 7</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;带有SE模块的ResNet基础块&quot;&quot;&quot;</span>
-<span class="linenos"> 8</span>    <span class="n">expansion</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="linenos"> 9</span>    
-<span class="linenos">10</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inplanes</span><span class="p">,</span> <span class="n">planes</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">downsample</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
-<span class="linenos">11</span>        <span class="nb">super</span><span class="p">(</span><span class="n">SEBasicBlock</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-<span class="linenos">12</span>        
-<span class="linenos">13</span>        <span class="c1"># 第一个卷积层</span>
-<span class="linenos">14</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">inplanes</span><span class="p">,</span> <span class="n">planes</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> 
-<span class="linenos">15</span>                               <span class="n">stride</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="linenos">16</span>        <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">planes</span><span class="p">)</span>
-<span class="linenos">17</span>        
-<span class="linenos">18</span>        <span class="c1"># 第二个卷积层</span>
-<span class="linenos">19</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">planes</span><span class="p">,</span> <span class="n">planes</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-<span class="linenos">20</span>                               <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="linenos">21</span>        <span class="bp">self</span><span class="o">.</span><span class="n">bn2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">planes</span><span class="p">)</span>
-<span class="linenos">22</span>        
-<span class="linenos">23</span>        <span class="c1"># SE模块</span>
-<span class="linenos">24</span>        <span class="bp">self</span><span class="o">.</span><span class="n">se</span> <span class="o">=</span> <span class="n">SEBlock</span><span class="p">(</span><span class="n">planes</span><span class="p">,</span> <span class="n">reduction</span><span class="p">)</span>
-<span class="linenos">25</span>        
-<span class="linenos">26</span>        <span class="c1"># 下采样和激活函数</span>
-<span class="linenos">27</span>        <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span> <span class="o">=</span> <span class="n">downsample</span>
-<span class="linenos">28</span>        <span class="bp">self</span><span class="o">.</span><span class="n">stride</span> <span class="o">=</span> <span class="n">stride</span>
-<span class="linenos">29</span>        <span class="bp">self</span><span class="o">.</span><span class="n">relu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="linenos">30</span>        
-<span class="linenos">31</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-<span class="linenos">32</span>        <span class="n">identity</span> <span class="o">=</span> <span class="n">x</span>
-<span class="linenos">33</span>        
-<span class="linenos">34</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="linenos">35</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-<span class="linenos">36</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-<span class="linenos">37</span>        
-<span class="linenos">38</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-<span class="linenos">39</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn2</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-<span class="linenos">40</span>        
-<span class="linenos">41</span>        <span class="c1"># 应用SE模块</span>
-<span class="linenos">42</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">se</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-<span class="linenos">43</span>        
-<span class="linenos">44</span>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<span class="linenos">45</span>            <span class="n">identity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="linenos">46</span>            
-<span class="linenos">47</span>        <span class="n">out</span> <span class="o">+=</span> <span class="n">identity</span>
-<span class="linenos">48</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-<span class="linenos">49</span>        
-<span class="linenos">50</span>        <span class="k">return</span> <span class="n">out</span>
-<span class="linenos">51</span>
-<span class="linenos">52</span>
-<span class="linenos">53</span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-<span class="linenos">54</span>    <span class="c1"># 测试SEBasicBlock</span>
-<span class="linenos">55</span>    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
-<span class="linenos">56</span>    <span class="n">block</span> <span class="o">=</span> <span class="n">SEBasicBlock</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
-<span class="linenos">57</span>    <span class="n">y</span> <span class="o">=</span> <span class="n">block</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="linenos">58</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input shape: </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="linenos">59</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Output shape: </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="linenos">60</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Block parameters: </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">block</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos"> 7</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 8</span><span class="sd">    带有 SE 模块的 ResNet 基础块</span>
+<span class="linenos"> 9</span>
+<span class="linenos">10</span><span class="sd">    SE 模块插入在第二个卷积之后、残差连接之前:</span>
+<span class="linenos">11</span><span class="sd">    Conv1 → BN → ReLU → Conv2 → BN → SE → + → ReLU</span>
+<span class="linenos">12</span><span class="sd">                                     ↑</span>
+<span class="linenos">13</span><span class="sd">                             残差连接 ─┘</span>
+<span class="linenos">14</span>
+<span class="linenos">15</span><span class="sd">    输入: (B, C, H, W)</span>
+<span class="linenos">16</span><span class="sd">    输出: (B, planes*expansion, H/stride, W/stride)</span>
+<span class="linenos">17</span><span class="sd">    &quot;&quot;&quot;</span>
+<span class="linenos">18</span>    <span class="n">expansion</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="linenos">19</span>
+<span class="linenos">20</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inplanes</span><span class="p">,</span> <span class="n">planes</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">downsample</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
+<span class="linenos">21</span>        <span class="nb">super</span><span class="p">(</span><span class="n">SEBasicBlock</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+<span class="linenos">22</span>
+<span class="linenos">23</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">inplanes</span><span class="p">,</span> <span class="n">planes</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+<span class="linenos">24</span>                               <span class="n">stride</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="linenos">25</span>        <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">planes</span><span class="p">)</span>
+<span class="linenos">26</span>
+<span class="linenos">27</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">planes</span><span class="p">,</span> <span class="n">planes</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+<span class="linenos">28</span>                               <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="linenos">29</span>        <span class="bp">self</span><span class="o">.</span><span class="n">bn2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">planes</span><span class="p">)</span>
+<span class="linenos">30</span>
+<span class="linenos">31</span>        <span class="c1"># SE 模块: 在第二个卷积后, 残差连接前</span>
+<span class="linenos">32</span>        <span class="bp">self</span><span class="o">.</span><span class="n">se</span> <span class="o">=</span> <span class="n">SEBlock</span><span class="p">(</span><span class="n">planes</span><span class="p">,</span> <span class="n">reduction</span><span class="p">)</span>
+<span class="linenos">33</span>
+<span class="linenos">34</span>        <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span> <span class="o">=</span> <span class="n">downsample</span>
+<span class="linenos">35</span>        <span class="bp">self</span><span class="o">.</span><span class="n">stride</span> <span class="o">=</span> <span class="n">stride</span>
+<span class="linenos">36</span>        <span class="bp">self</span><span class="o">.</span><span class="n">relu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="linenos">37</span>
+<span class="linenos">38</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="linenos">39</span>        <span class="n">identity</span> <span class="o">=</span> <span class="n">x</span>
+<span class="linenos">40</span>
+<span class="linenos">41</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos">42</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+<span class="linenos">43</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+<span class="linenos">44</span>
+<span class="linenos">45</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+<span class="linenos">46</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn2</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+<span class="linenos">47</span>
+<span class="linenos">48</span>        <span class="c1"># 注意力: 在特征融合前重新校准通道重要性</span>
+<span class="linenos">49</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">se</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+<span class="linenos">50</span>
+<span class="linenos">51</span>        <span class="c1"># 残差连接</span>
+<span class="linenos">52</span>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<span class="linenos">53</span>            <span class="n">identity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos">54</span>
+<span class="linenos">55</span>        <span class="n">out</span> <span class="o">+=</span> <span class="n">identity</span>
+<span class="linenos">56</span>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+<span class="linenos">57</span>
+<span class="linenos">58</span>        <span class="k">return</span> <span class="n">out</span>
+<span class="linenos">59</span>
+<span class="linenos">60</span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="linenos">61</span>    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+<span class="linenos">62</span>    <span class="n">block</span> <span class="o">=</span> <span class="n">SEBasicBlock</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="linenos">63</span>    <span class="n">y</span> <span class="o">=</span> <span class="n">block</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos">64</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input shape: </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">65</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Output shape: </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">66</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Block params: </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">block</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
+</div>
+</div>
+</section>
+<section id="id6">
+<h2>本章小结<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>SE-Net 通过 <strong>Squeeze → Excitation → Scale</strong> 三步实现通道注意力</p></li>
+<li><p>核心是让网络学习&quot;每个通道的重要性权重&quot;，然后据此重新校准特征</p></li>
+<li><p>结构简单、计算开销小、即插即用</p></li>
+</ul>
+<section id="id7">
+<h3>下一步<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<p>通道注意力解决了&quot;什么特征重要&quot;，但还有一个问题没回答：<strong>重要的特征出现在哪里？</strong> <a class="reference internal" href="spatial-attn.html"><span class="doc">空间注意力</span></a> 我们将学习关注&quot;空间位置&quot;的注意力机制。</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id8">
+<h2>参考文献<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id9">
+<div role="list" class="citation-list">
+<div class="citation" id="id90" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">HSS18</a><span class="fn-bracket">]</span></span>
+<p>Jie Hu, Li Shen, and Gang Sun. Squeeze-and-excitation networks. In <em>Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)</em>, 7132–7141. 2018.</p>
+</div>
 </div>
 </div>
 </section>
@@ -659,7 +715,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -667,6 +723,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">2231276</code>
+                2026-04-28 - <strong>Heyan Zhu</strong>: feat(attention-mechanisms): restructure and enhance attention mechanisms documentation
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">0c291d7</code>
                 2025-12-10 - <strong>Heyan Zhu</strong>: docs: restructure course materials and add new content
@@ -693,7 +754,7 @@ document.write(`
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">上一页</p>
-        <p class="prev-next-title">引言</p>
+        <p class="prev-next-title">为什么CNN需要注意力机制？</p>
       </div>
     </a>
     <a class="right-next"
@@ -701,7 +762,7 @@ document.write(`
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">空间注意力机制</p>
+        <p class="prev-next-title">空间注意力</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -721,20 +782,21 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">架构概述</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#se">SE模块的三个阶段</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#squeeze">1. Squeeze操作</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#excitation">2. Excitation操作</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scale">3. Scale操作</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">核心思想：三个步骤的直觉</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">三步详解</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#squeeze">1. Squeeze：压缩</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#excitation">2. Excitation：学习权重</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scale">3. Scale：加权</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch实现</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">数学分析</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">参数数量</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">计算复杂度</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch 实现</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">参数量与计算开销</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#se-resnet">SE-ResNet 集成</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">本章小结</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">下一步</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#se-resnet">SE-ResNet集成</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">参考文献</a></li>
 </ul>
   </nav></div>
 
