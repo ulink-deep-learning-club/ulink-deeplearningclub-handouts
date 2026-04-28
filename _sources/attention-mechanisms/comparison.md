@@ -31,7 +31,7 @@ graph TD
     A[选哪种注意力？] --> B{任务类型?}
     B -->|图像分类| C[通道注意力 SE-Net]
     B -->|目标检测/分割| D[CBAM]
-    B -->|计算资源受限| E[ECA-Net {cite}`wang2020eca` 或 SE-Net<br/>r=16]
+    B -->|计算资源受限| E["ECA-Net 或 SE-Net<br/>r=16"]
     B -->|追求极致精度| F[CBAM或SKNet]
 ```
 

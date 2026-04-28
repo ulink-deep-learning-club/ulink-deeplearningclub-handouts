@@ -65,8 +65,80 @@ $$
 - $b$：偏置项
 - $k$：卷积核大小
 ```
+### 直觉：卷积核为什么能提取特征？
 
-简单来说，卷积操作通过将卷积核在输入特征图上滑动，计算局部区域的加权和，即该区域与卷积核的相似程度，来生成输出特征图。
+卷积核提取特征的原理其实很直观：**点积 = 相似度度量**。
+
+回想一下两个向量的点积：$\mathbf{a} \cdot \mathbf{b} = \sum_i a_i b_i$。当两个向量方向一致时，点积最大；方向相反时，点积为负。换句话说，**点积衡量了两个向量的相似程度**。
+
+卷积操作就是反复做点积：
+
+```{tikz} 卷积核=模式匹配器
+\begin{tikzpicture}[scale=0.8]
+  \draw[thick] (0,0) rectangle (1,1);
+  \draw[thick] (1,0) rectangle (2,1);
+  \draw[thick] (2,0) rectangle (3,1);
+  \draw[thick] (0,1) rectangle (1,2);
+  \draw[thick] (1,1) rectangle (2,2);
+  \draw[thick] (2,1) rectangle (3,2);
+  \draw[thick] (0,2) rectangle (1,3);
+  \draw[thick] (1,2) rectangle (2,3);
+  \draw[thick] (2,2) rectangle (3,3);
+  \node at (0.5,0.5) {-1};
+  \node at (1.5,0.5) {0};
+  \node at (2.5,0.5) {1};
+  \node at (0.5,1.5) {-1};
+  \node at (1.5,1.5) {0};
+  \node at (2.5,1.5) {1};
+  \node at (0.5,2.5) {-1};
+  \node at (1.5,2.5) {0};
+  \node at (2.5,2.5) {1};
+  \node at (1.5, -0.6) {卷积核 $K$（垂直边缘检测器）};
+  \draw[->, thick] (4, 1.5) -- (5.5, 1.5);
+  \node at (4.75, 2.2) {点积};
+  \draw[fill=gray!10, thick] (6,0) rectangle (7,1);
+  \draw[fill=gray!10, thick] (7,0) rectangle (8,1);
+  \draw[fill=gray!80, thick] (8,0) rectangle (9,1);
+  \draw[fill=gray!10, thick] (6,1) rectangle (7,2);
+  \draw[fill=gray!10, thick] (7,1) rectangle (8,2);
+  \draw[fill=gray!80, thick] (8,1) rectangle (9,2);
+  \draw[fill=gray!10, thick] (6,2) rectangle (7,3);
+  \draw[fill=gray!10, thick] (7,2) rectangle (8,3);
+  \draw[fill=gray!80, thick] (8,2) rectangle (9,3);
+  \node[font=\small] at (6.5,0.5) {0};
+  \node[font=\small] at (7.5,0.5) {0};
+  \node[font=\small] at (8.5,0.5) {1};
+  \node[font=\small] at (6.5,1.5) {0};
+  \node[font=\small] at (7.5,1.5) {0};
+  \node[font=\small] at (8.5,1.5) {1};
+  \node[font=\small] at (6.5,2.5) {0};
+  \node[font=\small] at (7.5,2.5) {0};
+  \node[font=\small] at (8.5,2.5) {1};
+  \node at (7.5, -0.6) {图像局部区域};
+  \draw[->, thick] (10, 1.5) -- (11, 1.5);
+  \node[draw, circle, fill=green!20] at (12, 1.5) {3};
+  \node[font=\small] at (12, -0.6) {相似度得分};
+\end{tikzpicture}
+```
+
+这个 3×3 的卷积核左边全是 -1、中间是 0、右边全是 1——它检测的是**垂直边缘**：
+
+- 当图像局部区域的**左边暗、右边亮**（如 $\begin{bmatrix}0 & 0 & 1\\0 & 0 & 1\\0 & 0 & 1\end{bmatrix}$），点积结果是**正数**（上图结果是 3），说明"这里有垂直边缘"
+- 如果图像区域是均匀的（如全是 0），点积结果是 0，说明"这里没有边缘"
+- 如果左边亮右边暗，点积结果是负数，说明"这里有反方向的边缘"
+
+**不同的卷积核检测不同的模式**：
+
+| 卷积核 | 检测的特征 | 示例数值 | 响应条件 |
+|--------|-----------|---------|---------|
+| 垂直边缘 | 左右亮度突变 | $\begin{bmatrix}-1 & 0 & 1\\-1 & 0 & 1\\-1 & 0 & 1\end{bmatrix}$ | 左暗右亮 → 正响应 |
+| 水平边缘 | 上下亮度突变 | $\begin{bmatrix}-1 & -1 & -1\\0 & 0 & 0\\1 & 1 & 1\end{bmatrix}$ | 上暗下亮 → 正响应 |
+| 角点检测 | 对角线变化 | 对角线模式 | 特定方向变化 |
+| 纹理检测 | 重复的局部图案 | 训练得到 | 匹配特定纹理 |
+
+训练过程中，卷积核的数值通过反向传播自动调整——**网络自己"学会"了要检测什么特征**。浅层学边缘、深层学语义，这就是 {ref}`inductive-bias` 中讨论的层次特征提取。
+
+简单来说，卷积操作就是**拿着一个个"模板"（卷积核）在图像上滑动，在每个位置计算模板和该区域的相似度**。相似的区域得到高响应，不相似的得到低响应。32 个卷积核就是 32 个不同的模板，各自关注不同的模式。
 
 ## 特征图尺寸计算
 

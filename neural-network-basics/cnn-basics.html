@@ -44,7 +44,7 @@
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script src="../_static/translations.js?v=beaddf03"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'neural-network-basics/cnn-basics';</script>
     <link rel="index" title="索引" href="../genindex.html" />
@@ -439,16 +439,19 @@ document.write(`
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn-vs">参数效率：CNN vs 全连接</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#receptive-field">感受野</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">卷积操作的基本原理</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">特征图尺寸计算</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">参数共享机制</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">卷积层的优势</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">池化层</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">卷积操作的基本原理</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">直觉：卷积核为什么能提取特征？</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">特征图尺寸计算</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">参数共享机制</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">卷积层的优势</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">池化层</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorchcnn">PyTorch实现CNN</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn">特征图：CNN的"眼睛"</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">CNN的优缺点</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">下一步</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">参考文献</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">CNN的优缺点</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">下一步</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">参考文献</a></li>
 </ul>
             </nav>
         </div>
@@ -515,12 +518,12 @@ document.write(`
 </section>
 <section id="id3">
 <h2>卷积操作的基本原理<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
-<p>卷积操作是CNN的核心，它通过滑动窗口的方式在输入图像上应用（通过点积）滤波器（卷积核）来提取特征。这种思想最早由LeCun等人在1989年提出 <span id="id4">[<a class="reference internal" href="#id75" title="Yann LeCun, Bernhard Boser, John S Denker, Donnie Henderson, Richard E Howard, Wayne Hubbard, and Lawrence D Jackel. Backpropagation applied to handwritten zip code recognition. Neural Computation, 1(4):541–551, 1989.">LBD+89</a>]</span>，并在后续的LeNet-5工作中 <span id="id5">[<a class="reference internal" href="the-end.html#id89" title="Yann LeCun, Léon Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 86(11):2278–2324, 1998.">LBBH98</a>]</span> 得到完善。</p>
-<figure class="align-center" id="id104">
+<p>卷积操作是CNN的核心，它通过滑动窗口的方式在输入图像上应用（通过点积）滤波器（卷积核）来提取特征。这种思想最早由LeCun等人在1989年提出 <span id="id4">[<a class="reference internal" href="#id76" title="Yann LeCun, Bernhard Boser, John S Denker, Donnie Henderson, Richard E Howard, Wayne Hubbard, and Lawrence D Jackel. Backpropagation applied to handwritten zip code recognition. Neural Computation, 1(4):541–551, 1989.">LBD+89</a>]</span>，并在后续的LeNet-5工作中 <span id="id5">[<a class="reference internal" href="the-end.html#id89" title="Yann LeCun, Léon Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 86(11):2278–2324, 1998.">LBBH98</a>]</span> 得到完善。</p>
+<figure class="align-center" id="id105">
 <a class="reference internal image-reference" href="../_images/conv-process.png"><img alt="../_images/conv-process.png" src="../_images/conv-process.png" style="width: 40%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">卷积操作示意图</span><a class="headerlink" href="#id104" title="Link to this image">#</a></p>
+<p><span class="caption-text">卷积操作示意图</span><a class="headerlink" href="#id105" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <div class="admonition note">
@@ -543,10 +546,58 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 <li><p><span class="math notranslate nohighlight">\(k\)</span>：卷积核大小</p></li>
 </ul>
 </div>
-<p>简单来说，卷积操作通过将卷积核在输入特征图上滑动，计算局部区域的加权和，即该区域与卷积核的相似程度，来生成输出特征图。</p>
-</section>
 <section id="id6">
-<h2>特征图尺寸计算<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<h3>直觉：卷积核为什么能提取特征？<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p>卷积核提取特征的原理其实很直观：<strong>点积 = 相似度度量</strong>。</p>
+<p>回想一下两个向量的点积：<span class="math notranslate nohighlight">\(\mathbf{a} \cdot \mathbf{b} = \sum_i a_i b_i\)</span>。当两个向量方向一致时，点积最大；方向相反时，点积为负。换句话说，<strong>点积衡量了两个向量的相似程度</strong>。</p>
+<p>卷积操作就是反复做点积：</p>
+<div class="figure" id="id106" style="text-align: center"><p><img  src="../_images/tikz-0ae465dd7e723e27764bae08945e5a36503f86e2.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">卷积核=模式匹配器</span></p>
+</div><p>这个 3×3 的卷积核左边全是 -1、中间是 0、右边全是 1——它检测的是<strong>垂直边缘</strong>：</p>
+<ul class="simple">
+<li><p>当图像局部区域的<strong>左边暗、右边亮</strong>（如 <span class="math notranslate nohighlight">\(\begin{bmatrix}0 &amp; 0 &amp; 1\\0 &amp; 0 &amp; 1\\0 &amp; 0 &amp; 1\end{bmatrix}\)</span>），点积结果是<strong>正数</strong>（上图结果是 3），说明&quot;这里有垂直边缘&quot;</p></li>
+<li><p>如果图像区域是均匀的（如全是 0），点积结果是 0，说明&quot;这里没有边缘&quot;</p></li>
+<li><p>如果左边亮右边暗，点积结果是负数，说明&quot;这里有反方向的边缘&quot;</p></li>
+</ul>
+<p><strong>不同的卷积核检测不同的模式</strong>：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>卷积核</p></th>
+<th class="head"><p>检测的特征</p></th>
+<th class="head"><p>示例数值</p></th>
+<th class="head"><p>响应条件</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>垂直边缘</p></td>
+<td><p>左右亮度突变</p></td>
+<td><p><span class="math notranslate nohighlight">\(\begin{bmatrix}-1 &amp; 0 &amp; 1\\-1 &amp; 0 &amp; 1\\-1 &amp; 0 &amp; 1\end{bmatrix}\)</span></p></td>
+<td><p>左暗右亮 → 正响应</p></td>
+</tr>
+<tr class="row-odd"><td><p>水平边缘</p></td>
+<td><p>上下亮度突变</p></td>
+<td><p><span class="math notranslate nohighlight">\(\begin{bmatrix}-1 &amp; -1 &amp; -1\\0 &amp; 0 &amp; 0\\1 &amp; 1 &amp; 1\end{bmatrix}\)</span></p></td>
+<td><p>上暗下亮 → 正响应</p></td>
+</tr>
+<tr class="row-even"><td><p>角点检测</p></td>
+<td><p>对角线变化</p></td>
+<td><p>对角线模式</p></td>
+<td><p>特定方向变化</p></td>
+</tr>
+<tr class="row-odd"><td><p>纹理检测</p></td>
+<td><p>重复的局部图案</p></td>
+<td><p>训练得到</p></td>
+<td><p>匹配特定纹理</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>训练过程中，卷积核的数值通过反向传播自动调整——<strong>网络自己&quot;学会&quot;了要检测什么特征</strong>。浅层学边缘、深层学语义，这就是 <a class="reference internal" href="introduction.html#inductive-bias"><span class="std std-ref">归纳偏置（Inductive Bias）</span></a> 中讨论的层次特征提取。</p>
+<p>简单来说，卷积操作就是<strong>拿着一个个&quot;模板&quot;（卷积核）在图像上滑动，在每个位置计算模板和该区域的相似度</strong>。相似的区域得到高响应，不相似的得到低响应。32 个卷积核就是 32 个不同的模板，各自关注不同的模式。</p>
+</section>
+</section>
+<section id="id7">
+<h2>特征图尺寸计算<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
 <p>对于输入尺寸为 <span class="math notranslate nohighlight">\(W \times H\)</span>，卷积核大小为 <span class="math notranslate nohighlight">\(K \times K\)</span>，步长为 <span class="math notranslate nohighlight">\(S\)</span>，填充为 <span class="math notranslate nohighlight">\(P\)</span> 的情况，输出特征图的尺寸为：</p>
 <div class="math notranslate nohighlight">
 \[W_{out} = \left\lfloor \frac{W - K + 2P}{S} \right\rfloor + 1\]</div>
@@ -567,14 +618,14 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 </ul>
 </div>
 </section>
-<section id="id7">
-<h2>参数共享机制<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<section id="id8">
+<h2>参数共享机制<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
 <p>卷积层的一个重要特性是参数共享。同一个卷积核在图像的不同位置重复使用，这大大减少了参数数量。</p>
-<figure class="align-center" id="id105">
+<figure class="align-center" id="id107">
 <a class="reference internal image-reference" href="../_images/conv-param-share.png"><img alt="../_images/conv-param-share.png" src="../_images/conv-param-share.png" style="width: 80%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">参数共享机制示意图</span><a class="headerlink" href="#id105" title="Link to this image">#</a></p>
+<p><span class="caption-text">参数共享机制示意图</span><a class="headerlink" href="#id107" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <p>对于 <span class="math notranslate nohighlight">\(C_{\text{out}}\)</span> 个输出通道，每个通道使用独立的卷积核：</p>
@@ -586,8 +637,8 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 \[\text{Parameters} = 32 \times (3 \times 3 \times 1 + 1) = 32 \times 10 = 320\]</div>
 <p>相比全连接层的数万参数，卷积层的参数数量显著减少了99%以上。</p>
 </section>
-<section id="id8">
-<h2>卷积层的优势<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<section id="id9">
+<h2>卷积层的优势<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
 <div class="note admonition">
 <p class="admonition-title">卷积层的核心优势</p>
 <ol class="arabic simple">
@@ -598,8 +649,8 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 </ol>
 </div>
 </section>
-<section id="id9">
-<h2>池化层<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
+<section id="id10">
+<h2>池化层<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
 <p>池化层用于降采样，减少特征图的空间尺寸：</p>
 <ul class="simple">
 <li><p><strong>最大池化（Max Pooling）</strong>：取局部区域的最大值</p></li>
@@ -732,7 +783,7 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 </tbody>
 </table>
 </div>
-<div class="figure" id="id106" style="text-align: center"><p><img  src="../_images/tikz-9dfb9b54f95e09d8b87eb7077a45e5c1b53e8eae.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id108" style="text-align: center"><p><img  src="../_images/tikz-9dfb9b54f95e09d8b87eb7077a45e5c1b53e8eae.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">CNN分层特征提取示意</span></p>
 </div><p><strong>分层学习的启示</strong>：</p>
 <ul class="simple">
@@ -741,10 +792,10 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 <li><p>全连接网络没有这种层次结构，必须同时学习所有复杂度</p></li>
 </ul>
 </section>
-<section id="id10">
-<h2>CNN的优缺点<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="table" id="id107">
-<caption><span class="caption-text">卷积神经网络优缺点对比</span><a class="headerlink" href="#id107" title="Link to this table">#</a></caption>
+<section id="id11">
+<h2>CNN的优缺点<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table" id="id109">
+<caption><span class="caption-text">卷积神经网络优缺点对比</span><a class="headerlink" href="#id109" title="Link to this table">#</a></caption>
 <colgroup>
 <col style="width: 50.0%" />
 <col style="width: 50.0%" />
@@ -786,8 +837,8 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 </div>
 </section>
 <hr class="docutils" />
-<section id="id11">
-<h2>下一步<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
+<section id="id12">
+<h2>下一步<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
 <p>掌握了CNN基础后，下一节<a class="reference internal" href="le-net.html"><span class="doc">LeNet-5架构详解</span></a>我们将分析<strong>第一个成功的CNN架构</strong>——LeNet-5。我们将看到：</p>
 <ul class="simple">
 <li><p>理论概念如何转化为工程实践</p></li>
@@ -797,15 +848,15 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 <p>让我们看看CNN如何从实验室走向银行支票识别系统！</p>
 </section>
 <hr class="docutils" />
-<section id="id12">
-<h2>参考文献<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
-<div class="docutils container" id="id13">
+<section id="id13">
+<h2>参考文献<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id14">
 <div role="list" class="citation-list">
-<div class="citation" id="id75" role="doc-biblioentry">
+<div class="citation" id="id76" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">LBD+89</a><span class="fn-bracket">]</span></span>
 <p>Yann LeCun, Bernhard Boser, John S Denker, Donnie Henderson, Richard E Howard, Wayne Hubbard, and Lawrence D Jackel. Backpropagation applied to handwritten zip code recognition. <em>Neural Computation</em>, 1(4):541–551, 1989.</p>
 </div>
-<div class="citation" id="id74" role="doc-biblioentry">
+<div class="citation" id="id75" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">LBBH98</a><span class="fn-bracket">]</span></span>
 <p>Yann LeCun, Léon Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document recognition. <em>Proceedings of the IEEE</em>, 86(11):2278–2324, 1998.</p>
 </div>
@@ -818,7 +869,7 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (4 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (5 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -826,6 +877,11 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">4f5009f</code>
+                2026-04-28 - <strong>Heyan Zhu</strong>: docs: add detailed explanations for neural network concepts
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">2231276</code>
                 2026-04-28 - <strong>Heyan Zhu</strong>: feat(attention-mechanisms): restructure and enhance attention mechanisms documentation
@@ -897,16 +953,19 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn-vs">参数效率：CNN vs 全连接</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#receptive-field">感受野</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">卷积操作的基本原理</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">特征图尺寸计算</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">参数共享机制</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">卷积层的优势</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">池化层</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">卷积操作的基本原理</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">直觉：卷积核为什么能提取特征？</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">特征图尺寸计算</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">参数共享机制</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">卷积层的优势</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">池化层</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorchcnn">PyTorch实现CNN</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cnn">特征图：CNN的"眼睛"</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">CNN的优缺点</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">下一步</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">参考文献</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">CNN的优缺点</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">下一步</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">参考文献</a></li>
 </ul>
   </nav></div>
 
