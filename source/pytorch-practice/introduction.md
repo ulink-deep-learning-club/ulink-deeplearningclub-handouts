@@ -1,129 +1,146 @@
-# 1. 引言：PyTorch的设计哲学与学习路径
+(pytorch-introduction)=
+# 引言：从理论到代码
 
-```{admonition} 本章要点
-:class: important
+还记得 {doc}`../neural-network-basics/le-net` 中那 61,706 个参数吗？我们分析了每一层的维度、计算了参数量、讨论了为什么 CNN 比全连接更高效。
 
-- 理解深度学习框架的必要性
-- 掌握PyTorch的核心设计理念
-- 了解完整的学习路线图
-- 认识PyTorch生态系统
-```
+**但有一个问题：这些数字是怎么存到电脑里的？那些矩阵乘法是怎么算的？反向传播到底怎么实现？**
 
-## 1.1 为什么需要深度学习框架？
+本章将回答这些问题。我们会用 PyTorch 把 {doc}`../neural-network-basics/index` 中的理论全部实现出来，让你真正理解**从数学公式到可运行代码**的转化过程。
 
-在深度学习发展的早期，研究人员需要手动实现所有数学运算和梯度计算。随着模型复杂度增加，这种方法的局限性变得明显：
+## 为什么要用框架？
 
-```{admonition} 手动实现的挑战
+### 想象你要手写一个 LeNet
+
+如果没有框架，你需要自己实现：
+
+1. **张量存储**：如何存 32 个 5×5 卷积核？用 Python 列表？效率太低
+2. **卷积运算**：嵌套循环实现滑动窗口？代码复杂还容易错
+3. **反向传播**：手动推导每一层的梯度？LeNet 有 8 层，每层梯度公式都不一样
+4. **GPU 加速**：想让计算快 10 倍？你得学 CUDA 编程
+
+~~~{admonition} 手动实现的痛苦
 :class: caution
 
-1. **计算效率低**：Python循环处理大规模数据速度慢
-2. **梯度计算复杂**：手动推导和实现反向传播容易出错
-3. **硬件利用差**：难以充分利用GPU的并行计算能力
-4. **代码复用性差**：每个项目都需要重新实现基础组件
-5. **维护困难**：复杂模型的代码难以调试和优化
-```
+{doc}`../neural-network-basics/fc-layer-basics` 中那个 3 层全连接网络，手写反向传播就需要：
+- 推导每一层的梯度公式
+- 小心矩阵维度匹配
+- 调试数值稳定性问题
+- 花了半天，最后发现是某个下标写错了
 
-深度学习框架的出现解决了这些问题，提供了：
+这还只是 3 层！想象一下 ResNet-152 的 152 层...
+~~~
 
-```{admonition} 框架带来的优势
-:class: important
+### 框架做了什么？
 
-1. **自动微分**：自动计算梯度，简化反向传播
-2. **GPU加速**：利用并行计算大幅提升训练速度
-3. **模块化设计**：预构建的层和损失函数
-4. **生态系统**：丰富的预训练模型和工具
-5. **社区支持**：活跃的开发者社区和文档
-```
+PyTorch 把上面这些痛苦都解决了：
 
-## 1.2 PyTorch的设计哲学
+| 问题 | 手写实现 | PyTorch 方案 |
+|------|---------|-------------|
+| 数据存储 | Python 列表/NumPy 数组 | `torch.Tensor`：统一的数据结构 |
+| 卷积运算 | 嵌套循环 | `nn.Conv2d`：一行代码 |
+| 反向传播 | 手动推导梯度 | `.backward()`：自动计算 |
+| GPU 加速 | 写 CUDA 代码 | `.to('cuda')`：一键转移 |
 
-PyTorch采用"Pythonic"的设计理念，强调直观性和灵活性：
+**核心洞察**：PyTorch 不是新技术，而是 {doc}`../math-fundamentals/index` 中理论的**工程封装**——每个 API 都对应一个数学概念。
 
-```{admonition} PyTorch的核心特点
-:class: important
+## PyTorch 与前面章节的对应
 
-1. **动态计算图**：图结构在运行时动态构建，便于调试
-2. **命令式编程**：代码按顺序执行，符合直觉
-3. **Python集成**：与Python生态无缝集成
-4. **强大的自动微分**：自动计算梯度，简化反向传播
-5. **丰富的生态系统**：提供预训练模型、数据集和工具
-```
+让我们建立一个"理论→代码"的映射表：
 
-### 1.2.1 动态计算图 vs 静态计算图
+| {doc}`../math-fundamentals/index` 理论 | PyTorch 实现 | {doc}`../neural-network-basics/index` 应用 |
+|--------------------------------------|-------------|-------------------------------------------|
+| {ref}`computational-graph` | `torch.Tensor` + 运算 | 数据如何在网络中流动 |
+| {ref}`back-propagation` | `.backward()` | 梯度如何回传更新参数 |
+| {ref}`gradient-descent` | `optim.SGD/Adam` | 参数如何一步步优化 |
+| {ref}`activation-functions` | `nn.ReLU/Sigmoid` | 引入非线性 |
+| {ref}`loss-functions` | `nn.CrossEntropyLoss` | 衡量预测好坏 |
 
-```{mermaid}
-flowchart TD
-    A[计算图类型] --> B[动态计算图<br/>PyTorch]
-    A --> C[静态计算图<br/>TensorFlow 1.x]
-    
-    B --> D[优点：灵活调试<br/>符合Python习惯]
-    B --> E[缺点：优化机会少<br/>部署复杂]
-    
-    C --> F[优点：性能优化<br/>部署简单]
-    C --> G[缺点：调试困难<br/>学习曲线陡]
-```
+**学习策略**：每学一个 PyTorch API，问自己"这对应哪个理论概念？"
 
-### 1.2.2 PyTorch生态系统
+## PyTorch 的设计哲学
 
-PyTorch不仅仅是深度学习框架，更是一个完整的生态系统：
+### 动态计算图：调试友好
 
-```{mermaid}
-flowchart LR
-    A[PyTorch核心] --> B[TorchVision<br/>计算机视觉]
-    A --> C[TorchText<br/>自然语言处理]
-    A --> D[TorchAudio<br/>音频处理]
-    A --> E[TorchServe<br/>模型部署]
-    
-    B --> F[预训练模型<br/>数据集<br/>数据增强]
-    C --> G[文本处理<br/>词向量<br/>序列模型]
-    D --> H[音频特征<br/>语音识别<br/>音乐生成]
-    E --> I[模型优化<br/>服务部署<br/>监控]
-```
+PyTorch 采用**动态计算图**（define-by-run）：每次前向传播时实时构建计算图。
 
-## 1.3 学习路线图
-
-本教程采用渐进式学习路径，从基础概念到实际应用：
-
-```{mermaid}
-flowchart TD
-    A[第1章：引言<br/>设计哲学与学习路径] --> B[第2章：从NumPy到PyTorch<br/>平滑过渡与对比]
-    B --> C[第3章：张量操作详解<br/>核心数据结构]
-    C --> D[第4章：自动微分<br/>梯度计算机制]
-    D --> E[第5章：优化器<br/>参数更新算法]
-    E --> F[第6章：神经网络模块<br/>模型构建基础]
-    F --> G[第7章：最佳实践<br/>高效开发技巧]
-    G --> H[第8章：调试与可视化<br/>问题诊断工具]
-    H --> I[第9章：完整训练流程<br/>项目实战]
-    I --> J[第10章：总结与进阶<br/>学习资源推荐]
-```
-
-## 1.4 PyTorch版本演进
-
-```{admonition} 版本选择建议
+~~~{admonition} 动态 vs 静态
 :class: note
 
-- **PyTorch 1.0**（2018）：稳定版本，引入TorchScript
-- **PyTorch 1.8**（2021）：性能优化，支持更多硬件
-- **PyTorch 2.0**（2022）：编译模式，大幅提升性能
-- **当前推荐**：PyTorch 2.0+，充分利用新特性
+**静态计算图**（TensorFlow 1.x）：
+- 先定义完整的计算图
+- 然后在一个独立的 session 中运行
+- **调试痛苦**：出错时不知道是哪一行
 
-建议使用最新稳定版本以获得最佳性能和功能支持。
-```
+**动态计算图**（PyTorch）：
+- 代码按顺序执行
+- 计算图在运行时构建
+- **调试友好**：可以用 `print()` 随时查看中间结果
+~~~
 
-## 1.5 学习资源
+这对学习很重要——你可以随时停下来检查张量的形状和内容，就像调试普通 Python 代码一样。
 
-```{admonition} 官方资源
-:class: important
+### Pythonic：符合直觉
 
-1. **官方文档**：[pytorch.org/docs](https://pytorch.org/docs)
-2. **教程**：[pytorch.org/tutorials](https://pytorch.org/tutorials)
-3. **论坛**：[discuss.pytorch.org](https://discuss.pytorch.org)
-4. **GitHub**：[github.com/pytorch](https://github.com/pytorch)
-5. **中文社区**：[pytorchchina.com](https://pytorchchina.com)
-```
+PyTorch 的 API 设计遵循 Python 的习惯：
 
-```{admonition} 下一步
-:class: success
+~~~python
+# NumPy 风格的操作
+import torch
+x = torch.tensor([1.0, 2.0, 3.0])
+y = x * 2 + 1  # 就像普通的 Python 运算
 
-在下一章中，我们将从NumPy基础开始，逐步过渡到PyTorch，帮助您建立直观的理解框架。
-```
+# 查看形状、设备、是否需要梯度
+print(x.shape, x.device, x.requires_grad)
+~~~
+
+**没有魔法**：你看到的就是实际发生的。没有隐藏的图构建过程，没有复杂的 session 管理。
+
+## 本章学习路线图
+
+我们将按照"数据→模型→训练"的自然顺序学习：
+
+~~~{mermaid}
+flowchart LR
+    A[张量<br/>存数据] --> B[nn.Module<br/>建模型]
+    B --> C[自动微分<br/>算梯度]
+    C --> D[优化器<br/>更新参数]
+    D --> E[训练循环<br/>完整流程]
+~~~
+
+与 {doc}`../neural-network-basics/index` 的对应：
+
+1. **{doc}`from-numpy-to-pytorch`**：理解 `torch.Tensor` 如何对应 {ref}`computational-graph` 中的节点
+2. **{doc}`tensor-ops`**：数据如何在网络中流动（reshape、transpose 对应维度变换）
+3. **{doc}`neural-network-module`**：用 `nn.Module` 实现 {doc}`fc-layer-basics` 和 {doc}`cnn-basics` 中的架构
+4. **{doc}`auto-grad`**：`.backward()` 就是 {ref}`back-propagation` 的自动化
+5. **{doc}`optimiser`**：`optimizer.step()` 实现 {ref}`gradient-descent` 的各种变体
+6. **{doc}`train-workflow`**：把 {doc}`neural-training-basics` 中的流程代码化
+
+## 核心认知：API 即理论
+
+记住这个公式：
+
+$$
+\text{PyTorch API} = \text{数学概念} + \text{工程优化}
+$$
+
+**例子**：`nn.Conv2d` 的背后
+- **数学**：卷积运算 $Y[i,j] = \sum_{u,v} X[i+u, j+v] \cdot K[u,v]$
+- **工程**：CuDNN 优化的 GPU 实现，比手写快 100 倍
+
+你的任务是理解**数学概念**，工程优化 PyTorch 已经帮你做了。
+
+## 开始之前
+
+~~~{admonition} 本章的学习心法
+:class: tip
+
+1. **带着理论学代码**：每看到一个 API，问"这对应哪个数学概念？"
+2. **动手实验**：修改参数看结果变化，比看书更有效
+3. **善用帮助**：`help(torch.nn.Conv2d)` 会告诉你数学公式和参数说明
+4. **连接前后**：随时回顾 {doc}`../math-fundamentals/index` 和 {doc}`../neural-network-basics/index` 的对应内容
+~~~
+
+**一句话总结**：本章不是学新东西，而是用 PyTorch **重新表达**你已经懂的理论。
+
+准备好了吗？让我们从张量开始——这是 PyTorch 世界的"原子"。
