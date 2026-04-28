@@ -344,7 +344,7 @@ print(f"可训练参数量: {trainable_params:,}")
 
 ### 参数初始化
 
-良好的初始化对训练很重要（见 {doc}`neural-training-basics`）：
+良好的初始化对训练很重要:
 
 ```python
 def initialize_weights(m):
