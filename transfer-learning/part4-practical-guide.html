@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>第四部分：实操指南 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+    <title>实操指南 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
   
   
   
@@ -44,11 +44,375 @@
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script src="../_static/translations.js?v=beaddf03"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'transfer-learning/part4-practical-guide';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="深度学习中的度量学习" href="../metric-learning/index.html" />
-    <link rel="prev" title="第三部分：基于模型的迁移" href="part3-model-transfer.html" />
+    <link rel="next" title="结语：站在巨人的肩膀上" href="the-end.html" />
+    <link rel="prev" title="基于模型的迁移" href="part3-model-transfer.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
   </head>
@@ -136,7 +500,7 @@
   
   
   
-    <p class="title logo__title">Deep Learning Club</p>
+    <p class="title logo__title">UCS Deep Learning Club</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -190,23 +554,17 @@
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN消融研究：理解卷积神经网络各组件的作用</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：什么是消融研究？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：消融研究的科学方法论</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">深度学习中的迁移学习</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="part1-intro.html">第一部分：导论与核心思想</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part2-taxonomy.html">第二部分：迁移学习分类体系</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part3-model-transfer.html">第三部分：基于模型的迁移</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">第四部分：实操指南</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../metric-learning/index.html">深度学习中的度量学习</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../metric-learning/part1-intro.html">第一部分：导论与核心概念</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../metric-learning/part2-taxonomy.html">第二部分：分类体系与网络架构</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../metric-learning/part3-loss-functions.html">第三部分：核心损失函数设计</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../metric-learning/part4-practical-guide.html">第四部分：实践指南</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">迁移学习与微调</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">结语：站在巨人的肩膀上</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../attention-mechanisms/index.html">CNN中的注意力机制：从 SE-Net 到 CBAM</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -438,7 +796,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>第四部分：实操指南</h1>
+    <h1>实操指南</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -448,33 +806,39 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">4.1 数据集相似性判断</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">4.1.1 图像领域</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">4.1.2 任务粒度</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">4.1.3 实用判断方法</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">数据集相似性判断</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">常见陷阱与对策</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">项目检查清单</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">项目启动前</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">模型构建</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">训练阶段</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">评估迭代</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">4.2 常见陷阱与对策</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">4.2.1 灾难性遗忘</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">4.2.2 过拟合</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">4.2.3 学习率设置不当</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">4.2.4 预处理不一致</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">4.3 项目检查清单</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">项目启动前</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">模型构建</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">训练阶段</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">评估迭代</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">4.4 高级技巧</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">高级技巧</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tta">测试时增强（TTA）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">集成学习</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">持续学习</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">集成学习</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">项目案例：医学影像分类实战</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">问题背景</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">方案设计与实现</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">步骤1：数据准备与增强</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">步骤2：模型构建（分层微调）</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">步骤3：训练循环与早停</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">步骤4：评估与TTA</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">4.5 本章小结</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">实验结果</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">调试记录</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">持续学习</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">本章小结</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">下一步</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">参考文献</a></li>
 </ul>
             </nav>
         </div>
@@ -486,13 +850,19 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="id1">
-<h1>第四部分：实操指南<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
-<p>本章聚焦实际应用中的关键决策点和常见陷阱。</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="transfer-learning-practical">
+<span id="id1"></span><h1>实操指南<a class="headerlink" href="#transfer-learning-practical" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="part3-model-transfer.html#transfer-learning-model"><span class="std std-ref">基于模型的迁移</span></a> 中我们学习了特征提取和微调两种策略。但实践中还有很多具体问题：</p>
+<ul class="simple">
+<li><p>我的数据集应该用特征提取还是微调？</p></li>
+<li><p>学习率设置多大？冻结哪些层？</p></li>
+<li><p>为什么验证集准确率比训练集低这么多？</p></li>
+</ul>
+<p><strong>本章就是深度学习的&quot;避坑指南&quot;</strong>——聚焦实际应用中的关键决策点和常见陷阱，帮助你在真实项目中少走弯路。</p>
 <section id="id2">
-<h2>4.1 数据集相似性判断<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<section id="id3">
-<h3>4.1.1 图像领域<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<h2>数据集相似性判断<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<ol class="arabic">
+<li><p>图像领域</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>目标领域</p></th>
@@ -520,85 +890,176 @@ document.write(`
 </tbody>
 </table>
 </div>
-</section>
-<section id="id4">
-<h3>4.1.2 任务粒度<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+</li>
+<li><p>任务粒度</p>
 <ul class="simple">
 <li><p><strong>粗粒度分类</strong>（猫 vs 狗）：域相似度高，特征提取即可</p></li>
 <li><p><strong>中等粒度</strong>（犬种分类）：部分微调</p></li>
 <li><p><strong>细粒度分类</strong>（鸟类物种）：全量微调 + 数据增强</p></li>
 </ul>
-</section>
-<section id="id5">
-<h3>4.1.3 实用判断方法<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+</li>
+<li><p>实用判断方法</p>
 <ol class="arabic simple">
 <li><p><strong>直接测试</strong>：用预训练模型提取特征，训练简单分类器，性能&gt;70%说明相似度高</p></li>
 <li><p><strong>对比实验</strong>：同时尝试特征提取和微调，选择验证集性能更好的策略</p></li>
 </ol>
+</li>
+</ol>
 </section>
-</section>
-<section id="id6">
-<h2>4.2 常见陷阱与对策<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
-<section id="id7">
-<h3>4.2.1 灾难性遗忘<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
-<p>模型在目标任务上微调后，遗忘预训练阶段学到的通用知识。</p>
+<section id="id3">
+<h2>常见陷阱与对策<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<ol class="arabic">
+<li><p>灾难性遗忘——学新忘旧</p>
+<p><strong>直觉理解</strong>：</p>
+<blockquote>
+<div><p>想象你学了很多年英语（预训练），然后突然开始密集学法语（微调）。</p>
+<p>如果学得太猛，你可能会发现：</p>
+<ul class="simple">
+<li><p>✅ 法语进步很快</p></li>
+<li><p>❌ 英语开始遗忘（以前记得的单词想不起来了）</p></li>
+</ul>
+<p>这就是<strong>灾难性遗忘</strong>——新任务学得越好，旧知识忘得越多。</p>
+</div></blockquote>
+<p><strong>为什么会发生？</strong></p>
+<p>神经网络的权重就像是&quot;记忆&quot;。当你用新数据训练时，权重会被更新。如果学习率太大，新数据会&quot;覆盖&quot;旧记忆。</p>
+<p><strong>生活中的类比</strong>：</p>
+<blockquote>
+<div><p>你的大脑有100个抽屉存储知识：</p>
+<ul class="simple">
+<li><p>预训练时：英语知识分散存储在80个抽屉里</p></li>
+<li><p>微调时：如果暴力地把法语知识塞进这些抽屉</p></li>
+<li><p>结果：英语知识被挤掉了（灾难性遗忘）</p></li>
+</ul>
+<p><strong>解决方案</strong>：</p>
+<ul class="simple">
+<li><p>只打开几个抽屉放法语（小学习率）</p></li>
+<li><p>或者只增加新的小抽屉（LoRA）</p></li>
+</ul>
+</div></blockquote>
 <p><strong>缓解策略</strong>：</p>
 <ol class="arabic simple">
-<li><p>使用较小学习率（预训练权重：1e-5 到 1e-4）</p></li>
-<li><p>分层学习率（浅层更小lr）</p></li>
-<li><p>使用PEFT方法（LoRA、Adapter）</p></li>
+<li><p><strong>使用较小学习率</strong>（预训练权重：1e-5 到 1e-4）</p></li>
 </ol>
-</section>
-<section id="id8">
-<h3>4.2.2 过拟合<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
-<p>小数据集上微调大模型，模型&quot;记住&quot;训练样本而非学习规律。</p>
-<p><strong>识别信号</strong>：训练损失下降但验证损失不下降或上升</p>
+<ul class="simple">
+<li><p>就像学法语时，每天只学1小时，保留英语的时间</p></li>
+</ul>
+<ol class="arabic simple" start="2">
+<li><p><strong>分层学习率</strong>（浅层更小lr）</p></li>
+</ol>
+<ul class="simple">
+<li><p>基础的语法知识（浅层）不改动，只调整词汇用法（深层）</p></li>
+</ul>
+<ol class="arabic simple" start="3">
+<li><p><strong>使用PEFT方法</strong>（LoRA、Adapter）</p></li>
+</ol>
+<ul class="simple">
+<li><p>不为法语占用原有抽屉，而是新建一个小抽屉专门存差异</p></li>
+</ul>
+</li>
+<li><p>过拟合——死记硬背而不是真正学会</p>
+<p><strong>直觉理解</strong>：</p>
+<blockquote>
+<div><p>想象你在准备数学考试，但只有10道练习题（小数据集）。</p>
+<p><strong>过拟合的表现</strong>：</p>
+<ul class="simple">
+<li><p>你把这10道题的答案背得滚瓜烂熟（训练准确率99%）</p></li>
+<li><p>考试时遇到新题目，完全不会做（验证准确率50%）</p></li>
+<li><p>你只是&quot;记住&quot;了答案，没有&quot;学会&quot;解题方法</p></li>
+</ul>
+</div></blockquote>
+<p><strong>为什么迁移学习容易过拟合？</strong></p>
+<p>预训练模型有2500万个参数（ResNet50），而你的数据集可能只有100张图片。<strong>参数太多，数据太少</strong>——模型有足够的&quot;记忆力&quot;把每张图都背下来。</p>
+<p><strong>识别信号</strong>：</p>
+<ul class="simple">
+<li><p>训练准确率持续上升（模型在学答案）</p></li>
+<li><p>验证准确率停滞或下降（泛化能力差）</p></li>
+<li><p>两者的差距越来越大（过拟合严重）</p></li>
+</ul>
 <p><strong>应对策略</strong>：</p>
-<ol class="arabic simple">
-<li><p><strong>数据增强</strong>：随机裁剪、翻转、旋转、颜色抖动</p></li>
-<li><p><strong>早停</strong>：监控验证集性能，不再提升时停止</p></li>
-<li><p><strong>正则化</strong>：权重衰减（weight_decay=1e-4）、Dropout</p></li>
-<li><p><strong>减少可训练参数</strong>：特征提取或PEFT</p></li>
-</ol>
-</section>
-<section id="id9">
-<h3>4.2.3 学习率设置不当<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>策略</p></th>
+<th class="head"><p>直觉解释</p></th>
+<th class="head"><p>怎么做</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>数据增强</strong></p></td>
+<td><p>让10道题变100道（变换角度、裁剪）</p></td>
+<td><p>随机裁剪、翻转、颜色抖动</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>早停</strong></p></td>
+<td><p>不要背太狠，适可而止</p></td>
+<td><p>验证不提升就停止</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>正则化</strong></p></td>
+<td><p>惩罚&quot;死记硬背&quot;，鼓励&quot;理解&quot;</p></td>
+<td><p>weight_decay=1e-4</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>减少参数</strong></p></td>
+<td><p>减少&quot;记忆力&quot;，迫使&quot;理解&quot;</p></td>
+<td><p>特征提取或LoRA</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</li>
+<li><p>学习率设置不当</p>
 <ul class="simple">
 <li><p><strong>学习率过大</strong>：损失震荡不收敛，破坏预训练权重 → 降低学习率</p></li>
 <li><p><strong>学习率过小</strong>：收敛极慢，陷入局部最优 → 增大学习率，使用调度器</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 推荐配置</span>
-<span class="n">scheduler</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">ReduceLROnPlateau</span><span class="p">(</span>
-    <span class="n">optimizer</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">patience</span><span class="o">=</span><span class="mi">5</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.optim</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">optim</span>
+
+<span class="c1"># 学习率调度器：当验证损失不再下降时自动降低学习率</span>
+<span class="c1"># 这在微调时特别有用，防止后期学习率过大破坏预训练权重</span>
+<span class="c1"># 参见 {ref}`learning-rate-scheduling` 中学习率调整策略</span>
+<span class="n">scheduler</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">ReduceLROnPlateau</span><span class="p">(</span>
+    <span class="n">optimizer</span><span class="p">,</span>      <span class="c1"># 要调整的优化器</span>
+    <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">,</span>     <span class="c1"># 监控指标越小越好（如损失）</span>
+    <span class="n">factor</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>     <span class="c1"># 学习率衰减因子（新lr = 旧lr × 0.1）</span>
+    <span class="n">patience</span><span class="o">=</span><span class="mi">5</span>      <span class="c1"># 等待5个epoch，如果指标不改善就降低学习率</span>
 <span class="p">)</span>
+
+<span class="c1"># 在训练循环中使用</span>
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_epochs</span><span class="p">):</span>
+    <span class="n">train</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>           <span class="c1"># 训练</span>
+    <span class="n">val_loss</span> <span class="o">=</span> <span class="n">validate</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>  <span class="c1"># 验证</span>
+    <span class="n">scheduler</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">val_loss</span><span class="p">)</span>  <span class="c1"># 根据验证损失调整学习率</span>
 </pre></div>
 </div>
-</section>
-<section id="id10">
-<h3>4.2.4 预处理不一致<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+</li>
+<li><p>预处理不一致</p>
 <p>预训练模型对输入数据有特定预处理要求，必须匹配：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ImageNet标准化参数</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchvision</span><span class="w"> </span><span class="kn">import</span> <span class="n">transforms</span>
+
+<span class="c1"># ImageNet标准化参数（必须与预训练时使用的完全一致）</span>
+<span class="c1"># 这些参数来自 ImageNet 数据集统计：mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]</span>
+<span class="c1"># 参见 {doc}`../pytorch-practice/train-workflow` 中数据预处理部分</span>
 <span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
-    <span class="n">transforms</span><span class="o">.</span><span class="n">Resize</span><span class="p">(</span><span class="mi">256</span><span class="p">),</span>
-    <span class="n">transforms</span><span class="o">.</span><span class="n">CenterCrop</span><span class="p">(</span><span class="mi">224</span><span class="p">),</span>
-    <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
-    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="p">[</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> 
-                         <span class="n">std</span><span class="o">=</span><span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">])</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">Resize</span><span class="p">(</span><span class="mi">256</span><span class="p">),</span>      <span class="c1"># 短边调整为256，保持长宽比</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">CenterCrop</span><span class="p">(</span><span class="mi">224</span><span class="p">),</span>  <span class="c1"># 中心裁剪为224×224（ResNet输入尺寸）</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>       <span class="c1"># PIL Image → Tensor，并归一化到[0,1]</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span>        <span class="c1"># 标准化：(x - mean) / std</span>
+        <span class="n">mean</span><span class="o">=</span><span class="p">[</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span>   <span class="c1"># ImageNet R,G,B 通道均值</span>
+        <span class="n">std</span><span class="o">=</span><span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">]</span>     <span class="c1"># ImageNet R,G,B 通道标准差</span>
+    <span class="p">)</span>
 <span class="p">])</span>
 </pre></div>
 </div>
 <p><strong>关键检查点</strong>：</p>
 <ul class="contains-task-list simple">
 <li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 输入尺寸匹配（通常224×224）</p></li>
-<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 使用正确的归一化参数</p></li>
-<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 颜色通道顺序正确（RGB）</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 使用正确的归一化参数（必须与预训练一致）</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 颜色通道顺序正确（RGB，不是BGR）</p></li>
 </ul>
+</li>
+</ol>
 </section>
-</section>
-<section id="id11">
-<h2>4.3 项目检查清单<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
-<section id="id12">
-<h3>项目启动前<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
+<section id="id4">
+<h2>项目检查清单<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<section id="id5">
+<h3>项目启动前<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
 <ul class="contains-task-list simple">
 <li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 评估目标数据集大小与质量</p></li>
 <li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 判断与预训练域的相似性</p></li>
@@ -606,8 +1067,8 @@ document.write(`
 <li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 确定迁移策略</p></li>
 </ul>
 </section>
-<section id="id13">
-<h3>模型构建<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<section id="id6">
+<h3>模型构建<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
 <ul class="contains-task-list simple">
 <li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 正确加载预训练权重</p></li>
 <li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 替换输出层为目标类别数</p></li>
@@ -615,8 +1076,8 @@ document.write(`
 <li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 实现正确的数据预处理</p></li>
 </ul>
 </section>
-<section id="id14">
-<h3>训练阶段<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
+<section id="id7">
+<h3>训练阶段<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
 <ul class="contains-task-list simple">
 <li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 设置合理的学习率（分层或统一）</p></li>
 <li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 添加早停机制</p></li>
@@ -624,8 +1085,8 @@ document.write(`
 <li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 监控训练和验证指标</p></li>
 </ul>
 </section>
-<section id="id15">
-<h3>评估迭代<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<section id="id8">
+<h3>评估迭代<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
 <ul class="contains-task-list simple">
 <li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 在独立测试集上评估</p></li>
 <li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 分析错误样本</p></li>
@@ -633,31 +1094,511 @@ document.write(`
 </ul>
 </section>
 </section>
-<section id="id16">
-<h2>4.4 高级技巧<a class="headerlink" href="#id16" title="Link to this heading">#</a></h2>
+<section id="id9">
+<h2>高级技巧<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
 <section id="tta">
 <h3>测试时增强（TTA）<a class="headerlink" href="#tta" title="Link to this heading">#</a></h3>
-<p>对测试图像进行多轮增强，取平均预测，可提升1-3%性能。</p>
-</section>
-<section id="id17">
-<h3>集成学习<a class="headerlink" href="#id17" title="Link to this heading">#</a></h3>
-<p>使用多个预训练模型集成：</p>
+<p><strong>核心思想</strong>：对同一张测试图像应用不同的数据增强，取多个预测的平均，降低预测方差。</p>
+<p><strong>为什么有效？</strong></p>
 <ul class="simple">
-<li><p>不同架构（ResNet + EfficientNet + ViT）</p></li>
-<li><p>不同预训练数据</p></li>
+<li><p>模型对图像的微小变化敏感</p></li>
+<li><p>多视角预测取平均，减少随机性</p></li>
+<li><p>类似于&quot;投票机制&quot;，更稳定</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torchvision.transforms</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">transforms</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">tta_predict</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">image_path</span><span class="p">,</span> <span class="n">num_augmentations</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    测试时增强预测</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        model: 训练好的模型</span>
+<span class="sd">        image_path: 测试图像路径</span>
+<span class="sd">        num_augmentations: TTA增强次数</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        平均预测概率</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+    
+    <span class="c1"># 基础预处理（必须保持与训练一致）</span>
+    <span class="n">base_transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">Resize</span><span class="p">(</span><span class="mi">256</span><span class="p">),</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">CenterCrop</span><span class="p">(</span><span class="mi">224</span><span class="p">),</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">([</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">])</span>
+    <span class="p">])</span>
+    
+    <span class="c1"># TTA增强变换（在基础变换上增加随机性）</span>
+    <span class="n">tta_transforms</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># 原始图像</span>
+        <span class="n">base_transform</span><span class="p">,</span>
+        <span class="c1"># 水平翻转</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">Resize</span><span class="p">(</span><span class="mi">256</span><span class="p">),</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">CenterCrop</span><span class="p">(</span><span class="mi">224</span><span class="p">),</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">RandomHorizontalFlip</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>  <span class="c1"># 必定翻转</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">([</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">])</span>
+        <span class="p">]),</span>
+        <span class="c1"># 轻微旋转</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">Resize</span><span class="p">(</span><span class="mi">256</span><span class="p">),</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">CenterCrop</span><span class="p">(</span><span class="mi">224</span><span class="p">),</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">RandomRotation</span><span class="p">(</span><span class="n">degrees</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)),</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">([</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">])</span>
+        <span class="p">]),</span>
+        <span class="c1"># 偏移裁剪（左上角）</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">Resize</span><span class="p">(</span><span class="mi">256</span><span class="p">),</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">Lambda</span><span class="p">(</span><span class="k">lambda</span> <span class="n">img</span><span class="p">:</span> <span class="n">transforms</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">crop</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">)),</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">([</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">])</span>
+        <span class="p">]),</span>
+        <span class="c1"># 偏移裁剪（右下角）</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">Resize</span><span class="p">(</span><span class="mi">256</span><span class="p">),</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">Lambda</span><span class="p">(</span><span class="k">lambda</span> <span class="n">img</span><span class="p">:</span> <span class="n">transforms</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">crop</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">)),</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">([</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">])</span>
+        <span class="p">]),</span>
+    <span class="p">]</span>
+    
+    <span class="c1"># 加载原始图像</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;RGB&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># 收集所有预测</span>
+    <span class="n">all_predictions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">transform</span> <span class="ow">in</span> <span class="n">tta_transforms</span><span class="p">[:</span><span class="n">num_augmentations</span><span class="p">]:</span>
+            <span class="n">input_tensor</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">image</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+            <span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">all_predictions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
+    
+    <span class="c1"># 取平均</span>
+    <span class="n">avg_prediction</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">all_predictions</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">avg_prediction</span>
+
+<span class="c1"># 使用示例</span>
+<span class="n">prediction</span> <span class="o">=</span> <span class="n">tta_predict</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s1">&#39;test_image.jpg&#39;</span><span class="p">,</span> <span class="n">num_augmentations</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">predicted_class</span> <span class="o">=</span> <span class="n">prediction</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+<span class="n">confidence</span> <span class="o">=</span> <span class="n">prediction</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;预测类别: </span><span class="si">{</span><span class="n">predicted_class</span><span class="si">}</span><span class="s2">, 置信度: </span><span class="si">{</span><span class="n">confidence</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>TTA 使用建议</strong>：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>场景</p></th>
+<th class="head"><p>推荐增强数</p></th>
+<th class="head"><p>预期提升</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>追求速度</p></td>
+<td><p>2（原图+水平翻转）</p></td>
+<td><p>0.5-1%</p></td>
+</tr>
+<tr class="row-odd"><td><p>平衡方案</p></td>
+<td><p>5（上述代码）</p></td>
+<td><p>1-2%</p></td>
+</tr>
+<tr class="row-even"><td><p>追求精度</p></td>
+<td><p>10+（更多裁剪/旋转）</p></td>
+<td><p>2-3%</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>注意事项</strong>：</p>
+<ul class="simple">
+<li><p>TTA只在<strong>测试阶段</strong>使用，不增加训练时间</p></li>
+<li><p>对于已经过拟合的模型，TTA提升有限</p></li>
+<li><p>分类任务效果最明显，检测/分割任务需要适配</p></li>
 </ul>
 </section>
-<section id="id18">
-<h3>持续学习<a class="headerlink" href="#id18" title="Link to this heading">#</a></h3>
-<p>模型需持续适应新任务时：</p>
+<section id="id10">
+<h3>集成学习<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<p>使用多个预训练模型集成，进一步提升性能：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torchvision.models</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">models</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">ensemble_predict</span><span class="p">(</span><span class="n">model_paths</span><span class="p">,</span> <span class="n">image_path</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    多模型集成预测</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        model_paths: 多个模型路径列表</span>
+<span class="sd">        image_path: 测试图像</span>
+<span class="sd">        weights: 各模型权重（None表示等权重）</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># 加载多个模型</span>
+    <span class="n">models_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">model_paths</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">resnet50</span><span class="p">(</span><span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">fc</span><span class="o">.</span><span class="n">in_features</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+        <span class="n">models_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span>
+    
+    <span class="c1"># 预处理</span>
+    <span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">Resize</span><span class="p">(</span><span class="mi">256</span><span class="p">),</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">CenterCrop</span><span class="p">(</span><span class="mi">224</span><span class="p">),</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">([</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">])</span>
+    <span class="p">])</span>
+    
+    <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;RGB&#39;</span><span class="p">)</span>
+    <span class="n">input_tensor</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">image</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    
+    <span class="c1"># 收集各模型预测</span>
+    <span class="n">all_probs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">models_list</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+            <span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">all_probs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
+    
+    <span class="c1"># 加权平均</span>
+    <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">models_list</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">models_list</span><span class="p">)</span>
+    
+    <span class="n">ensemble_prob</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">p</span> <span class="k">for</span> <span class="n">w</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">all_probs</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">ensemble_prob</span>
+
+<span class="c1"># 使用不同架构集成（更强的集成效果）</span>
+<span class="c1"># ResNet50 + EfficientNet-B0 + ViT-Base</span>
+<span class="n">ensemble_models</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;resnet50_best.pth&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;efficientnet_best.pth&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;vit_best.pth&#39;</span>
+<span class="p">]</span>
+
+<span class="n">prediction</span> <span class="o">=</span> <span class="n">ensemble_predict</span><span class="p">(</span><span class="n">ensemble_models</span><span class="p">,</span> <span class="s1">&#39;test.jpg&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>集成策略对比</strong>：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>集成类型</p></th>
+<th class="head"><p>方法</p></th>
+<th class="head"><p>效果</p></th>
+<th class="head"><p>计算成本</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>同架构不同初始化</p></td>
+<td><p>相同模型，不同随机种子</p></td>
+<td><p>★★☆</p></td>
+<td><p>低</p></td>
+</tr>
+<tr class="row-odd"><td><p>不同架构</p></td>
+<td><p>ResNet + EfficientNet + ViT</p></td>
+<td><p>★★★</p></td>
+<td><p>中</p></td>
+</tr>
+<tr class="row-even"><td><p>不同预训练数据</p></td>
+<td><p>ImageNet + 医学数据 + 领域数据</p></td>
+<td><p>★★★</p></td>
+<td><p>高</p></td>
+</tr>
+<tr class="row-odd"><td><p>TTA + 集成</p></td>
+<td><p>先TTA再集成</p></td>
+<td><p>★★★★</p></td>
+<td><p>很高</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>集成学习的前提</strong>：</p>
 <ul class="simple">
-<li><p>使用PEFT方法（LoRA、Adapter）</p></li>
-<li><p>考虑经验回放或EWC等持续学习方法 <span id="id19">[<a class="reference internal" href="#id37" title="James Kirkpatrick, Razvan Pascanu, Neil Rabinowitz, Joel Veness, Guillaume Desjardins, Andrei A Rusu, Kieran Milan, John Quan, Tiago Ramalho, Agnieszka Grabska-Barwinska, and others. Overcoming catastrophic forgetting in neural networks. Proceedings of the National Academy of Sciences, 114(13):3521–3526, 2017.">KPR+17</a>]</span></p></li>
+<li><p>单个模型性能不能太差（至少&gt;70%）</p></li>
+<li><p>模型间要有<strong>差异性</strong>（不能是完全相同的预测）</p></li>
+<li><p>模型数量不是越多越好，通常3-5个足够</p></li>
+</ul>
+</section>
+<section id="id11">
+<h3>项目案例：医学影像分类实战<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<p>下面通过一个完整案例，展示迁移学习在真实项目中的应用。</p>
+<section id="id12">
+<h4>问题背景<a class="headerlink" href="#id12" title="Link to this heading">#</a></h4>
+<p><strong>任务</strong>：从胸部X光片中识别肺炎
+<strong>数据</strong>：</p>
+<ul class="simple">
+<li><p>训练集：正常 1,341张，肺炎 3,876张（类别不平衡）</p></li>
+<li><p>验证集：正常 234张，肺炎 390张</p></li>
+<li><p>测试集：正常 234张，肺炎 390张</p></li>
+<li><p>图像尺寸：原始1024×1024，预处理为224×224</p></li>
+</ul>
+<p><strong>挑战</strong>：</p>
+<ol class="arabic simple">
+<li><p>数据量小（总计约5,000张）</p></li>
+<li><p>类别不平衡（正常:肺炎 ≈ 1:3）</p></li>
+<li><p>医学图像与自然图像差异大</p></li>
+</ol>
+</section>
+<section id="id13">
+<h4>方案设计与实现<a class="headerlink" href="#id13" title="Link to this heading">#</a></h4>
+<object data="../_images/mermaid-067b426a7225d278f8074540fa3f1e9e2b388946.svg" type="image/svg+xml">
+            <p class="warning">flowchart LR
+    A[数据准备] --&gt; B[选择预训练模型]
+    B --&gt; C[迁移策略]
+    C --&gt; D[训练优化]
+    D --&gt; E[评估测试]
+    
+    A1[数据增强&lt;br/&gt;类别平衡] --&gt; A
+    B1[ResNet50&lt;br/&gt;ImageNet预训练] --&gt; B
+    C1[分层微调&lt;br/&gt;渐进解冻] --&gt; C
+    D1[Focal Loss&lt;br/&gt;学习率调度] --&gt; D
+    E1[TTA&lt;br/&gt;混淆矩阵分析] --&gt; E</p></object>
+<section id="id14">
+<h5>步骤1：数据准备与增强<a class="headerlink" href="#id14" title="Link to this heading">#</a></h5>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torchvision.transforms</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">transforms</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataLoader</span><span class="p">,</span> <span class="n">WeightedRandomSampler</span>
+
+<span class="c1"># 训练时增强（强增强）</span>
+<span class="n">train_transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">Resize</span><span class="p">(</span><span class="mi">256</span><span class="p">),</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">RandomCrop</span><span class="p">(</span><span class="mi">224</span><span class="p">),</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">RandomHorizontalFlip</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">RandomRotation</span><span class="p">(</span><span class="n">degrees</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">)),</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">ColorJitter</span><span class="p">(</span><span class="n">brightness</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="mf">0.2</span><span class="p">),</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">([</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">])</span>
+<span class="p">])</span>
+
+<span class="c1"># 验证/测试时预处理（无增强）</span>
+<span class="n">val_transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">Resize</span><span class="p">(</span><span class="mi">256</span><span class="p">),</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">CenterCrop</span><span class="p">(</span><span class="mi">224</span><span class="p">),</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">([</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">])</span>
+<span class="p">])</span>
+
+<span class="c1"># 处理类别不平衡：计算每个类别的权重</span>
+<span class="n">class_counts</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1341</span><span class="p">,</span> <span class="mi">3876</span><span class="p">]</span>  <span class="c1"># 正常, 肺炎</span>
+<span class="n">class_weights</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">class_counts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+<span class="n">sample_weights</span> <span class="o">=</span> <span class="p">[</span><span class="n">class_weights</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">train_dataset</span><span class="p">]</span>
+<span class="n">sampler</span> <span class="o">=</span> <span class="n">WeightedRandomSampler</span><span class="p">(</span><span class="n">sample_weights</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_weights</span><span class="p">),</span> <span class="n">replacement</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">train_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">sampler</span><span class="o">=</span><span class="n">sampler</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id15">
+<h5>步骤2：模型构建（分层微调）<a class="headerlink" href="#id15" title="Link to this heading">#</a></h5>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torchvision.models</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">models</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.optim</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">optim</span>
+
+<span class="c1"># 加载预训练ResNet50</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">resnet50</span><span class="p">(</span><span class="n">weights</span><span class="o">=</span><span class="s1">&#39;IMAGENET1K_V1&#39;</span><span class="p">)</span>
+
+<span class="c1"># 替换分类头为2类（正常/肺炎）</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">fc</span><span class="o">.</span><span class="n">in_features</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># 分层学习率配置</span>
+<span class="c1"># 医学影像与自然影像差异较大，需要适度调整浅层</span>
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">([</span>
+    <span class="p">{</span><span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">layer1</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="s1">&#39;lr&#39;</span><span class="p">:</span> <span class="mf">1e-5</span><span class="p">},</span>
+    <span class="p">{</span><span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">layer2</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="s1">&#39;lr&#39;</span><span class="p">:</span> <span class="mf">1e-5</span><span class="p">},</span>
+    <span class="p">{</span><span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">layer3</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="s1">&#39;lr&#39;</span><span class="p">:</span> <span class="mf">5e-5</span><span class="p">},</span>
+    <span class="p">{</span><span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">layer4</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="s1">&#39;lr&#39;</span><span class="p">:</span> <span class="mf">1e-4</span><span class="p">},</span>
+    <span class="p">{</span><span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">fc</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="s1">&#39;lr&#39;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">}</span>
+<span class="p">])</span>
+
+<span class="c1"># 使用Focal Loss处理类别不平衡</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FocalLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">2.0</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="n">gamma</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">):</span>
+        <span class="n">ce_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+        <span class="n">pt</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">ce_loss</span><span class="p">)</span>
+        <span class="n">focal_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">pt</span><span class="p">)</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">ce_loss</span>
+        <span class="k">return</span> <span class="n">focal_loss</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+<span class="n">criterion</span> <span class="o">=</span> <span class="n">FocalLoss</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id16">
+<h5>步骤3：训练循环与早停<a class="headerlink" href="#id16" title="Link to this heading">#</a></h5>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">best_val_acc</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">patience</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">patience_counter</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">50</span><span class="p">):</span>  <span class="c1"># 最多训练50轮</span>
+    <span class="c1"># 训练阶段</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+    <span class="n">train_loss</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">images</span><span class="p">,</span> <span class="n">labels</span> <span class="ow">in</span> <span class="n">train_loader</span><span class="p">:</span>
+        <span class="n">images</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">labels</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">images</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+        <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        
+        <span class="n">train_loss</span> <span class="o">+=</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    
+    <span class="c1"># 验证阶段</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+    <span class="n">val_correct</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">val_total</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">images</span><span class="p">,</span> <span class="n">labels</span> <span class="ow">in</span> <span class="n">val_loader</span><span class="p">:</span>
+            <span class="n">images</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">labels</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">images</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">predicted</span> <span class="o">=</span> <span class="n">outputs</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">val_total</span> <span class="o">+=</span> <span class="n">labels</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">val_correct</span> <span class="o">+=</span> <span class="n">predicted</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    
+    <span class="n">val_acc</span> <span class="o">=</span> <span class="mf">100.</span> <span class="o">*</span> <span class="n">val_correct</span> <span class="o">/</span> <span class="n">val_total</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s2">: Train Loss=</span><span class="si">{</span><span class="n">train_loss</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">train_loader</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, Val Acc=</span><span class="si">{</span><span class="n">val_acc</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># 早停机制</span>
+    <span class="k">if</span> <span class="n">val_acc</span> <span class="o">&gt;</span> <span class="n">best_val_acc</span><span class="p">:</span>
+        <span class="n">best_val_acc</span> <span class="o">=</span> <span class="n">val_acc</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="s1">&#39;best_model.pth&#39;</span><span class="p">)</span>
+        <span class="n">patience_counter</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">patience_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">patience_counter</span> <span class="o">&gt;=</span> <span class="n">patience</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;早停触发，最佳验证准确率: </span><span class="si">{</span><span class="n">best_val_acc</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+            <span class="k">break</span>
+</pre></div>
+</div>
+</section>
+<section id="id17">
+<h5>步骤4：评估与TTA<a class="headerlink" href="#id17" title="Link to this heading">#</a></h5>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">confusion_matrix</span><span class="p">,</span> <span class="n">classification_report</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># 加载最佳模型</span>
+<span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;best_model.pth&#39;</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+<span class="c1"># 使用TTA进行测试</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">evaluate_with_tta</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">test_loader</span><span class="p">,</span> <span class="n">num_tta</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+    <span class="n">all_preds</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">all_labels</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">images</span><span class="p">,</span> <span class="n">labels</span> <span class="ow">in</span> <span class="n">test_loader</span><span class="p">:</span>
+            <span class="n">images</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+            
+            <span class="c1"># TTA预测</span>
+            <span class="n">batch_preds</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_tta</span><span class="p">):</span>
+                <span class="c1"># 添加轻微噪声进行增强</span>
+                <span class="n">noisy_images</span> <span class="o">=</span> <span class="n">images</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">images</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.01</span>
+                <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">noisy_images</span><span class="p">)</span>
+                <span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">batch_preds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
+            
+            <span class="c1"># 平均预测</span>
+            <span class="n">avg_probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">batch_preds</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">predicted</span> <span class="o">=</span> <span class="n">avg_probs</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            
+            <span class="n">all_preds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">predicted</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+            <span class="n">all_labels</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+    
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">all_preds</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">all_labels</span><span class="p">)</span>
+
+<span class="n">predictions</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">evaluate_with_tta</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">test_loader</span><span class="p">,</span> <span class="n">num_tta</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="c1"># 打印详细评估报告</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;分类报告：&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">classification_report</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">target_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;正常&#39;</span><span class="p">,</span> <span class="s1">&#39;肺炎&#39;</span><span class="p">]))</span>
+
+<span class="c1"># 混淆矩阵</span>
+<span class="n">cm</span> <span class="o">=</span> <span class="n">confusion_matrix</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">predictions</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;混淆矩阵：&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id18">
+<h4>实验结果<a class="headerlink" href="#id18" title="Link to this heading">#</a></h4>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>方法</p></th>
+<th class="head"><p>准确率</p></th>
+<th class="head"><p>召回率（肺炎）</p></th>
+<th class="head"><p>F1分数</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>从头训练</p></td>
+<td><p>82.3%</p></td>
+<td><p>78.5%</p></td>
+<td><p>0.81</p></td>
+</tr>
+<tr class="row-odd"><td><p>特征提取</p></td>
+<td><p>85.1%</p></td>
+<td><p>82.3%</p></td>
+<td><p>0.84</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>分层微调（本方案）</strong></p></td>
+<td><p><strong>91.7%</strong></p></td>
+<td><p><strong>90.2%</strong></p></td>
+<td><p><strong>0.91</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>+ TTA</p></td>
+<td><p>92.4%</p></td>
+<td><p>91.0%</p></td>
+<td><p>0.92</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>关键洞察</strong>：</p>
+<ol class="arabic simple">
+<li><p>分层学习率有效平衡了预训练知识的保留与新任务的适应</p></li>
+<li><p>Focal Loss显著改善了类别不平衡问题</p></li>
+<li><p>TTA在测试阶段提供了稳定的性能提升</p></li>
+</ol>
+</section>
+<section id="id19">
+<h4>调试记录<a class="headerlink" href="#id19" title="Link to this heading">#</a></h4>
+<p><strong>问题1</strong>：初期验证准确率停留在75%左右</p>
+<ul class="simple">
+<li><p><strong>诊断</strong>：学习率过大，破坏了预训练权重</p></li>
+<li><p><strong>解决</strong>：将预训练层学习率从1e-3降至1e-5</p></li>
+</ul>
+<p><strong>问题2</strong>：肺炎类别召回率低（仅70%）</p>
+<ul class="simple">
+<li><p><strong>诊断</strong>：类别不平衡导致模型偏向多数类</p></li>
+<li><p><strong>解决</strong>：使用WeightedRandomSampler + Focal Loss</p></li>
+</ul>
+<p><strong>问题3</strong>：训练集准确率&gt;95%，验证集&lt;80%</p>
+<ul class="simple">
+<li><p><strong>诊断</strong>：过拟合，数据增强不够</p></li>
+<li><p><strong>解决</strong>：增加ColorJitter和RandomRotation</p></li>
 </ul>
 </section>
 </section>
 <section id="id20">
-<h2>4.5 本章小结<a class="headerlink" href="#id20" title="Link to this heading">#</a></h2>
+<h3>持续学习<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
+<p>模型需持续适应新任务时：</p>
+<ul class="simple">
+<li><p>使用PEFT方法（LoRA、Adapter）</p></li>
+<li><p>考虑经验回放或EWC等持续学习方法 <span id="id21">[<a class="reference internal" href="#id41" title="James Kirkpatrick, Razvan Pascanu, Neil Rabinowitz, Joel Veness, Guillaume Desjardins, Andrei A Rusu, Kieran Milan, John Quan, Tiago Ramalho, Agnieszka Grabska-Barwinska, and others. Overcoming catastrophic forgetting in neural networks. Proceedings of the National Academy of Sciences, 114(13):3521–3526, 2017.">KPR+17</a>]</span></p></li>
+</ul>
+</section>
+</section>
+<section id="id22">
+<h2>本章小结<a class="headerlink" href="#id22" title="Link to this heading">#</a></h2>
 <p><strong>数据集相似性判断</strong>：内容相似性、任务粒度、量化方法</p>
 <p><strong>常见陷阱</strong>：</p>
 <ul class="simple">
@@ -667,12 +1608,18 @@ document.write(`
 <li><p>预处理 → 使用预训练时的预处理参数</p></li>
 </ul>
 <p><strong>核心思想</strong>：站在巨人的肩膀上，善用预训练知识。</p>
+<section id="id23">
+<h3>下一步<a class="headerlink" href="#id23" title="Link to this heading">#</a></h3>
+<p>完成了实操指南的学习，你已经掌握了迁移学习的完整技能栈。<a class="reference internal" href="the-end.html"><span class="doc">结语：站在巨人的肩膀上</span></a> 中，我们将回顾本章知识、整理学习资源、推荐动手项目，并展望接下来的学习路径。</p>
+</section>
+</section>
 <hr class="docutils" />
-<p><strong>参考文献</strong></p>
-<div class="docutils container" id="id21">
+<section id="id24">
+<h2>参考文献<a class="headerlink" href="#id24" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id25">
 <div role="list" class="citation-list">
-<div class="citation" id="id37" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id19">KPR+17</a><span class="fn-bracket">]</span></span>
+<div class="citation" id="id41" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id21">KPR+17</a><span class="fn-bracket">]</span></span>
 <p>James Kirkpatrick, Razvan Pascanu, Neil Rabinowitz, Joel Veness, Guillaume Desjardins, Andrei A Rusu, Kieran Milan, John Quan, Tiago Ramalho, Agnieszka Grabska-Barwinska, and others. Overcoming catastrophic forgetting in neural networks. <em>Proceedings of the National Academy of Sciences</em>, 114(13):3521–3526, 2017.</p>
 </div>
 </div>
@@ -684,7 +1631,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -692,6 +1639,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b5be2d6</code>
+                2026-04-28 - <strong>Heyan Zhu</strong>: docs: update documentation and improve content organization
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b7ed915</code>
                 2026-02-28 - <strong>Heyan Zhu</strong>: docs: add transfer learning
@@ -718,15 +1670,15 @@ document.write(`
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">上一页</p>
-        <p class="prev-next-title">第三部分：基于模型的迁移</p>
+        <p class="prev-next-title">基于模型的迁移</p>
       </div>
     </a>
     <a class="right-next"
-       href="../metric-learning/index.html"
+       href="the-end.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">深度学习中的度量学习</p>
+        <p class="prev-next-title">结语：站在巨人的肩膀上</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -746,33 +1698,39 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">4.1 数据集相似性判断</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">4.1.1 图像领域</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">4.1.2 任务粒度</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">4.1.3 实用判断方法</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">数据集相似性判断</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">常见陷阱与对策</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">项目检查清单</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">项目启动前</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">模型构建</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">训练阶段</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">评估迭代</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">4.2 常见陷阱与对策</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">4.2.1 灾难性遗忘</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">4.2.2 过拟合</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">4.2.3 学习率设置不当</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">4.2.4 预处理不一致</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">4.3 项目检查清单</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">项目启动前</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">模型构建</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">训练阶段</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">评估迭代</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">4.4 高级技巧</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">高级技巧</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tta">测试时增强（TTA）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">集成学习</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">持续学习</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">集成学习</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">项目案例：医学影像分类实战</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">问题背景</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">方案设计与实现</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">步骤1：数据准备与增强</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">步骤2：模型构建（分层微调）</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">步骤3：训练循环与早停</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">步骤4：评估与TTA</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">4.5 本章小结</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">实验结果</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">调试记录</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">持续学习</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">本章小结</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">下一步</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">参考文献</a></li>
 </ul>
   </nav></div>
 
@@ -797,7 +1755,7 @@ document.write(`
 
   <p class="copyright">
     
-      © Copyright 2025, UCS Deep Learning Club and Contributors, licensed under CC BY-SA 4.0.
+      © Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0.
       <br/>
     
   </p>
