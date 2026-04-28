@@ -5,8 +5,8 @@
 这是我们深度学习社的讲座材料库，包含了从基础到进阶的深度学习课程内容。
 
 
-```{admonition} 目录
-:class: note
+## 目录
+
 ~~~{toctree}
 :maxdepth: 1
 
@@ -21,11 +21,10 @@ attention-mechanisms/index
 unet-image-segmentation/index
 postscript
 ~~~
-```
 
 ## 学习路径
 
-```{mermaid}
+~~~{mermaid}
 graph LR
     A[数学基础] --> B[神经网络基础]
     B --> C[PyTorch实践]
@@ -35,7 +34,7 @@ graph LR
     D --> G[注意力机制]
     D --> H[度量学习]
     D --> I[U-Net分割]
-```
+~~~
 
 **建议顺序**：数学基础 → 神经网络基础 → PyTorch实践 → 选择感兴趣的进阶方向
 
@@ -49,7 +48,7 @@ graph LR
 
 **没达标？** 没关系，材料中会回顾必要概念，但预习会让你轻松很多。
 
-## 📖 阅读建议
+## 阅读建议
 
 | 章节 | 预计时间 | 重点 |
 |------|----------|------|

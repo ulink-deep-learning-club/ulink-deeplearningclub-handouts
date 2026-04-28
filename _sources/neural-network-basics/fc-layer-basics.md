@@ -1,3 +1,4 @@
+(fc-layer-basics)=
 # 全连接神经网络
 
 本章我们将实现最简单的神经网络架构——全连接层（Fully Connected Layer）。在深入之前，建议回顾{ref}`activation-functions`中讨论的**线性回归→多层感知机**的演变过程。全连接层源于感知机（Perceptron）{cite}`rosenblatt1958perceptron` 的思想，是多层感知机的现代实现。

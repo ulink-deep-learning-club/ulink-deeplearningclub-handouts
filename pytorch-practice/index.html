@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>PyTorch基础教程：从NumPy到深度学习 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+    <title>PyTorch 实践：把理论变成代码 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
   
   
   
@@ -44,10 +44,374 @@
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script src="../_static/translations.js?v=beaddf03"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'pytorch-practice/index';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="1. 引言：PyTorch的设计哲学与学习路径" href="introduction.html" />
+    <link rel="next" title="引言：从理论到代码" href="introduction.html" />
     <link rel="prev" title="总结与展望" href="../neural-network-basics/the-end.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
@@ -172,21 +536,21 @@
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律：模型越大越好吗？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">PyTorch基础教程：从NumPy到深度学习</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="introduction.html">1. 引言：PyTorch的设计哲学与学习路径</a></li>
-<li class="toctree-l2"><a class="reference internal" href="from-numpy-to-pytorch.html">从NumPy到PyTorch</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tensor-ops.html">3. 张量操作详解：PyTorch的核心数据结构</a></li>
-<li class="toctree-l2"><a class="reference internal" href="auto-grad.html">4. 自动微分：PyTorch的核心机制</a></li>
-<li class="toctree-l2"><a class="reference internal" href="optimiser.html">优化器</a></li>
-<li class="toctree-l2"><a class="reference internal" href="neural-network-module.html">神经网络模块</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best-practices.html">最佳实践</a></li>
-<li class="toctree-l2"><a class="reference internal" href="debug-and-visualise.html">调试与可视化</a></li>
+<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">PyTorch 实践：把理论变成代码</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimiser.html">优化器：用梯度更新参数</a></li>
 <li class="toctree-l2"><a class="reference internal" href="train-workflow.html">完整训练流程</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">结语：从入门到实践</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN消融研究：理解卷积神经网络各组件的作用</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -438,7 +802,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>PyTorch基础教程：从NumPy到深度学习</h1>
+    <h1>PyTorch 实践：把理论变成代码</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -449,9 +813,11 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">摘要</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">目录结构</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">前置要求</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">环境配置</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">本章概览</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">学习路径</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">前置要求</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">环境配置</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">目录</a></li>
 </ul>
             </nav>
         </div>
@@ -463,137 +829,244 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="pytorch-numpy">
-<h1>PyTorch基础教程：从NumPy到深度学习<a class="headerlink" href="#pytorch-numpy" title="Link to this heading">#</a></h1>
-<div class="note admonition">
-<p class="admonition-title">文档信息</p>
-<p><strong>作者</strong>: Anson, 深度学习社（与 DeepSeek V3.2 合作）<br />
-<strong>最后更新</strong>: 2025-12-15</p>
-</div>
+  <section class="tex2jax_ignore mathjax_ignore" id="pytorch">
+<span id="pytorch-practice"></span><h1>PyTorch 实践：把理论变成代码<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h1>
 <section id="id1">
 <h2>摘要<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
-<p>本文为具有Python背景的初学者提供全面的PyTorch教程。我们从NumPy的基础知识出发，逐步引入PyTorch的核心概念，包括张量操作、自动微分、神经网络模块和优化算法。通过对比NumPy和PyTorch的相似性与差异，我们帮助读者平滑过渡到深度学习框架。</p>
-<p>文章包含大量实际代码示例，涵盖数据加载、模型定义、训练循环和模型评估等完整流程。我们还介绍了调试技巧、可视化工具和最佳实践，帮助读者避免常见错误并提高开发效率。最后，通过一个完整的MNIST手写数字分类示例，我们将所有概念整合到实际应用中。</p>
+<p>还记得 <a class="reference internal" href="../math-fundamentals/index.html"><span class="doc">计算图、反向传播与梯度下降：深度学习核心数学基础</span></a> 中那些抽象的公式吗？</p>
+<ul class="simple">
+<li><p><strong>计算图</strong>描述了数据如何流动</p></li>
+<li><p><strong>反向传播</strong>把误差分摊给每个参数</p></li>
+<li><p><strong>梯度下降</strong>在损失曲面上寻找最优解</p></li>
+</ul>
+<p>还记得 <a class="reference internal" href="../neural-network-basics/index.html"><span class="doc">神经网络基础</span></a> 中那些架构分析吗？</p>
+<ul class="simple">
+<li><p>全连接网络有 <strong>20万参数</strong></p></li>
+<li><p>CNN 用权值共享减少到 <strong>6万</strong></p></li>
+<li><p>LeNet-5 是如何端到端训练的</p></li>
+</ul>
+<p><strong>但你可能还有一个疑问：这些理论怎么变成可运行的代码？</strong></p>
+<p>本章就是答案。我们将用 PyTorch 把前面的理论全部实现出来——从张量操作到完整训练流程，让你真正<strong>从知道到做到</strong>。</p>
 <div class="important admonition">
 <p class="admonition-title">学习目标</p>
-<p>完成本教程后，您将能够：</p>
+<p>完成本章后，你将能够：</p>
 <ol class="arabic simple">
-<li><p>理解PyTorch的核心概念和设计哲学</p></li>
-<li><p>熟练使用PyTorch张量进行各种操作</p></li>
-<li><p>掌握自动微分和梯度计算机制</p></li>
-<li><p>构建和训练自定义神经网络模型</p></li>
-<li><p>应用最佳实践进行模型调试和优化</p></li>
-<li><p>实现完整的深度学习项目工作流</p></li>
+<li><p>用 PyTorch 实现 <a class="reference internal" href="../math-fundamentals/index.html"><span class="doc">计算图、反向传播与梯度下降：深度学习核心数学基础</span></a> 中的计算图和反向传播</p></li>
+<li><p>搭建 <a class="reference internal" href="../neural-network-basics/index.html"><span class="doc">神经网络基础</span></a> 中的全连接网络和 CNN</p></li>
+<li><p>理解 PyTorch API 与理论概念的对应关系</p></li>
+<li><p>训练并调试一个完整的 MNIST 分类器</p></li>
+<li><p>掌握深度学习开发的工程实践技巧</p></li>
 </ol>
 </div>
 </section>
 <section id="id2">
-<h2>目录结构<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<div class="note admonition">
-<p class="admonition-title">快速导航</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">1. 引言：PyTorch的设计哲学与学习路径</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="introduction.html#id1">1.1 为什么需要深度学习框架？</a></li>
-<li class="toctree-l2"><a class="reference internal" href="introduction.html#id2">1.2 PyTorch的设计哲学</a></li>
-<li class="toctree-l2"><a class="reference internal" href="introduction.html#id4">1.3 学习路线图</a></li>
-<li class="toctree-l2"><a class="reference internal" href="introduction.html#id5">1.4 PyTorch版本演进</a></li>
-<li class="toctree-l2"><a class="reference internal" href="introduction.html#id6">1.5 学习资源</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="from-numpy-to-pytorch.html">从NumPy到PyTorch</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="from-numpy-to-pytorch.html#numpy">NumPy基础回顾</a></li>
-<li class="toctree-l2"><a class="reference internal" href="from-numpy-to-pytorch.html#pytorch-numpy">PyTorch张量：NumPy的扩展</a></li>
-<li class="toctree-l2"><a class="reference internal" href="from-numpy-to-pytorch.html#id1">关键差异</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="tensor-ops.html">3. 张量操作详解：PyTorch的核心数据结构</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tensor-ops.html#id1">3.1 什么是张量？</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tensor-ops.html#id4">创建张量</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tensor-ops.html#id5">张量属性</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tensor-ops.html#id6">索引和切片</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tensor-ops.html#id7">形状操作</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tensor-ops.html#id8">广播机制</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="auto-grad.html">4. 自动微分：PyTorch的核心机制</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="auto-grad.html#id1">4.1 计算图基础</a></li>
-<li class="toctree-l2"><a class="reference internal" href="auto-grad.html#id4">4.2 梯度计算规则</a></li>
-<li class="toctree-l2"><a class="reference internal" href="auto-grad.html#id7">4.3 梯度累积与控制</a></li>
-<li class="toctree-l2"><a class="reference internal" href="auto-grad.html#id10">4.4 禁用梯度计算</a></li>
-<li class="toctree-l2"><a class="reference internal" href="auto-grad.html#id13">4.5 高级主题</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="optimiser.html">优化器</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="optimiser.html#id2">优化器基础</a></li>
-<li class="toctree-l2"><a class="reference internal" href="optimiser.html#id3">常用优化器</a></li>
-<li class="toctree-l2"><a class="reference internal" href="optimiser.html#id4">学习率调度</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="neural-network-module.html">神经网络模块</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="neural-network-module.html#nn-module">nn.Module基础</a></li>
-<li class="toctree-l2"><a class="reference internal" href="neural-network-module.html#id2">常用层类型</a></li>
-<li class="toctree-l2"><a class="reference internal" href="neural-network-module.html#id3">序列容器</a></li>
-<li class="toctree-l2"><a class="reference internal" href="neural-network-module.html#id4">参数管理</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="best-practices.html">最佳实践</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="best-practices.html#id2">代码组织</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best-practices.html#id3">性能优化</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best-practices.html#id4">常见错误与解决方案</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="debug-and-visualise.html">调试与可视化</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="debug-and-visualise.html#id2">梯度检查</a></li>
-<li class="toctree-l2"><a class="reference internal" href="debug-and-visualise.html#id3">模型可视化</a></li>
-<li class="toctree-l2"><a class="reference internal" href="debug-and-visualise.html#tensorboard">TensorBoard集成</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="train-workflow.html">完整训练流程</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="train-workflow.html#id2">数据准备</a></li>
-<li class="toctree-l2"><a class="reference internal" href="train-workflow.html#id3">模型定义</a></li>
-<li class="toctree-l2"><a class="reference internal" href="train-workflow.html#id4">训练函数</a></li>
-<li class="toctree-l2"><a class="reference internal" href="train-workflow.html#id5">测试函数</a></li>
-<li class="toctree-l2"><a class="reference internal" href="train-workflow.html#id6">主训练循环</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="the-end.html">总结</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id2">关键要点</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id3">下一步学习</a></li>
-</ul>
-</li>
-</ul>
-</div>
+<h2>本章概览<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>章节</p></th>
+<th class="head"><p>内容</p></th>
+<th class="head"><p>与前面章节的联系</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="introduction.html"><span class="doc">引言：从理论到代码</span></a></p></td>
+<td><p>PyTorch 的设计哲学与学习路径</p></td>
+<td><p>为什么要用框架？</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="from-numpy-to-pytorch.html"><span class="doc">从 NumPy 到 PyTorch：张量的本质</span></a></p></td>
+<td><p>从 NumPy 平滑过渡到 PyTorch</p></td>
+<td><p><a class="reference internal" href="../math-fundamentals/computational-graph.html#computational-graph"><span class="std std-ref">计算图</span></a> 的实现</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="tensor-ops.html"><span class="doc">张量操作：数据在网络中的流动</span></a></p></td>
+<td><p>张量操作详解</p></td>
+<td><p>数据在计算图中如何流动</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="neural-network-module.html"><span class="doc">神经网络模块：搭建计算图</span></a></p></td>
+<td><p>用 <code class="docutils literal notranslate"><span class="pre">nn.Module</span></code> 搭建网络</p></td>
+<td><p><span class="xref std std-doc">fc-layer-basics</span> 和 <span class="xref std std-doc">cnn-basics</span> 的代码实现</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="auto-grad.html"><span class="doc">自动微分：PyTorch 的核心魔法</span></a></p></td>
+<td><p>自动微分机制</p></td>
+<td><p><a class="reference internal" href="../math-fundamentals/back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a> 的 PyTorch 实现</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="optimiser.html"><span class="doc">优化器：用梯度更新参数</span></a></p></td>
+<td><p>优化器与参数更新</p></td>
+<td><p><a class="reference internal" href="../math-fundamentals/gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a> 的多种变体</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="train-workflow.html"><span class="doc">完整训练流程</span></a></p></td>
+<td><p>完整训练流程</p></td>
+<td><p><span class="xref std std-doc">neural-training-basics</span> 的代码化</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="debug-and-visualise.html"><span class="doc">调试与可视化技巧</span></a></p></td>
+<td><p>调试与可视化技巧</p></td>
+<td><p>训练中的常见问题诊断</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="best-practices.html"><span class="doc">工程最佳实践</span></a></p></td>
+<td><p>工程最佳实践</p></td>
+<td><p><span class="xref std std-doc">scaling-law</span> 中的效率优化</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </section>
 <section id="id3">
-<h2>前置要求<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
-<div class="caution admonition">
-<p class="admonition-title">必备知识</p>
-<p>在开始学习本教程前，请确保您具备以下基础：</p>
-<ol class="arabic simple">
-<li><p><strong>Python编程</strong>：熟悉Python语法和基本数据结构</p></li>
-<li><p><strong>NumPy基础</strong>：了解数组操作和数学函数</p></li>
-<li><p><strong>线性代数</strong>：理解矩阵运算和向量空间</p></li>
-<li><p><strong>微积分</strong>：掌握导数和偏导数的概念</p></li>
-<li><p><strong>基础深度学习概念</strong>：了解神经网络的基本原理</p></li>
-</ol>
-</div>
+<h2>学习路径<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>本章是前两章的<strong>实践延伸</strong>：</p>
+<object data="../_images/mermaid-b496b34786a37029fd092cd995eb1e7a81e89e40.svg" type="image/svg+xml">
+            <p class="warning">graph LR
+    A[数学基础&lt;br/&gt;理解原理] --&gt; B[PyTorch 实践&lt;br/&gt;代码实现]
+    C[神经网络&lt;br/&gt;知道建什么] --&gt; B
+    B --&gt; D[你能独立搭建&lt;br/&gt;和训练神经网络]</p></object>
+<p><strong>核心认知</strong>：PyTorch 不是新技术，而是前两章理论的<strong>代码表达</strong>——每个 API 都有对应的数学概念。</p>
 </section>
 <section id="id4">
-<h2>环境配置<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<h2>前置要求<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<div class="caution admonition">
+<p class="admonition-title">学习本章前，请确保你已经掌握</p>
+<ol class="arabic simple">
+<li><p><strong>数学基础</strong>：<a class="reference internal" href="../math-fundamentals/index.html"><span class="doc">计算图、反向传播与梯度下降：深度学习核心数学基础</span></a> 中的计算图、反向传播、梯度下降</p></li>
+<li><p><strong>神经网络概念</strong>：<a class="reference internal" href="../neural-network-basics/index.html"><span class="doc">神经网络基础</span></a> 中的全连接、CNN、训练流程</p></li>
+<li><p><strong>Python 基础</strong>：熟悉 NumPy 数组操作</p></li>
+</ol>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">还没掌握？</p>
+<p>如果前两章的内容已经有些模糊，建议先快速回顾：</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../math-fundamentals/computational-graph.html#computational-graph"><span class="std std-ref">计算图</span></a>：数据流动的直觉</p></li>
+<li><p><a class="reference internal" href="../math-fundamentals/back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>：梯度如何回传</p></li>
+<li><p><a class="reference internal" href="../neural-network-basics/le-net.html"><span class="doc">LeNet-5架构详解</span></a>：一个完整网络长什么样</p></li>
+</ul>
+</div>
+</section>
+<section id="id5">
+<h2>环境配置<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
 <div class="tip admonition">
 <p class="admonition-title">安装指南</p>
-<p>推荐使用以下环境配置：</p>
-<ol class="arabic simple">
-<li><p><strong>Python 3.8+</strong>：最新稳定版本</p></li>
-<li><p><strong>PyTorch 2.0+</strong>：<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">torch</span> <span class="pre">torchvision</span></code></p></li>
-<li><p><strong>Jupyter Notebook</strong>：用于交互式学习</p></li>
-<li><p><strong>CUDA 11.8+</strong>：如需GPU加速（可选）</p></li>
-<li><p><strong>uv / Conda</strong>: <strong>可选的</strong>虚拟环境管理工具</p></li>
-</ol>
-<p>详细安装说明请参考<a class="reference external" href="https://pytorch.org/get-started/locally/">PyTorch官方文档</a>。</p>
+<p><strong>最低配置</strong>（CPU 即可学习）：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>torch<span class="w"> </span>torchvision
+</pre></div>
 </div>
+<p><strong>推荐配置</strong>（如果有 GPU）：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>torch<span class="w"> </span>torchvision<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu118
+</pre></div>
+</div>
+<p><strong>验证安装</strong>：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">())</span>  <span class="c1"># 有 GPU 会显示 True</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="id6">
+<h2>目录<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">引言：从理论到代码</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#id2">为什么要用框架？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#pytorch">PyTorch 与前面章节的对应</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#id4">PyTorch 的设计哲学</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#id6">本章学习路线图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#api">核心认知：API 即理论</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#id7">开始之前</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="from-numpy-to-pytorch.html#numpy">回顾：NumPy 是什么？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="from-numpy-to-pytorch.html#id1">为什么 NumPy 不够用？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="from-numpy-to-pytorch.html#pytorch-numpy-gpu">PyTorch 张量：NumPy + 自动微分 + GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="from-numpy-to-pytorch.html#id7">张量的属性：理解计算图节点</a></li>
+<li class="toctree-l2"><a class="reference internal" href="from-numpy-to-pytorch.html#numpy-vs-pytorch">完整示例：线性回归的 NumPy vs PyTorch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="from-numpy-to-pytorch.html#id9">常见陷阱</a></li>
+<li class="toctree-l2"><a class="reference internal" href="from-numpy-to-pytorch.html#id13">下一步</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tensor-ops.html">张量操作：数据在网络中的流动</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tensor-ops.html#id2">形状操作：改变张量的&quot;视图&quot;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tensor-ops.html#id3">广播机制：让不同形状的张量一起运算</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tensor-ops.html#id7">索引与切片：精准定位数据</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tensor-ops.html#id10">内存与性能</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tensor-ops.html#id11">操作速查表</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tensor-ops.html#id12">下一步</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="neural-network-module.html">神经网络模块：搭建计算图</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="neural-network-module.html#pytorch">从数学公式到 PyTorch 层</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neural-network-module.html#nn-module">nn.Module：构建网络的基石</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neural-network-module.html#id4">容器：组织多个层</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neural-network-module.html#id5">参数管理</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neural-network-module.html#id9">常见层详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neural-network-module.html#id13">下一步</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="auto-grad.html">自动微分：PyTorch 的核心魔法</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="auto-grad.html#id1">直觉理解：自动微分是什么？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auto-grad.html#id2">从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auto-grad.html#id3">计算图的自动构建</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auto-grad.html#backward">梯度计算：.backward() 的魔力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auto-grad.html#id8">梯度控制技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auto-grad.html#id11">实际应用：神经网络训练</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auto-grad.html#id14">高级主题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auto-grad.html#id17">总结</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimiser.html">优化器：用梯度更新参数</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimiser.html#id2">从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimiser.html#sgd">SGD：基础梯度下降</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimiser.html#momentum">Momentum：加速收敛</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimiser.html#adam">Adam：自适应学习率</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimiser.html#id7">优化器选择指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimiser.html#id8">学习率调度</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimiser.html#cifar-10">完整示例：CIFAR-10 训练</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimiser.html#id12">学习率调参建议</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimiser.html#id13">总结</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="train-workflow.html">完整训练流程</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="train-workflow.html#id2">训练流程概览</a></li>
+<li class="toctree-l2"><a class="reference internal" href="train-workflow.html#id3">数据准备</a></li>
+<li class="toctree-l2"><a class="reference internal" href="train-workflow.html#id5">模型定义</a></li>
+<li class="toctree-l2"><a class="reference internal" href="train-workflow.html#id6">训练函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="train-workflow.html#id7">验证函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="train-workflow.html#id9">主训练循环</a></li>
+<li class="toctree-l2"><a class="reference internal" href="train-workflow.html#id11">可视化训练过程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="train-workflow.html#id13">模型加载与推理</a></li>
+<li class="toctree-l2"><a class="reference internal" href="train-workflow.html#id15">总结</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="debug-and-visualise.html">调试与可视化技巧</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="debug-and-visualise.html#id2">为什么需要调试技巧？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="debug-and-visualise.html#id3">梯度检查：诊断训练的&quot;生命线&quot;</a></li>
+<li class="toctree-l2"><a class="reference internal" href="debug-and-visualise.html#tensorboard">训练过程可视化：TensorBoard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="debug-and-visualise.html#id11">常见训练问题诊断</a></li>
+<li class="toctree-l2"><a class="reference internal" href="debug-and-visualise.html#id15">下一步</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="best-practices.html">工程最佳实践</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="best-practices.html#id2">项目结构组织</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best-practices.html#id5">配置管理</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best-practices.html#id7">可复现性保证</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best-practices.html#id10">性能优化</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best-practices.html#id14">模型保存与加载的最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best-practices.html#id17">下一步</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="the-end.html">结语：从入门到实践</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id2">本章学习路径回顾</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id3">核心知识点总结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id5">推荐学习资源</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id9">下一步学习建议</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id10">学习建议</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id12">结语</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id13">参考资源汇总</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id14">参考文献</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<hr class="docutils" />
+<p><strong>开始之前的一句话</strong>：PyTorch 看起来很复杂，但核心就三样东西——<strong>张量</strong>（存数据）、<strong>自动微分</strong>（算梯度）、<strong>优化器</strong>（更新参数）。掌握了这三样，你就掌握了深度学习开发的全部工具。</p>
 </section>
 </section>
 
@@ -601,7 +1074,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (3 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -609,6 +1082,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b20ef3e</code>
+                2026-04-28 - <strong>Heyan Zhu</strong>: docs: update pytorch practice section with detailed explanations and code examples
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">dcecce4</code>
                 2026-01-26 - <strong>Heyan Zhu</strong>: docs: enrich math fundamentals documentation with code captions and TikZ visualizations
@@ -648,7 +1126,7 @@ document.write(`
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">1. 引言：PyTorch的设计哲学与学习路径</p>
+        <p class="prev-next-title">引言：从理论到代码</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -669,9 +1147,11 @@ document.write(`
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">摘要</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">目录结构</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">前置要求</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">环境配置</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">本章概览</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">学习路径</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">前置要求</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">环境配置</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">目录</a></li>
 </ul>
   </nav></div>
 

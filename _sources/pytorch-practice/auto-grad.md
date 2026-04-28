@@ -1,180 +1,294 @@
-# 4. 自动微分：PyTorch的核心机制
+(pytorch-autograd)=
+# 自动微分：PyTorch 的核心魔法
 
-```{admonition} 本章要点
-:class: important
+{doc}`./neural-network-module`中我们学会了构建神经网络结构。现在的问题是：**如何让网络"学习"？**
 
-- 理解动态计算图的工作原理
-- 掌握梯度计算的基本规则
-- 学习梯度累积与控制技巧
-- 了解何时以及如何禁用梯度计算
-- 应用自动微分解决实际问题
-```
+在 {doc}`../math-fundamentals/back-propagation`中，我们学习了反向传播算法的原理——通过链式法则将损失梯度从输出层传回输入层。但如果手动实现这个算法，代码会非常复杂且容易出错。
 
-## 4.1 计算图基础
+**PyTorch 的自动微分（autograd）就是解决方案**：它自动构建计算图并执行反向传播，让我们只需关注前向计算，梯度会自动计算。
 
-PyTorch使用**动态计算图**记录张量操作。计算图是深度学习框架的核心，它跟踪所有操作并自动计算梯度。
+## 直觉理解：自动微分是什么？
 
-### 4.1.1 什么是计算图？
+**类比：自动记账系统**
 
-计算图是有向无环图（DAG），其中：
-- **节点**：表示张量或操作
-- **边**：表示数据依赖关系
-- **叶子节点**：用户创建的张量（`requires_grad=True`）
-- **非叶子节点**：通过操作生成的张量
+想象你经营一家连锁餐厅：
+
+- **手动反向传播**：每道菜卖了多少钱，你需要手动追踪每一笔成本（食材、人工、租金），然后计算每个分店应该调整什么——极其繁琐且容易出错。
+- **自动微分**：你只需记录每笔交易（前向传播），系统自动生成财务报表（梯度），告诉你每个分店该如何调整。
+
+**核心洞察**：
+自动微分 = 自动构建计算图 + 自动执行反向传播 + 自动存储梯度
+
+## 从理论到代码
+
+| {doc}`../math-fundamentals/back-propagation` 理论 | PyTorch 实现 | 作用 |
+|--------------------------------------------------|-------------|------|
+| {ref}`computational-graph` | `requires_grad=True` | 标记需要计算梯度的张量 |
+| 链式法则 | `.backward()` | 自动回传梯度 |
+| 梯度存储 | `.grad` | 存储计算得到的梯度 |
+| 梯度清零 | `.zero_()` | 清除旧梯度，避免累积 |
+
+## 计算图的自动构建
+
+### 什么是动态计算图？
+
+PyTorch 使用**动态计算图**（Dynamic Computational Graph），这意味着：
+
+1. **图在运行时构建**：每次前向传播都会重新构建图
+2. **图结构可以变化**：支持 Python 控制流（if、for、while）
+3. **内存高效**：反向传播后可以释放中间结果
 
 ```{mermaid}
 flowchart TD
-    A[x: requires_grad=True] --> C[乘法]
-    B[y: requires_grad=True] --> C
-    C --> D[z = x * y]
-    D --> E[加法]
-    F[常数 2] --> E
-    E --> G[result = z + 2]
+    A["x<br/>requires_grad=True<br/>叶子节点"] --> C["乘法 op"]
+    B["w<br/>requires_grad=True<br/>叶子节点"] --> C
+    C --> D["z = x × w<br/>中间节点"]
+    D --> E["加法 op"]
+    F["b<br/>requires_grad=True"] --> E
+    E --> G["y = z + b<br/>输出节点"]
     
-    style A fill:#e1f5fe
-    style B fill:#e1f5fe
-    style F fill:#f3e5f5
-    style G fill:#e8f5e8
+    style A fill:#e3f2fd
+    style B fill:#e3f2fd
+    style F fill:#e3f2fd
+    style G fill:#e8f5e9
 ```
 
-### 4.1.2 动态计算图示例
+**关键区别**：
+- **叶子节点（Leaf Node）**：用户创建的张量（`requires_grad=True`），梯度会保存
+- **中间节点**：运算产生的张量，默认不保存梯度（除非设置 `retain_graph=True`）
 
-```{literalinclude} code/auto-grad-dyn-comp-diagram.py
+### 创建可追踪的张量
+
+```{literalinclude} code/auto-grad-trackable-tensors.py
 :language: python
 :linenos:
-:caption: 动态计算图构建与可视化
 ```
 
-```{admonition} 动态计算图的优势
-:class: note
+## 梯度计算：.backward() 的魔力
 
-1. **灵活性**：图结构在运行时动态构建
-2. **易调试**：可以随时检查中间结果
-3. **Python集成**：与Python控制流无缝结合
-4. **内存效率**：可以释放不再需要的中间结果
-```
+### 标量输出的梯度计算
 
-## 4.2 梯度计算规则
-
-PyTorch使用反向传播算法自动计算梯度。当调用`.backward()`时，框架会沿着计算图反向传播，计算所有叶子节点的梯度。
-
-### 4.2.1 基本梯度计算
-
-```{literalinclude} code/auto-grad-calc.py
+```{literalinclude} code/auto-grad-scalar-calc.py
 :language: python
 :linenos:
-:caption: 复杂函数的梯度计算与验证
 ```
 
-### 4.2.2 梯度计算原理
+**代码解释**：
+- `requires_grad=True`：告诉 PyTorch 跟踪这个张量的所有操作
+- `.backward()`：从输出节点开始，沿计算图反向传播，计算所有叶子节点的梯度
+- `.grad`：存储计算得到的梯度值
 
-对于标量输出 $L$，PyTorch计算每个叶子节点 $x_i$ 的梯度：
+### 非标量输出的处理
 
-$$
-\frac{\partial L}{\partial x_i} = \sum_{j \in \text{路径}} \frac{\partial L}{\partial y_j} \cdot \frac{\partial y_j}{\partial x_i}
-$$
-
-其中 $y_j$ 是计算图中的中间变量。
-
-```{admonition} 梯度计算注意事项
-:class: caution
-
-1. **标量输出**：默认情况下，`.backward()` 只适用于标量输出
-2. **梯度累积**：多次调用 `.backward()` 会累积梯度
-3. **梯度清零**：训练循环中需要手动清零梯度
-4. **内存管理**：计算图会占用内存，及时释放
-```
-
-## 4.3 梯度累积与控制
-
-在实际训练中，我们经常需要控制梯度的计算和累积。
-
-### 4.3.1 梯度累积技巧
-
-```{literalinclude} code/auto-grad-acc.py
-:language: python
-:linenos:
-:caption: 梯度累积与控制策略
-```
-
-### 4.3.2 梯度累积的应用场景
-
-```{admonition} 何时使用梯度累积？
-:class: important
-
-1. **大批次训练**：当GPU内存不足时，使用小批次累积梯度
-2. **稳定训练**：累积多个小批次的梯度，减少噪声
-3. **模拟大批次**：用小批次模拟大批次的效果
-4. **分布式训练**：在多个设备间同步梯度
-```
-
-## 4.4 禁用梯度计算
-
-在某些情况下，我们不需要计算梯度，这时可以禁用自动微分以提高性能。
-
-### 4.4.1 禁用梯度的方法
-
-```{literalinclude} code/auto-grad-disable-calc.py
-:language: python
-:linenos:
-:caption: 禁用梯度计算的多种方法
-```
-
-### 4.4.2 何时禁用梯度？
-
-```{admonition} 禁用梯度的场景
-:class: note
-
-1. **模型推理**：预测阶段不需要梯度
-2. **特征提取**：仅使用预训练模型提取特征
-3. **冻结参数**：训练部分层时冻结其他层
-4. **性能优化**：减少内存占用和计算时间
-5. **数值稳定性**：避免梯度计算中的数值问题
-```
-
-## 4.5 高级主题
-
-### 4.5.1 自定义自动微分
-
-PyTorch允许定义自定义函数的梯度计算规则：
+当输出不是标量时，需要指定权重向量：
 
 ```python
-class CustomFunction(torch.autograd.Function):
+import torch
+
+# 输出是向量而非标量
+x = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
+y = x * 2  # y = [2, 4, 6]
+
+# 错误：y 是向量，不能直接 backward()
+# y.backward()  # RuntimeError!
+
+# 正确：提供一个权重向量（相当于计算 v^T × J）
+# 这里我们计算 y 每个元素对 x 的梯度的加权和
+v = torch.tensor([1.0, 1.0, 1.0])  # 权重向量
+y.backward(v)  # 等价于计算 sum(y) 的梯度
+
+print(f"x.grad = {x.grad}")  # [2, 2, 2]
+
+# 实际应用：通常我们会将损失降为标量
+loss = y.sum()  # 标量
+loss.backward()  # 可以直接调用
+```
+
+## 梯度控制技巧
+
+### 梯度累积与清零
+
+**关键问题**：PyTorch 的 `.backward()` 默认会**累积**梯度！
+
+```{literalinclude} code/auto-grad-accumulation.py
+:language: python
+:linenos:
+```
+
+**训练循环中的标准模式**：
+
+```python
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+
+for batch in dataloader:
+    # 1. 清零旧梯度
+    optimizer.zero_grad()  # 或 model.zero_grad()
+    
+    # 2. 前向传播
+    output = model(batch.input)
+    loss = criterion(output, batch.target)
+    
+    # 3. 反向传播
+    loss.backward()
+    
+    # 4. 更新参数
+    optimizer.step()
+```
+
+### 禁用梯度计算
+
+在某些情况下，我们不需要计算梯度：
+
+```{literalinclude} code/auto-grad-disable.py
+:language: python
+:linenos:
+```
+
+**何时禁用梯度？**
+
+| 场景 | 原因 | 代码 |
+|------|------|------|
+| 模型推理 | 不需要更新参数 | `with torch.no_grad()` |
+| 特征提取 | 冻结预训练模型 | `param.requires_grad = False` |
+| 数值计算 | 避免梯度开销 | `.detach()` |
+| 保存张量 | 避免保留计算图 | `tensor.detach().cpu().numpy()` |
+
+## 实际应用：神经网络训练
+
+### 完整示例：线性回归
+
+```python
+import torch
+import torch.nn as nn
+
+# 生成数据：y = 2x + 1 + 噪声
+torch.manual_seed(42)
+X = torch.randn(100, 1)          # 100个样本，1个特征
+y_true = 2 * X + 1 + 0.1 * torch.randn(100, 1)
+
+# 定义模型：对应 {doc}`../math-fundamentals/gradient-descent` 中的线性模型
+model = nn.Linear(1, 1)          # 输入1维，输出1维
+
+# 损失函数和优化器
+criterion = nn.MSELoss()         # 均方误差
+optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+
+# 训练循环
+for epoch in range(100):
+    # 1. 清零梯度
+    optimizer.zero_grad()
+    
+    # 2. 前向传播
+    y_pred = model(X)            # 计算预测值
+    loss = criterion(y_pred, y_true)  # 计算损失
+    
+    # 3. 反向传播（自动计算梯度）
+    loss.backward()
+    
+    # 4. 更新参数
+    optimizer.step()
+    
+    if (epoch + 1) % 20 == 0:
+        print(f"Epoch {epoch+1}, Loss: {loss.item():.4f}")
+
+# 查看学习到的参数
+print(f"\n学习到的权重: {model.weight.item():.4f}（真实值: 2.0）")
+print(f"学习到的偏置: {model.bias.item():.4f}（真实值: 1.0）")
+```
+
+### 查看计算图
+
+```python
+import torch
+
+x = torch.tensor(2.0, requires_grad=True)
+y = x ** 2
+
+# 查看梯度函数（对应计算图中的边）
+print(f"y.grad_fn: {y.grad_fn}")          # <PowBackward0 object>
+print(f"y.grad_fn.next_functions: {y.grad_fn.next_functions}")
+
+# 查看是否需要梯度
+print(f"x.requires_grad: {x.requires_grad}")  # True
+print(f"y.requires_grad: {y.requires_grad}")  # True
+```
+
+## 高级主题
+
+### 自定义梯度计算
+
+偶尔需要自定义梯度计算规则：
+
+```python
+import torch
+from torch.autograd import Function
+
+class MyReLU(Function):
+    """
+    自定义 ReLU 激活函数，带梯度裁剪
+    对应 {doc}`../math-fundamentals/activation-functions` 中的 ReLU
+    """
+    
     @staticmethod
     def forward(ctx, input):
-        # 前向传播计算
-        ctx.save_for_backward(input)
-        return input * 2
+        """前向传播：max(0, x)"""
+        ctx.save_for_backward(input)  # 保存用于反向传播的张量
+        return input.clamp(min=0)
     
     @staticmethod
     def backward(ctx, grad_output):
-        # 反向传播计算梯度
+        """反向传播：梯度裁剪"""
         input, = ctx.saved_tensors
-        return grad_output * 2
+        grad_input = grad_output.clone()
+        grad_input[input < 0] = 0  # ReLU 的梯度规则
+        return grad_input
+
+# 使用自定义函数
+my_relu = MyReLU.apply
+x = torch.tensor([-1.0, 2.0, -3.0, 4.0], requires_grad=True)
+y = my_relu(x)
+y.sum().backward()
+
+print(f"输入: {x}")
+print(f"输出: {y}")
+print(f"梯度: {x.grad}")  # [0, 1, 0, 1]
 ```
 
-### 4.5.2 梯度检查
+### 梯度检查
 
-使用`torch.autograd.gradcheck`验证梯度计算的正确性：
+验证梯度计算是否正确：
 
 ```python
-def test_function(x):
-    return x ** 3 + x ** 2 + x
+import torch
+from torch.autograd import gradcheck
 
-# 验证梯度计算是否正确
+# 定义需要测试的函数
+def func(x):
+    return x ** 3 + x ** 2
+
+# 使用双精度浮点数进行数值梯度检查
 test_input = torch.randn(3, 4, dtype=torch.double, requires_grad=True)
-test = torch.autograd.gradcheck(test_function, test_input, eps=1e-6, atol=1e-4)
-print(f"梯度检查结果: {test}")
+
+# 验证梯度
+result = gradcheck(func, test_input, eps=1e-6, atol=1e-4)
+print(f"梯度检查通过: {result}")  # True 表示梯度计算正确
 ```
 
-```{admonition} 本章总结
-:class: success
+## 总结
 
-自动微分是PyTorch的核心特性，它使得深度学习模型的训练变得简单高效。通过本章学习，您应该能够：
-1. 理解动态计算图的工作原理
-2. 正确使用梯度计算和累积
-3. 在适当的时候禁用梯度计算
-4. 验证梯度计算的正确性
+### 核心概念回顾
 
-在下一章中，我们将学习优化器，了解如何使用梯度来更新模型参数。
-```
+| 概念 | 解释 | 代码 |
+|------|------|------|
+| 计算图 | 记录张量操作的 DAG | 自动构建 |
+| 叶子节点 | 用户创建的可训练参数 | `requires_grad=True` |
+| 反向传播 | 从输出回传梯度 | `.backward()` |
+| 梯度存储 | 存储在 `.grad` 属性中 | `tensor.grad` |
+| 梯度清零 | 避免梯度累积 | `.zero_grad()` |
+| 禁用梯度 | 推理时节省内存 | `torch.no_grad()` |
+
+### 下一步
+
+掌握了自动微分后，下一节 {doc}`./optimiser` 我们将学习如何使用这些梯度来更新模型参数——从简单的 SGD 到自适应学习率的 Adam，掌握优化算法的核心原理。
+
+**从"计算梯度"到"使用梯度优化"，让我们继续深入！**

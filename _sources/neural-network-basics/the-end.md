@@ -71,7 +71,7 @@
 
 ## 实践建议
 
-```{admonition} 实用建议
+~~~{admonition} 实用建议
 :class: tip
 
 **模型开发流程**：
@@ -89,7 +89,7 @@
 - 忽视归纳偏置（重复发明全连接网络的问题）
 - 数据不清洗（"Garbage in, garbage out"）
 - 过拟合训练集（{doc}`neural-training-basics`中的正则化方法）
-```
+~~~
 
 ## 未来方向
 
@@ -168,12 +168,12 @@ Happy Coding! 🚀
 
 ---
 
-**下一步**：回到{doc}`../math-fundamentals/index`复习理论基础，或者开始探索{doc}`../index`中的其他章节。
+**下一步**：进入 {doc}`../pytorch-practice/index` 把本章的理论全部实现出来，或者回到 {doc}`../math-fundamentals/index` 复习理论基础。
 
 ---
 
 ## 参考文献
 
-```{bibliography}
+~~~{bibliography}
 :filter: docname in docnames
-```
+~~~
