@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>U-Net架构详解 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+    <title>U 形架构详解 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
   
   
   
@@ -50,7 +50,7 @@
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
     <link rel="next" title="损失函数设计" href="loss-func.html" />
-    <link rel="prev" title="引言" href="introduction.html" />
+    <link rel="prev" title="引言：图像分割问题" href="introduction.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
   </head>
@@ -215,17 +215,13 @@
 <li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与延伸</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">U-Net架构：生物医学图像分割的革命性方法</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">U-Net架构详解</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">U-Net：图像分割的革命</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">U 形架构详解</a></li>
 <li class="toctree-l2"><a class="reference internal" href="loss-func.html">损失函数设计</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core-impl.html">核心组件实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="full-impl.html">完整U-Net实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data-enhance.html">数据增强策略</a></li>
-<li class="toctree-l2"><a class="reference internal" href="techniques-best-practices.html">训练技巧与最佳实践</a></li>
-<li class="toctree-l2"><a class="reference internal" href="application.html">应用领域</a></li>
-<li class="toctree-l2"><a class="reference internal" href="variation.html">U-Net变体与改进</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">应用、变体与展望</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
@@ -431,7 +427,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>U-Net架构详解</h1>
+    <h1>U 形架构详解</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -441,36 +437,37 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#u">U形对称结构</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">架构参数概览</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#u-net">直觉：U-Net 的整体结构</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">架构速览</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">三部分的角色</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">编码器路径</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">编码器设计原理</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">特征图尺寸变化</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">编码器路径：提取语义</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">编码器中的感受野</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">特征图尺寸变化公式</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">解码器路径</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">解码器设计原理</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">上采样方法比较</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">解码器路径：恢复空间</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upsampling">1. 上采样（Upsampling）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#skip-connection">2. 跳跃连接（Skip Connection）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">跳跃连接的梯度分析</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#jacobian">预备知识：导数 → 梯度 → Jacobian 矩阵</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">没有跳跃连接时：Jacobian 连乘</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">有了跳跃连接：梯度抄近道</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">跳跃连接机制</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">数学表述</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">梯度流动分析</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">多尺度特征融合</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">激活函数与归一化选择</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#relu">ReLU激活函数的合理性</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">批归一化的考虑</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">输出层设计</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">为什么 U 形架构这么成功？</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">嵌入核心代码：核心组件</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">双卷积块（核心构建单元）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">下采样模块</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">上采样模块（带跳跃连接）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">输出层</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">输出层设计</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">输出尺寸对齐</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">现代实现变体</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">参考文献</a></li>
 </ul>
             </nav>
         </div>
@@ -482,406 +479,385 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="u-net">
-<h1>U-Net架构详解<a class="headerlink" href="#u-net" title="Link to this heading">#</a></h1>
-<section id="u">
-<h2>U形对称结构<a class="headerlink" href="#u" title="Link to this heading">#</a></h2>
-<p>U-Net的核心创新在于其U形对称架构，包含两个主要部分：</p>
-<ol class="arabic simple">
-<li><p><strong>编码器（收缩路径）</strong>：通过卷积和池化逐步提取高级特征，减少空间维度</p></li>
-<li><p><strong>解码器（扩张路径）</strong>：通过转置卷积和跳跃连接逐步恢复空间维度，生成分割掩码</p></li>
-</ol>
-<figure class="align-center" id="id17">
-<a class="reference internal image-reference" href="https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/u-net-architecture.png"><img alt="https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/u-net-architecture.png" src="https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/u-net-architecture.png" style="width: 80%;" />
+  <section class="tex2jax_ignore mathjax_ignore" id="u">
+<span id="unet-arch"></span><h1>U 形架构详解<a class="headerlink" href="#u" title="Link to this heading">#</a></h1>
+<section id="u-net">
+<h2>直觉：U-Net 的整体结构<a class="headerlink" href="#u-net" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="introduction.html#unet-introduction"><span class="std std-ref">引言：图像分割问题</span></a> 我们提出了核心问题：<strong>如何把缩小的特征图恢复回原始分辨率，同时不丢失空间细节？</strong></p>
+<p>U-Net 的答案是一个对称的 U 形：</p>
+<figure class="align-center" id="id113">
+<a class="reference internal image-reference" href="../_images/u-net-architecture.png"><img alt="../_images/u-net-architecture.png" src="../_images/u-net-architecture.png" style="width: 640px;" />
 </a>
 <figcaption>
-<p><span class="caption-text">U-Net的U形对称架构示意图（图片来源：原论文）</span><a class="headerlink" href="#id17" title="Link to this image">#</a></p>
+<p><span class="caption-text">U-Net 的 U 形对称架构（原论文 <span id="id1">[<a class="reference internal" href="#id107" title="Olaf Ronneberger, Philipp Fischer, and Thomas Brox. U-net: convolutional networks for biomedical image segmentation. In Medical Image Computing and Computer-Assisted Intervention (MICCAI), 234–241. Springer, 2015.">RFB15</a>]</span>）</span><a class="headerlink" href="#id113" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
-<section id="id1">
-<h3>架构参数概览<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
-<p>原始U-Net的具体配置如下：</p>
+<section id="id2">
+<h3>架构速览<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
+<p>从图中可以看出核心设计：左侧编码器逐步下采样（空间缩小、通道增加），右侧解码器逐步上采样（空间恢复、通道减少），底部是信息瓶颈，灰色箭头是<strong>跳跃连接</strong>。</p>
+<p>几个关键数字：</p>
+<ul class="simple">
+<li><p><strong>输入 572×572×1</strong> → <strong>输出 388×388×2</strong>（有效填充导致边界丢失 92 像素）</p></li>
+<li><p><strong>通道数变化</strong>：1 → 64 → 128 → 256 → 512 → 1024 → 512 → … → 64 → 2</p></li>
+<li><p><strong>每层跳跃连接拼接</strong>：编码器特征（保留精确位置）与解码器特征（携带语义信息）在通道维度拼接</p></li>
+</ul>
+</section>
+<section id="id3">
+<h3>三部分的角色<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
-<tr class="row-odd"><th class="head"><p>层级</p></th>
-<th class="head"><p>操作</p></th>
-<th class="head"><p>输出尺寸 (H×W×C)</p></th>
-<th class="head"><p>卷积核</p></th>
-<th class="head"><p>步长</p></th>
-<th class="head"><p>填充</p></th>
+<tr class="row-odd"><th class="head"><p>部分</p></th>
+<th class="head"><p>做什么</p></th>
+<th class="head"><p>效果</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>输入</p></td>
-<td><p>-</p></td>
-<td><p>572×572×1</p></td>
-<td><p>-</p></td>
-<td><p>-</p></td>
-<td><p>-</p></td>
+<tr class="row-even"><td><p><strong>编码器（左半）</strong></p></td>
+<td><p>卷积+池化，逐步下采样</p></td>
+<td><p>空间变小，通道变多，语义变强</p></td>
 </tr>
-<tr class="row-odd"><td><p>卷积块1</p></td>
-<td><p>3×3 Conv + ReLU ×2</p></td>
-<td><p>568×568×64</p></td>
-<td><p>3×3</p></td>
-<td><p>1</p></td>
-<td><p>有效</p></td>
+<tr class="row-odd"><td><p><strong>瓶颈（底部）</strong></p></td>
+<td><p>最深的卷积，特征最抽象</p></td>
+<td><p>感受野最大，知道&quot;整体是什么&quot;</p></td>
 </tr>
-<tr class="row-even"><td><p>池化1</p></td>
-<td><p>2×2 MaxPool</p></td>
-<td><p>284×284×64</p></td>
-<td><p>2×2</p></td>
-<td><p>2</p></td>
-<td><p>-</p></td>
-</tr>
-<tr class="row-odd"><td><p>卷积块2</p></td>
-<td><p>3×3 Conv + ReLU ×2</p></td>
-<td><p>280×280×128</p></td>
-<td><p>3×3</p></td>
-<td><p>1</p></td>
-<td><p>有效</p></td>
-</tr>
-<tr class="row-even"><td><p>池化2</p></td>
-<td><p>2×2 MaxPool</p></td>
-<td><p>140×140×128</p></td>
-<td><p>2×2</p></td>
-<td><p>2</p></td>
-<td><p>-</p></td>
-</tr>
-<tr class="row-odd"><td><p>卷积块3</p></td>
-<td><p>3×3 Conv + ReLU ×2</p></td>
-<td><p>136×136×256</p></td>
-<td><p>3×3</p></td>
-<td><p>1</p></td>
-<td><p>有效</p></td>
-</tr>
-<tr class="row-even"><td><p>池化3</p></td>
-<td><p>2×2 MaxPool</p></td>
-<td><p>68×68×256</p></td>
-<td><p>2×2</p></td>
-<td><p>2</p></td>
-<td><p>-</p></td>
-</tr>
-<tr class="row-odd"><td><p>卷积块4</p></td>
-<td><p>3×3 Conv + ReLU ×2</p></td>
-<td><p>64×64×512</p></td>
-<td><p>3×3</p></td>
-<td><p>1</p></td>
-<td><p>有效</p></td>
-</tr>
-<tr class="row-even"><td><p>池化4</p></td>
-<td><p>2×2 MaxPool</p></td>
-<td><p>32×32×512</p></td>
-<td><p>2×2</p></td>
-<td><p>2</p></td>
-<td><p>-</p></td>
-</tr>
-<tr class="row-odd"><td><p>底部卷积块</p></td>
-<td><p>3×3 Conv + ReLU ×2</p></td>
-<td><p>28×28×1024</p></td>
-<td><p>3×3</p></td>
-<td><p>1</p></td>
-<td><p>有效</p></td>
-</tr>
-<tr class="row-even"><td><p>上采样1</p></td>
-<td><p>2×2 转置卷积</p></td>
-<td><p>56×56×512</p></td>
-<td><p>2×2</p></td>
-<td><p>2</p></td>
-<td><p>-</p></td>
-</tr>
-<tr class="row-odd"><td><p>跳跃连接1</p></td>
-<td><p>与编码器特征拼接</p></td>
-<td><p>56×56×1024</p></td>
-<td><p>-</p></td>
-<td><p>-</p></td>
-<td><p>-</p></td>
-</tr>
-<tr class="row-even"><td><p>卷积块5</p></td>
-<td><p>3×3 Conv + ReLU ×2</p></td>
-<td><p>52×52×512</p></td>
-<td><p>3×3</p></td>
-<td><p>1</p></td>
-<td><p>有效</p></td>
-</tr>
-<tr class="row-odd"><td><p>上采样2</p></td>
-<td><p>2×2 转置卷积</p></td>
-<td><p>104×104×256</p></td>
-<td><p>2×2</p></td>
-<td><p>2</p></td>
-<td><p>-</p></td>
-</tr>
-<tr class="row-even"><td><p>跳跃连接2</p></td>
-<td><p>与编码器特征拼接</p></td>
-<td><p>104×104×512</p></td>
-<td><p>-</p></td>
-<td><p>-</p></td>
-<td><p>-</p></td>
-</tr>
-<tr class="row-odd"><td><p>卷积块6</p></td>
-<td><p>3×3 Conv + ReLU ×2</p></td>
-<td><p>100×100×256</p></td>
-<td><p>3×3</p></td>
-<td><p>1</p></td>
-<td><p>有效</p></td>
-</tr>
-<tr class="row-even"><td><p>上采样3</p></td>
-<td><p>2×2 转置卷积</p></td>
-<td><p>200×200×128</p></td>
-<td><p>2×2</p></td>
-<td><p>2</p></td>
-<td><p>-</p></td>
-</tr>
-<tr class="row-odd"><td><p>跳跃连接3</p></td>
-<td><p>与编码器特征拼接</p></td>
-<td><p>200×200×256</p></td>
-<td><p>-</p></td>
-<td><p>-</p></td>
-<td><p>-</p></td>
-</tr>
-<tr class="row-even"><td><p>卷积块7</p></td>
-<td><p>3×3 Conv + ReLU ×2</p></td>
-<td><p>196×196×128</p></td>
-<td><p>3×3</p></td>
-<td><p>1</p></td>
-<td><p>有效</p></td>
-</tr>
-<tr class="row-odd"><td><p>上采样4</p></td>
-<td><p>2×2 转置卷积</p></td>
-<td><p>392×392×64</p></td>
-<td><p>2×2</p></td>
-<td><p>2</p></td>
-<td><p>-</p></td>
-</tr>
-<tr class="row-even"><td><p>跳跃连接4</p></td>
-<td><p>与编码器特征拼接</p></td>
-<td><p>392×392×128</p></td>
-<td><p>-</p></td>
-<td><p>-</p></td>
-<td><p>-</p></td>
-</tr>
-<tr class="row-odd"><td><p>卷积块8</p></td>
-<td><p>3×3 Conv + ReLU ×2</p></td>
-<td><p>388×388×64</p></td>
-<td><p>3×3</p></td>
-<td><p>1</p></td>
-<td><p>有效</p></td>
-</tr>
-<tr class="row-even"><td><p>输出层</p></td>
-<td><p>1×1 Conv</p></td>
-<td><p>388×388×2</p></td>
-<td><p>1×1</p></td>
-<td><p>1</p></td>
-<td><p>-</p></td>
+<tr class="row-even"><td><p><strong>解码器（右半）</strong></p></td>
+<td><p>转置卷积+跳跃拼接，逐步上采样</p></td>
+<td><p>空间变大，恢复细节</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p><strong>注意</strong>：原始U-Net使用&quot;有效&quot;填充（无填充），因此每次卷积后尺寸会缩小。现代实现通常使用&quot;相同&quot;填充以保持尺寸。</p>
 </section>
-</section>
-<section id="id2">
-<h2>编码器路径<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>编码器路径采用典型的CNN架构，通过重复应用以下操作：</p>
-<div class="math notranslate nohighlight">
-\[\text{卷积块} = \text{Conv2D} \rightarrow \text{BatchNorm} \rightarrow \text{ReLU} \rightarrow \text{Conv2D} \rightarrow \text{BatchNorm} \rightarrow \text{ReLU}\]</div>
-<p>每个编码器块后接一个2×2最大池化层，将特征图尺寸减半，同时通道数加倍。</p>
-<section id="id3">
-<h3>编码器设计原理<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
-<div class="tip admonition">
-<p class="admonition-title">编码器设计理由</p>
-<ol class="arabic">
-<li><p><strong>特征层次化</strong>：浅层学习边缘和纹理，深层学习语义信息</p>
-<p><strong>详细解释</strong>：在编码器的不同层次，网络学习到不同抽象程度的特征。第一层卷积主要检测简单的边缘、角点和纹理模式；第二层可能学习到简单的形状和模式组合；更深的层次能够识别复杂的语义对象。这种层次化特征学习模仿了人类视觉系统的处理机制，从简单到复杂逐步抽象。</p>
-</li>
-<li><p><strong>感受野扩大</strong>：下采样增大感受野，捕获全局上下文</p>
-<p><strong>数学原理</strong>：感受野的计算公式为：
-$<span class="math notranslate nohighlight">\(RF_{l} = RF_{l-1} + (k_{l} - 1) \times \prod_{i=1}^{l-1} s_{i}\)</span><span class="math notranslate nohighlight">\(
-其中\)</span>RF_l<span class="math notranslate nohighlight">\(是第\)</span>l<span class="math notranslate nohighlight">\(层的感受野，\)</span>k_l<span class="math notranslate nohighlight">\(是卷积核大小，\)</span>s_i<span class="math notranslate nohighlight">\(是第\)</span>i$层的步长。通过每次下采样，感受野呈指数级增长，使得深层神经元能够看到更大的输入区域，从而捕获全局上下文信息。</p>
-</li>
-<li><p><strong>参数效率</strong>：减少空间维度，降低计算复杂度</p>
-<p><strong>计算分析</strong>：假设输入图像大小为<span class="math notranslate nohighlight">\(H \times W \times C\)</span>，经过一层卷积后特征图大小为<span class="math notranslate nohighlight">\(H' \times W' \times C'\)</span>，计算复杂度为<span class="math notranslate nohighlight">\(O(H' \times W' \times C \times C' \times k^2)\)</span>。通过下采样将空间维度减半，后续层的计算量减少为原来的<span class="math notranslate nohighlight">\(1/4\)</span>，显著提高了计算效率。</p>
-</li>
-<li><p><strong>平移不变性</strong>：池化操作增强模型的平移不变性</p>
-<p><strong>机制说明</strong>：最大池化选择局部区域内的最大值，使得当目标在输入中发生小范围平移时，池化后的特征表示相对稳定。这种平移不变性对于生物医学图像分割尤为重要，因为医学图像中的目标（如细胞、器官）可能出现在图像的不同位置。</p>
-</li>
-</ol>
-</div>
 </section>
 <section id="id4">
-<h3>特征图尺寸变化<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
-<p>设输入图像尺寸为 <span class="math notranslate nohighlight">\(H \times W\)</span>，经过每个编码器块后：</p>
-<ol class="arabic simple">
-<li><p><strong>卷积操作</strong>：使用3×3卷积，步长1，无填充时尺寸减少为 <span class="math notranslate nohighlight">\((H-2) \times (W-2)\)</span></p></li>
-<li><p><strong>池化操作</strong>：2×2最大池化，步长2，尺寸减半为 <span class="math notranslate nohighlight">\(\left\lfloor \frac{H-2}{2} \right\rfloor \times \left\lfloor \frac{W-2}{2} \right\rfloor\)</span></p></li>
-</ol>
-<p>经过4次下采样后，特征图尺寸减少为原始尺寸的约 <span class="math notranslate nohighlight">\(\frac{1}{16}\)</span>。</p>
-</section>
-</section>
-<section id="id5">
-<h2>解码器路径<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
-<p>解码器路径通过转置卷积（上采样）逐步恢复空间分辨率：</p>
-<div class="math notranslate nohighlight">
-\[\text{上采样块} = \text{ConvTranspose2D} \rightarrow \text{跳跃连接} \rightarrow \text{卷积块}\]</div>
-<p>关键创新在于<strong>跳跃连接</strong>，将编码器路径中的特征图与解码器路径对应层的特征图拼接，保留低级细节信息。</p>
-<section id="id6">
-<h3>解码器设计原理<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
-<div class="tip admonition">
-<p class="admonition-title">解码器设计原理</p>
-<ol class="arabic">
-<li><p><strong>空间恢复</strong>：上采样操作逐步恢复空间分辨率</p>
-<p><strong>转置卷积机制</strong>：转置卷积（也称为反卷积）通过在特征图元素之间插入零值，然后应用标准卷积来实现上采样。数学上，转置卷积是卷积操作的转置：
-$<span class="math notranslate nohighlight">\(y = W^T \cdot x\)</span><span class="math notranslate nohighlight">\(
-其中\)</span>W^T<span class="math notranslate nohighlight">\(是卷积核\)</span>W<span class="math notranslate nohighlight">\(的转置，\)</span>x$是输入特征。这种方法能够学习上采样过程中的最优权重，而不是简单的插值。</p>
-</li>
-<li><p><strong>特征融合</strong>：拼接操作结合高层语义和低层细节</p>
-<p><strong>拼接策略</strong>：假设编码器特征为<span class="math notranslate nohighlight">\(F_{enc} \in \mathbb{R}^{H \times W \times C_1}\)</span>，解码器特征为<span class="math notranslate nohighlight">\(F_{dec} \in \mathbb{R}^{H \times W \times C_2}\)</span>，拼接操作生成：
-$<span class="math notranslate nohighlight">\(F_{concat} = \text{concat}(F_{enc}, F_{dec}) \in \mathbb{R}^{H \times W \times (C_1 + C_2)}\)</span>$
-这种拼接保持了原始特征的所有信息，相比相加操作更丰富。</p>
-</li>
-<li><p><strong>信息补偿</strong>：弥补下采样过程中丢失的空间信息</p>
-<p><strong>信息流分析</strong>：在编码过程中，下采样会丢失一些空间细节。例如，2×2最大池化会丢失3/4的位置信息。跳跃连接直接传递高分辨率的编码器特征，为解码器提供精确的空间坐标信息，这些信息对于像素级分割至关重要。</p>
-</li>
-<li><p><strong>精确边界</strong>：利用跳跃连接信息实现精确的边界定位</p>
-<p><strong>边界检测机制</strong>：浅层特征包含丰富的边缘和纹理信息，这些信息对边界定位非常敏感。通过跳跃连接，这些边界感知特征直接传递给解码器，使得最终分割能够保持清晰的边界轮廓。这在生物医学图像中尤为重要，因为细胞和器官的边界通常很模糊且不规则。</p>
-</li>
-</ol>
+<h2>编码器路径：提取语义<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p>编码器和 <a class="reference internal" href="../neural-network-basics/le-net.html"><span class="doc">LeNet-5架构详解</span></a> 前半部分几乎一样——重复的卷积块 + 最大池化。</p>
+<div class="note admonition">
+<p class="admonition-title">编码器的直觉</p>
+<p>每一步都在做&quot;退一步看全局&quot;：</p>
+<ul class="simple">
+<li><p>3×3 卷积看局部模式（边缘、纹理）</p></li>
+<li><p>2×2 池化取最显著特征，空间减半</p></li>
+<li><p>通道数加倍，给更多&quot;记忆空间&quot;存储提炼出的信息</p></li>
+</ul>
+<p>就像写摘要：先逐段阅读（卷积），再浓缩成要点（池化）。反复几次后，你就从具体的文字得到了文章主旨。</p>
 </div>
-</section>
-<section id="id7">
-<h3>上采样方法比较<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
-<p>U-Net使用转置卷积进行上采样，其他常见方法包括：</p>
+<section id="id5">
+<h3>编码器中的感受野<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="../neural-network-basics/cnn-basics.html#receptive-field"><span class="std std-ref">感受野</span></a> 中我们学了感受野的递推公式。U-Net 中每个编码器块的感受野：</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
-<tr class="row-odd"><th class="head"><p>方法</p></th>
-<th class="head"><p>原理</p></th>
-<th class="head"><p>优点</p></th>
-<th class="head"><p>缺点</p></th>
+<tr class="row-odd"><th class="head"><p>层</p></th>
+<th class="head"><p>累积感受野</p></th>
+<th class="head"><p>看到什么</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><strong>转置卷积</strong></p></td>
-<td><p>学习上采样权重</p></td>
-<td><p>可学习，适应数据</p></td>
-<td><p>可能产生棋盘伪影</p></td>
+<tr class="row-even"><td><p>第 1 层</p></td>
+<td><p>3×3</p></td>
+<td><p>边缘、角点、纹理</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>双线性插值</strong></p></td>
-<td><p>线性插值</p></td>
-<td><p>简单快速，无参数</p></td>
-<td><p>无法学习复杂模式</p></td>
+<tr class="row-odd"><td><p>第 2 层</p></td>
+<td><p>5×5</p></td>
+<td><p>简单的形状组合</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>最近邻插值</strong></p></td>
-<td><p>复制最近像素</p></td>
-<td><p>保持边缘锐利</p></td>
-<td><p>产生块状伪影</p></td>
+<tr class="row-even"><td><p>第 3 层</p></td>
+<td><p>9×9</p></td>
+<td><p>局部结构模式</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>像素洗牌</strong></p></td>
-<td><p>通道重排</p></td>
-<td><p>高效，无参数</p></td>
-<td><p>需要预先增加通道数</p></td>
+<tr class="row-odd"><td><p>第 4 层</p></td>
+<td><p>17×17</p></td>
+<td><p>较大的语义部件</p></td>
+</tr>
+<tr class="row-even"><td><p>底部</p></td>
+<td><p>33×33</p></td>
+<td><p>完整的语义对象</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<p>感受野逐层扩大，意味着一路向下，每个神经元看到的输入区域越来越大，学到的特征从&quot;具体边缘&quot;变成了&quot;抽象语义&quot;。</p>
+</section>
+<section id="id6">
+<h3>特征图尺寸变化公式<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p>原始 U-Net 用有效填充，每步卷积后尺寸变化为：</p>
+<div class="math notranslate nohighlight">
+\[H_{\text{out}} = H_{\text{in}} - k + 1\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(k=3\)</span> 是卷积核大小，所以每次卷积后宽高各减 2。池化后尺寸减半。</p>
 </section>
 </section>
-<section id="id8">
-<h2>跳跃连接机制<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
-<p>跳跃连接是U-Net成功的关键，它解决了深度网络中信息丢失的问题：</p>
+<section id="id7">
+<h2>解码器路径：恢复空间<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<p>解码器是编码器的&quot;镜像&quot;——把缩小的特征图一步步放大回原始分辨率。核心操作有两个：</p>
+<section id="upsampling">
+<h3>1. 上采样（Upsampling）<a class="headerlink" href="#upsampling" title="Link to this heading">#</a></h3>
+<p>U-Net 使用<strong>转置卷积（Transposed Convolution）</strong> 进行上采样。直觉上，它和卷积做的事相反：</p>
+<div class="figure" id="id114" style="text-align: center"><p><img  src="../_images/tikz-b8018251b5a1cf71da986564a17a28109abd802c.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">转置卷积：2×2 → 4×4</span></p>
+</div><div class="note admonition">
+<p class="admonition-title">转置卷积的直觉</p>
+<p>普通卷积：3×3 窗口滑过输入 → 输出更小
+转置卷积：每个输入点&quot;膨胀&quot;成 2×2 区域 → 输出更大</p>
+</div>
+<p>转置卷积通过在每个输入元素之间插入零值，然后做标准卷积来实现尺寸加倍。它的参数也是<strong>可学习的</strong>，不像双线性插值是固定的。</p>
+</section>
+<section id="skip-connection">
+<h3>2. 跳跃连接（Skip Connection）<a class="headerlink" href="#skip-connection" title="Link to this heading">#</a></h3>
+<p>这是 U-Net 的灵魂。上采样后的特征图与<strong>编码器对应层的特征图在通道维度上拼接</strong>（concatenate）。</p>
+<div class="math notranslate nohighlight">
+\[F_{\text{concat}} = \text{concat}(F_{\text{encoder}}, F_{\text{decoder}}) \in \mathbb{R}^{H \times W \times (C_{\text{enc}} + C_{\text{dec}})}\]</div>
+<p><strong>为什么拼接而不是相加？</strong></p>
+<p>FCN 用相加，U-Net 用拼接。拼接<strong>保留了编码器特征的全部信息</strong>（不压缩），让解码器可以&quot;看到&quot;原始细节。</p>
 <div class="tip admonition">
-<p class="admonition-title">跳跃连接的作用</p>
+<p class="admonition-title">跳跃连接的三个作用</p>
 <ol class="arabic simple">
-<li><p><strong>保留空间信息</strong>：编码器的低级特征包含精确的空间位置信息</p></li>
-<li><p><strong>梯度传播</strong>：缓解梯度消失问题，改善训练稳定性</p></li>
-<li><p><strong>特征复用</strong>：避免重复学习相同特征，提高训练效率</p></li>
-<li><p><strong>边界精度</strong>：显著改善分割边界的精确度</p></li>
+<li><p><strong>保留空间信息</strong>：编码器浅层知道&quot;边缘在第 35 行&quot;，解码器需要这个信息</p></li>
+<li><p><strong>改善梯度流动</strong>：梯度可以&quot;抄近道&quot;直接传到浅层，缓解梯度消失</p></li>
+<li><p><strong>多尺度特征融合</strong>：不同感受野的特征同时被利用</p></li>
 </ol>
 </div>
+</section>
+<section id="id8">
+<h3>跳跃连接的梯度分析<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<p>跳跃连接对训练的最大贡献是<strong>解决了梯度消失问题</strong>。<a class="reference internal" href="../math-fundamentals/back-propagation.html#gradient-vanishing"><span class="std std-ref">梯度消失（Vanishing Gradient）</span></a> 中我们详细讨论过梯度消失的成因——反向传播时梯度经过多层连乘会指数级衰减，导致浅层无法学习。</p>
+<p>要理解跳跃连接为什么能缓解这个问题，需要先理解 Jacobian 矩阵。</p>
+<section id="jacobian">
+<h4>预备知识：导数 → 梯度 → Jacobian 矩阵<a class="headerlink" href="#jacobian" title="Link to this heading">#</a></h4>
+<p><a class="reference internal" href="../math-fundamentals/computational-graph.html"><span class="doc">计算图</span></a> 中我们学过：标量函数的导数 <span class="math notranslate nohighlight">\(\frac{df}{dx}\)</span> 告诉你&quot;输入 <span class="math notranslate nohighlight">\(x\)</span> 变一点点，输出 <span class="math notranslate nohighlight">\(f\)</span> 变多少&quot;。</p>
+<p>在神经网络中，每一层的输入和输出都是<strong>向量</strong>（几百个神经元的值），而不是标量。所以我们需要一个推广版的导数——<strong>Jacobian 矩阵</strong>。</p>
+<div class="note admonition">
+<p class="admonition-title">从标量导数到 Jacobian</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>概念</p></th>
+<th class="head"><p>数学表示</p></th>
+<th class="head"><p>输入维度</p></th>
+<th class="head"><p>输出维度</p></th>
+<th class="head"><p>矩阵形状</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>标量导数</strong></p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{df}{dx}\)</span></p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1×1</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>梯度</strong></p></td>
+<td><p><span class="math notranslate nohighlight">\(\nabla f = [\frac{\partial f}{\partial x_1}, \frac{\partial f}{\partial x_2}, ...]\)</span></p></td>
+<td><p>N</p></td>
+<td><p>1</p></td>
+<td><p>1×N 行向量</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Jacobian 矩阵</strong></p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{\partial \mathbf{h}}{\partial \mathbf{x}}\)</span></p></td>
+<td><p>N</p></td>
+<td><p>M</p></td>
+<td><p><strong>M×N 矩阵</strong></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>每个元素 <span class="math notranslate nohighlight">\((i,j)\)</span> 的意思：“第 <span class="math notranslate nohighlight">\(j\)</span> 个输入变一点点，第 <span class="math notranslate nohighlight">\(i\)</span> 个输出变多少”。</p>
+<p>形状：<span class="math notranslate nohighlight">\((\text{输出维度}) \times (\text{输入维度})\)</span>。</p>
+<p>例如一个全连接层 <span class="math notranslate nohighlight">\(\mathbf{h} = W\mathbf{x} + \mathbf{b}\)</span>，输入 <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> 是 100 维，输出 <span class="math notranslate nohighlight">\(\mathbf{h}\)</span> 是 64 维，那么 Jacobian <span class="math notranslate nohighlight">\(\frac{\partial \mathbf{h}}{\partial \mathbf{x}} = W\)</span> 就是一个 64×100 的矩阵。</p>
+</div>
+</section>
 <section id="id9">
-<h3>数学表述<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
-<p>数学上，跳跃连接可以表示为：</p>
+<h4>没有跳跃连接时：Jacobian 连乘<a class="headerlink" href="#id9" title="Link to this heading">#</a></h4>
+<p>链式法则告诉我们，损失 <span class="math notranslate nohighlight">\(L\)</span> 对第 <span class="math notranslate nohighlight">\(l\)</span> 层权重 <span class="math notranslate nohighlight">\(W_l\)</span> 的梯度相当于<strong>每一层 Jacobian 的连乘</strong>：</p>
 <div class="math notranslate nohighlight">
-\[x_{\text{decoder}}^{(l)} = f\left([x_{\text{encoder}}^{(L-l)}, \text{upsample}(x_{\text{decoder}}^{(l-1)})]\right)\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(L\)</span> 是网络总层数，<span class="math notranslate nohighlight">\([·,·]\)</span> 表示通道维度上的拼接。</p>
+\[\frac{\partial L}{\partial W_l} = \frac{\partial L}{\partial \hat{y}} \cdot
+\underbrace{\frac{\partial h_{L}}{\partial h_{L-1}} \cdot
+\frac{\partial h_{L-1}}{\partial h_{L-2}} \cdot \dots \cdot
+\frac{\partial h_{l+1}}{\partial h_{l}}}_{L-l \text{ 个 Jacobian 相乘}}\]</div>
+<p>每乘一个 Jacobian 都可能缩小或放大梯度。如果每层的&quot;放大倍数&quot;都小于 1，<span class="math notranslate nohighlight">\(L-l\)</span> 个 Jacobian 连乘后梯度就会指数级衰减——梯度消失。</p>
 </section>
 <section id="id10">
-<h3>梯度流动分析<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<h4>有了跳跃连接：梯度抄近道<a class="headerlink" href="#id10" title="Link to this heading">#</a></h4>
+<p>跳跃连接在反向传播中创建了一条<strong>直达路径</strong>，绕过了中间的深度：</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial L}{\partial W_l} = \underbrace{\text{主路径（$L-l$ 个 Jacobian 连乘）}}_{\text{可能消失}} + \underbrace{\text{跳跃路径（仅 1-2 个 Jacobian）}}_{\text{几乎不衰减}}\]</div>
+<p>第二条路径的 Jacobian 链极短——编码器第 2 层的梯度可以通过跳跃连接直接传到解码器第 2 层，中间只经过 1-2 个变换，而不是从底部绕上来的 8-10 个。</p>
 <div class="note admonition">
-<p class="admonition-title">梯度流动机制</p>
-<p>在深度神经网络中，梯度通过链式法则反向传播时需要经历多次乘法操作。当梯度绝对值小于1时，连续相乘会导致梯度指数级衰减，这就是梯度消失问题。</p>
-<p><strong>数学分析</strong>：考虑一个L层的网络，没有跳跃连接时，第<span class="math notranslate nohighlight">\(l\)</span>层的梯度为：
-$<span class="math notranslate nohighlight">\(\frac{\partial L}{\partial W_l} = \frac{\partial L}{\partial \hat{y}} \prod_{i=l+1}^{L} \frac{\partial z_i}{\partial z_{i-1}} \frac{\partial z_i}{\partial W_i}\)</span>$</p>
-<p>有跳跃连接时，梯度可以直接跳跃到浅层：
-$<span class="math notranslate nohighlight">\(\frac{\partial L}{\partial W_l} = \frac{\partial L}{\partial \hat{y}} \left( \prod_{i=l+1}^{L} \frac{\partial z_i}{\partial z_{i-1}} \frac{\partial z_i}{\partial W_i} + \frac{\partial z_{skip}}{\partial W_l} \right)\)</span>$</p>
-<p>跳跃连接为梯度提供了一条&quot;高速公路&quot;，避免了深层网络中梯度的指数级衰减。</p>
+<p class="admonition-title">数值对比：64 倍的差距</p>
+<p>假设每层 Jacobian 的放大倍数 = 0.8：</p>
+<p>原始路径（穿过 20 层）：<span class="math notranslate nohighlight">\(0.8^{20} \approx 0.01\)</span>（衰减了 99%）</p>
+<p>跳跃路径（只穿过 2 层）：<span class="math notranslate nohighlight">\(0.8^{2} \approx 0.64\)</span>（只衰减了 36%）</p>
+<p>差距：<span class="math notranslate nohighlight">\(0.01\)</span> vs <span class="math notranslate nohighlight">\(0.64\)</span>，整整 <strong>64 倍</strong>。有了跳跃连接，浅层收到的梯度信号强了几十倍。</p>
 </div>
+<p>这就是跳跃连接被称为&quot;梯度高速公路&quot;的原因——它为梯度提供了<strong>绕过深度、直达浅层</strong>的捷径。这个思路与 ResNet <span id="id11">[<a class="reference internal" href="#id56" title="Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition, 770–778. 2016.">HZRS16</a>]</span> 的残差连接一脉相承：都是通过短路连接为梯度创造高速公路。<a class="reference internal" href="../cnn-ablation-study/experiment-design.html"><span class="doc">实验设计</span></a> 中的消融实验也可以验证：去掉跳跃连接后，深层网络的浅层几乎学不到东西。</p>
 </section>
-<section id="id11">
-<h3>多尺度特征融合<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
-<p>跳跃连接实现了多尺度特征融合：</p>
-<div class="note admonition">
-<p class="admonition-title">多尺度融合优势</p>
-<p>U-Net中不同层次的特征图具有不同的感受野：</p>
-<div class="amsmath math notranslate nohighlight" id="equation-ed06a301-67ee-4082-bcec-4379965dd458">
-<span class="eqno">(1)<a class="headerlink" href="#equation-ed06a301-67ee-4082-bcec-4379965dd458" title="Permalink to this equation">#</a></span>\[\begin{align}
-RF_1 &amp;= 3 \times 3 \\
-RF_2 &amp;= 5 \times 5 \\
-RF_3 &amp;= 9 \times 9 \\
-RF_4 &amp;= 17 \times 17 \\
-RF_5 &amp;= 33 \times 33
-\end{align}\]</div>
-<p>跳跃连接将不同感受野的特征进行融合，使得每个解码器层都能同时获得局部细节和全局上下文。这种多尺度信息融合能力是U-Net成功的关键因素之一。</p>
-</div>
 </section>
 </section>
 <section id="id12">
-<h2>激活函数与归一化选择<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
-<section id="relu">
-<h3>ReLU激活函数的合理性<a class="headerlink" href="#relu" title="Link to this heading">#</a></h3>
-<p>U-Net使用ReLU（Rectified Linear Unit）作为激活函数，主要原因包括：</p>
-<ol class="arabic simple">
-<li><p><strong>计算效率</strong>：简单的max操作，计算开销小</p></li>
-<li><p><strong>梯度特性</strong>：避免梯度消失，加速训练收敛</p></li>
-<li><p><strong>稀疏激活</strong>：产生稀疏表示，提高网络效率</p></li>
-<li><p><strong>生物启发</strong>：模拟神经元的激活特性</p></li>
-</ol>
+<h2>输出层设计<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
+<p>输出层用 1×1 卷积把通道数映射到类别数：</p>
+<div class="math notranslate nohighlight">
+\[\text{输出} = \text{Conv2D}(C_{\text{in}}, C_{\text{out}}, \text{kernel_size}=1)\]</div>
+<p>对于二分类任务（如细胞 vs 背景），<span class="math notranslate nohighlight">\(C_{\text{out}} = 2\)</span>，后接 softmax。每个像素的 2 个值表示&quot;属于背景的概率&quot;和&quot;属于细胞的概率&quot;。</p>
 </section>
 <section id="id13">
-<h3>批归一化的考虑<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
-<p>虽然原始U-Net未使用批归一化，但现代实现通常添加批归一化层：</p>
-<ol class="arabic simple">
-<li><p><strong>训练稳定性</strong>：减少内部协变量偏移，稳定训练过程</p></li>
-<li><p><strong>收敛加速</strong>：允许使用更高的学习率</p></li>
-<li><p><strong>梯度流改善</strong>：缓解梯度消失和爆炸问题</p></li>
-</ol>
-</section>
+<h2>为什么 U 形架构这么成功？<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<p>回顾 <a class="reference internal" href="introduction.html#unet-introduction"><span class="std std-ref">引言：图像分割问题</span></a> 中讨论的核心矛盾，现在看 U-Net 如何一一解决：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>矛盾</p></th>
+<th class="head"><p>编码器的做法</p></th>
+<th class="head"><p>解码器的做法</p></th>
+<th class="head"><p>跳跃连接的作用</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>需要语义理解</p></td>
+<td><p>下采样扩大感受野</p></td>
+<td><p>-</p></td>
+<td><p>深层特征传到解码器</p></td>
+</tr>
+<tr class="row-odd"><td><p>需要空间精度</p></td>
+<td><p>浅层保留边缘信息</p></td>
+<td><p>-</p></td>
+<td><p>浅层特征直接&quot;抄近道&quot;</p></td>
+</tr>
+<tr class="row-even"><td><p>需要端到端训练</p></td>
+<td><p>-</p></td>
+<td><p>可学习的上采样</p></td>
+<td><p>梯度直达浅层</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>三个组件缺一不可。没有解码器，输出分辨率不够；没有跳跃连接，恢复的细节不够；没有编码器，没有语义理解。</p>
 </section>
 <section id="id14">
-<h2>输出层设计<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
-<p>U-Net的输出层使用1×1卷积将特征映射到类别数：</p>
-<div class="math notranslate nohighlight">
-\[\text{输出} = \text{Conv2D}(C_{\text{in}}, C_{\text{out}}, \text{kernel\_size}=1)\]</div>
-<p>对于二分类任务，<span class="math notranslate nohighlight">\(C_{\text{out}} = 2\)</span>（背景和前景），通常后接softmax或sigmoid激活函数。</p>
+<h2>嵌入核心代码：核心组件<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
+<p>下面先看 U-Net 的四个核心组件，完整的 U-Net 组装会在 <a class="reference internal" href="core-impl.html"><span class="doc">完整实现</span></a> 中展示。</p>
 <section id="id15">
-<h3>输出尺寸对齐<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
-<p>由于卷积操作中的尺寸缩减，U-Net的输出尺寸通常小于输入尺寸。原始U-Net中，输入572×572，输出388×388，边界丢失了92个像素。在实际应用中，可以通过以下方式处理：</p>
-<ol class="arabic simple">
-<li><p><strong>镜像填充</strong>：在输入图像周围添加镜像填充</p></li>
-<li><p><strong>重叠切片</strong>：将大图像分割为重叠的小块，分别处理后再拼接</p></li>
-<li><p><strong>尺寸调整</strong>：训练时使用随机裁剪，推理时使用滑动窗口</p></li>
-</ol>
+<h3>双卷积块（核心构建单元）<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">DoubleConv</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;U-Net 中的基本构建单元：两个 3×3 卷积</span>
+<span class="sd">    </span>
+<span class="sd">    参数量计算（输入 C_in，输出 C_out）：</span>
+<span class="sd">    第一个卷积: C_in × 3 × 3 × C_out</span>
+<span class="sd">    第二个卷积: C_out × 3 × 3 × C_out</span>
+<span class="sd">    总计: 9 × (C_in × C_out + C_out²)</span>
+<span class="sd">    例如 64→64: 9×(64×64+64²) = 73,728</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>为什么两个 3×3 卷积堆叠？</strong></p>
+<p>一个 3×3 卷积感受野是 3×3。堆叠两个 3×3，感受野变成 5×5（<a class="reference internal" href="../neural-network-basics/cnn-basics.html#receptive-field"><span class="std std-ref">感受野</span></a> 的递推公式）。但参数量比一个 5×5 少——<span class="math notranslate nohighlight">\(2 \times 9 \times C^2\)</span> vs <span class="math notranslate nohighlight">\(25 \times C^2\)</span>，减少了 28%。如果堆叠三个 3×3，感受野达到 7×7，参数比一个 7×7 减少 45%。这个设计思路最早来自 VGG 网络 <span id="id16">[<a class="reference internal" href="#id57" title="Karen Simonyan and Andrew Zisserman. Very deep convolutional networks for large-scale image recognition. In International Conference on Learning Representations. 2015.">SZ15</a>]</span>——用小卷积核的堆叠代替大卷积核，在保证感受野的同时减少参数。</p>
+<p>每个卷积后接一个 BatchNorm <span id="id17">[<a class="reference internal" href="#id63" title="Sergey Ioffe and Christian Szegedy. Batch normalization: accelerating deep network training by reducing internal covariate shift. In International conference on machine learning, 448–456. PMLR, 2015.">IS15</a>]</span>，作用是稳定训练：把激活值拉回到零均值单位方差，防止深层网络的激活值剧烈漂移。</p>
+</section>
+<section id="id18">
+<h3>下采样模块<a class="headerlink" href="#id18" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">DownSample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;编码器下采样：MaxPool → DoubleConv</span>
+
+<span class="sd">    输入: (B, C_in,  H,   W )</span>
+<span class="sd">    输出: (B, C_out, H/2, W/2)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxpool_conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+            <span class="n">DoubleConv</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">)</span>
+        <span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxpool_conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id19">
+<h3>上采样模块（带跳跃连接）<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">UpSample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;解码器上采样：转置卷积 → 跳跃拼接 → DoubleConv</span>
+<span class="sd">    </span>
+<span class="sd">    输入 x1: (B, C_dec,  H,   W )</span>
+<span class="sd">    输入 x2: (B, C_enc, 2H, 2W )</span>
+<span class="sd">    输出:   (B, C_out, 2H, 2W )</span>
+<span class="sd">    </span>
+<span class="sd">    转置卷积把 C_dec 减半、尺寸加倍；</span>
+<span class="sd">    拼接编码器特征后，DoubleConv 缩回 C_out</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">up</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ConvTranspose2d</span><span class="p">(</span>
+            <span class="n">in_channels</span><span class="p">,</span> <span class="n">in_channels</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">DoubleConv</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">):</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">up</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span>
+        <span class="c1"># 原始 U-Net 用有效填充，尺寸可能不匹配，需要填充对齐</span>
+        <span class="n">diffY</span> <span class="o">=</span> <span class="n">x2</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">x1</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">diffX</span> <span class="o">=</span> <span class="n">x2</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">x1</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="p">[</span><span class="n">diffX</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">diffX</span> <span class="o">-</span> <span class="n">diffX</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span>
+                        <span class="n">diffY</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">diffY</span> <span class="o">-</span> <span class="n">diffY</span> <span class="o">//</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="c1"># 跳跃连接：通道拼接</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">x2</span><span class="p">,</span> <span class="n">x1</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id20">
+<h3>输出层<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">OutConv</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;输出层：1×1 卷积</span>
+<span class="sd">    </span>
+<span class="sd">    输入: (B, C_in,  H, W)</span>
+<span class="sd">    输出: (B, n_classes, H, W)</span>
+<span class="sd">    </span>
+<span class="sd">    1×1 卷积不改变空间尺寸，只改变通道数</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>这些组件的完整组装见 <a class="reference internal" href="core-impl.html"><span class="doc">完整实现</span></a>。下一节 <a class="reference internal" href="loss-func.html"><span class="doc">损失函数设计</span></a> 我们先来谈谈一个问题：分割任务的损失函数为什么和分类任务不一样？</p>
 </section>
 </section>
-<section id="id16">
-<h2>现代实现变体<a class="headerlink" href="#id16" title="Link to this heading">#</a></h2>
-<p>现代U-Net实现通常进行以下改进：</p>
-<ol class="arabic simple">
-<li><p><strong>使用相同填充</strong>：保持特征图尺寸不变，简化实现</p></li>
-<li><p><strong>添加批归一化</strong>：提高训练稳定性</p></li>
-<li><p><strong>使用LeakyReLU</strong>：避免神经元死亡</p></li>
-<li><p><strong>深度可分离卷积</strong>：减少参数数量</p></li>
-<li><p><strong>注意力机制</strong>：自适应关注重要区域</p></li>
-</ol>
-<p>这些改进在保持U-Net核心思想的同时，进一步提升了性能和效率。</p>
+<hr class="docutils" />
+<section id="id21">
+<h2>参考文献<a class="headerlink" href="#id21" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id22">
+<div role="list" class="citation-list">
+<div class="citation" id="id56" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id11">HZRS16</a><span class="fn-bracket">]</span></span>
+<p>Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In <em>Proceedings of the IEEE conference on computer vision and pattern recognition</em>, 770–778. 2016.</p>
+</div>
+<div class="citation" id="id63" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id17">IS15</a><span class="fn-bracket">]</span></span>
+<p>Sergey Ioffe and Christian Szegedy. Batch normalization: accelerating deep network training by reducing internal covariate shift. In <em>International conference on machine learning</em>, 448–456. PMLR, 2015.</p>
+</div>
+<div class="citation" id="id107" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">RFB15</a><span class="fn-bracket">]</span></span>
+<p>Olaf Ronneberger, Philipp Fischer, and Thomas Brox. U-net: convolutional networks for biomedical image segmentation. In <em>Medical Image Computing and Computer-Assisted Intervention (MICCAI)</em>, 234–241. Springer, 2015.</p>
+</div>
+<div class="citation" id="id57" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id16">SZ15</a><span class="fn-bracket">]</span></span>
+<p>Karen Simonyan and Andrew Zisserman. Very deep convolutional networks for large-scale image recognition. In <em>International Conference on Learning Representations</em>. 2015.</p>
+</div>
+</div>
+</div>
 </section>
 </section>
 
@@ -889,7 +865,7 @@ RF_5 &amp;= 33 \times 33
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -897,6 +873,11 @@ RF_5 &amp;= 33 \times 33
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b5e265a</code>
+                2026-04-28 - <strong>Heyan Zhu</strong>: docs(unet): restructure documentation and update content
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">0c291d7</code>
                 2025-12-10 - <strong>Heyan Zhu</strong>: docs: restructure course materials and add new content
@@ -923,7 +904,7 @@ RF_5 &amp;= 33 \times 33
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">上一页</p>
-        <p class="prev-next-title">引言</p>
+        <p class="prev-next-title">引言：图像分割问题</p>
       </div>
     </a>
     <a class="right-next"
@@ -951,36 +932,37 @@ RF_5 &amp;= 33 \times 33
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#u">U形对称结构</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">架构参数概览</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#u-net">直觉：U-Net 的整体结构</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">架构速览</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">三部分的角色</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">编码器路径</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">编码器设计原理</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">特征图尺寸变化</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">编码器路径：提取语义</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">编码器中的感受野</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">特征图尺寸变化公式</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">解码器路径</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">解码器设计原理</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">上采样方法比较</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">解码器路径：恢复空间</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upsampling">1. 上采样（Upsampling）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#skip-connection">2. 跳跃连接（Skip Connection）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">跳跃连接的梯度分析</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#jacobian">预备知识：导数 → 梯度 → Jacobian 矩阵</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">没有跳跃连接时：Jacobian 连乘</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">有了跳跃连接：梯度抄近道</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">跳跃连接机制</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">数学表述</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">梯度流动分析</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">多尺度特征融合</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">激活函数与归一化选择</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#relu">ReLU激活函数的合理性</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">批归一化的考虑</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">输出层设计</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">为什么 U 形架构这么成功？</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">嵌入核心代码：核心组件</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">双卷积块（核心构建单元）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">下采样模块</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">上采样模块（带跳跃连接）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">输出层</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">输出层设计</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">输出尺寸对齐</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">现代实现变体</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">参考文献</a></li>
 </ul>
   </nav></div>
 

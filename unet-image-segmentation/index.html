@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>U-Net架构：生物医学图像分割的革命性方法 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+    <title>U-Net：图像分割的革命 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
   
   
   
@@ -44,10 +44,374 @@
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script src="../_static/translations.js?v=beaddf03"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'unet-image-segmentation/index';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="引言" href="introduction.html" />
+    <link rel="next" title="引言：图像分割问题" href="introduction.html" />
     <link rel="prev" title="总结与延伸" href="../attention-mechanisms/the-end.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
@@ -213,17 +577,13 @@
 <li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与延伸</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">U-Net架构：生物医学图像分割的革命性方法</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="u-net.html">U-Net架构详解</a></li>
+<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">U-Net：图像分割的革命</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="u-net.html">U 形架构详解</a></li>
 <li class="toctree-l2"><a class="reference internal" href="loss-func.html">损失函数设计</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core-impl.html">核心组件实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="full-impl.html">完整U-Net实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data-enhance.html">数据增强策略</a></li>
-<li class="toctree-l2"><a class="reference internal" href="techniques-best-practices.html">训练技巧与最佳实践</a></li>
-<li class="toctree-l2"><a class="reference internal" href="application.html">应用领域</a></li>
-<li class="toctree-l2"><a class="reference internal" href="variation.html">U-Net变体与改进</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">应用、变体与展望</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
@@ -429,7 +789,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>U-Net架构：生物医学图像分割的革命性方法</h1>
+    <h1>U-Net：图像分割的革命</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -439,7 +799,10 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">摘要</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">学习目标</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">本章概览</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">本章定位</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">目录</a></li>
 </ul>
             </nav>
         </div>
@@ -452,122 +815,159 @@ document.write(`
                 <article class="bd-article">
                   
   <section class="tex2jax_ignore mathjax_ignore" id="u-net">
-<h1>U-Net架构：生物医学图像分割的革命性方法<a class="headerlink" href="#u-net" title="Link to this heading">#</a></h1>
-<p><strong>作者</strong>: Anson, 深度学习社（与 MiniMax M2，DeepSeek V3.2 合作）</p>
-<p><strong>日期</strong>: 2025-12-05</p>
+<span id="unet"></span><h1>U-Net：图像分割的革命<a class="headerlink" href="#u-net" title="Link to this heading">#</a></h1>
 <section id="id1">
-<h2>摘要<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
-<p>U-Net是一种专为生物医学图像分割设计的深度神经网络架构，自2015年提出以来已成为计算机视觉领域的里程碑式工作。本文深入分析了U-Net架构的设计理念、核心创新点及其广泛应用。通过详细阐述编码器-解码器结构、跳跃连接、扩张卷积等关键概念，我们解释了U-Net如何解决像素级分割任务中的挑战。文章不仅涵盖了U-Net的数学基础和实现细节，还探讨了其在医学影像、卫星图像分析等领域的应用，以及后续的改进变体如U-Net++、Attention U-Net等。通过大量的图示和实际应用案例，本文为读者提供了全面理解U-Net架构及其在图像分割任务中卓越性能的完整指南。</p>
-<div class="note admonition">
-<p class="admonition-title">目录</p>
+<h2>学习目标<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>理解分割任务</strong>：图像分割是什么、为什么比分类更难、和 CNN 的关联</p></li>
+<li><p><strong>掌握 U-Net 架构</strong>：U 形结构、编码器-解码器、跳跃连接的直觉和原理</p></li>
+<li><p><strong>理解跳跃连接的价值</strong>：为什么&quot;抄近道&quot;能同时保留位置和语义</p></li>
+<li><p><strong>能够实现 U-Net</strong>：从核心组件到完整模型</p></li>
+<li><p><strong>了解损失函数</strong>：Dice 损失为什么比交叉熵更适合分割任务</p></li>
+</ul>
+<div class="important admonition">
+<p class="admonition-title">前置知识</p>
+<p>本章假设你已掌握以下内容：</p>
+<ol class="arabic simple">
+<li><p><strong>CNN 核心机制</strong>：卷积、池化、感受野（<a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a>）</p></li>
+<li><p><strong>LeNet-5 架构</strong>：典型的编码器结构（<a class="reference internal" href="../neural-network-basics/le-net.html"><span class="doc">LeNet-5架构详解</span></a>）</p></li>
+<li><p><strong>参数效率思维</strong>：为什么局部连接比全连接好（<a class="reference internal" href="../neural-network-basics/exp-cmp.html"><span class="doc">实验对比：全连接 vs CNN</span></a>）</p></li>
+<li><p><strong>注意力机制</strong>：如果没读过也不影响，但读过会更有感觉（<a class="reference internal" href="../attention-mechanisms/index.html"><span class="doc">CNN中的注意力机制</span></a>）</p></li>
+</ol>
+</div>
+</section>
+<section id="id2">
+<h2>本章概览<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>章节</p></th>
+<th class="head"><p>内容</p></th>
+<th class="head"><p>核心收获</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="introduction.html"><span class="doc">引言：图像分割问题</span></a></p></td>
+<td><p>分割问题与 U-Net 的核心思想</p></td>
+<td><p>&quot;在哪&quot;和&quot;是什么&quot;必须同时解决</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="u-net.html"><span class="doc">U 形架构详解</span></a></p></td>
+<td><p>U 形架构：编码器、解码器、跳跃连接</p></td>
+<td><p>对称结构如何同时捕捉细节和语义</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="loss-func.html"><span class="doc">损失函数设计</span></a></p></td>
+<td><p>Dice 损失与交叉熵损失</p></td>
+<td><p>为什么&quot;重叠度&quot;比&quot;逐像素准确率&quot;更重要</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="core-impl.html"><span class="doc">完整实现</span></a></p></td>
+<td><p>从零实现 U-Net</p></td>
+<td><p>核心组件 → 完整模型</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="practice.html"><span class="doc">数据增强与训练技巧</span></a></p></td>
+<td><p>数据增强与训练技巧</p></td>
+<td><p>小数据也能训练好分割模型的关键</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="the-end.html"><span class="doc">应用、变体与展望</span></a></p></td>
+<td><p>应用、变体、局限与展望</p></td>
+<td><p>U-Net 为什么十年不过时</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id3">
+<h2>本章定位<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a> 中我们学会了 CNN 如何用卷积、池化、全连接做<strong>分类</strong>——输入一张图，输出一个标签。但现实中很多任务需要的不只是&quot;这是什么&quot;，而是 <strong>“这些像素属于什么”</strong>：哪里是肿瘤、哪里是道路、哪里是细胞核。</p>
+<p>分类问题是&quot;看整体&quot;，分割问题是&quot;看每个点&quot;。这看似只是&quot;输出变多了&quot;（从 1 个标签到几十万个标签），但实际上是一个<strong>本质不同的问题</strong>——你既要知道一个大象的整体形状（高层的语义理解），又要精确到象鼻子尖端的每个像素（低层的空间精度）。CNN 的编码器擅长前者（下采样→语义），但牺牲了后者。U-Net 的答案很巧妙：<strong>去做一个对称的解码器，再用&quot;抄近道&quot;（跳跃连接）把丢失的空间信息直接传送回来</strong>。</p>
+<object data="../_images/mermaid-71b6fed8497f229855e447e98b0517aa7707f7fe.svg" type="image/svg+xml">
+            <p class="warning">graph LR
+    A[&quot;分类&lt;br/&gt;这是什么？&quot;] --&gt; B[&quot;分割&lt;br/&gt;每个像素是什么？&quot;]
+    B --&gt; C[&quot;编码器&lt;br/&gt;提取语义&quot;]
+    C --&gt; D[&quot;解码器&lt;br/&gt;恢复空间&quot;]
+    D --&gt; E[&quot;跳跃连接&lt;br/&gt;保留细节&quot;]</p></object>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>前置章节</p></th>
+<th class="head"><p>本章应用</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a></p></td>
+<td><p>卷积/池化→编码器的构建块</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../neural-network-basics/le-net.html"><span class="doc">LeNet-5架构详解</span></a></p></td>
+<td><p>编码器-分类器→编码器-解码器</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../attention-mechanisms/index.html"><span class="doc">CNN中的注意力机制</span></a></p></td>
+<td><p>注意力→Attention U-Net</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id4">
+<h2>目录<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">引言</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="introduction.html#id2">图像分割的重要性与挑战</a></li>
-<li class="toctree-l2"><a class="reference internal" href="introduction.html#u-net">U-Net的诞生背景</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">引言：图像分割问题</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#id2">从分类到分割：问题升级</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#id3">为什么分类网络不能直接用来做分割？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#u-net">U-Net 的回答：编码器-解码器 + 跳跃连接</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#id5">U-Net 的历史意义</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#id8">本章路线</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#id9">参考文献</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="u-net.html">U-Net架构详解</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="u-net.html#u">U形对称结构</a></li>
-<li class="toctree-l2"><a class="reference internal" href="u-net.html#id2">编码器路径</a></li>
-<li class="toctree-l2"><a class="reference internal" href="u-net.html#id5">解码器路径</a></li>
-<li class="toctree-l2"><a class="reference internal" href="u-net.html#id8">跳跃连接机制</a></li>
-<li class="toctree-l2"><a class="reference internal" href="u-net.html#id12">激活函数与归一化选择</a></li>
-<li class="toctree-l2"><a class="reference internal" href="u-net.html#id14">输出层设计</a></li>
-<li class="toctree-l2"><a class="reference internal" href="u-net.html#id16">现代实现变体</a></li>
+<li class="toctree-l1"><a class="reference internal" href="u-net.html">U 形架构详解</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="u-net.html#u-net">直觉：U-Net 的整体结构</a></li>
+<li class="toctree-l2"><a class="reference internal" href="u-net.html#id4">编码器路径：提取语义</a></li>
+<li class="toctree-l2"><a class="reference internal" href="u-net.html#id7">解码器路径：恢复空间</a></li>
+<li class="toctree-l2"><a class="reference internal" href="u-net.html#id12">输出层设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="u-net.html#id13">为什么 U 形架构这么成功？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="u-net.html#id14">嵌入核心代码：核心组件</a></li>
+<li class="toctree-l2"><a class="reference internal" href="u-net.html#id21">参考文献</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="loss-func.html">损失函数设计</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="loss-func.html#id2">像素级交叉熵损失</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-func.html#dice">Dice损失</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-func.html#iou-jaccard">IoU损失（Jaccard损失）</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-func.html#tversky">Tversky损失</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-func.html#id14">组合损失策略</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-func.html#id17">损失函数实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-func.html#id21">损失函数选择指南</a></li>
-<li class="toctree-l2"><a class="reference internal" href="loss-func.html#id25">总结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-func.html#vs">直觉：分类损失 vs 分割损失</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-func.html#id2">交叉熵损失</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-func.html#dice">Dice 损失</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-func.html#id11">组合损失</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-func.html#id12">损失函数选择指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-func.html#id13">参考文献</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="core-impl.html">核心组件实现</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="core-impl.html#id2">卷积块实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core-impl.html#id7">下采样模块</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core-impl.html#id13">上采样模块</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core-impl.html#id23">输出层</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core-impl.html#id26">组件配置参数</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core-impl.html#id29">组件测试</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core-impl.html#id31">性能优化技巧</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core-impl.html#id34">总结</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core-impl.html">完整实现</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core-impl.html#u-net">完整 U-Net 类</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-impl.html#id2">模型初始化</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-impl.html#id3">训练配置</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-impl.html#id4">评估指标</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-impl.html#id5">推理示例</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-impl.html#id6">参数量统计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-impl.html#walkthrough-u-net">端到端 Walkthrough：一张细胞图像走完 U-Net</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="full-impl.html">完整U-Net实现</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="full-impl.html#id1">基础U-Net实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="full-impl.html#id4">可配置U-Net实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="full-impl.html#id6">模型初始化</a></li>
-<li class="toctree-l2"><a class="reference internal" href="full-impl.html#id9">模型使用示例</a></li>
-<li class="toctree-l2"><a class="reference internal" href="full-impl.html#id13">性能优化</a></li>
-<li class="toctree-l2"><a class="reference internal" href="full-impl.html#id16">模型评估</a></li>
-<li class="toctree-l2"><a class="reference internal" href="full-impl.html#id19">部署准备</a></li>
-<li class="toctree-l2"><a class="reference internal" href="full-impl.html#id22">总结</a></li>
+<li class="toctree-l1"><a class="reference internal" href="practice.html">数据增强与训练技巧</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="practice.html#id2">问题：数据不够怎么办？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html#id3">数据增强</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html#id5">其他训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html#id11">常见失败模式与诊断</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html#id16">消融实验建议</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html#id17">实践检查清单</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html#id18">小结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html#id19">参考文献</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="data-enhance.html">数据增强策略</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="data-enhance.html#id2">数据增强的重要性</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data-enhance.html#id5">医学图像特定的增强技术</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data-enhance.html#id15">增强策略设计</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data-enhance.html#id18">增强对分割掩码的处理</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data-enhance.html#id21">增强效果可视化</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data-enhance.html#id24">实践建议</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data-enhance.html#id28">总结</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="techniques-best-practices.html">训练技巧与最佳实践</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="techniques-best-practices.html#id2">数据准备策略</a></li>
-<li class="toctree-l2"><a class="reference internal" href="techniques-best-practices.html#id7">训练策略</a></li>
-<li class="toctree-l2"><a class="reference internal" href="techniques-best-practices.html#id16">模型初始化</a></li>
-<li class="toctree-l2"><a class="reference internal" href="techniques-best-practices.html#id19">评估指标</a></li>
-<li class="toctree-l2"><a class="reference internal" href="techniques-best-practices.html#id23">调试技巧</a></li>
-<li class="toctree-l2"><a class="reference internal" href="techniques-best-practices.html#id27">部署考虑</a></li>
-<li class="toctree-l2"><a class="reference internal" href="techniques-best-practices.html#id31">总结</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="application.html">应用领域</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="application.html#id2">医学影像分割</a></li>
-<li class="toctree-l2"><a class="reference internal" href="application.html#id19">卫星图像分析</a></li>
-<li class="toctree-l2"><a class="reference internal" href="application.html#id27">自动驾驶</a></li>
-<li class="toctree-l2"><a class="reference internal" href="application.html#id34">工业检测</a></li>
-<li class="toctree-l2"><a class="reference internal" href="application.html#id41">艺术与创意应用</a></li>
-<li class="toctree-l2"><a class="reference internal" href="application.html#id48">生物信息学</a></li>
-<li class="toctree-l2"><a class="reference internal" href="application.html#id54">跨领域应用模式</a></li>
-<li class="toctree-l2"><a class="reference internal" href="application.html#id57">未来应用方向</a></li>
-<li class="toctree-l2"><a class="reference internal" href="application.html#id60">总结</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="variation.html">U-Net变体与改进</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="variation.html#id1">U-Net++：嵌套密集跳跃连接</a></li>
-<li class="toctree-l2"><a class="reference internal" href="variation.html#attention-u-net">Attention U-Net：注意力机制</a></li>
-<li class="toctree-l2"><a class="reference internal" href="variation.html#u-net-3">U-Net 3+：全尺度跳跃连接</a></li>
-<li class="toctree-l2"><a class="reference internal" href="variation.html#d-u-net">3D U-Net：体积数据分割</a></li>
-<li class="toctree-l2"><a class="reference internal" href="variation.html#resunet">ResUNet：残差连接</a></li>
-<li class="toctree-l2"><a class="reference internal" href="variation.html#denseunet">DenseUNet：密集连接</a></li>
-<li class="toctree-l2"><a class="reference internal" href="variation.html#v-net">V-Net：医学图像分割专用</a></li>
-<li class="toctree-l2"><a class="reference internal" href="variation.html#id21">轻量化变体</a></li>
-<li class="toctree-l2"><a class="reference internal" href="variation.html#transformer">Transformer融合变体</a></li>
-<li class="toctree-l2"><a class="reference internal" href="variation.html#id24">变体选择指南</a></li>
-<li class="toctree-l2"><a class="reference internal" href="variation.html#id27">未来发展方向</a></li>
-<li class="toctree-l2"><a class="reference internal" href="variation.html#id31">总结</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="the-end.html">总结与展望</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id2">核心贡献回顾</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id6">局限性分析</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id11">未来发展方向</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id25">对研究社区的启示</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id29">给实践者的建议</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id32">结语</a></li>
+<li class="toctree-l1"><a class="reference internal" href="the-end.html">应用、变体与展望</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id2">应用领域</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id5">关键变体</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id11">局限性</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id12">核心启示</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id13">常见问题速答</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id14">推荐资源</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html#id17">参考文献</a></li>
 </ul>
 </li>
 </ul>
-</div>
 </div>
 </section>
 </section>
@@ -576,7 +976,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -584,6 +984,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b5e265a</code>
+                2026-04-28 - <strong>Heyan Zhu</strong>: docs(unet): restructure documentation and update content
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">0c291d7</code>
                 2025-12-10 - <strong>Heyan Zhu</strong>: docs: restructure course materials and add new content
@@ -618,7 +1023,7 @@ document.write(`
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">引言</p>
+        <p class="prev-next-title">引言：图像分割问题</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -638,7 +1043,10 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">摘要</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">学习目标</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">本章概览</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">本章定位</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">目录</a></li>
 </ul>
   </nav></div>
 

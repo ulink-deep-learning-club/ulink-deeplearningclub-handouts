@@ -49,8 +49,8 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'unet-image-segmentation/loss-func';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="核心组件实现" href="core-impl.html" />
-    <link rel="prev" title="U-Net架构详解" href="u-net.html" />
+    <link rel="next" title="完整实现" href="core-impl.html" />
+    <link rel="prev" title="U 形架构详解" href="u-net.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
   </head>
@@ -215,17 +215,13 @@
 <li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与延伸</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">U-Net架构：生物医学图像分割的革命性方法</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="u-net.html">U-Net架构详解</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">U-Net：图像分割的革命</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="u-net.html">U 形架构详解</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">损失函数设计</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core-impl.html">核心组件实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="full-impl.html">完整U-Net实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data-enhance.html">数据增强策略</a></li>
-<li class="toctree-l2"><a class="reference internal" href="techniques-best-practices.html">训练技巧与最佳实践</a></li>
-<li class="toctree-l2"><a class="reference internal" href="application.html">应用领域</a></li>
-<li class="toctree-l2"><a class="reference internal" href="variation.html">U-Net变体与改进</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">应用、变体与展望</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
@@ -441,51 +437,27 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">像素级交叉熵损失</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">标准交叉熵损失</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">加权交叉熵损失</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#focal-loss">焦点损失（Focal Loss）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">交叉熵损失的优缺点</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vs">直觉：分类损失 vs 分割损失</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">交叉熵损失</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">标准交叉熵</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">加权交叉熵</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#focal-loss-lin2017focal">焦点损失（Focal Loss）<span class="xref cite">lin2017focal</span></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">交叉熵的局限</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dice">Dice损失</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">Dice系数定义</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">Dice损失定义</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">像素级实现</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">Dice损失的数学性质</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">多类别Dice损失</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dice-vs">Dice损失 vs 交叉熵损失</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dice">Dice 损失</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">Dice 系数</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">Dice 损失</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">Dice 损失的梯度分析</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">梯度符号表</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#iou-jaccard">IoU损失（Jaccard损失）</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#iou">IoU系数定义</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">IoU损失定义</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ioudice">IoU损失与Dice损失的关系</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dice-vs">Dice vs 交叉熵</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tversky">Tversky损失</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">Tversky指数</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">Tversky损失</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">组合损失策略</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">交叉熵 + Dice损失</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">自适应权重</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">损失函数实现</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">Dice损失实现</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">组合损失实现</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">焦点损失实现</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">损失函数选择指南</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">根据任务特性选择</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">实践建议</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">常见问题与解决方案</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">组合损失</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">损失函数选择指南</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">参考文献</a></li>
 </ul>
             </nav>
         </div>
@@ -497,228 +469,172 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="id1">
-<h1>损失函数设计<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
-<p>损失函数是图像分割模型训练的核心，直接影响模型的收敛速度、分割精度和泛化能力。U-Net最初使用加权交叉熵损失，但后续研究发现Dice损失等专门为分割任务设计的损失函数能取得更好效果。</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="unet-loss">
+<span id="id1"></span><h1>损失函数设计<a class="headerlink" href="#unet-loss" title="Link to this heading">#</a></h1>
+<section id="vs">
+<h2>直觉：分类损失 vs 分割损失<a class="headerlink" href="#vs" title="Link to this heading">#</a></h2>
+<p>分类任务（<a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a>）的交叉熵损失看的是&quot;每个像素分对了吗&quot;。但分割任务有一个特殊问题：<strong>类别极度不平衡</strong>。</p>
+<p>想象一张 CT 图像，肿瘤只占 1% 的像素。如果模型把所有像素都预测为&quot;正常组织&quot;，准确率是 99%，但分割结果毫无意义——没找到肿瘤。</p>
+<p>分割损失的核心挑战是：<strong>让模型关心&quot;少数派像素&quot;</strong>，而不是只追求整体准确率。</p>
+</section>
 <section id="id2">
-<h2>像素级交叉熵损失<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<h2>交叉熵损失<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
 <section id="id3">
-<h3>标准交叉熵损失<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
-<p>对于多类别分割任务，标准交叉熵损失为：</p>
+<h3>标准交叉熵<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
 <div class="math notranslate nohighlight">
 \[L_{\text{CE}} = -\frac{1}{N} \sum_{i=1}^N \sum_{c=1}^C y_{i,c} \log(p_{i,c})\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(N\)</span> 是像素数，<span class="math notranslate nohighlight">\(C\)</span> 是类别数，<span class="math notranslate nohighlight">\(y_{i,c}\)</span> 是真实标签（one-hot编码），<span class="math notranslate nohighlight">\(p_{i,c}\)</span> 是预测概率。</p>
+<p>其中 <span class="math notranslate nohighlight">\(N\)</span> 是像素数，<span class="math notranslate nohighlight">\(C\)</span> 是类别数，<span class="math notranslate nohighlight">\(y_{i,c}\)</span> 是真实标签，<span class="math notranslate nohighlight">\(p_{i,c}\)</span> 是预测概率。</p>
 </section>
 <section id="id4">
-<h3>加权交叉熵损失<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
-<p>在类别不平衡的情况下，可以为不同类别分配不同权重：</p>
+<h3>加权交叉熵<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p>缓解类别不平衡：给少数类更高的权重。</p>
 <div class="math notranslate nohighlight">
 \[L_{\text{WCE}} = -\frac{1}{N} \sum_{i=1}^N \sum_{c=1}^C w_c \cdot y_{i,c} \log(p_{i,c})\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(w_c\)</span> 是类别 <span class="math notranslate nohighlight">\(c\)</span> 的权重，通常与类别频率成反比。</p>
+<p>权重 <span class="math notranslate nohighlight">\(w_c\)</span> 通常与类别频率成反比。肿瘤只有 1% 像素，<span class="math notranslate nohighlight">\(w_{\text{肿瘤}}\)</span> = 99，<span class="math notranslate nohighlight">\(w_{\text{正常}}\)</span> = 1。</p>
 </section>
-<section id="focal-loss">
-<h3>焦点损失（Focal Loss）<a class="headerlink" href="#focal-loss" title="Link to this heading">#</a></h3>
-<p>焦点损失通过降低易分类样本的权重，使模型更关注难分类样本：</p>
+<section id="focal-loss-lin2017focal">
+<h3>焦点损失（Focal Loss）<span id="id5">[<a class="reference internal" href="#id100" title="Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He, and Piotr Dollár. Focal loss for dense object detection. In Proceedings of the IEEE International Conference on Computer Vision (ICCV), 2980–2988. 2017.">LGG+17</a>]</span><a class="headerlink" href="#focal-loss-lin2017focal" title="Link to this heading">#</a></h3>
 <div class="math notranslate nohighlight">
 \[L_{\text{FL}} = -\frac{1}{N} \sum_{i=1}^N \sum_{c=1}^C (1 - p_{i,c})^\gamma \cdot y_{i,c} \log(p_{i,c})\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(\gamma \geq 0\)</span> 是调节参数，<span class="math notranslate nohighlight">\(\gamma = 0\)</span> 时退化为标准交叉熵。</p>
+<p><span class="math notranslate nohighlight">\(\gamma\)</span> 控制聚焦程度：<span class="math notranslate nohighlight">\(\gamma=2\)</span> 时，易分类样本的贡献被大幅降低，模型被迫关注难分类样本。</p>
 </section>
-<section id="id5">
-<h3>交叉熵损失的优缺点<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
-<div class="note admonition">
-<p class="admonition-title">交叉熵损失分析</p>
-<p><strong>优点</strong>：</p>
-<ol class="arabic simple">
-<li><p><strong>理论基础坚实</strong>：源于信息论，具有明确的概率解释</p></li>
-<li><p><strong>梯度稳定</strong>：梯度计算简单，训练稳定</p></li>
-<li><p><strong>广泛适用</strong>：适用于各种分类任务，包括多类别分割</p></li>
-</ol>
-<p><strong>缺点</strong>：</p>
-<ol class="arabic simple">
-<li><p><strong>类别不平衡敏感</strong>：容易被多数类主导</p></li>
-<li><p><strong>边界不敏感</strong>：对边界像素和内部像素同等对待</p></li>
-<li><p><strong>区域一致性差</strong>：可能产生不连续的分割结果</p></li>
-</ol>
-</div>
+<section id="id6">
+<h3>交叉熵的局限<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p>交叉熵优化的是<strong>像素级准确率</strong>，而我们真正关心的是<strong>区域重叠度</strong>。这两个目标在类别不平衡时可能南辕北辙——把所有像素都预测为&quot;背景&quot;，像素级准确率可能 &gt;99%，但分割完全无效。</p>
 </section>
 </section>
 <section id="dice">
-<h2>Dice损失<a class="headerlink" href="#dice" title="Link to this heading">#</a></h2>
-<section id="id6">
-<h3>Dice系数定义<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
-<p>Dice系数（Sørensen–Dice系数）衡量预测掩码与真实掩码的重叠程度：</p>
+<h2>Dice 损失<a class="headerlink" href="#dice" title="Link to this heading">#</a></h2>
+<section id="id7">
+<h3>Dice 系数<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<p>Dice 系数直接衡量预测掩码与真实掩码的重叠程度：</p>
 <div class="math notranslate nohighlight">
 \[\text{Dice} = \frac{2|X \cap Y|}{|X| + |Y|} = \frac{2TP}{2TP + FP + FN}\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(X\)</span> 是预测集合，<span class="math notranslate nohighlight">\(Y\)</span> 是真实集合，<span class="math notranslate nohighlight">\(TP\)</span>、<span class="math notranslate nohighlight">\(FP\)</span>、<span class="math notranslate nohighlight">\(FN\)</span> 分别表示真阳性、假阳性、假阴性。</p>
-</section>
-<section id="id7">
-<h3>Dice损失定义<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
-<p>Dice损失定义为1减去Dice系数：</p>
+<p>Dice 系数 = 1 表示完美重叠，= 0 表示完全不重叠。</p>
+<div class="figure" id="id105" style="text-align: center"><p><img  src="../_images/tikz-612180f695f83ba29acd6586c9b52a461941565d.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Dice 系数的可视化</span></p>
+</div></section>
+<section id="id8">
+<h3>Dice 损失<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
 <div class="math notranslate nohighlight">
 \[L_{\text{Dice}} = 1 - \text{Dice} = 1 - \frac{2|X \cap Y|}{|X| + |Y|}\]</div>
-</section>
-<section id="id8">
-<h3>像素级实现<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
-<p>对于二分类任务，Dice损失可以表示为：</p>
+<p>在二分类任务中的像素级实现：</p>
 <div class="math notranslate nohighlight">
 \[L_{\text{Dice}} = 1 - \frac{2\sum_{i=1}^N p_i y_i + \epsilon}{\sum_{i=1}^N p_i + \sum_{i=1}^N y_i + \epsilon}\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(p_i \in [0,1]\)</span> 是预测概率，<span class="math notranslate nohighlight">\(y_i \in \{0,1\}\)</span> 是真实标签，<span class="math notranslate nohighlight">\(\epsilon\)</span> 是平滑项防止除零。</p>
 </section>
 <section id="id9">
-<h3>Dice损失的数学性质<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
-<div class="tip admonition">
-<p class="admonition-title">Dice损失特性分析</p>
-<ol class="arabic simple">
-<li><p><strong>范围</strong>：<span class="math notranslate nohighlight">\(L_{\text{Dice}} \in [0,1]\)</span>，完美分割时损失为0，完全错误时损失为1</p></li>
-<li><p><strong>对称性</strong>：对预测和真实值对称，<span class="math notranslate nohighlight">\(L_{\text{Dice}}(X,Y) = L_{\text{Dice}}(Y,X)\)</span></p></li>
-<li><p><strong>非凸性</strong>：Dice损失是非凸函数，可能存在局部最小值</p></li>
-<li><p><strong>梯度特性</strong>：梯度与预测值成反比，可能导致训练不稳定</p></li>
-</ol>
-</div>
-</section>
-<section id="id10">
-<h3>多类别Dice损失<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
-<p>对于多类别分割，通常计算每个类别的Dice损失后取平均：</p>
+<h3>Dice 损失的梯度分析<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<p>Dice 损失为什么对类别不平衡鲁棒？答案在它的梯度里。</p>
+<p>先定义软 Dice 损失（去掉 <span class="math notranslate nohighlight">\(\epsilon\)</span> 简化分析）：</p>
 <div class="math notranslate nohighlight">
-\[L_{\text{MultiDice}} = \frac{1}{C} \sum_{c=1}^C \left(1 - \frac{2\sum_{i=1}^N p_{i,c} y_{i,c} + \epsilon}{\sum_{i=1}^N p_{i,c} + \sum_{i=1}^N y_{i,c} + \epsilon}\right)\]</div>
+\[L = 1 - \frac{2\sum p_i y_i}{\sum p_i + \sum y_i}\]</div>
+<p>对第 <span class="math notranslate nohighlight">\(j\)</span> 个像素的预测 <span class="math notranslate nohighlight">\(p_j\)</span> 求导（链式法则，假设 <span class="math notranslate nohighlight">\(y_j=1\)</span> 即该像素属于目标类）：</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial L}{\partial p_j} = -2 \cdot \frac{y_j (\sum p_i + \sum y_i) - (\sum p_i y_i) \cdot 1}{(\sum p_i + \sum y_i)^2}\]</div>
+<p>分子提出 <span class="math notranslate nohighlight">\(y_j=1\)</span>：</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial L}{\partial p_j} = -2 \cdot \frac{\sum y_i - \sum p_i y_i}{(\sum p_i + \sum y_i)^2}\]</div>
+<p>分子 <span class="math notranslate nohighlight">\(\sum y_i - \sum p_i y_i\)</span> = <strong>真实面积 - 重叠面积</strong> = 被漏检的区域大小。</p>
+<div class="tip admonition">
+<p class="admonition-title">直觉：Dice 梯度在说什么？</p>
+<p>Dice 的梯度大小正比于 <strong>“漏了多少”</strong>，反比于 <strong>总面积的平方</strong>。</p>
+<p>这意味着：</p>
+<ul class="simple">
+<li><p>一个像素梯度的大小取决于<strong>全局</strong>漏检了多少，而不只是这个像素本身分对分错</p></li>
+<li><p>小目标（<span class="math notranslate nohighlight">\(\sum y_i\)</span> 很小）的梯度<strong>天然放大</strong>——因为分母 <span class="math notranslate nohighlight">\((\sum p_i + \sum y_i)^2\)</span> 中的 <span class="math notranslate nohighlight">\(\sum y_i\)</span> 很小</p></li>
+<li><p>比交叉熵更均衡：交叉熵对每个像素给独立梯度，大目标有更多像素 → 梯度主导；Dice 把整张图作为一个整体来优化</p></li>
+</ul>
+</div>
+<section id="id10">
+<h4>梯度符号表<a class="headerlink" href="#id10" title="Link to this heading">#</a></h4>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>符号</p></th>
+<th class="head"><p>含义</p></th>
+<th class="head"><p>对梯度方向的影响</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\sum y_i\)</span></p></td>
+<td><p>真实目标总面积</p></td>
+<td><p>分母越大，整体梯度越小</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\sum p_i y_i\)</span></p></td>
+<td><p>预测与真实的重叠面积</p></td>
+<td><p>重叠越大，分子越小（漏检越少）</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\sum p_i\)</span></p></td>
+<td><p>预测目标总面积</p></td>
+<td><p>分母项，过分割会降低梯度</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\sum y_i - \sum p_i y_i\)</span></p></td>
+<td><p>真实中被漏检的面积</p></td>
+<td><p><strong>驱动梯度大小的核心</strong>—漏越多，梯度越大</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Dice 损失对类别不平衡天然鲁棒。因为它在分母中<strong>同时用预测面积和真实面积做归一化</strong>。肿瘤只占 1%？没关系——Dice 算的是&quot;你预测的肿瘤和真实肿瘤重叠了多少&quot;，不是&quot;你对了多少像素&quot;。</p>
+</section>
 </section>
 <section id="dice-vs">
-<h3>Dice损失 vs 交叉熵损失<a class="headerlink" href="#dice-vs" title="Link to this heading">#</a></h3>
+<h3>Dice vs 交叉熵<a class="headerlink" href="#dice-vs" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>特性</p></th>
-<th class="head"><p>交叉熵损失</p></th>
-<th class="head"><p>Dice损失</p></th>
+<th class="head"><p>交叉熵</p></th>
+<th class="head"><p>Dice</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>关注重点</p></td>
-<td><p>每个像素的预测准确性</p></td>
-<td><p>整体重叠程度</p></td>
+<td><p>每个像素预测准确性</p></td>
+<td><p>整体区域重叠度</p></td>
 </tr>
 <tr class="row-odd"><td><p>类别不平衡</p></td>
-<td><p>敏感，可能被多数类主导</p></td>
-<td><p>鲁棒性强</p></td>
+<td><p>敏感</p></td>
+<td><p><strong>鲁棒</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>梯度来源</p></td>
+<td><p>单像素 <span class="math notranslate nohighlight">\(p_i\)</span> 与 1 的差距</p></td>
+<td><p>全局漏检面积与总面积之比</p></td>
+</tr>
+<tr class="row-odd"><td><p>小目标</p></td>
+<td><p>被大目标淹没</p></td>
+<td><p>天然放大（小分母效应）</p></td>
 </tr>
 <tr class="row-even"><td><p>梯度特性</p></td>
-<td><p>平滑，易于优化</p></td>
-<td><p>非凸，可能有局部最优</p></td>
+<td><p>平滑、凸、易优化</p></td>
+<td><p>非凸、可能有局部最优</p></td>
 </tr>
-<tr class="row-odd"><td><p>边界精度</p></td>
-<td><p>一般</p></td>
-<td><p>优秀</p></td>
-</tr>
-<tr class="row-even"><td><p>收敛速度</p></td>
+<tr class="row-odd"><td><p>收敛速度</p></td>
 <td><p>通常较快</p></td>
 <td><p>可能较慢</p></td>
-</tr>
-<tr class="row-odd"><td><p>数值稳定性</p></td>
-<td><p>需要处理log(0)</p></td>
-<td><p>需要处理分母为0</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 </section>
 </section>
-<section id="iou-jaccard">
-<h2>IoU损失（Jaccard损失）<a class="headerlink" href="#iou-jaccard" title="Link to this heading">#</a></h2>
-<section id="iou">
-<h3>IoU系数定义<a class="headerlink" href="#iou" title="Link to this heading">#</a></h3>
-<p>交并比（Intersection over Union, IoU）是另一种常用的重叠度量：</p>
-<div class="math notranslate nohighlight">
-\[\text{IoU} = \frac{|X \cap Y|}{|X \cup Y|} = \frac{TP}{TP + FP + FN}\]</div>
-</section>
 <section id="id11">
-<h3>IoU损失定义<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
-<p>IoU损失定义为1减去IoU系数：</p>
-<div class="math notranslate nohighlight">
-\[L_{\text{IoU}} = 1 - \text{IoU} = 1 - \frac{|X \cap Y|}{|X \cup Y|}\]</div>
-</section>
-<section id="ioudice">
-<h3>IoU损失与Dice损失的关系<a class="headerlink" href="#ioudice" title="Link to this heading">#</a></h3>
-<p>IoU和Dice系数之间存在数学关系：</p>
-<div class="math notranslate nohighlight">
-\[\text{Dice} = \frac{2 \times \text{IoU}}{1 + \text{IoU}}, \quad \text{IoU} = \frac{\text{Dice}}{2 - \text{Dice}}\]</div>
-<p>因此，Dice损失和IoU损失在优化目标上是相关的，但梯度特性不同。</p>
-</section>
-</section>
-<section id="tversky">
-<h2>Tversky损失<a class="headerlink" href="#tversky" title="Link to this heading">#</a></h2>
-<section id="id12">
-<h3>Tversky指数<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
-<p>Tversky指数是Dice系数的一般化形式，允许调整假阳性和假阴性的权重：</p>
-<div class="math notranslate nohighlight">
-\[\text{TI} = \frac{TP}{TP + \alpha FP + \beta FN}\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(\alpha + \beta = 1\)</span>。当 <span class="math notranslate nohighlight">\(\alpha = \beta = 0.5\)</span> 时，Tversky指数退化为Dice系数。</p>
-</section>
-<section id="id13">
-<h3>Tversky损失<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
-<div class="math notranslate nohighlight">
-\[L_{\text{Tversky}} = 1 - \text{TI}\]</div>
-<p>通过调整 <span class="math notranslate nohighlight">\(\alpha\)</span> 和 <span class="math notranslate nohighlight">\(\beta\)</span>，可以控制模型对假阳性和假阴性的敏感度。例如，在医学图像分割中，可能更希望避免假阴性（漏诊），可以设置 <span class="math notranslate nohighlight">\(\beta &gt; \alpha\)</span>。</p>
-</section>
-</section>
-<section id="id14">
-<h2>组合损失策略<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
-<section id="id15">
-<h3>交叉熵 + Dice损失<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
-<p>实践中常使用组合损失以平衡不同目标：</p>
+<h2>组合损失<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
+<p>实践中效果最好的往往是 <strong>交叉熵 + Dice 组合损失</strong>：</p>
 <div class="math notranslate nohighlight">
 \[L_{\text{total}} = \alpha L_{\text{CE}} + \beta L_{\text{Dice}}\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(\alpha\)</span> 和 <span class="math notranslate nohighlight">\(\beta\)</span> 是超参数，通常通过网格搜索或经验确定。</p>
-</section>
-<section id="id16">
-<h3>自适应权重<a class="headerlink" href="#id16" title="Link to this heading">#</a></h3>
-<p>更高级的策略是使用自适应权重，根据训练进度动态调整：</p>
-<div class="math notranslate nohighlight">
-\[L_{\text{total}} = \lambda(t) L_{\text{CE}} + (1 - \lambda(t)) L_{\text{Dice}}\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(\lambda(t)\)</span> 是随时间 <span class="math notranslate nohighlight">\(t\)</span>（训练轮数）变化的函数，例如从1线性衰减到0。</p>
-</section>
-</section>
-<section id="id17">
-<h2>损失函数实现<a class="headerlink" href="#id17" title="Link to this heading">#</a></h2>
-<section id="id18">
-<h3>Dice损失实现<a class="headerlink" href="#id18" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
-
-<span class="k">class</span><span class="w"> </span><span class="nc">DiceLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dice损失实现&quot;&quot;&quot;</span>
+<p>交叉熵提供稳定的梯度，Dice 提供区域级优化目标。通常 <span class="math notranslate nohighlight">\(\alpha = \beta = 0.5\)</span> 已经是很好的起点。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">DiceLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dice 损失&quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">DiceLoss</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">smooth</span> <span class="o">=</span> <span class="n">smooth</span>
         
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
-        <span class="c1"># 二分类任务，使用sigmoid</span>
-        <span class="n">pred</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">pred</span><span class="p">)</span>
+        <span class="c1"># pred: (B, C, H, W) logits, target: (B, H, W) 类别索引</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         
-        <span class="c1"># 展平预测和真实值</span>
-        <span class="n">pred_flat</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">target_flat</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-        
-        <span class="n">intersection</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred_flat</span> <span class="o">*</span> <span class="n">target_flat</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-        <span class="n">dice</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">intersection</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">smooth</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
-            <span class="n">pred_flat</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">+</span> <span class="n">target_flat</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">smooth</span>
-        <span class="p">)</span>
-        
-        <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">dice</span>
-
-<span class="k">class</span><span class="w"> </span><span class="nc">MultiClassDiceLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;多类别Dice损失&quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">MultiClassDiceLoss</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">=</span> <span class="n">num_classes</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">smooth</span> <span class="o">=</span> <span class="n">smooth</span>
-        
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
-        <span class="c1"># pred: (B, C, H, W), target: (B, H, W) 包含类别索引</span>
         <span class="n">dice_loss</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="n">pred_softmax</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        
-        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">):</span>
-            <span class="n">pred_c</span> <span class="o">=</span> <span class="n">pred_softmax</span><span class="p">[:,</span> <span class="n">c</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">pred</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">pred_c</span> <span class="o">=</span> <span class="n">pred</span><span class="p">[:,</span> <span class="n">c</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
             <span class="n">target_c</span> <span class="o">=</span> <span class="p">(</span><span class="n">target</span> <span class="o">==</span> <span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
             
             <span class="n">intersection</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred_c</span> <span class="o">*</span> <span class="n">target_c</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
@@ -727,112 +643,65 @@ document.write(`
             <span class="p">)</span>
             <span class="n">dice_loss</span> <span class="o">+=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">dice</span>
             
-        <span class="k">return</span> <span class="n">dice_loss</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span>
+        <span class="k">return</span> <span class="n">dice_loss</span> <span class="o">/</span> <span class="n">pred</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 </pre></div>
 </div>
-</section>
-<section id="id19">
-<h3>组合损失实现<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CombinedLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;组合损失：交叉熵 + Dice损失&quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">weight_ce</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">weight_dice</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">CombinedLoss</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;交叉熵 + Dice 组合损失&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">weight_ce</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">weight_dice</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">weight_ce</span> <span class="o">=</span> <span class="n">weight_ce</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">weight_dice</span> <span class="o">=</span> <span class="n">weight_dice</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ce_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dice_loss</span> <span class="o">=</span> <span class="n">MultiClassDiceLoss</span><span class="p">(</span><span class="n">num_classes</span><span class="o">=</span><span class="n">num_classes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dice_loss</span> <span class="o">=</span> <span class="n">DiceLoss</span><span class="p">()</span>
         
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
-        <span class="n">ce</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ce_loss</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-        <span class="n">dice</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dice_loss</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_ce</span> <span class="o">*</span> <span class="n">ce</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_dice</span> <span class="o">*</span> <span class="n">dice</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight_ce</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ce_loss</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span> <span class="o">+</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">weight_dice</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dice_loss</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">target</span><span class="p">))</span>
 </pre></div>
 </div>
 </section>
-<section id="id20">
-<h3>焦点损失实现<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">FocalLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;焦点损失&quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">FocalLoss</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="n">gamma</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
-        
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
-        <span class="n">ce_loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
-        <span class="n">pt</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">ce_loss</span><span class="p">)</span>
-        
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">alpha_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">[</span><span class="n">target</span><span class="p">]</span>
-            <span class="n">focal_loss</span> <span class="o">=</span> <span class="n">alpha_t</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">pt</span><span class="p">)</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">ce_loss</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">focal_loss</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">pt</span><span class="p">)</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">ce_loss</span>
-            
-        <span class="k">return</span> <span class="n">focal_loss</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="id21">
-<h2>损失函数选择指南<a class="headerlink" href="#id21" title="Link to this heading">#</a></h2>
-<section id="id22">
-<h3>根据任务特性选择<a class="headerlink" href="#id22" title="Link to this heading">#</a></h3>
-<ol class="arabic simple">
-<li><p><strong>类别平衡的数据</strong>：交叉熵损失通常足够</p></li>
-<li><p><strong>类别不平衡的数据</strong>：Dice损失、Tversky损失或加权交叉熵</p></li>
-<li><p><strong>边界精度要求高</strong>：Dice损失或IoU损失</p></li>
-<li><p><strong>小目标检测</strong>：焦点损失或Tversky损失（<span class="math notranslate nohighlight">\(\beta &gt; \alpha\)</span>）</p></li>
-<li><p><strong>多类别分割</strong>：多类别Dice损失或加权交叉熵</p></li>
-</ol>
-</section>
-<section id="id23">
-<h3>实践建议<a class="headerlink" href="#id23" title="Link to this heading">#</a></h3>
-<div class="tip admonition">
-<p class="admonition-title">损失函数使用建议</p>
-<ol class="arabic simple">
-<li><p><strong>从简单开始</strong>：首先尝试交叉熵损失，作为基准</p></li>
-<li><p><strong>组合策略</strong>：如果交叉熵效果不佳，尝试交叉熵 + Dice组合损失</p></li>
-<li><p><strong>超参数调优</strong>：仔细调整组合权重，通常从等权重开始（<span class="math notranslate nohighlight">\(\alpha = \beta = 0.5\)</span>）</p></li>
-<li><p><strong>监控指标</strong>：训练时同时监控损失和评估指标（如Dice系数、IoU）</p></li>
-<li><p><strong>早停策略</strong>：基于验证集Dice系数而非训练损失进行早停</p></li>
-<li><p><strong>损失可视化</strong>：可视化损失曲线，检查是否过拟合或欠拟合</p></li>
-</ol>
-</div>
-</section>
-<section id="id24">
-<h3>常见问题与解决方案<a class="headerlink" href="#id24" title="Link to this heading">#</a></h3>
+<section id="id12">
+<h2>损失函数选择指南<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
-<tr class="row-odd"><th class="head"><p>问题</p></th>
-<th class="head"><p>可能原因</p></th>
-<th class="head"><p>解决方案</p></th>
+<tr class="row-odd"><th class="head"><p>场景</p></th>
+<th class="head"><p>推荐</p></th>
+<th class="head"><p>理由</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>训练不稳定，损失震荡</p></td>
-<td><p>Dice损失梯度不稳定</p></td>
-<td><p>使用组合损失，增加平滑项</p></td>
+<tr class="row-even"><td><p>类别大致平衡</p></td>
+<td><p>交叉熵</p></td>
+<td><p>简单有效</p></td>
 </tr>
-<tr class="row-odd"><td><p>模型偏向多数类</p></td>
-<td><p>类别不平衡</p></td>
-<td><p>使用加权交叉熵或Dice损失</p></td>
+<tr class="row-odd"><td><p>类别极不平衡（肿瘤 &lt; 1%）</p></td>
+<td><p>Dice 损失</p></td>
+<td><p>小目标天然放大</p></td>
 </tr>
-<tr class="row-even"><td><p>边界模糊</p></td>
-<td><p>损失函数对边界不敏感</p></td>
-<td><p>使用Dice损失或添加边界损失项</p></td>
+<tr class="row-even"><td><p>小目标检测</p></td>
+<td><p>焦点损失 + Dice</p></td>
+<td><p>聚焦难分类样本</p></td>
 </tr>
-<tr class="row-odd"><td><p>收敛缓慢</p></td>
-<td><p>学习率不当或损失函数选择不当</p></td>
-<td><p>调整学习率，尝试不同损失函数</p></td>
+<tr class="row-odd"><td><p>一般情况（推荐）</p></td>
+<td><p>CE + Dice 组合</p></td>
+<td><p>兼顾稳定性和优化目标</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 </section>
-</section>
-<section id="id25">
-<h2>总结<a class="headerlink" href="#id25" title="Link to this heading">#</a></h2>
-<p>损失函数的选择对U-Net的性能有显著影响。在实践中，没有&quot;最好&quot;的损失函数，只有最适合特定任务和数据特性的损失函数。建议通过实验比较不同损失函数在验证集上的表现，选择最优组合。对于医学图像分割，交叉熵 + Dice组合损失通常是良好的起点，可以在保持训练稳定的同时获得优秀的分割精度。</p>
+<hr class="docutils" />
+<section id="id13">
+<h2>参考文献<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id14">
+<div role="list" class="citation-list">
+<div class="citation" id="id100" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">LGG+17</a><span class="fn-bracket">]</span></span>
+<p>Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He, and Piotr Dollár. Focal loss for dense object detection. In <em>Proceedings of the IEEE International Conference on Computer Vision (ICCV)</em>, 2980–2988. 2017.</p>
+</div>
+</div>
+</div>
 </section>
 </section>
 
@@ -840,7 +709,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -848,6 +717,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b5e265a</code>
+                2026-04-28 - <strong>Heyan Zhu</strong>: docs(unet): restructure documentation and update content
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">0c291d7</code>
                 2025-12-10 - <strong>Heyan Zhu</strong>: docs: restructure course materials and add new content
@@ -874,7 +748,7 @@ document.write(`
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">上一页</p>
-        <p class="prev-next-title">U-Net架构详解</p>
+        <p class="prev-next-title">U 形架构详解</p>
       </div>
     </a>
     <a class="right-next"
@@ -882,7 +756,7 @@ document.write(`
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">核心组件实现</p>
+        <p class="prev-next-title">完整实现</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -902,51 +776,27 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">像素级交叉熵损失</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">标准交叉熵损失</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">加权交叉熵损失</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#focal-loss">焦点损失（Focal Loss）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">交叉熵损失的优缺点</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vs">直觉：分类损失 vs 分割损失</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">交叉熵损失</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">标准交叉熵</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">加权交叉熵</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#focal-loss-lin2017focal">焦点损失（Focal Loss）<span class="xref cite">lin2017focal</span></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">交叉熵的局限</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dice">Dice损失</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">Dice系数定义</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">Dice损失定义</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">像素级实现</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">Dice损失的数学性质</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">多类别Dice损失</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dice-vs">Dice损失 vs 交叉熵损失</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dice">Dice 损失</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">Dice 系数</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">Dice 损失</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">Dice 损失的梯度分析</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">梯度符号表</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#iou-jaccard">IoU损失（Jaccard损失）</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#iou">IoU系数定义</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">IoU损失定义</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ioudice">IoU损失与Dice损失的关系</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dice-vs">Dice vs 交叉熵</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tversky">Tversky损失</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">Tversky指数</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">Tversky损失</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">组合损失策略</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">交叉熵 + Dice损失</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">自适应权重</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">损失函数实现</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">Dice损失实现</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">组合损失实现</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">焦点损失实现</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">损失函数选择指南</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">根据任务特性选择</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">实践建议</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">常见问题与解决方案</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">组合损失</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">损失函数选择指南</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">参考文献</a></li>
 </ul>
   </nav></div>
 

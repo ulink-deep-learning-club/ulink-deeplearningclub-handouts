@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>总结与展望 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+    <title>应用、变体与展望 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
   
   
   
@@ -44,11 +44,377 @@
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script src="../_static/translations.js?v=beaddf03"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'unet-image-segmentation/the-end';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
     <link rel="next" title="写在后面" href="../postscript.html" />
-    <link rel="prev" title="U-Net变体与改进" href="variation.html" />
+    <link rel="prev" title="数据增强与训练技巧" href="practice.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
   </head>
@@ -213,17 +579,13 @@
 <li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与延伸</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">U-Net架构：生物医学图像分割的革命性方法</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="u-net.html">U-Net架构详解</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">U-Net：图像分割的革命</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="u-net.html">U 形架构详解</a></li>
 <li class="toctree-l2"><a class="reference internal" href="loss-func.html">损失函数设计</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core-impl.html">核心组件实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="full-impl.html">完整U-Net实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data-enhance.html">数据增强策略</a></li>
-<li class="toctree-l2"><a class="reference internal" href="techniques-best-practices.html">训练技巧与最佳实践</a></li>
-<li class="toctree-l2"><a class="reference internal" href="application.html">应用领域</a></li>
-<li class="toctree-l2"><a class="reference internal" href="variation.html">U-Net变体与改进</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">总结与展望</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">应用、变体与展望</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
@@ -429,7 +791,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>总结与展望</h1>
+    <h1>应用、变体与展望</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -439,60 +801,28 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">核心贡献回顾</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#u">1. 架构创新：U形对称设计</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">2. 跳跃连接：信息高速公路</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">3. 数据效率：小数据大性能</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">4. 开源影响：推动社区发展</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">应用领域</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">医学影像分割（核心领域）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">拓展领域</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">局限性分析</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">1. 计算和内存效率</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">2. 架构限制</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">3. 数据依赖性</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">4. 理论理解不足</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">关键变体</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#u-net-unetplusplus">U-Net++ <span class="xref cite">unetplusplus</span>：嵌套密集跳跃连接</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#attention-u-net-attentionunet">Attention U-Net <span class="xref cite">attentionunet</span>：让跳跃连接学会"选择性关注"</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#d-u-net-cicek20163d">3D U-Net <span class="xref cite">cicek20163d</span>：从切片到体积</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#transunet-transunet-transformer-u-net">TransUNet <span class="xref cite">transunet</span>：Transformer + U-Net</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">变体对比表</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">未来发展方向</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">1. 架构创新</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#transformer">Transformer融合</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nas">神经架构搜索（NAS）</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">动态架构</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">局限性</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">核心启示</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">常见问题速答</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">推荐资源</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">英文</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">中文</a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">2. 学习范式演进</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">自监督学习</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">半监督和弱监督学习</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">联邦学习</a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">3. 应用领域扩展</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#d4d">3D和4D分割</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">多模态融合</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">交互式分割</a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">4. 部署和实际应用</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">轻量化部署</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">临床集成</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">可解释性和可信性</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">对研究社区的启示</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id26">1. 问题导向的设计哲学</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id27">2. 开源和可复现性的价值</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id28">3. 跨学科合作的重要性</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id29">给实践者的建议</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#u-net">1. 如何开始使用U-Net</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id30">2. 常见陷阱避免</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id31">3. 持续学习</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id32">结语</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">参考文献</a></li>
 </ul>
             </nav>
         </div>
@@ -504,267 +834,304 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="id1">
-<h1>总结与展望<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
-<p>U-Net自2015年提出以来，已成为图像分割领域的里程碑式工作，特别是在生物医学图像分割中取得了革命性进展。本章将总结U-Net的核心贡献、分析其局限性，并展望未来的发展方向。</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="unet-end">
+<span id="id1"></span><h1>应用、变体与展望<a class="headerlink" href="#unet-end" title="Link to this heading">#</a></h1>
 <section id="id2">
-<h2>核心贡献回顾<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<section id="u">
-<h3>1. 架构创新：U形对称设计<a class="headerlink" href="#u" title="Link to this heading">#</a></h3>
-<p>U-Net最显著的贡献是其U形对称架构，巧妙地将编码器（收缩路径）和解码器（扩张路径）结合在一起：</p>
-<ul class="simple">
-<li><p><strong>编码器路径</strong>：通过卷积和池化逐步提取高级语义特征</p></li>
-<li><p><strong>解码器路径</strong>：通过上采样和跳跃连接逐步恢复空间分辨率</p></li>
-<li><p><strong>对称设计</strong>：形成信息流的完整循环，实现多尺度特征融合</p></li>
-</ul>
-<p>这种设计首次在分割任务中实现了从低层细节到高层语义的平滑过渡，为后续的编码器-解码器架构奠定了基础。</p>
-</section>
+<h2>应用领域<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>U-Net 自 2015 年提出以来，应用早已超出最初的细胞分割。</p>
 <section id="id3">
-<h3>2. 跳跃连接：信息高速公路<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
-<p>跳跃连接是U-Net成功的关键创新：</p>
-<ul class="simple">
-<li><p><strong>细节保留</strong>：将编码器的低层特征直接传递给解码器，保留精确的空间信息</p></li>
-<li><p><strong>梯度流动</strong>：提供直接的梯度路径，缓解深度网络中的梯度消失问题</p></li>
-<li><p><strong>特征复用</strong>：避免重复学习相同特征，提高训练效率</p></li>
-<li><p><strong>边界精度</strong>：显著改善分割边界的精确度，特别适合医学图像</p></li>
-</ul>
-<p>跳跃连接的思想后来被广泛应用于各种网络架构，如ResNet、DenseNet等。</p>
+<h3>医学影像分割（核心领域）<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>任务</p></th>
+<th class="head"><p>典型 Dice</p></th>
+<th class="head"><p>特殊挑战</p></th>
+<th class="head"><p>U-Net 解决方案</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>细胞核分割</p></td>
+<td><p>0.92</p></td>
+<td><p>细胞粘连、边界模糊</p></td>
+<td><p>跳跃连接保留边界</p></td>
+</tr>
+<tr class="row-odd"><td><p>肝脏/肿瘤分割</p></td>
+<td><p>0.95</p></td>
+<td><p>形状变异大</p></td>
+<td><p>弹性变形数据增强</p></td>
+</tr>
+<tr class="row-even"><td><p>脑肿瘤分割</p></td>
+<td><p>0.88</p></td>
+<td><p>对比度低、边界不清晰</p></td>
+<td><p>多尺度特征融合</p></td>
+</tr>
+<tr class="row-odd"><td><p>视网膜血管分割</p></td>
+<td><p>0.95（准确率）</p></td>
+<td><p>细长结构</p></td>
+<td><p>深层次特征融合</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
 <section id="id4">
-<h3>3. 数据效率：小数据大性能<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
-<p>U-Net在有限标注数据下表现出色，这得益于：</p>
+<h3>拓展领域<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p><strong>数据增强策略</strong>：特别是弹性变形，有效模拟生物组织的自然形变</p></li>
-<li><p><strong>端到端训练</strong>：直接从原始图像学习分割掩码，无需手工特征</p></li>
-<li><p><strong>正则化效果</strong>：跳跃连接和架构设计本身具有正则化作用</p></li>
+<li><p><strong>卫星图像分析</strong>：土地覆盖分类（IoU 0.89）、洪水检测、灾害评估</p></li>
+<li><p><strong>自动驾驶</strong>：道路分割、可行驶区域检测（Cityscapes 数据集 mIoU 0.82）</p></li>
+<li><p><strong>工业检测</strong>：表面缺陷检测、焊点质量检查</p></li>
+<li><p><strong>图像修复</strong>：老照片修复、物体移除（U-Net 作为生成器）</p></li>
 </ul>
-<p>在ISBI 2012细胞分割挑战赛中，U-Net仅用30张训练图像就取得了最佳性能，证明了其卓越的数据效率。</p>
+<p>U-Net 在这些领域的共性成功因素：<strong>标注数据少、边界精度要求高、需要端到端训练</strong>。</p>
+</section>
 </section>
 <section id="id5">
-<h3>4. 开源影响：推动社区发展<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
-<p>U-Net的开源实现和清晰的架构设计：</p>
+<h2>关键变体<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<p>十年间，研究人员围绕 U-Net 的核心思想提出了大量改进。以下是影响力最大的几个：</p>
+<section id="u-net-unetplusplus">
+<h3>U-Net++ <span id="id6">[<a class="reference internal" href="#id106" title="Zongwei Zhou, Md Mahfuzur Rahman Siddiquee, Nima Tajbakhsh, and Jianming Liang. Unet++: a nested u-net architecture for medical image segmentation. In Deep Learning in Medical Image Analysis and Multimodal Learning for Clinical Decision Support, 3–11. Springer, 2018.">ZSTL18</a>]</span>：嵌套密集跳跃连接<a class="headerlink" href="#u-net-unetplusplus" title="Link to this heading">#</a></h3>
+<p>解决了原始 U-Net 跳跃连接的&quot;语义差距&quot;问题（编码器浅层和解码器深层的特征&quot;不太匹配&quot;）。U-Net++ 在每条跳跃连接路径中加入中间卷积层来逐步缩小语义差距：</p>
+<object data="../_images/mermaid-443f41241c24380d31e8e74d1938daa1a553f68b.svg" type="image/svg+xml">
+            <p class="warning">graph LR
+    subgraph 编码器
+    X0[&quot;输入&quot;] --&gt; X1[&quot;层1&quot;]
+    X1 --&gt; X2[&quot;层2&quot;]
+    X2 --&gt; X3[&quot;层3&quot;]
+    X3 --&gt; X4[&quot;层4&quot;]
+    end
+    subgraph 解码器
+    X4 --&gt; X5[&quot;上采样&quot;]
+    X5 --&gt; X6[&quot;层3'&quot;]
+    X6 --&gt; X7[&quot;层2'&quot;]
+    X7 --&gt; X8[&quot;层1'&quot;]
+    X8 --&gt; Y[&quot;输出&quot;]
+    end
+    %% 原始U-Net连接
+    X1 -.-&gt;|&quot;skip&quot;| X8
+    X2 -.-&gt;|&quot;skip&quot;| X7
+    X3 -.-&gt;|&quot;skip&quot;| X6
+    X4 -.-&gt;|&quot;skip&quot;| X5
+    %% U-Net++ 嵌套连接
+    X1 --&gt;|&quot;dense&quot;| X7
+    X2 --&gt;|&quot;dense&quot;| X6
+    X1 --&gt;|&quot;dense&quot;| X6</p></object>
 <ul class="simple">
-<li><p><strong>降低了入门门槛</strong>：研究人员和开发者可以快速复现和应用</p></li>
-<li><p><strong>催生了大量变体</strong>：U-Net++、Attention U-Net、3D U-Net等不断涌现</p></li>
-<li><p><strong>形成了生态系统</strong>：成为医学图像分割的事实标准</p></li>
+<li><p><strong>改进</strong>：在跳跃连接路径中加入中间卷积层，逐步缩小语义差距</p></li>
+<li><p><strong>额外能力</strong>：<strong>深度监督</strong>——多个解码器输出都参与损失计算</p></li>
+<li><p><strong>性能</strong>：Dice 提升 2-5%，尤其在小数据集上</p></li>
+<li><p><strong>代价</strong>：参数量和计算量增加</p></li>
 </ul>
 </section>
+<section id="attention-u-net-attentionunet">
+<h3>Attention U-Net <span id="id7">[<a class="reference internal" href="#id107" title="Ozan Oktay, Jo Schlemper, Loic Le Folgoc, Matthew Lee, Mattias Heinrich, Kazunari Misawa, Kensaku Mori, Steven McDonagh, Nils Y Hammerla, Bernhard Kainz, and others. Attention u-net: learning where to look for the pancreas. In Medical Imaging with Deep Learning (MIDL). 2018.">OSF+18</a>]</span>：让跳跃连接学会&quot;选择性关注&quot;<a class="headerlink" href="#attention-u-net-attentionunet" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="u-net.html#unet-arch"><span class="std std-ref">U 形架构详解</span></a> 中我们讨论了跳跃连接直接传递编码器特征。但编码器特征中不是所有区域都重要——背景区域的特征传递过去只是噪声。Attention U-Net 在跳跃连接入口处加入<strong>注意力门（Attention Gate）</strong>，让解码器特征指导编码器特征&quot;只看该看的地方&quot;。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">AttentionGate</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;注意力门：让跳跃连接&quot;选择性关注&quot;</span>
+<span class="sd">    </span>
+<span class="sd">    用解码器特征指导编码器特征的注意力权重</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">F_g</span><span class="p">,</span> <span class="n">F_l</span><span class="p">,</span> <span class="n">F_int</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">W_g</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">F_g</span><span class="p">,</span> <span class="n">F_int</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># 解码器特征</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">W_x</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">F_l</span><span class="p">,</span> <span class="n">F_int</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># 编码器特征</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">psi</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">F_int</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()</span>
+        <span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">attn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">psi</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">W_g</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">W_x</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">attn</span>
+</pre></div>
+</div>
+<p><strong>好处</strong>：注意力图可以可视化，知道模型在&quot;看哪里&quot;——对医学诊断的可信度很重要。</p>
 </section>
-<section id="id6">
-<h2>局限性分析<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
-<p>尽管U-Net非常成功，但仍存在一些局限性：</p>
-<section id="id7">
-<h3>1. 计算和内存效率<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
-<ul class="simple">
-<li><p><strong>跳跃连接的内存消耗</strong>：需要存储编码器各层的特征图，内存占用较大</p></li>
-<li><p><strong>3D扩展的计算开销</strong>：3D U-Net对GPU内存要求高，限制了大体积数据的处理</p></li>
-<li><p><strong>实时推理挑战</strong>：原始U-Net在移动设备或嵌入式系统上运行速度较慢</p></li>
-</ul>
+<section id="d-u-net-cicek20163d">
+<h3>3D U-Net <span id="id8">[<a class="reference internal" href="#id105" title="Özgün Çiçek, Ahmed Abdulkadir, Soeren S Lienkamp, Thomas Brox, and Olaf Ronneberger. 3d u-net: learning dense volumetric segmentation from sparse annotation. In Medical Image Computing and Computer-Assisted Intervention (MICCAI), 424–432. Springer, 2016.">cCiccekAL+16</a>]</span>：从切片到体积<a class="headerlink" href="#d-u-net-cicek20163d" title="Link to this heading">#</a></h3>
+<p>把 2D 卷积换成 3D 卷积，直接处理 CT/MRI 的 3D 体积数据。</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>对比</p></th>
+<th class="head"><p>2D U-Net</p></th>
+<th class="head"><p>3D U-Net</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>输入</p></td>
+<td><p>单张切片</p></td>
+<td><p>整个体积（或 patch）</p></td>
+</tr>
+<tr class="row-odd"><td><p>卷积</p></td>
+<td><p>2D (k×k)</p></td>
+<td><p>3D (k×k×k)</p></td>
+</tr>
+<tr class="row-even"><td><p>内存</p></td>
+<td><p>~4GB</p></td>
+<td><p>~16GB+</p></td>
+</tr>
+<tr class="row-odd"><td><p>适用场景</p></td>
+<td><p>切片独立的图像</p></td>
+<td><p>CT/MRI 等体积数据</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>3D U-Net 捕捉到了<strong>相邻切片之间的连续性</strong>，但对 GPU 内存是巨大挑战（通常需要 patch-based 训练）。</p>
 </section>
-<section id="id8">
-<h3>2. 架构限制<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
-<ul class="simple">
-<li><p><strong>感受野有限</strong>：纯卷积架构可能无法充分捕捉长距离依赖关系</p></li>
-<li><p><strong>上下文理解不足</strong>：对于需要全局上下文的任务（如场景理解），性能有限</p></li>
-<li><p><strong>超参数敏感</strong>：网络深度、宽度、学习率等需要仔细调整</p></li>
-</ul>
-</section>
-<section id="id9">
-<h3>3. 数据依赖性<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
-<ul class="simple">
-<li><p><strong>增强策略依赖</strong>：性能高度依赖数据增强策略的设计</p></li>
-<li><p><strong>领域适应性</strong>：在不同成像设备或医院的数据上可能表现下降</p></li>
-<li><p><strong>标注质量敏感</strong>：对标注错误和噪声比较敏感</p></li>
-</ul>
+<section id="transunet-transunet-transformer-u-net">
+<h3>TransUNet <span id="id9">[<a class="reference internal" href="#id108" title="Jieneng Chen, Yongyi Lu, Qihang Yu, Xiangde Luo, Ehsan Adeli, Yan Wang, Le Lu, Alan L Yuille, and Yuyin Zhou. Transunet: transformers make strong encoders for medical image segmentation. In arXiv preprint arXiv:2102.04306. 2021.">CLY+21</a>]</span>：Transformer + U-Net<a class="headerlink" href="#transunet-transunet-transformer-u-net" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="../neural-network-basics/cnn-basics.html#receptive-field"><span class="std std-ref">感受野</span></a> 中我们提到标准 CNN 感受野有限。Transformer 的<strong>自注意力机制</strong>（<a class="reference internal" href="../attention-mechanisms/introduction.html"><span class="doc">为什么CNN需要注意力机制？</span></a>）一个操作内看到全局——TransUNet 用 Transformer 做编码器，U-Net 做解码器，兼得两者的优势。</p>
 </section>
 <section id="id10">
-<h3>4. 理论理解不足<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
-<ul class="simple">
-<li><p><strong>可解释性有限</strong>：决策过程缺乏明确的解释</p></li>
-<li><p><strong>理论分析困难</strong>：跳跃连接和U形架构的理论性质尚未完全理解</p></li>
-<li><p><strong>优化理论欠缺</strong>：为什么U-Net在小数据集上表现优异，缺乏严格的理论解释</p></li>
-</ul>
+<h3>变体对比表<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>变体</p></th>
+<th class="head"><p>发布年份</p></th>
+<th class="head"><p>核心改进</p></th>
+<th class="head"><p>Dice 提升</p></th>
+<th class="head"><p>参数量变化</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>U-Net++</p></td>
+<td><p>2018</p></td>
+<td><p>嵌套密集跳跃连接</p></td>
+<td><p>+2-5%</p></td>
+<td><p>增加 30-50%</p></td>
+</tr>
+<tr class="row-odd"><td><p>Attention U-Net</p></td>
+<td><p>2018</p></td>
+<td><p>注意力门控跳跃连接</p></td>
+<td><p>+1-3%</p></td>
+<td><p>略有增加</p></td>
+</tr>
+<tr class="row-even"><td><p>3D U-Net</p></td>
+<td><p>2016</p></td>
+<td><p>3D 卷积</p></td>
+<td><p>+3-8%（体积数据）</p></td>
+<td><p>大幅增加</p></td>
+</tr>
+<tr class="row-odd"><td><p>ResUNet</p></td>
+<td><p>2017</p></td>
+<td><p>残差连接</p></td>
+<td><p>+1-2%</p></td>
+<td><p>略有增加</p></td>
+</tr>
+<tr class="row-even"><td><p>TransUNet</p></td>
+<td><p>2021</p></td>
+<td><p>Transformer 编码器</p></td>
+<td><p>+3-6%</p></td>
+<td><p>大幅增加</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
 </section>
 <section id="id11">
-<h2>未来发展方向<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
+<h2>局限性<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
+<div class="warning admonition">
+<p class="admonition-title">U-Net 并非万能</p>
+<ol class="arabic simple">
+<li><p><strong>计算开销大</strong>：跳跃连接需要存储所有编码器特征图，内存占用大</p></li>
+<li><p><strong>长距离依赖有限</strong>：CNN 本质上是局部操作，感受野靠深度堆叠，效率不如 Transformer</p></li>
+<li><p><strong>超参数敏感</strong>：深度、初始通道数、学习率需要仔细调整</p></li>
+<li><p><strong>对 3D 数据不够友好</strong>：直接扩展为 3D 后内存爆炸，需要 patch 策略</p></li>
+</ol>
+</div>
+</section>
 <section id="id12">
-<h3>1. 架构创新<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
-<section id="transformer">
-<h4>Transformer融合<a class="headerlink" href="#transformer" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><strong>全局注意力</strong>：结合Vision Transformer的全局建模能力</p></li>
-<li><p><strong>混合架构</strong>：CNN处理局部特征，Transformer处理全局上下文</p></li>
-<li><p><strong>高效设计</strong>：减少Transformer的计算复杂度，适应医学图像分割</p></li>
-</ul>
+<h2>核心启示<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
+<p>回顾这一章，U-Net 教给我们的不仅是分割方法，更是一种<strong>设计哲学</strong>：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>问题</p></th>
+<th class="head"><p>U-Net 的回答</p></th>
+<th class="head"><p>可迁移的思想</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>&quot;位置 vs 语义&quot;矛盾</p></td>
+<td><p>编码器-解码器 + 跳跃连接</p></td>
+<td><p>对称信息流 + 短路连接</p></td>
+</tr>
+<tr class="row-odd"><td><p>“数据太少”</p></td>
+<td><p>弹性变形数据增强</p></td>
+<td><p>领域知识指导增强策略</p></td>
+</tr>
+<tr class="row-even"><td><p>“小目标被忽略”</p></td>
+<td><p>Dice 损失</p></td>
+<td><p>用评估指标指导损失设计</p></td>
+</tr>
+<tr class="row-odd"><td><p>“浅层梯度消失”</p></td>
+<td><p>跳跃连接</p></td>
+<td><p>梯度高速公路</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a> 的 <a class="reference internal" href="../neural-network-basics/introduction.html#inductive-bias"><span class="std std-ref">归纳偏置（Inductive Bias）</span></a> 告诉我们：好的架构设计把先验知识内置到网络中。U-Net 做了一个极好的示范——把&quot;分割需要位置+语义&quot;这个先验翻译成了 U 形的对称结构。</p>
 </section>
-<section id="nas">
-<h4>神经架构搜索（NAS）<a class="headerlink" href="#nas" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><strong>自动设计</strong>：针对特定任务自动搜索最优U-Net变体</p></li>
-<li><p><strong>多目标优化</strong>：平衡精度、速度、内存消耗</p></li>
-<li><p><strong>可微分NAS</strong>：端到端学习架构参数</p></li>
-</ul>
-</section>
+<hr class="docutils" />
 <section id="id13">
-<h4>动态架构<a class="headerlink" href="#id13" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><strong>条件计算</strong>：根据输入图像复杂度动态调整网络深度或宽度</p></li>
-<li><p><strong>自适应感受野</strong>：根据目标尺寸调整感受野大小</p></li>
-<li><p><strong>实时架构调整</strong>：在推理过程中根据资源约束调整计算</p></li>
-</ul>
-</section>
+<h2>常见问题速答<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<p><strong>Q: U-Net 的输入尺寸必须是 572×572 吗？</strong></p>
+<p>A: 不是。原始论文用 572×572 是因为用了有效填充。现代实现用相同填充（padding=1），输入可以是任意尺寸（最好是 2 的幂次，如 256、512 等），因为下采样 4 次需要输入能被 16 整除。</p>
+<p><strong>Q: 什么时候用 U-Net 而不是其他分割网络？</strong></p>
+<p>A: U-Net 最适合<strong>小数据、高精度边界</strong>的场景。如果你的数据量很大（&gt;10K 张），DeepLab 或 Mask R-CNN 可能更好。如果边界不是核心关注点，FCN 就够用。</p>
+<p><strong>Q: 跳跃连接为什么用拼接而不是相加？</strong></p>
+<p>A: 拼接保留编码器特征的<strong>全部信息</strong>。FCN 用相加相当于对编码器特征做了一个线性投影（压缩），可能丢失信息。拼接让解码器自己决定&quot;从编码器特征中取多少&quot;——学出来的效果更好。</p>
+<p><strong>Q: Dice 损失训练不稳定怎么办？</strong></p>
+<p>A: 两个常见原因：1) 梯度非凸导致局部震荡 → 加交叉熵做组合损失；2) 平滑项 <span class="math notranslate nohighlight">\(\epsilon\)</span> 太小 → 增大到 <span class="math notranslate nohighlight">\(10^{-5}\)</span> 或 <span class="math notranslate nohighlight">\(10^{-4}\)</span>。</p>
+<p><strong>Q: 为什么我的 U-Net 只预测背景，不预测目标？</strong></p>
+<p>A: 最可能的原因是类别极端不平衡 + 学习率太大。先用 Dice 损失（它对小目标更敏感），检查学习率是否合适（用 lr finder），确认数据增强没把目标区域完全扭曲掉。</p>
+<p><strong>Q: 3D U-Net 太吃内存怎么办？</strong></p>
+<p>A: 三个策略：1) 用 patch-based 训练（把体积切成小块）；2) 用混合精度训练减少一半显存；3) 用深度可分离卷积减少参数量。</p>
 </section>
 <section id="id14">
-<h3>2. 学习范式演进<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
+<h2>推荐资源<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
 <section id="id15">
-<h4>自监督学习<a class="headerlink" href="#id15" title="Link to this heading">#</a></h4>
+<h3>英文<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p><strong>预训练策略</strong>：利用大量无标注医学图像进行预训练</p></li>
-<li><p><strong>对比学习</strong>：学习有区分性的特征表示</p></li>
-<li><p><strong>生成式预训练</strong>：通过图像重建学习特征</p></li>
+<li><p>Ronneberger et al., “U-Net: Convolutional Networks for Biomedical Image Segmentation”, MICCAI 2015 — 原始论文</p></li>
+<li><p>Zhou et al., “UNet++: A Nested U-Net Architecture for Medical Image Segmentation”, 2018</p></li>
+<li><p>Oktay et al., “Attention U-Net: Learning Where to Look for the Pancreas”, MIDL 2018</p></li>
+<li><p>3D U-Net: Çiçek et al., “3D U-Net: Learning Dense Volumetric Segmentation from Sparse Annotation”, MICCAI 2016</p></li>
 </ul>
 </section>
 <section id="id16">
-<h4>半监督和弱监督学习<a class="headerlink" href="#id16" title="Link to this heading">#</a></h4>
+<h3>中文<a class="headerlink" href="#id16" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p><strong>少量标注</strong>：利用少量标注数据和大量无标注数据</p></li>
-<li><p><strong>弱监督</strong>：使用边界框、点标注等弱监督信号</p></li>
-<li><p><strong>主动学习</strong>：智能选择最有价值的样本进行标注</p></li>
+<li><p>知乎专栏&quot;U-Net 系列解读&quot;系列文章</p></li>
+<li><p>《动手学深度学习》第 13 章&quot;语义分割&quot;</p></li>
+<li><p>PyTorch 官方教程中的 U-Net 实现</p></li>
 </ul>
+</section>
 </section>
 <section id="id17">
-<h4>联邦学习<a class="headerlink" href="#id17" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><strong>隐私保护</strong>：在保护患者隐私的前提下进行分布式训练</p></li>
-<li><p><strong>多中心协作</strong>：整合不同医院的数据，提高模型泛化能力</p></li>
-<li><p><strong>个性化模型</strong>：为每个医院或设备定制个性化模型</p></li>
-</ul>
-</section>
-</section>
-<section id="id18">
-<h3>3. 应用领域扩展<a class="headerlink" href="#id18" title="Link to this heading">#</a></h3>
-<section id="d4d">
-<h4>3D和4D分割<a class="headerlink" href="#d4d" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><strong>体积数据</strong>：处理CT、MRI等3D医学图像</p></li>
-<li><p><strong>时间序列</strong>：分析心脏运动、肿瘤生长等动态过程</p></li>
-<li><p><strong>实时3D分割</strong>：手术导航和介入治疗中的实时分割</p></li>
-</ul>
-</section>
-<section id="id19">
-<h4>多模态融合<a class="headerlink" href="#id19" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><strong>跨模态学习</strong>：结合CT、MRI、PET、超声等多种成像模式</p></li>
-<li><p><strong>多任务学习</strong>：同时完成分割、分类、检测、重建等任务</p></li>
-<li><p><strong>跨域适应</strong>：将在一个模态上学到的知识迁移到另一个模态</p></li>
-</ul>
-</section>
-<section id="id20">
-<h4>交互式分割<a class="headerlink" href="#id20" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><strong>人机协作</strong>：结合用户交互（如点击、涂画）实时优化分割</p></li>
-<li><p><strong>增量学习</strong>：根据用户反馈逐步改进模型</p></li>
-<li><p><strong>实时编辑</strong>：允许医生快速修正分割结果</p></li>
-</ul>
-</section>
-</section>
-<section id="id21">
-<h3>4. 部署和实际应用<a class="headerlink" href="#id21" title="Link to this heading">#</a></h3>
-<section id="id22">
-<h4>轻量化部署<a class="headerlink" href="#id22" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><strong>模型压缩</strong>：剪枝、量化、知识蒸馏</p></li>
-<li><p><strong>硬件加速</strong>：针对特定硬件（如GPU、TPU、FPGA）优化</p></li>
-<li><p><strong>边缘计算</strong>：在移动设备、嵌入式系统上部署</p></li>
-</ul>
-</section>
-<section id="id23">
-<h4>临床集成<a class="headerlink" href="#id23" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><strong>工作流整合</strong>：与医院PACS系统、电子病历系统集成</p></li>
-<li><p><strong>实时辅助诊断</strong>：在医生阅片时提供实时分割结果</p></li>
-<li><p><strong>质量控制</strong>：自动检测分割结果的质量，提示可疑区域</p></li>
-</ul>
-</section>
-<section id="id24">
-<h4>可解释性和可信性<a class="headerlink" href="#id24" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><strong>决策解释</strong>：可视化模型关注区域，提供决策依据</p></li>
-<li><p><strong>不确定性估计</strong>：量化分割结果的不确定性</p></li>
-<li><p><strong>错误检测</strong>：自动识别可能的分割错误</p></li>
-</ul>
-</section>
-</section>
-</section>
-<section id="id25">
-<h2>对研究社区的启示<a class="headerlink" href="#id25" title="Link to this heading">#</a></h2>
-<section id="id26">
-<h3>1. 问题导向的设计哲学<a class="headerlink" href="#id26" title="Link to this heading">#</a></h3>
-<p>U-Net的成功表明，针对具体问题特点进行架构设计比追求通用性更重要：</p>
-<ul class="simple">
-<li><p><strong>理解任务本质</strong>：医学图像分割需要精确边界和有限数据</p></li>
-<li><p><strong>简单而有效</strong>：不盲目增加复杂度，而是通过精巧设计解决问题</p></li>
-<li><p><strong>实用性优先</strong>：注重实际应用中的性能和效率</p></li>
-</ul>
-</section>
-<section id="id27">
-<h3>2. 开源和可复现性的价值<a class="headerlink" href="#id27" title="Link to this heading">#</a></h3>
-<p>U-Net的广泛传播得益于其开源实现和清晰的论文表述：</p>
-<ul class="simple">
-<li><p><strong>促进创新</strong>：开源代码降低了研究门槛</p></li>
-<li><p><strong>加速进展</strong>：社区可以快速构建和改进</p></li>
-<li><p><strong>建立基准</strong>：成为后续研究的比较基准</p></li>
-</ul>
-</section>
-<section id="id28">
-<h3>3. 跨学科合作的重要性<a class="headerlink" href="#id28" title="Link to this heading">#</a></h3>
-<p>U-Net是计算机视觉和医学影像学成功合作的典范：</p>
-<ul class="simple">
-<li><p><strong>领域知识融合</strong>：计算机科学家提供算法，医学专家提供领域知识</p></li>
-<li><p><strong>实际问题驱动</strong>：研究直接针对临床需求</p></li>
-<li><p><strong>双向知识转移</strong>：算法进步推动医学应用，医学需求驱动算法创新</p></li>
-</ul>
-</section>
-</section>
-<section id="id29">
-<h2>给实践者的建议<a class="headerlink" href="#id29" title="Link to this heading">#</a></h2>
-<section id="u-net">
-<h3>1. 如何开始使用U-Net<a class="headerlink" href="#u-net" title="Link to this heading">#</a></h3>
-<ol class="arabic simple">
-<li><p><strong>从基础开始</strong>：首先理解原始U-Net的架构和实现</p></li>
-<li><p><strong>选择合适变体</strong>：根据任务特点选择U-Net++、Attention U-Net等变体</p></li>
-<li><p><strong>数据准备</strong>：设计适合的数据增强策略</p></li>
-<li><p><strong>损失函数选择</strong>：尝试交叉熵、Dice损失及其组合</p></li>
-<li><p><strong>逐步优化</strong>：从简单配置开始，逐步增加复杂度</p></li>
-</ol>
-</section>
-<section id="id30">
-<h3>2. 常见陷阱避免<a class="headerlink" href="#id30" title="Link to this heading">#</a></h3>
-<ol class="arabic simple">
-<li><p><strong>过度复杂化</strong>：不要盲目增加网络深度或宽度</p></li>
-<li><p><strong>忽视数据增强</strong>：特别是在小数据集上</p></li>
-<li><p><strong>超参数随意设置</strong>：进行系统的超参数搜索</p></li>
-<li><p><strong>忽略验证集</strong>：使用独立的验证集监控模型性能</p></li>
-<li><p><strong>过早优化</strong>：先确保模型能够学习，再优化性能</p></li>
-</ol>
-</section>
-<section id="id31">
-<h3>3. 持续学习<a class="headerlink" href="#id31" title="Link to this heading">#</a></h3>
-<ol class="arabic simple">
-<li><p><strong>关注最新研究</strong>：U-Net领域仍在快速发展</p></li>
-<li><p><strong>参与社区</strong>：加入相关论坛、会议、开源项目</p></li>
-<li><p><strong>实践项目</strong>：通过实际项目加深理解</p></li>
-<li><p><strong>分享经验</strong>：将你的发现和经验分享给社区</p></li>
-</ol>
-</section>
-</section>
-<section id="id32">
-<h2>结语<a class="headerlink" href="#id32" title="Link to this heading">#</a></h2>
-<p>U-Net不仅是图像分割领域的技术突破，更是一种设计哲学的体现：通过理解问题本质、精巧的架构设计和注重实用性，可以在有限资源下取得卓越性能。其影响已经远远超出医学图像分割，推动了整个计算机视觉领域对编码器-解码器架构和跳跃连接的理解和应用。</p>
-<p>随着深度学习技术的不断发展，U-Net的设计思想将继续启发新的架构创新。无论是将其与Transformer结合，还是通过神经架构搜索发现新的变体，U-Net的核心理念——在保持局部细节的同时理解全局上下文——将继续指导图像分割和相关领域的研究。</p>
-<p>对于读者而言，掌握U-Net不仅意味着学会了一个强大的分割工具，更意味着理解了如何设计针对特定问题的深度学习架构。这种能力将使你能够更好地应对未来的挑战，无论是医学影像分析、自动驾驶、卫星图像解读，还是其他需要精确分割的领域。</p>
-<p>U-Net的故事提醒我们，在人工智能快速发展的时代，简单而深刻的思想往往比复杂的技术更具持久影响力。通过深入理解U-Net，我们不仅掌握了一个工具，更获得了一种解决问题的方法论，这将帮助我们在不断变化的技术 landscape 中保持创新和竞争力。</p>
+<h2>参考文献<a class="headerlink" href="#id17" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id18">
+<div role="list" class="citation-list">
+<div class="citation" id="id108" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id9">CLY+21</a><span class="fn-bracket">]</span></span>
+<p>Jieneng Chen, Yongyi Lu, Qihang Yu, Xiangde Luo, Ehsan Adeli, Yan Wang, Le Lu, Alan L Yuille, and Yuyin Zhou. Transunet: transformers make strong encoders for medical image segmentation. In <em>arXiv preprint arXiv:2102.04306</em>. 2021.</p>
+</div>
+<div class="citation" id="id107" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">OSF+18</a><span class="fn-bracket">]</span></span>
+<p>Ozan Oktay, Jo Schlemper, Loic Le Folgoc, Matthew Lee, Mattias Heinrich, Kazunari Misawa, Kensaku Mori, Steven McDonagh, Nils Y Hammerla, Bernhard Kainz, and others. Attention u-net: learning where to look for the pancreas. In <em>Medical Imaging with Deep Learning (MIDL)</em>. 2018.</p>
+</div>
+<div class="citation" id="id106" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">ZSTL18</a><span class="fn-bracket">]</span></span>
+<p>Zongwei Zhou, Md Mahfuzur Rahman Siddiquee, Nima Tajbakhsh, and Jianming Liang. Unet++: a nested u-net architecture for medical image segmentation. In <em>Deep Learning in Medical Image Analysis and Multimodal Learning for Clinical Decision Support</em>, 3–11. Springer, 2018.</p>
+</div>
+<div class="citation" id="id105" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id8">cCiccekAL+16</a><span class="fn-bracket">]</span></span>
+<p>Özgün Çiçek, Ahmed Abdulkadir, Soeren S Lienkamp, Thomas Brox, and Olaf Ronneberger. 3d u-net: learning dense volumetric segmentation from sparse annotation. In <em>Medical Image Computing and Computer-Assisted Intervention (MICCAI)</em>, 424–432. Springer, 2016.</p>
+</div>
+</div>
+</div>
+<p><strong>本章完。</strong></p>
 </section>
 </section>
 
@@ -772,7 +1139,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -780,6 +1147,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b5e265a</code>
+                2026-04-28 - <strong>Heyan Zhu</strong>: docs(unet): restructure documentation and update content
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">0c291d7</code>
                 2025-12-10 - <strong>Heyan Zhu</strong>: docs: restructure course materials and add new content
@@ -801,12 +1173,12 @@ document.write(`
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="variation.html"
+       href="practice.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">上一页</p>
-        <p class="prev-next-title">U-Net变体与改进</p>
+        <p class="prev-next-title">数据增强与训练技巧</p>
       </div>
     </a>
     <a class="right-next"
@@ -834,60 +1206,28 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">核心贡献回顾</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#u">1. 架构创新：U形对称设计</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">2. 跳跃连接：信息高速公路</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">3. 数据效率：小数据大性能</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">4. 开源影响：推动社区发展</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">应用领域</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">医学影像分割（核心领域）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">拓展领域</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">局限性分析</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">1. 计算和内存效率</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">2. 架构限制</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">3. 数据依赖性</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">4. 理论理解不足</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">关键变体</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#u-net-unetplusplus">U-Net++ <span class="xref cite">unetplusplus</span>：嵌套密集跳跃连接</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#attention-u-net-attentionunet">Attention U-Net <span class="xref cite">attentionunet</span>：让跳跃连接学会"选择性关注"</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#d-u-net-cicek20163d">3D U-Net <span class="xref cite">cicek20163d</span>：从切片到体积</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#transunet-transunet-transformer-u-net">TransUNet <span class="xref cite">transunet</span>：Transformer + U-Net</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">变体对比表</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">未来发展方向</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">1. 架构创新</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#transformer">Transformer融合</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nas">神经架构搜索（NAS）</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">动态架构</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">局限性</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">核心启示</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">常见问题速答</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">推荐资源</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">英文</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">中文</a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">2. 学习范式演进</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">自监督学习</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">半监督和弱监督学习</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">联邦学习</a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">3. 应用领域扩展</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#d4d">3D和4D分割</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">多模态融合</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">交互式分割</a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">4. 部署和实际应用</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">轻量化部署</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">临床集成</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">可解释性和可信性</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">对研究社区的启示</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id26">1. 问题导向的设计哲学</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id27">2. 开源和可复现性的价值</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id28">3. 跨学科合作的重要性</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id29">给实践者的建议</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#u-net">1. 如何开始使用U-Net</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id30">2. 常见陷阱避免</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id31">3. 持续学习</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id32">结语</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">参考文献</a></li>
 </ul>
   </nav></div>
 

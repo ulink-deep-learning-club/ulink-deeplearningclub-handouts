@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>核心组件实现 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+    <title>完整实现 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
   
   
   
@@ -44,10 +44,12 @@
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script src="../_static/translations.js?v=beaddf03"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'unet-image-segmentation/core-impl';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="完整U-Net实现" href="full-impl.html" />
+    <link rel="next" title="数据增强与训练技巧" href="practice.html" />
     <link rel="prev" title="损失函数设计" href="loss-func.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
@@ -213,17 +215,13 @@
 <li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与延伸</a></li>
 </ul>
 </details></li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">U-Net架构：生物医学图像分割的革命性方法</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="u-net.html">U-Net架构详解</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">U-Net：图像分割的革命</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="u-net.html">U 形架构详解</a></li>
 <li class="toctree-l2"><a class="reference internal" href="loss-func.html">损失函数设计</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">核心组件实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="full-impl.html">完整U-Net实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data-enhance.html">数据增强策略</a></li>
-<li class="toctree-l2"><a class="reference internal" href="techniques-best-practices.html">训练技巧与最佳实践</a></li>
-<li class="toctree-l2"><a class="reference internal" href="application.html">应用领域</a></li>
-<li class="toctree-l2"><a class="reference internal" href="variation.html">U-Net变体与改进</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">应用、变体与展望</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
@@ -429,7 +427,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>核心组件实现</h1>
+    <h1>完整实现</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -439,70 +437,18 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">卷积块实现</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doubleconv">双卷积块（DoubleConv）</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">设计原理</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">变体实现</a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">1. 残差双卷积块</a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">2. 深度可分离卷积块</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#u-net">完整 U-Net 类</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">模型初始化</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">训练配置</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">评估指标</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">推理示例</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">参数量统计</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#walkthrough-u-net">端到端 Walkthrough：一张细胞图像走完 U-Net</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">编码器阶段</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">解码器阶段</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">数值示例：看一个像素如何被分类</a></li>
 </ul>
 </li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">下采样模块</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">标准下采样模块</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">设计原理</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">变体实现</a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">1. 步长卷积下采样</a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">2. 平均池化下采样</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">上采样模块</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">标准上采样模块</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">设计原理</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">尺寸对齐策略</a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">1. 中心填充（默认）</a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">2. 中心裁剪</a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">3. 插值调整</a></li>
-</ul>
-</li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">变体实现</a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">1. 插值上采样</a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">2. 像素洗牌上采样</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">输出层</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">标准输出层</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">激活函数选择</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id26">组件配置参数</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id27">通道数配置</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id28">深度配置</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id29">组件测试</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id30">单元测试示例</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id31">性能优化技巧</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id32">内存优化</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id33">计算优化</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id34">总结</a></li>
 </ul>
             </nav>
         </div>
@@ -514,444 +460,191 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="id1">
-<h1>核心组件实现<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
-<p>U-Net的实现依赖于几个核心组件：双卷积块、下采样模块、上采样模块和跳跃连接处理。本章将详细讲解每个组件的设计原理、实现细节和变体。</p>
-<section id="id2">
-<h2>卷积块实现<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<section id="doubleconv">
-<h3>双卷积块（DoubleConv）<a class="headerlink" href="#doubleconv" title="Link to this heading">#</a></h3>
-<p>双卷积块是U-Net的基本构建单元，由两个连续的3×3卷积层组成，每个卷积层后接批归一化和ReLU激活函数。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
-
-<span class="k">class</span><span class="w"> </span><span class="nc">DoubleConv</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;U-Net中的双卷积块&quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">DoubleConv</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+  <section class="tex2jax_ignore mathjax_ignore" id="unet-core-impl">
+<span id="id1"></span><h1>完整实现<a class="headerlink" href="#unet-core-impl" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="u-net.html#unet-arch"><span class="std std-ref">U 形架构详解</span></a> 中我们看了 U-Net 的四个核心组件。现在把它们组装成一个完整的 U-Net。</p>
+<section id="u-net">
+<h2>完整 U-Net 类<a class="headerlink" href="#u-net" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">UNet</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;完整 U-Net</span>
+<span class="sd">    </span>
+<span class="sd">    参数:</span>
+<span class="sd">        n_channels: 输入通道数（灰度=1，RGB=3）</span>
+<span class="sd">        n_classes:  分割类别数</span>
+<span class="sd">    </span>
+<span class="sd">    前向传播维度变化（输入 572×572 为例）:</span>
+<span class="sd">    编码器:  inc:    1×572×572  →  64×568×568</span>
+<span class="sd">            down1:  64×568×568 → 128×280×280</span>
+<span class="sd">            down2: 128×280×280 → 256×136×136</span>
+<span class="sd">            down3: 256×136×136 → 512×64×64</span>
+<span class="sd">            down4: 512×64×64   → 1024×28×28</span>
+<span class="sd">    解码器:  up1: 1024×28×28 + skip → 512×52×52</span>
+<span class="sd">            up2:  512×52×52 + skip → 256×100×100</span>
+<span class="sd">            up3:  256×100×100 + skip → 128×196×196</span>
+<span class="sd">            up4:  128×196×196 + skip → 64×388×388</span>
+<span class="sd">    输出:    outc: 64×388×388 → 2×388×388</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_channels</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span> <span class="o">=</span> <span class="n">n_channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_classes</span> <span class="o">=</span> <span class="n">n_classes</span>
         
-        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="p">)</span>
+        <span class="c1"># 编码器（1 → 64 → 128 → 256 → 512 → 1024）</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inc</span> <span class="o">=</span> <span class="n">DoubleConv</span><span class="p">(</span><span class="n">n_channels</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">down1</span> <span class="o">=</span> <span class="n">DownSample</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">down2</span> <span class="o">=</span> <span class="n">DownSample</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">down3</span> <span class="o">=</span> <span class="n">DownSample</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">down4</span> <span class="o">=</span> <span class="n">DownSample</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span>
         
+        <span class="c1"># 解码器（1024 → 512 → 256 → 128 → 64）</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">up1</span> <span class="o">=</span> <span class="n">UpSample</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">up2</span> <span class="o">=</span> <span class="n">UpSample</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">up3</span> <span class="o">=</span> <span class="n">UpSample</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">up4</span> <span class="o">=</span> <span class="n">UpSample</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+        
+        <span class="c1"># 输出层</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outc</span> <span class="o">=</span> <span class="n">OutConv</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">)</span>
+    
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="c1"># 编码器</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inc</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">down1</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span>
+        <span class="n">x3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">down2</span><span class="p">(</span><span class="n">x2</span><span class="p">)</span>
+        <span class="n">x4</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">down3</span><span class="p">(</span><span class="n">x3</span><span class="p">)</span>
+        <span class="n">x5</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">down4</span><span class="p">(</span><span class="n">x4</span><span class="p">)</span>
+        <span class="c1"># 解码器（拼接对应编码器特征）</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">up1</span><span class="p">(</span><span class="n">x5</span><span class="p">,</span> <span class="n">x4</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">up2</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x3</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">up3</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">up4</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x1</span><span class="p">)</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outc</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">logits</span>
 </pre></div>
 </div>
+<p>这就是完整的 U-Net 前向传播——简单、对称、优雅。没有复杂的控制流，就是<strong>一条 U 形通道</strong>。</p>
+<div class="note admonition">
+<p class="admonition-title">完整 U-Net 的参数量估算</p>
+<p>以灰度输入（n_channels=1），二分类（n_classes=2）为例：</p>
+<ul class="simple">
+<li><p>编码器：<span class="math notranslate nohighlight">\(\approx 31\)</span>M 参数</p></li>
+<li><p>解码器：<span class="math notranslate nohighlight">\(\approx 24\)</span>M 参数</p></li>
+<li><p>总计：约 <strong>55M</strong> 参数</p></li>
+</ul>
+<p>作为对比，<a class="reference internal" href="../neural-network-basics/le-net.html"><span class="doc">LeNet-5架构详解</span></a> 的 LeNet-5 约 60K 参数。U-Net 比它大了近 1000 倍——因为通道多（1024 vs 120）、有解码器、有跳跃连接的双卷积。</p>
+</div>
+</section>
+<section id="id2">
+<h2>模型初始化<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">init_weights</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">init_type</span><span class="o">=</span><span class="s1">&#39;kaiming&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Kaiming 初始化 {cite}`he2015delving`（适合 ReLU 激活）&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">modules</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">):</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">kaiming_normal_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;fan_out&#39;</span><span class="p">,</span> <span class="n">nonlinearity</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">bias</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">constant_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">):</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">constant_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">constant_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 <section id="id3">
-<h4>设计原理<a class="headerlink" href="#id3" title="Link to this heading">#</a></h4>
-<ol class="arabic simple">
-<li><p><strong>两个卷积层</strong>：增加非线性表达能力，同时保持感受野适中（两个3×3卷积等效于一个5×5卷积，但参数更少）。</p></li>
-<li><p><strong>批归一化</strong>：加速训练收敛，提高模型稳定性。</p></li>
-<li><p><strong>ReLU激活</strong>：引入非线性，使用<code class="docutils literal notranslate"><span class="pre">inplace=True</span></code>节省内存。</p></li>
-<li><p><strong>相同填充</strong>：保持特征图尺寸不变，简化尺寸计算。</p></li>
-</ol>
+<h2>训练配置<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">setup_training</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s1">&#39;cuda&#39;</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="c1"># 损失函数：交叉熵 + Dice 组合（{ref}`unet-loss`详细讨论）</span>
+    <span class="n">criterion</span> <span class="o">=</span> <span class="n">CombinedLoss</span><span class="p">(</span><span class="n">weight_ce</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">weight_dice</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="c1"># Adam 优化器</span>
+    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">)</span>
+    <span class="c1"># 验证损失不再下降时减半学习率</span>
+    <span class="n">scheduler</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">ReduceLROnPlateau</span><span class="p">(</span>
+        <span class="n">optimizer</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">patience</span><span class="o">=</span><span class="mi">10</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">model</span><span class="p">,</span> <span class="n">criterion</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">scheduler</span>
+</pre></div>
+</div>
 </section>
 <section id="id4">
-<h4>变体实现<a class="headerlink" href="#id4" title="Link to this heading">#</a></h4>
+<h2>评估指标<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p>Dice 系数不只是损失函数，也是最常用的评估指标。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">calculate_metrics</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;计算 Dice 和 IoU&quot;&quot;&quot;</span>
+    <span class="n">pred_bin</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>  <span class="c1"># 概率转二值</span>
+    <span class="n">target_bin</span> <span class="o">=</span> <span class="p">(</span><span class="n">target</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+    
+    <span class="n">tp</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred_bin</span> <span class="o">*</span> <span class="n">target_bin</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    <span class="n">fp</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred_bin</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">target_bin</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    <span class="n">fn</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">pred_bin</span><span class="p">)</span> <span class="o">*</span> <span class="n">target_bin</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    
+    <span class="n">dice</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">tp</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span> <span class="o">+</span> <span class="n">fn</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">)</span>
+    <span class="n">iou</span>  <span class="o">=</span> <span class="n">tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span> <span class="o">+</span> <span class="n">fn</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;dice&#39;</span><span class="p">:</span> <span class="n">dice</span><span class="p">,</span> <span class="s1">&#39;iou&#39;</span><span class="p">:</span> <span class="n">iou</span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
 <section id="id5">
-<h5>1. 残差双卷积块<a class="headerlink" href="#id5" title="Link to this heading">#</a></h5>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ResidualDoubleConv</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;带残差连接的双卷积块&quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ResidualDoubleConv</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        
-        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">relu1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        
-        <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bn2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">)</span>
-        
-        <span class="c1"># 如果输入输出通道数不同，需要1×1卷积调整维度</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">shortcut</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">in_channels</span> <span class="o">!=</span> <span class="n">out_channels</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">shortcut</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
-                <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-                <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">)</span>
-            <span class="p">)</span>
-            
-        <span class="bp">self</span><span class="o">.</span><span class="n">relu2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="n">residual</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shortcut</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        
-        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relu1</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-        
-        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn2</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-        
-        <span class="n">out</span> <span class="o">+=</span> <span class="n">residual</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relu2</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-        
-        <span class="k">return</span> <span class="n">out</span>
+<h2>推理示例<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s1">&#39;cuda&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;对单张图像做分割预测&quot;&quot;&quot;</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>           <span class="c1"># (C, H, W) → (1, C, H, W)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">n_classes</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">prediction</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>    <span class="c1"># 取概率最大的类别</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prediction</span> <span class="o">=</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">prediction</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
 <section id="id6">
-<h5>2. 深度可分离卷积块<a class="headerlink" href="#id6" title="Link to this heading">#</a></h5>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">DepthwiseSeparableDoubleConv</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;深度可分离双卷积块，参数更少&quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">DepthwiseSeparableDoubleConv</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        
-        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
-            <span class="c1"># 深度卷积</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
-                     <span class="n">groups</span><span class="o">=</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-            <span class="c1"># 逐点卷积</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-            
-            <span class="c1"># 第二层</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
-                     <span class="n">groups</span><span class="o">=</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="p">)</span>
-        
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<h2>参数量统计<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 统计模型参数量</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">UNet</span><span class="p">(</span><span class="n">n_channels</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_classes</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+<span class="n">trainable</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;总参数: </span><span class="si">{</span><span class="n">total</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;可训练: </span><span class="si">{</span><span class="n">trainable</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="c1"># 输出: 总参数: 31,031,554</span>
+<span class="c1">#       可训练: 31,031,554</span>
 </pre></div>
 </div>
 </section>
-</section>
-</section>
-</section>
+<section id="walkthrough-u-net">
+<h2>端到端 Walkthrough：一张细胞图像走完 U-Net<a class="headerlink" href="#walkthrough-u-net" title="Link to this heading">#</a></h2>
+<p>理论看了这么多，不如拿一张真实的细胞图像追踪完整流程。假设输入是 572×572 的灰度图（单通道）。</p>
 <section id="id7">
-<h2>下采样模块<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<h3>编码器阶段<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<div class="figure" id="id10" style="text-align: center"><p><img  src="../_images/tikz-f0c4eb7222b8c040a4369292773cd16c2fe4445d.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">编码器各层输出维度与内容</span></p>
+</div><p>每经过一个下采样块，空间减半、通道加倍、感受野扩大。一路走来，网络从&quot;看到像素的边缘&quot;变成&quot;理解这是细胞核&quot;。</p>
+</section>
 <section id="id8">
-<h3>标准下采样模块<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
-<p>下采样模块由最大池化层和双卷积块组成。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">DownSample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;编码器路径的下采样模块&quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">DownSample</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        
-        <span class="bp">self</span><span class="o">.</span><span class="n">maxpool_conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
-            <span class="n">DoubleConv</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">)</span>
-        <span class="p">)</span>
-        
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxpool_conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</pre></div>
-</div>
+<h3>解码器阶段<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<div class="figure" id="id11" style="text-align: center"><p><img  src="../_images/tikz-986dc13cd3e3f147de15ba3f6d0d78e64ff5cf99.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">解码器各层：上采样+跳跃连接</span></p>
+</div></section>
 <section id="id9">
-<h4>设计原理<a class="headerlink" href="#id9" title="Link to this heading">#</a></h4>
+<h3>数值示例：看一个像素如何被分类<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<p>想象图像左上角有一个细胞核边缘的像素：</p>
 <ol class="arabic simple">
-<li><p><strong>最大池化</strong>：2×2最大池化，步长为2，将特征图尺寸减半。</p></li>
-<li><p><strong>通道加倍</strong>：下采样后通道数通常加倍，以保持信息容量。</p></li>
-<li><p><strong>顺序结构</strong>：先池化再卷积，减少计算量。</p></li>
+<li><p><strong>输入层</strong>：这个像素的灰度值是 142（0-255 范围）</p></li>
+<li><p><strong>inc 层</strong>：3×3 卷积核检测到它左右两侧的像素差异大 → 判断为&quot;边缘&quot;，激活值变高</p></li>
+<li><p><strong>down1 层</strong>：池化后它被合并到 2×2 区域的最大值中，丢失了精确坐标，但保留了&quot;这里有边缘&quot;的信息</p></li>
+<li><p><strong>down2 → down4</strong>：随着下采样，它从&quot;一个像素的边缘&quot;变成了&quot;一块区域的纹理&quot;→&quot;一个局部的形状&quot;→&quot;一个细胞核的组成部分&quot;</p></li>
+<li><p><strong>最底部</strong>：1024 维的特征向量说&quot;这是一个细胞核区域&quot;</p></li>
+<li><p><strong>解码器上采样</strong>：一步步恢复分辨率，每次拼接编码器对应层的特征，补充精确位置</p></li>
+<li><p><strong>输出层</strong>：这个像素的 2 个输出值经过 softmax：[0.12, 0.88] → 预测为&quot;细胞&quot;（第 1 类）</p></li>
 </ol>
+<p>整个过程，这个像素的身份从&quot;142 灰度值&quot;变成了&quot;细胞核像素&quot;。U-Net 的对称结构确保了 <strong>语义理解（编码器）</strong> 和 <strong>空间精度（跳跃连接）</strong> 在这个过程中都得到了保留。</p>
+<p>这就是一个可用版 U-Net。但光有模型还不够——医学图像通常只有几十张标注数据。下一节 <a class="reference internal" href="practice.html"><span class="doc">数据增强与训练技巧</span></a> 我们看看如何用<strong>数据增强</strong>在有限数据上训练出好模型。</p>
 </section>
-<section id="id10">
-<h4>变体实现<a class="headerlink" href="#id10" title="Link to this heading">#</a></h4>
-<section id="id11">
-<h5>1. 步长卷积下采样<a class="headerlink" href="#id11" title="Link to this heading">#</a></h5>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">StridedConvDownSample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;使用步长卷积代替池化的下采样&quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">StridedConvDownSample</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        
-        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">),</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="p">)</span>
-        
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="id12">
-<h5>2. 平均池化下采样<a class="headerlink" href="#id12" title="Link to this heading">#</a></h5>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">AvgPoolDownSample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;使用平均池化的下采样&quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">AvgPoolDownSample</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        
-        <span class="bp">self</span><span class="o">.</span><span class="n">avgpool_conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
-            <span class="n">nn</span><span class="o">.</span><span class="n">AvgPool2d</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
-            <span class="n">DoubleConv</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">)</span>
-        <span class="p">)</span>
-        
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">avgpool_conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-</section>
-</section>
-</section>
-<section id="id13">
-<h2>上采样模块<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
-<section id="id14">
-<h3>标准上采样模块<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
-<p>上采样模块由转置卷积和双卷积块组成，并处理跳跃连接。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">UpSample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;解码器路径的上采样模块&quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">UpSample</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        
-        <span class="bp">self</span><span class="o">.</span><span class="n">up</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ConvTranspose2d</span><span class="p">(</span>
-            <span class="n">in_channels</span><span class="p">,</span> <span class="n">in_channels</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span>
-        <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">DoubleConv</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">)</span>
-        
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;x1: 来自解码器的输入, x2: 来自编码器的跳跃连接&quot;&quot;&quot;</span>
-        <span class="n">x1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">up</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span>
-        
-        <span class="c1"># 处理尺寸不匹配</span>
-        <span class="n">diffY</span> <span class="o">=</span> <span class="n">x2</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">x1</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
-        <span class="n">diffX</span> <span class="o">=</span> <span class="n">x2</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">x1</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">3</span><span class="p">]</span>
-        
-        <span class="n">x1</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="p">[</span><span class="n">diffX</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">diffX</span> <span class="o">-</span> <span class="n">diffX</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span>
-                        <span class="n">diffY</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">diffY</span> <span class="o">-</span> <span class="n">diffY</span> <span class="o">//</span> <span class="mi">2</span><span class="p">])</span>
-        
-        <span class="c1"># 拼接跳跃连接</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">x2</span><span class="p">,</span> <span class="n">x1</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</pre></div>
-</div>
-<section id="id15">
-<h4>设计原理<a class="headerlink" href="#id15" title="Link to this heading">#</a></h4>
-<ol class="arabic simple">
-<li><p><strong>转置卷积</strong>：2×2转置卷积，步长为2，将特征图尺寸加倍。</p></li>
-<li><p><strong>尺寸对齐</strong>：由于卷积操作中的尺寸舍入，上采样后的特征图可能与跳跃连接特征图尺寸不完全匹配，需要填充对齐。</p></li>
-<li><p><strong>特征拼接</strong>：将编码器特征（跳跃连接）与解码器特征在通道维度拼接。</p></li>
-<li><p><strong>双卷积处理</strong>：对拼接后的特征进行进一步处理。</p></li>
-</ol>
-</section>
-<section id="id16">
-<h4>尺寸对齐策略<a class="headerlink" href="#id16" title="Link to this heading">#</a></h4>
-<p>尺寸不匹配可能由以下原因引起：</p>
-<ul class="simple">
-<li><p>输入图像尺寸不是2的幂次</p></li>
-<li><p>卷积操作中的尺寸计算舍入</p></li>
-<li><p>不同层之间的尺寸差异</p></li>
-</ul>
-<p>常用的对齐策略包括：</p>
-<section id="id17">
-<h5>1. 中心填充（默认）<a class="headerlink" href="#id17" title="Link to this heading">#</a></h5>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 计算尺寸差异</span>
-<span class="n">diffY</span> <span class="o">=</span> <span class="n">x2</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">x1</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
-<span class="n">diffX</span> <span class="o">=</span> <span class="n">x2</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">x1</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">3</span><span class="p">]</span>
-
-<span class="c1"># 对称填充</span>
-<span class="n">x1</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="p">[</span><span class="n">diffX</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">diffX</span> <span class="o">-</span> <span class="n">diffX</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span>
-                <span class="n">diffY</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">diffY</span> <span class="o">-</span> <span class="n">diffY</span> <span class="o">//</span> <span class="mi">2</span><span class="p">])</span>
-</pre></div>
-</div>
-</section>
-<section id="id18">
-<h5>2. 中心裁剪<a class="headerlink" href="#id18" title="Link to this heading">#</a></h5>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 如果x1尺寸大于x2，裁剪x1</span>
-<span class="k">if</span> <span class="n">x1</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">x2</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">or</span> <span class="n">x1</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">x2</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">3</span><span class="p">]:</span>
-    <span class="n">x1</span> <span class="o">=</span> <span class="n">x1</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="n">x2</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">2</span><span class="p">],</span> <span class="p">:</span><span class="n">x2</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">3</span><span class="p">]]</span>
-</pre></div>
-</div>
-</section>
-<section id="id19">
-<h5>3. 插值调整<a class="headerlink" href="#id19" title="Link to this heading">#</a></h5>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 使用双线性插值调整尺寸</span>
-<span class="n">x1</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">x2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">:],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;bilinear&#39;</span><span class="p">,</span> <span class="n">align_corners</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="id20">
-<h4>变体实现<a class="headerlink" href="#id20" title="Link to this heading">#</a></h4>
-<section id="id21">
-<h5>1. 插值上采样<a class="headerlink" href="#id21" title="Link to this heading">#</a></h5>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">InterpolationUpSample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;使用插值代替转置卷积的上采样&quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">InterpolationUpSample</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        
-        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">DoubleConv</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">)</span>
-        
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">):</span>
-        <span class="c1"># 双线性插值上采样</span>
-        <span class="n">x1</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;bilinear&#39;</span><span class="p">,</span> <span class="n">align_corners</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        
-        <span class="c1"># 尺寸对齐</span>
-        <span class="k">if</span> <span class="n">x1</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">x2</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
-            <span class="n">x1</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">x2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">:],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;bilinear&#39;</span><span class="p">,</span> <span class="n">align_corners</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        
-        <span class="c1"># 拼接</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">x2</span><span class="p">,</span> <span class="n">x1</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="id22">
-<h5>2. 像素洗牌上采样<a class="headerlink" href="#id22" title="Link to this heading">#</a></h5>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">PixelShuffleUpSample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;使用像素洗牌的上采样&quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">PixelShuffleUpSample</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        
-        <span class="c1"># 像素洗牌前需要将通道数调整为4倍</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">conv_before</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">in_channels</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ps</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">PixelShuffle</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">conv_after</span> <span class="o">=</span> <span class="n">DoubleConv</span><span class="p">(</span><span class="n">in_channels</span> <span class="o">+</span> <span class="n">in_channels</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">)</span>
-        
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">):</span>
-        <span class="c1"># 像素洗牌上采样</span>
-        <span class="n">x1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv_before</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span>
-        <span class="n">x1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ps</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span>  <span class="c1"># 通道数减少4倍，尺寸加倍</span>
-        
-        <span class="c1"># 尺寸对齐</span>
-        <span class="k">if</span> <span class="n">x1</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">x2</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
-            <span class="n">x1</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">x2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">:],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;bilinear&#39;</span><span class="p">,</span> <span class="n">align_corners</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        
-        <span class="c1"># 拼接</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">x2</span><span class="p">,</span> <span class="n">x1</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv_after</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-</section>
-</section>
-</section>
-<section id="id23">
-<h2>输出层<a class="headerlink" href="#id23" title="Link to this heading">#</a></h2>
-<section id="id24">
-<h3>标准输出层<a class="headerlink" href="#id24" title="Link to this heading">#</a></h3>
-<p>输出层使用1×1卷积将特征映射到类别数。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">OutConv</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;输出层&quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">OutConv</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</pre></div>
-</div>
-<section id="id25">
-<h4>激活函数选择<a class="headerlink" href="#id25" title="Link to this heading">#</a></h4>
-<p>根据任务类型选择不同的激活函数：</p>
-<ol class="arabic simple">
-<li><p><strong>二分类</strong>：<code class="docutils literal notranslate"><span class="pre">nn.Sigmoid()</span></code> 或 <code class="docutils literal notranslate"><span class="pre">nn.Softmax(dim=1)</span></code></p></li>
-<li><p><strong>多分类</strong>：<code class="docutils literal notranslate"><span class="pre">nn.Softmax(dim=1)</span></code></p></li>
-<li><p><strong>多标签分类</strong>：<code class="docutils literal notranslate"><span class="pre">nn.Sigmoid()</span></code></p></li>
-</ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 二分类示例</span>
-<span class="n">output</span> <span class="o">=</span> <span class="n">OutConv</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">1</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
-<span class="n">output</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-
-<span class="c1"># 多分类示例</span>
-<span class="n">output</span> <span class="o">=</span> <span class="n">OutConv</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
-<span class="n">output</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-</section>
-</section>
-<section id="id26">
-<h2>组件配置参数<a class="headerlink" href="#id26" title="Link to this heading">#</a></h2>
-<section id="id27">
-<h3>通道数配置<a class="headerlink" href="#id27" title="Link to this heading">#</a></h3>
-<p>U-Net的通道数配置通常遵循以下模式：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 原始U-Net配置</span>
-<span class="n">channels</span> <span class="o">=</span> <span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">1024</span><span class="p">]</span>
-
-<span class="c1"># 轻量级配置</span>
-<span class="n">channels_light</span> <span class="o">=</span> <span class="p">[</span><span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">]</span>
-
-<span class="c1"># 重型配置</span>
-<span class="n">channels_heavy</span> <span class="o">=</span> <span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">2048</span><span class="p">]</span>
-</pre></div>
-</div>
-</section>
-<section id="id28">
-<h3>深度配置<a class="headerlink" href="#id28" title="Link to this heading">#</a></h3>
-<p>U-Net的深度（下采样次数）可以根据输入尺寸调整：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 根据输入尺寸自动计算最大深度</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">calculate_max_depth</span><span class="p">(</span><span class="n">input_size</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
-    <span class="n">depth</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">size</span> <span class="o">=</span> <span class="n">input_size</span>
-    <span class="k">while</span> <span class="n">size</span> <span class="o">&gt;=</span> <span class="n">min_size</span><span class="p">:</span>
-        <span class="n">size</span> <span class="o">=</span> <span class="n">size</span> <span class="o">//</span> <span class="mi">2</span>
-        <span class="n">depth</span> <span class="o">+=</span> <span class="mi">1</span>
-    <span class="k">return</span> <span class="n">depth</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="id29">
-<h2>组件测试<a class="headerlink" href="#id29" title="Link to this heading">#</a></h2>
-<section id="id30">
-<h3>单元测试示例<a class="headerlink" href="#id30" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">test_components</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;测试核心组件&quot;&quot;&quot;</span>
-    <span class="n">batch_size</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span>
-    
-    <span class="c1"># 测试双卷积块</span>
-    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
-    <span class="n">double_conv</span> <span class="o">=</span> <span class="n">DoubleConv</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="n">double_conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">out</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
-    
-    <span class="c1"># 测试下采样</span>
-    <span class="n">down</span> <span class="o">=</span> <span class="n">DownSample</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="n">down</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">out</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="n">height</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="n">width</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
-    
-    <span class="c1"># 测试上采样</span>
-    <span class="n">up</span> <span class="o">=</span> <span class="n">UpSample</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
-    <span class="n">skip</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="n">up</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">skip</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">out</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
-    
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;所有组件测试通过！&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="id31">
-<h2>性能优化技巧<a class="headerlink" href="#id31" title="Link to this heading">#</a></h2>
-<section id="id32">
-<h3>内存优化<a class="headerlink" href="#id32" title="Link to this heading">#</a></h3>
-<ol class="arabic simple">
-<li><p><strong>使用inplace操作</strong>：<code class="docutils literal notranslate"><span class="pre">nn.ReLU(inplace=True)</span></code> 节省内存</p></li>
-<li><p><strong>梯度检查点</strong>：对于深层网络，使用<code class="docutils literal notranslate"><span class="pre">torch.utils.checkpoint</span></code></p></li>
-<li><p><strong>混合精度训练</strong>：使用<code class="docutils literal notranslate"><span class="pre">torch.cuda.amp</span></code>自动混合精度</p></li>
-</ol>
-</section>
-<section id="id33">
-<h3>计算优化<a class="headerlink" href="#id33" title="Link to this heading">#</a></h3>
-<ol class="arabic simple">
-<li><p><strong>深度可分离卷积</strong>：减少参数和计算量</p></li>
-<li><p><strong>分组卷积</strong>：提高并行性</p></li>
-<li><p><strong>模型剪枝</strong>：移除冗余连接</p></li>
-</ol>
-</section>
-</section>
-<section id="id34">
-<h2>总结<a class="headerlink" href="#id34" title="Link to this heading">#</a></h2>
-<p>U-Net的核心组件设计体现了简洁而有效的思想。双卷积块提供强大的特征提取能力，下采样模块逐步抽象特征，上采样模块结合跳跃连接恢复细节。通过灵活调整这些组件的实现，可以适应不同的任务需求和硬件约束。在实际应用中，建议根据具体任务选择或设计合适的组件变体，并在性能和精度之间取得平衡。</p>
 </section>
 </section>
 
@@ -959,7 +652,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -967,6 +660,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b5e265a</code>
+                2026-04-28 - <strong>Heyan Zhu</strong>: docs(unet): restructure documentation and update content
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">0c291d7</code>
                 2025-12-10 - <strong>Heyan Zhu</strong>: docs: restructure course materials and add new content
@@ -997,11 +695,11 @@ document.write(`
       </div>
     </a>
     <a class="right-next"
-       href="full-impl.html"
+       href="practice.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">完整U-Net实现</p>
+        <p class="prev-next-title">数据增强与训练技巧</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1021,70 +719,18 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">卷积块实现</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doubleconv">双卷积块（DoubleConv）</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">设计原理</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">变体实现</a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">1. 残差双卷积块</a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">2. 深度可分离卷积块</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#u-net">完整 U-Net 类</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">模型初始化</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">训练配置</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">评估指标</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">推理示例</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">参数量统计</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#walkthrough-u-net">端到端 Walkthrough：一张细胞图像走完 U-Net</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">编码器阶段</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">解码器阶段</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">数值示例：看一个像素如何被分类</a></li>
 </ul>
 </li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">下采样模块</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">标准下采样模块</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">设计原理</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">变体实现</a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">1. 步长卷积下采样</a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">2. 平均池化下采样</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">上采样模块</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">标准上采样模块</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">设计原理</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">尺寸对齐策略</a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">1. 中心填充（默认）</a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">2. 中心裁剪</a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">3. 插值调整</a></li>
-</ul>
-</li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">变体实现</a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">1. 插值上采样</a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">2. 像素洗牌上采样</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">输出层</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">标准输出层</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">激活函数选择</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id26">组件配置参数</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id27">通道数配置</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id28">深度配置</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id29">组件测试</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id30">单元测试示例</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id31">性能优化技巧</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id32">内存优化</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id33">计算优化</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id34">总结</a></li>
 </ul>
   </nav></div>
 
