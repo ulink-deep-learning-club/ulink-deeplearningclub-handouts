@@ -202,6 +202,9 @@ mathjax3_config = {
     'tex': {
         'inlineMath': [['$', '$'], ['\\(', '\\)']],
         'displayMath': [['$$', '$$'], ['\\[', '\\]']],
+    },
+    'loader': {
+      'load': ['input/tex', 'output/svg']
     }
 }
 
