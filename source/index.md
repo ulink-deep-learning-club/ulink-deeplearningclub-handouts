@@ -16,7 +16,6 @@ neural-network-basics/index
 pytorch-practice/index
 cnn-ablation-study/index
 transfer-learning/index
-metric-learning/index
 attention-mechanisms/index
 unet-image-segmentation/index
 postscript
@@ -24,7 +23,7 @@ postscript
 
 ## 学习路径
 
-~~~{mermaid}
+```{mermaid}
 graph LR
     A[数学基础] --> B[神经网络基础]
     B --> C[PyTorch实践]
@@ -34,7 +33,7 @@ graph LR
     D --> G[注意力机制]
     D --> H[度量学习]
     D --> I[U-Net分割]
-~~~
+```
 
 **建议顺序**：数学基础 → 神经网络基础 → PyTorch实践 → 选择感兴趣的进阶方向
 

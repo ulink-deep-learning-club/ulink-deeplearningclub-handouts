@@ -105,7 +105,7 @@ else:
 sys.path.append(str(Path('../exts').resolve()))
 
 project = 'Deep Learning Club Lectures'
-copyright = '2025, UCS Deep Learning Club and Contributors, licensed under CC BY-SA 4.0'
+copyright = '2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0'
 author = 'UCS Deep Learning Club'
 release = '0.0.1'
 
@@ -193,7 +193,7 @@ html_theme_options = {
     'navigation_depth': 4,
     'show_toc_level': 3,
     'logo': {
-        'text': 'Deep Learning Club',
+        'text': 'UCS Deep Learning Club',
     },
 }
 
