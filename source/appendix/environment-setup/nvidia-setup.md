@@ -377,7 +377,7 @@ PyTorch的显卡支持随版本演进不断抬升最低门槛：
   - **CUDA构建**
   - **支持的最小架构**
   - **不支持的显卡**
-* - **2.6.0**（最后支持Volta）
+* - **2.6.0**
   - 12.4
   - Maxwell (sm_50)
   - 无
@@ -404,7 +404,7 @@ PyTorch的显卡支持随版本演进不断抬升最低门槛：
 
 你有三条路可选：
 
-1. **用旧版PyTorch**：V100、GTX 1080 Ti等Volta/Pascal显卡，最后完整支持的版本是：
+1. **用旧版PyTorch**：V100、GTX 1080 Ti等Volta/Pascal显卡。值得考虑的版本是：
    ~~~bash
    pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu124
    ~~~
