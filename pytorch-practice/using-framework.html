@@ -1,0 +1,1722 @@
+
+<!DOCTYPE html>
+
+
+<html lang="zh-CN" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>使用训练框架 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=3e9436e6" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=eb1cd0b9"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/translations.js?v=beaddf03"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'pytorch-practice/using-framework';</script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="结语：从入门到实践" href="the-end.html" />
+    <link rel="prev" title="工程最佳实践" href="best-practices.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="zh-CN"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">UCS Deep Learning Club</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">搜索</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../math-fundamentals/index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础：从理论到架构</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">PyTorch 实践：把理论变成代码</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">结语：从入门到实践</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN 消融研究：理解卷积神经网络各组件的作用</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：消融研究的科学方法论</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/the-end.html">结语：从黑盒到白盒</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../attention-mechanisms/index.html">CNN 中的注意力机制</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/introduction.html">为什么CNN需要注意力机制？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/se-net.html">通道注意力：SE-Net</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/spatial-attn.html">空间注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/cbam.html">通道+空间注意力：CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/comparison.html">注意力机制的选择与应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/practice.html">实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../model-serving/index.html">模型部署与服务：从训练到生产</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置番外篇</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="源码库"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/pytorch-practice/using-framework.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/issues/new?title=Issue%20on%20page%20%2Fpytorch-practice/using-framework.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="创建议题"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="下载此页面">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/pytorch-practice/using-framework.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="下载源文件"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="列印成 PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="全屏模式"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>使用训练框架</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> 目录 </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">从"每次重写"到"一次封装"</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">核心矛盾</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">设计原则回顾</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#framework-config">配置系统：从硬编码到配置文件</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">你之前做的</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">框架的做法</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nn-module-basemodel">模型管理：从 nn.Module 到 BaseModel</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">你之前做的</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">框架的做法</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#framework-add-model">添加新模型：3 步</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dataloader-basedataset">数据集管理：从 DataLoader 到 BaseDataset</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">你之前做的</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">框架的做法</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#framework-add-dataset">添加新数据集</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trainer">训练引擎：从手写循环到 Trainer</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">你之前做的</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">框架的做法</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#framework-experiments">实验管理：从手动记录到自动追踪</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">你之前做的</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">框架的做法</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checkpoint">Checkpoint 管理：两种恢复策略</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">迁移学习：层冻结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">进阶功能</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#siamese-triplet-loss">度量学习（Siamese + Triplet Loss）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">向量搜索</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gui">GUI 实时验证</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">对照总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">下一步</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">参与到社团项目的开发</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="using-framework">
+<span id="id1"></span><h1>使用训练框架<a class="headerlink" href="#using-framework" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="train-workflow.html"><span class="doc">完整训练流程</span></a>中我们手写了完整训练流程，<a class="reference internal" href="best-practices.html"><span class="doc">工程最佳实践</span></a>中我们讨论了工程规范。现在的问题是：<strong>这些实践如何落地成可复用的工具——而不是每次新项目都重写一遍？</strong></p>
+<p>社团的 <code class="docutils literal notranslate"><span class="pre">mnist-helloworld</span></code> 框架就是答案。它不是新知识，而是把<a class="reference internal" href="train-workflow.html"><span class="doc">完整训练流程</span></a>的流程和<a class="reference internal" href="best-practices.html"><span class="doc">工程最佳实践</span></a>的规范，封装成了一个<strong>工程化系统</strong>。</p>
+<div class="important admonition">
+<p class="admonition-title">本节定位</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="train-workflow.html"><span class="doc">完整训练流程</span></a>：<strong>学原理</strong>——手写每一行代码，理解背后发生了什么</p></li>
+<li><p><a class="reference internal" href="best-practices.html"><span class="doc">工程最佳实践</span></a>：<strong>学规范</strong>——理解好的工程长什么样、为什么需要它</p></li>
+<li><p><strong>本节</strong>：<strong>用工具</strong>——看前面的原理和规范如何整合成一个可用的框架</p></li>
+</ul>
+</div>
+<p>本节不教你新概念，而是带你走一遍：<strong>“你在第 X 节手写的那段代码，框架里对应的模块是什么，为什么那样设计”</strong>。</p>
+<hr class="docutils" />
+<section id="id2">
+<h2>从&quot;每次重写&quot;到&quot;一次封装&quot;<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<section id="id3">
+<h3>核心矛盾<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="train-workflow.html"><span class="doc">完整训练流程</span></a>最后我们写了一个可运行的训练脚本。它能在 MNIST 上训练分类器。但想象你接下来要做三个实验：</p>
+<ol class="arabic simple">
+<li><p>在 CIFAR-10 上测试 LeNet</p></li>
+<li><p>比较 Adam 和 SGD 的效果</p></li>
+<li><p>从 MNIST 预训练模型迁移到 CIFAR-10</p></li>
+</ol>
+<p>手动版本的问题：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 实验一：复制文件，改数据集路径、模型名...</span>
+<span class="c1"># 实验二：改 optimizer，重新跑...</span>
+<span class="c1"># 实验三：手动保存权重，加载时小心维度匹配...</span>
+<span class="c1"># —— 每次改动都要修改代码本体，容易引入 bug，难以回溯</span>
+</pre></div>
+</div>
+<p>这就是<a class="reference internal" href="best-practices.html"><span class="doc">工程最佳实践</span></a>中讨论的&quot;工程规范&quot;要解决的问题。框架把这些规范变成了代码：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 三个实验，零代码修改</span>
+python<span class="w"> </span>train.py<span class="w"> </span>--dataset<span class="w"> </span>cifar10<span class="w"> </span>--model<span class="w"> </span>lenet
+python<span class="w"> </span>train.py<span class="w"> </span>--dataset<span class="w"> </span>mnist<span class="w"> </span>--model<span class="w"> </span>lenet<span class="w"> </span>--optimizer<span class="w"> </span>sgd<span class="w"> </span>--scheduler<span class="w"> </span>cosine
+python<span class="w"> </span>train.py<span class="w"> </span>--fork<span class="w"> </span>exp1<span class="w"> </span>--dataset<span class="w"> </span>cifar10<span class="w"> </span>--freeze<span class="w"> </span><span class="s2">&quot;0-0&quot;</span><span class="w"> </span><span class="s2">&quot;0-1&quot;</span><span class="w"> </span>--learning-rate<span class="w"> </span><span class="m">0</span>.0001
+</pre></div>
+</div>
+</section>
+<section id="id4">
+<h3>设计原则回顾<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="best-practices.html"><span class="doc">工程最佳实践</span></a>中我们讨论了四条规范，框架将它们变成了具体实现：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p><a class="reference internal" href="best-practices.html"><span class="doc">工程最佳实践</span></a> 规范</p></th>
+<th class="head"><p>框架实现</p></th>
+<th class="head"><p>效果</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>配置不硬编码</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">src/config/config.py</span></code>：YAML + CLI 双配置</p></td>
+<td><p>改实验改配置不改代码</p></td>
+</tr>
+<tr class="row-odd"><td><p>模块化项目结构</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">src/datasets/</span></code>、<code class="docutils literal notranslate"><span class="pre">src/models/</span></code>、<code class="docutils literal notranslate"><span class="pre">src/training/</span></code></p></td>
+<td><p>新增模型/数据集只需加一个文件</p></td>
+</tr>
+<tr class="row-even"><td><p>实验可复现</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ExperimentManager</span></code>：runs/expN/ 自动管理</p></td>
+<td><p>每次运行完整存档，永不覆盖</p></td>
+</tr>
+<tr class="row-odd"><td><p>检查点管理</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CheckpointManager</span></code>：4 种保存策略</p></td>
+<td><p>断点续训、最佳模型自动筛选</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr class="docutils" />
+</section>
+</section>
+<section id="framework-config">
+<span id="id5"></span><h2>配置系统：从硬编码到配置文件<a class="headerlink" href="#framework-config" title="Link to this heading">#</a></h2>
+<section id="id6">
+<h3>你之前做的<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="train-workflow.html"><span class="doc">完整训练流程</span></a>中，我们把超参数写死在代码开头：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">batch_size</span> <span class="o">=</span> <span class="mi">64</span>
+<span class="n">epochs</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">lr</span> <span class="o">=</span> <span class="mf">0.001</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="best-practices.html"><span class="doc">工程最佳实践</span></a>中，我们改进为 <code class="docutils literal notranslate"><span class="pre">&#64;dataclass</span> <span class="pre">Config</span></code>——参数集中管理，但仍然和代码在一起。</p>
+</section>
+<section id="id7">
+<h3>框架的做法<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<p>框架更进一步：<strong>参数和代码完全分离</strong>。</p>
+<p>项目根目录的 <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> 定义所有默认值：</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">dataset</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mnist</span>
+<span class="w">  </span><span class="nt">root</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./data</span>
+<span class="nt">model</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mynet</span>
+<span class="w">  </span><span class="nt">num_classes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="nt">training</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">epochs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span>
+<span class="w">  </span><span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">64</span>
+<span class="nt">optimization</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">learning_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1e-3</span>
+<span class="w">  </span><span class="nt">optimizer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">adamw</span>
+<span class="w">  </span><span class="nt">weight_decay</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.01</span>
+<span class="w">  </span><span class="nt">scheduler</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cosine</span>
+<span class="w">  </span><span class="nt">scheduler_t_max</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span>
+<span class="nt">checkpointing</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">save_frequency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</pre></div>
+</div>
+<p>运行时用 CLI 参数覆盖：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>train.py<span class="w"> </span>--dataset<span class="w"> </span>cifar10<span class="w"> </span>--model<span class="w"> </span>lenet<span class="w"> </span>--epochs<span class="w"> </span><span class="m">50</span>
+</pre></div>
+</div>
+<p>优先级规则：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>CLI 参数（最高） &gt; 自定义 YAML &gt; 默认 config.yaml（最低）
+</pre></div>
+</div>
+<p><strong>效果</strong>：想尝试 10 组超参数，不再需要改 10 次代码或维护 10 份 Config 子类——10 条命令就够了。</p>
+<div class="caution admonition">
+<p class="admonition-title">注意</p>
+<p>CLI 参数是扁平的（<code class="docutils literal notranslate"><span class="pre">--epochs</span></code>），YAML 里是嵌套的（<code class="docutils literal notranslate"><span class="pre">training.epochs</span></code>）。两种方式完全等价，<code class="docutils literal notranslate"><span class="pre">src/config/config.py</span></code> 负责两者的合并解析。</p>
+</div>
+<hr class="docutils" />
+</section>
+</section>
+<section id="nn-module-basemodel">
+<span id="framework-models"></span><h2>模型管理：从 nn.Module 到 BaseModel<a class="headerlink" href="#nn-module-basemodel" title="Link to this heading">#</a></h2>
+<section id="id8">
+<h3>你之前做的<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="neural-network-module.html"><span class="doc">神经网络模块：搭建计算图</span></a>中，我们继承 <code class="docutils literal notranslate"><span class="pre">nn.Module</span></code> 写网络：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">LeNet5</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="c1"># ...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">x</span>
+</pre></div>
+</div>
+</section>
+<section id="id9">
+<h3>框架的做法<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<p>框架定义了一个 <code class="docutils literal notranslate"><span class="pre">BaseModel</span></code> 抽象类，在 <code class="docutils literal notranslate"><span class="pre">nn.Module</span></code> 之上增加了统一接口：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">BaseModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">model_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="o">...</span>        <span class="c1"># &quot;classification&quot; / &quot;siamese&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_criterion</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="o">...</span>     <span class="c1"># 模型自带的损失函数</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_model_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="o">...</span>    <span class="c1"># 参数量等信息</span>
+</pre></div>
+</div>
+<p>所有模型通过 <strong>注册机制</strong> 管理：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 查看所有可用模型</span>
+python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;from src.models import ModelRegistry; print(ModelRegistry.list_available())&quot;</span>
+</pre></div>
+</div>
+<p>框架内置 4 个系列，共 26 个变体：</p>
+<p><strong>经典 CNN</strong>（用于入门和小数据量）</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>模型</p></th>
+<th class="head"><p>参数量</p></th>
+<th class="head"><p>你已经在哪学过</p></th>
+<th class="head"><p>特点</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">lenet</span></code></p></td>
+<td><p>~62K</p></td>
+<td><p><a class="reference internal" href="../neural-network-basics/le-net.html"><span class="doc">LeNet-5架构详解</span></a></p></td>
+<td><p>经典 5 层，MNIST 标准</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mynet</span></code></p></td>
+<td><p>~122K</p></td>
+<td><p>—</p></td>
+<td><p>不对称卷积 + SiLU + BN，默认模型</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">alexnet</span></code></p></td>
+<td><p>~2.5M</p></td>
+<td><p><a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a></p></td>
+<td><p>适配小输入的 AlexNet</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Vision Transformer</strong>（用于更大数据集）</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>模型</p></th>
+<th class="head"><p>参数量</p></th>
+<th class="head"><p>说明</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bottleneck_vit</span></code></p></td>
+<td><p>~9M</p></td>
+<td><p>CNN 提取特征 + ViT 头部</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fpn_vit_tiny/small/large</span></code></p></td>
+<td><p>0.9M/1.7M/3.8M</p></td>
+<td><p>金字塔多尺度融合 + ViT</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Mixture of Experts</strong>（在 FPN-ViT 基础上把 MLP 替换为 MoE）</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>模型</p></th>
+<th class="head"><p>机制</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fpn_moe_vit</span></code> 系列</p></td>
+<td><p>每个 token 动态选择 Top-K 专家，附带负载均衡损失</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Siamese 系列</strong>（输出嵌入向量而非 logits，配合 Triplet Loss）</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>模型</p></th>
+<th class="head"><p>用途</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">siamese</span></code></p></td>
+<td><p>基础孪生网络</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">siamese_fpn_vit</span></code> 系列</p></td>
+<td><p>FPN-ViT backbone 做嵌入</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 使用：一行切换</span>
+python<span class="w"> </span>train.py<span class="w"> </span>--model<span class="w"> </span>lenet
+python<span class="w"> </span>train.py<span class="w"> </span>--dataset<span class="w"> </span>cifar10<span class="w"> </span>--model<span class="w"> </span>fpn_vit_tiny
+</pre></div>
+</div>
+<p>更换模型时，框架自动读取模型的 <code class="docutils literal notranslate"><span class="pre">input_channels</span></code> 和 <code class="docutils literal notranslate"><span class="pre">input_size</span></code>，适配对应的数据集预处理。</p>
+</section>
+<section id="framework-add-model">
+<span id="id10"></span><h3>添加新模型：3 步<a class="headerlink" href="#framework-add-model" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="best-practices.html"><span class="doc">工程最佳实践</span></a>说&quot;模块化&quot;——框架用注册模式实现：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 第一步：src/models/my_model.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.models.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">input_channels</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">num_classes</span><span class="p">,</span> <span class="n">input_channels</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">net</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">input_channels</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">AdaptiveAvgPool2d</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Flatten</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 第二步：在 src/models/__init__.py 注册</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.models.my_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">MyModel</span>
+<span class="n">ModelRegistry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;my_model&quot;</span><span class="p">,</span> <span class="n">MyModel</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 第三步：使用</span>
+python<span class="w"> </span>train.py<span class="w"> </span>--model<span class="w"> </span>my_model
+</pre></div>
+</div>
+<p>不需要修改框架的任何已有代码。</p>
+<hr class="docutils" />
+</section>
+</section>
+<section id="dataloader-basedataset">
+<span id="framework-datasets"></span><h2>数据集管理：从 DataLoader 到 BaseDataset<a class="headerlink" href="#dataloader-basedataset" title="Link to this heading">#</a></h2>
+<section id="id11">
+<h3>你之前做的<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="train-workflow.html"><span class="doc">完整训练流程</span></a>中，用 <code class="docutils literal notranslate"><span class="pre">torchvision.datasets.MNIST</span></code> 加载数据，手动写 transform：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.1307</span><span class="p">,),</span> <span class="p">(</span><span class="mf">0.3081</span><span class="p">,))</span>
+<span class="p">])</span>
+<span class="n">train_dataset</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">MNIST</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;./data&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">)</span>
+<span class="n">train_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>换数据集？全部重写。</p>
+</section>
+<section id="id12">
+<h3>框架的做法<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
+<p>每个数据集是一个类，transform 封装在内：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># MNIST 自带 transform（src/datasets/mnist.py）</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_train_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">RandomAffine</span><span class="p">(</span><span class="n">degrees</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">translate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">)),</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.1307</span><span class="p">,),</span> <span class="p">(</span><span class="mf">0.3081</span><span class="p">,))</span>
+    <span class="p">])</span>
+</pre></div>
+</div>
+<p>通过 <code class="docutils literal notranslate"><span class="pre">DatasetRegistry</span></code> 统一管理：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 切换数据集，一行命令</span>
+python<span class="w"> </span>train.py<span class="w"> </span>--dataset<span class="w"> </span>mnist
+python<span class="w"> </span>train.py<span class="w"> </span>--dataset<span class="w"> </span>cifar10
+python<span class="w"> </span>train.py<span class="w"> </span>--dataset<span class="w"> </span>subset_631
+
+<span class="c1"># 模型自动适配输入尺寸、通道数、类别数</span>
+python<span class="w"> </span>train.py<span class="w"> </span>--dataset<span class="w"> </span>cifar10<span class="w"> </span>--model<span class="w"> </span>lenet
+</pre></div>
+</div>
+<p>内置 7 个数据集：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>数据集</p></th>
+<th class="head"><p>类型</p></th>
+<th class="head"><p>类别</p></th>
+<th class="head"><p>输入</p></th>
+<th class="head"><p>说明</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mnist</span></code></p></td>
+<td><p>分类</p></td>
+<td><p>10</p></td>
+<td><p>28×28 灰度</p></td>
+<td><p>快速实验首选</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cifar10</span></code></p></td>
+<td><p>分类</p></td>
+<td><p>10</p></td>
+<td><p>32×32 彩色</p></td>
+<td><p>CNN 入门标准基准</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">subset_631</span></code></p></td>
+<td><p>分类</p></td>
+<td><p>631</p></td>
+<td><p>64×64 灰度</p></td>
+<td><p>汉字识别，进阶</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">subset_1000</span></code></p></td>
+<td><p>分类</p></td>
+<td><p>1000</p></td>
+<td><p>64×64 灰度</p></td>
+<td><p>更多汉字</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">triplet_mnist</span></code></p></td>
+<td><p>度量学习</p></td>
+<td><p>10</p></td>
+<td><p>28×28 灰度</p></td>
+<td><p>在线生成三元组</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">balanced_triplet_mnist</span></code></p></td>
+<td><p>度量学习</p></td>
+<td><p>10</p></td>
+<td><p>28×28 灰度</p></td>
+<td><p>预均衡三元组</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">triplet_subset_1000</span></code></p></td>
+<td><p>度量学习</p></td>
+<td><p>1000</p></td>
+<td><p>64×64 灰度</p></td>
+<td><p>汉字 triplet</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="framework-add-dataset">
+<span id="id13"></span><h3>添加新数据集<a class="headerlink" href="#framework-add-dataset" title="Link to this heading">#</a></h3>
+<p>与模型注册同理：继承 <code class="docutils literal notranslate"><span class="pre">BaseDataset</span></code> → 实现 <code class="docutils literal notranslate"><span class="pre">load_data()</span></code>、<code class="docutils literal notranslate"><span class="pre">get_train_transform()</span></code>、<code class="docutils literal notranslate"><span class="pre">get_test_transform()</span></code> → 注册。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">src.datasets.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassificationDataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">DatasetRegistry</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyDataset</span><span class="p">(</span><span class="n">ClassificationDataset</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="s2">&quot;./data&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">num_classes</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">input_channels</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
+        <span class="c1"># 实现数据加载逻辑...</span>
+
+<span class="n">DatasetRegistry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;my_dataset&quot;</span><span class="p">,</span> <span class="n">MyDataset</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="trainer">
+<h2>训练引擎：从手写循环到 Trainer<a class="headerlink" href="#trainer" title="Link to this heading">#</a></h2>
+<section id="id14">
+<h3>你之前做的<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="train-workflow.html"><span class="doc">完整训练流程</span></a>中，我们手写了完整的训练循环——约 50 行代码处理一个 epoch 的训练和验证：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_epochs</span><span class="p">):</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span> <span class="ow">in</span> <span class="n">train_loader</span><span class="p">:</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>
+        <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+    <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span> <span class="ow">in</span> <span class="n">test_loader</span><span class="p">:</span>
+            <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+            <span class="c1"># 统计准确率...</span>
+</pre></div>
+</div>
+<p>这套代码在 LeNet 上能跑。但如果要：</p>
+<ul class="simple">
+<li><p>加上早停？加 ~15 行</p></li>
+<li><p>切换 Triplet Loss？重写数据读取</p></li>
+<li><p>用混合精度？包 autocast + GradScaler</p></li>
+<li><p>保存最佳模型和最新模型？加 ~20 行状态管理</p></li>
+</ul>
+<p><strong>每加一个功能，循环的复杂度翻倍</strong>——这正是框架要封装的部分。</p>
+</section>
+<section id="id15">
+<h3>框架的做法<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Trainer</span></code> 类封装了完整的训练逻辑：</p>
+<ul class="simple">
+<li><p><strong>自动调度</strong>：分类模式 vs Triplet 模式（根据 <code class="docutils literal notranslate"><span class="pre">model_type</span></code> 和 <code class="docutils literal notranslate"><span class="pre">dataset_type</span></code> 自动判断）</p></li>
+<li><p><strong>早停</strong>：<code class="docutils literal notranslate"><span class="pre">--patience</span> <span class="pre">5</span></code>，验证损失 N 轮不降停止</p></li>
+<li><p><strong>混合精度</strong>：<code class="docutils literal notranslate"><span class="pre">--mixed-precision</span></code>，自动使用 <code class="docutils literal notranslate"><span class="pre">autocast</span></code> + <code class="docutils literal notranslate"><span class="pre">GradScaler</span></code></p></li>
+<li><p><strong>学习率调度</strong>：<code class="docutils literal notranslate"><span class="pre">--scheduler</span> <span class="pre">cosine</span></code>，每轮自动 <code class="docutils literal notranslate"><span class="pre">scheduler.step()</span></code></p></li>
+<li><p><strong>指标追踪</strong>：loss、accuracy、positive/negative distance（triplet 模式额外追踪）</p></li>
+<li><p><strong>进度显示</strong>：tqdm 进度条</p></li>
+<li><p><strong>曲线绘制</strong>：每轮结束后更新 4 面板训练曲线图</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 一键启用多个功能</span>
+python<span class="w"> </span>train.py<span class="w"> </span>--dataset<span class="w"> </span>cifar10<span class="w"> </span>--model<span class="w"> </span>lenet<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--optimizer<span class="w"> </span>sgd<span class="w"> </span>--momentum<span class="w"> </span><span class="m">0</span>.9<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--scheduler<span class="w"> </span>cosine<span class="w"> </span>--scheduler-t-max<span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--mixed-precision<span class="w"> </span>--patience<span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--save-frequency<span class="w"> </span><span class="m">5</span>
+</pre></div>
+</div>
+<p>一行命令等价于之前手写的 ~200 行代码 + 早停逻辑 + 混合精度 + 调度器 + 曲线绘制。</p>
+<hr class="docutils" />
+</section>
+</section>
+<section id="framework-experiments">
+<span id="id16"></span><h2>实验管理：从手动记录到自动追踪<a class="headerlink" href="#framework-experiments" title="Link to this heading">#</a></h2>
+<section id="id17">
+<h3>你之前做的<a class="headerlink" href="#id17" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="train-workflow.html"><span class="doc">完整训练流程</span></a>中，我们手动创建目录、保存模型：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">({</span><span class="s1">&#39;model_state_dict&#39;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="o">...</span><span class="p">},</span> <span class="s1">&#39;checkpoint.pt&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="best-practices.html"><span class="doc">工程最佳实践</span></a>中，我们用 <code class="docutils literal notranslate"><span class="pre">ExperimentLogger</span></code> 管理实验目录和 git 信息。</p>
+</section>
+<section id="id18">
+<h3>框架的做法<a class="headerlink" href="#id18" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">ExperimentManager</span></code> 实现了同样的逻辑，并增加了 <strong>YOLO 风格自动编号</strong>：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>train.py<span class="w">   </span><span class="c1"># → runs/exp1/</span>
+python<span class="w"> </span>train.py<span class="w">   </span><span class="c1"># → runs/exp2/</span>
+python<span class="w"> </span>train.py<span class="w">   </span><span class="c1"># → runs/exp3/</span>
+</pre></div>
+</div>
+<p>每次运行生成：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>runs/exp1/
+├── config.yaml              # 本次实验完整配置
+├── checkpoints/
+│   ├── latest_checkpoint.pt  # 每轮更新，用于断点续训
+│   ├── best_model.pt         # 验证准确率最高时保存
+│   ├── final_model.pt        # 训练结束时保存
+│   └── epoch_10.pt           # 每 save_frequency 轮保存
+├── training_curves.png       # loss + accuracy + LR + speed
+└── logs/training.log         # 逐行日志
+</pre></div>
+</div>
+<p><strong>对比实验变得极其简单</strong>：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 基线</span>
+python<span class="w"> </span>train.py<span class="w"> </span>--model<span class="w"> </span>lenet<span class="w"> </span>--dataset<span class="w"> </span>mnist
+<span class="c1"># → runs/exp1/</span>
+
+<span class="c1"># 换模型对比</span>
+python<span class="w"> </span>train.py<span class="w"> </span>--model<span class="w"> </span>mynet<span class="w"> </span>--dataset<span class="w"> </span>mnist
+<span class="c1"># → runs/exp2/</span>
+
+<span class="c1"># 直接比较两个训练曲线</span>
+open<span class="w"> </span>runs/exp1/training_curves.png
+open<span class="w"> </span>runs/exp2/training_curves.png
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="checkpoint">
+<h2>Checkpoint 管理：两种恢复策略<a class="headerlink" href="#checkpoint" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="train-workflow.html"><span class="doc">完整训练流程</span></a>中，我们只保存了权重。框架的 <code class="docutils literal notranslate"><span class="pre">CheckpointManager</span></code> 保存完整训练状态：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">checkpoint</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;epoch&#39;</span><span class="p">:</span> <span class="n">epoch</span><span class="p">,</span>
+    <span class="s1">&#39;model_state_dict&#39;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+    <span class="s1">&#39;optimizer_state_dict&#39;</span><span class="p">:</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+    <span class="s1">&#39;scheduler_state_dict&#39;</span><span class="p">:</span> <span class="n">scheduler</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+    <span class="s1">&#39;best_acc&#39;</span><span class="p">:</span> <span class="n">best_acc</span><span class="p">,</span>
+    <span class="s1">&#39;loss&#39;</span><span class="p">:</span> <span class="n">val_loss</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>基于此，框架支持两种恢复方式：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>操作</p></th>
+<th class="head"><p>命令</p></th>
+<th class="head"><p>行为</p></th>
+<th class="head"><p>适用场景</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Resume</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--resume</span> <span class="pre">exp1</span></code></p></td>
+<td><p>恢复完整状态（模型+优化器+调度器+epoch计数），<strong>覆盖原目录</strong></p></td>
+<td><p>训练被中断，继续跑完</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Fork</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--fork</span> <span class="pre">exp1</span></code></p></td>
+<td><p>只加载模型权重，创建<strong>新目录</strong> runs/exp2，支持改配置</p></td>
+<td><p>迁移学习、调参</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Fork 的 <strong>非严格加载</strong> 值得一提：如果新模型架构与 checkpoint 不完全一致（比如分类头从 10 类改成 5 类），框架会自动匹配兼容的层、跳过不兼容的层，并打印详细报告。</p>
+</section>
+<hr class="docutils" />
+<section id="id19">
+<h2>迁移学习：层冻结<a class="headerlink" href="#id19" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="../transfer-learning/index.html"><span class="doc">迁移学习与微调：站在巨人的肩膀上</span></a>中我们学到：迁移学习的核心是<strong>冻结通用特征提取层，只训练任务特定层</strong>。框架的 <code class="docutils literal notranslate"><span class="pre">--freeze</span></code> 参数实现了这一点。</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 冻结方式一：按层 ID</span>
+python<span class="w"> </span>train.py<span class="w"> </span>--model<span class="w"> </span>lenet<span class="w"> </span>--freeze<span class="w"> </span><span class="s2">&quot;0-0&quot;</span><span class="w"> </span><span class="s2">&quot;0-1&quot;</span>
+<span class="c1"># 冻结方式二：按 ID 范围</span>
+python<span class="w"> </span>train.py<span class="w"> </span>--model<span class="w"> </span>lenet<span class="w"> </span>--freeze<span class="w"> </span><span class="s2">&quot;0-0:0-2&quot;</span>
+<span class="c1"># 冻结方式三：按层名模式</span>
+python<span class="w"> </span>train.py<span class="w"> </span>--model<span class="w"> </span>lenet<span class="w"> </span>--freeze<span class="w"> </span><span class="s2">&quot;features&quot;</span>
+</pre></div>
+</div>
+<p>层 ID 映射在训练开始时打印：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Layer</span> <span class="n">ID</span> <span class="n">Mapping</span><span class="p">:</span>
+  <span class="mi">0</span><span class="o">-</span><span class="mi">0</span><span class="p">:</span> <span class="n">conv1</span>
+  <span class="mi">0</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="n">conv2</span>
+  <span class="mi">1</span><span class="o">-</span><span class="mi">0</span><span class="p">:</span> <span class="n">fc1</span>
+  <span class="mi">1</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="n">fc2</span>
+</pre></div>
+</div>
+<p>冻结后，对应参数不在 optimizer 中注册，<code class="docutils literal notranslate"><span class="pre">.backward()</span></code> 跳过它们——这正是<a class="reference internal" href="auto-grad.html"><span class="doc">自动微分：PyTorch 的核心魔法</span></a>中 <code class="docutils literal notranslate"><span class="pre">requires_grad=False</span></code> 的实际应用。</p>
+<p><strong>实战：MNIST → CIFAR-10 迁移</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 第 1 步：MNIST 上训练</span>
+python<span class="w"> </span>train.py<span class="w"> </span>--model<span class="w"> </span>lenet<span class="w"> </span>--dataset<span class="w"> </span>mnist<span class="w"> </span>--epochs<span class="w"> </span><span class="m">20</span>
+<span class="c1"># → runs/exp1/checkpoints/best_model.pt</span>
+
+<span class="c1"># 第 2 步：冻结卷积层，在 CIFAR-10 上微调全连接层</span>
+python<span class="w"> </span>train.py<span class="w"> </span>--fork<span class="w"> </span>exp1<span class="w"> </span>--dataset<span class="w"> </span>cifar10<span class="w"> </span>--model<span class="w"> </span>lenet<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--epochs<span class="w"> </span><span class="m">15</span><span class="w"> </span>--learning-rate<span class="w"> </span><span class="m">0</span>.0001<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--freeze<span class="w"> </span><span class="s2">&quot;0-0&quot;</span><span class="w"> </span><span class="s2">&quot;0-1&quot;</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="id20">
+<h2>进阶功能<a class="headerlink" href="#id20" title="Link to this heading">#</a></h2>
+<section id="siamese-triplet-loss">
+<h3>度量学习（Siamese + Triplet Loss）<a class="headerlink" href="#siamese-triplet-loss" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="../neural-network-basics/neural-training-basics.html"><span class="doc">神经网络训练基础</span></a>中讨论过度量学习。框架原生支持：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>train.py<span class="w"> </span>--dataset<span class="w"> </span>balanced_triplet_mnist<span class="w"> </span>--model<span class="w"> </span>siamese<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--embedding-dim<span class="w"> </span><span class="m">128</span><span class="w"> </span>--epochs<span class="w"> </span><span class="m">30</span>
+</pre></div>
+</div>
+<p>Trainer 检测到 <code class="docutils literal notranslate"><span class="pre">model_type=&quot;siamese&quot;</span></code> 或 <code class="docutils literal notranslate"><span class="pre">dataset_type=&quot;triplet&quot;</span></code> 时，自动切换训练模式：</p>
+<ul class="simple">
+<li><p>加载 (anchor, positive, negative, label) 四元组</p></li>
+<li><p>使用 <code class="docutils literal notranslate"><span class="pre">OnlineTripletLoss</span></code>（batch 内挖掘难例）</p></li>
+<li><p>追踪 positive distance 和 negative distance——理想状态是前者远小于后者</p></li>
+</ul>
+</section>
+<section id="id21">
+<h3>向量搜索<a class="headerlink" href="#id21" title="Link to this heading">#</a></h3>
+<p>框架集成了 Qdrant 向量数据库，训练好的 Siamese 模型可以用于相似性搜索：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 索引：提取特征存入向量库</span>
+python<span class="w"> </span>-m<span class="w"> </span>src.utils.qdrant_search<span class="w"> </span>index<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--checkpoint<span class="w"> </span>runs/exp1/checkpoints/best_model.pt<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--dataset<span class="w"> </span>mnist<span class="w"> </span>--collection<span class="w"> </span>mnist_digits
+
+<span class="c1"># 搜索：找与输入图片最相似的样本</span>
+python<span class="w"> </span>-m<span class="w"> </span>src.utils.qdrant_search<span class="w"> </span>search<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--checkpoint<span class="w"> </span>runs/exp1/checkpoints/best_model.pt<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--collection<span class="w"> </span>mnist_digits<span class="w"> </span>--image<span class="w"> </span>path/to/digit.png
+</pre></div>
+</div>
+</section>
+<section id="gui">
+<h3>GUI 实时验证<a class="headerlink" href="#gui" title="Link to this heading">#</a></h3>
+<p>框架附带 Tkinter GUI，用于在摄像头前实时测试模型：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>gui-example
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+python<span class="w"> </span>main_gui.py
+</pre></div>
+</div>
+<p>支持两种模式：</p>
+<ul class="simple">
+<li><p><strong>手动拍照</strong>：按一次识别一次</p></li>
+<li><p><strong>连续检测</strong>：每 500ms 识别一次，适合演示</p></li>
+</ul>
+<p>预测结果以彩色柱状图展示：绿色（&gt;80% 置信度）、橙色（&gt;50%）、红色（&lt;50%）。</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id22">
+<h2>对照总结<a class="headerlink" href="#id22" title="Link to this heading">#</a></h2>
+<object data="../_images/mermaid-cec1d424c92775e74d8704093973ed2c4d6cfcfb.svg" type="image/svg+xml">
+            <p class="warning">graph LR
+    subgraph 你手写的
+        A1[DataLoader] --&gt; A2[训练循环]
+        A2 --&gt; A3[torch.save]
+        A3 --&gt; A4[手动对比]
+    end
+    subgraph 框架封装的
+        B1[DatasetRegistry] --&gt; B2[Trainer]
+        B2 --&gt; B3[CheckpointManager]
+        B3 --&gt; B4[ExperimentManager]
+    end
+    A1 -.-&gt;|封装| B1
+    A2 -.-&gt;|封装| B2
+    A3 -.-&gt;|封装| B3
+    A4 -.-&gt;|封装| B4</p></object>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>你手写的</p></th>
+<th class="head"><p>框架封装的</p></th>
+<th class="head"><p>你现在可以专注的</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">for</span> <span class="pre">epoch</span></code> 循环 + early stopping 逻辑</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Trainer</span></code> 类</p></td>
+<td><p>模型架构设计</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">torch.save</span></code> + 手动管理文件</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CheckpointManager</span></code></p></td>
+<td><p>实验方案设计</p></td>
+</tr>
+<tr class="row-even"><td><p>手动建目录、记日志</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ExperimentManager</span></code></p></td>
+<td><p>结果分析</p></td>
+</tr>
+<tr class="row-odd"><td><p>改代码换数据集/模型</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">YAML</span> <span class="pre">+</span> <span class="pre">CLI</span> <span class="pre">配置</span></code></p></td>
+<td><p>超参数调优</p></td>
+</tr>
+<tr class="row-even"><td><p>手动 <code class="docutils literal notranslate"><span class="pre">model.to(device)</span></code></p></td>
+<td><p>自动设备检测</p></td>
+<td><p>算法创新</p></td>
+</tr>
+<tr class="row-odd"><td><p>手写数据增强和预处理</p></td>
+<td><p>每个数据集自带 transform pipeline</p></td>
+<td><p>数据探索</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<hr class="docutils" />
+<section id="id23">
+<h2>下一步<a class="headerlink" href="#id23" title="Link to this heading">#</a></h2>
+<p>你在<a class="reference internal" href="../cnn-ablation-study/index.html"><span class="doc">CNN 消融研究：理解卷积神经网络各组件的作用</span></a>中将用框架做真正的对比实验——每个消融变体对应一个 <code class="docutils literal notranslate"><span class="pre">--config</span></code> 文件，<code class="docutils literal notranslate"><span class="pre">runs/expN/</span></code> 自动记录结果，ExperimentManager 保障实验可复现。</p>
+<p><a class="reference internal" href="the-end.html"><span class="doc">结语：从入门到实践</span></a>中列出了更多学习资源。</p>
+<p>如果想深入理解框架实现，读以下三个文件和你的手写代码做对照：</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">src/training/trainer.py</span></code>：你手写的训练循环 → 框架的封装</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/training/checkpoint.py</span></code>：你手写的 <code class="docutils literal notranslate"><span class="pre">torch.save</span></code> → 框架的自动管理</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/config/config.py</span></code>：你手写的 <code class="docutils literal notranslate"><span class="pre">&#64;dataclass</span> <span class="pre">Config</span></code> → 框架的 YAML + CLI 解析</p></li>
+</ul>
+<p><strong>从&quot;每次重写&quot;到&quot;一次封装，反复使用&quot;——这就是工程化的意义。</strong></p>
+</section>
+<section id="id24">
+<h2>参与到社团项目的开发<a class="headerlink" href="#id24" title="Link to this heading">#</a></h2>
+<p>本章介绍的项目是UCS 深度学习社维护的开源项目，欢迎你贡献代码、报告问题或提出改进建议：</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/ulink-deep-learning-club/mnist-helloworld"><strong>mnist-helloworld</strong></a>（训练框架）：本课程使用的训练框架，涵盖数据集注册、模型管理、实验追踪等完整功能。如果你注册了新的数据集或模型，欢迎提交 Pull Request 让更多人受益。</p></li>
+</ul>
+<hr class="docutils" />
+<p><strong>贡献的方式很简单</strong>：发现问题 → 提 Issue → 讨论方案 → 提交 PR。即使只是修正一个文档错别字，也是对社区有意义的贡献。<strong>真正理解一个框架最好的方式，就是尝试改进它。</strong></p>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">0cdb1e4</code>
+                2026-04-29 - <strong>Heyan Zhu</strong>: feat: add model-serving chapter and update related content
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="best-practices.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">上一页</p>
+        <p class="prev-next-title">工程最佳实践</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="the-end.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">下一页</p>
+        <p class="prev-next-title">结语：从入门到实践</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> 目录
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">从"每次重写"到"一次封装"</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">核心矛盾</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">设计原则回顾</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#framework-config">配置系统：从硬编码到配置文件</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">你之前做的</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">框架的做法</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nn-module-basemodel">模型管理：从 nn.Module 到 BaseModel</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">你之前做的</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">框架的做法</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#framework-add-model">添加新模型：3 步</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dataloader-basedataset">数据集管理：从 DataLoader 到 BaseDataset</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">你之前做的</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">框架的做法</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#framework-add-dataset">添加新数据集</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trainer">训练引擎：从手写循环到 Trainer</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">你之前做的</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">框架的做法</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#framework-experiments">实验管理：从手动记录到自动追踪</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">你之前做的</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">框架的做法</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checkpoint">Checkpoint 管理：两种恢复策略</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">迁移学习：层冻结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">进阶功能</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#siamese-triplet-loss">度量学习（Siamese + Triplet Loss）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">向量搜索</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gui">GUI 实时验证</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">对照总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">下一步</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">参与到社团项目的开发</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+作者： UCS Deep Learning Club
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,962 @@
+
+<!DOCTYPE html>
+
+
+<html lang="zh-CN" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>服务管理：让训练一直跑，服务一直开 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/style-fixes.css?v=3e9436e6" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=eb1cd0b9"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../../_static/translations.js?v=beaddf03"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'appendix/environment-setup/server-management';</script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" />
+    <link rel="next" title="结语：现在你有一台真正能用的服务器了" href="the-end.html" />
+    <link rel="prev" title="远程访问：从任何地方连上你的GPU服务器" href="remote-access.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="zh-CN"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">UCS Deep Learning Club</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">搜索</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../math-fundamentals/index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../neural-network-basics/index.html">神经网络基础：从理论到架构</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../neural-network-basics/scaling-law.html">缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../neural-network-basics/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../cnn-ablation-study/index.html">CNN 消融研究：理解卷积神经网络各组件的作用</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../cnn-ablation-study/introduction.html">引言：消融研究的科学方法论</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cnn-ablation-study/the-end.html">结语：从黑盒到白盒</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../attention-mechanisms/index.html">CNN 中的注意力机制</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../attention-mechanisms/introduction.html">为什么CNN需要注意力机制？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../attention-mechanisms/se-net.html">通道注意力：SE-Net</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../attention-mechanisms/spatial-attn.html">空间注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../attention-mechanisms/cbam.html">通道+空间注意力：CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../attention-mechanisms/comparison.html">注意力机制的选择与应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../attention-mechanisms/practice.html">实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../attention-mechanisms/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../unet-image-segmentation/index.html">U-Net：图像分割的革命</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../model-serving/index.html">模型部署与服务：从训练到生产</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">环境配置番外篇</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../postscript.html">写在后面</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="源码库"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/appendix/environment-setup/server-management.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/issues/new?title=Issue%20on%20page%20%2Fappendix/environment-setup/server-management.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="创建议题"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="下载此页面">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/appendix/environment-setup/server-management.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="下载源文件"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="列印成 PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="全屏模式"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>服务管理：让训练一直跑，服务一直开</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> 目录 </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tmux">tmux：终端"续命"神器</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">日常操作就记四组快捷键</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">真实世界的训练工作流</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">自定义tmux配置</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#systemd">systemd：让服务开机自己跑</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#service">写一个service文件</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">管理service</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">训练脚本也适合用systemd吗？</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">定时任务与日志管理</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cron">cron：按计划跑脚本</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#logrotate">logrotate：日志别撑爆磁盘</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">磁盘监控</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">管理面板：图形化监控</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#panel">1Panel</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gpu">GPU专用监控</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="server-management">
+<span id="id1"></span><h1>服务管理：让训练一直跑，服务一直开<a class="headerlink" href="#server-management" title="Link to this heading">#</a></h1>
+<p>驱动装好了，远程能连上了——但这只是开始。真正的考验是：<strong>你关掉笔记本电脑回家的路上，训练还在跑吗？</strong></p>
+<p>这一节解决两个核心问题：一是让任务在你离线后继续运行（tmux），二是让服务在服务器重启后自动恢复（systemd）。顺便聊聊面板和监控。</p>
+<section id="tmux">
+<span id="tmux-basics"></span><h2>tmux：终端&quot;续命&quot;神器<a class="headerlink" href="#tmux" title="Link to this heading">#</a></h2>
+<p>这是深度学习最实用的工具，没有之一。<a class="reference internal" href="linux-basics.html#ssh-setup"><span class="std std-ref">SSH：远程连接服务器</span></a>和<a class="reference internal" href="remote-access.html#mosh-basics"><span class="std std-ref">mosh：容忍你切WiFi、掉线、高延迟</span></a>帮你连上服务器，但tmux让你的训练在你断开后继续跑。</p>
+<p>没有tmux的时候，你的工作流是这样的：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>train.py<span class="w">  </span><span class="c1"># 训练开始，预计跑6小时</span>
+<span class="c1"># ... 你去吃午饭了 ...</span>
+<span class="c1"># 回来发现：终端超时断开了，训练白跑了6小时</span>
+</pre></div>
+</div>
+<p>有了tmux：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tmux<span class="w"> </span>new<span class="w"> </span>-s<span class="w"> </span>training<span class="w">  </span><span class="c1"># 创建名为 training 的会话</span>
+python<span class="w"> </span>train.py<span class="w">        </span><span class="c1"># 在tmux里启动训练</span>
+<span class="c1"># Ctrl+B 然后按 D 断开（detach），会话还在跑</span>
+<span class="c1"># 几小时后重新连上：</span>
+tmux<span class="w"> </span>attach<span class="w"> </span>-t<span class="w"> </span>training<span class="w">  </span><span class="c1"># 回到训练现场，一切正常</span>
+</pre></div>
+</div>
+<section id="id2">
+<h3>日常操作就记四组快捷键<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
+<p>tmux的学习曲线平缓——日常只用记四组快捷键就够了：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>操作</p></th>
+<th class="head"><p>快捷键</p></th>
+<th class="head"><p>说明</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>断开会话</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Ctrl+B</span></code> → <code class="docutils literal notranslate"><span class="pre">D</span></code></p></td>
+<td><p>断开但不终止，任务后台继续跑</p></td>
+</tr>
+<tr class="row-odd"><td><p>新建窗口</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Ctrl+B</span></code> → <code class="docutils literal notranslate"><span class="pre">C</span></code></p></td>
+<td><p>在同一个会话里开新终端</p></td>
+</tr>
+<tr class="row-even"><td><p>切换窗口</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Ctrl+B</span></code> → <code class="docutils literal notranslate"><span class="pre">窗口数字</span></code></p></td>
+<td><p>在多个任务间切换</p></td>
+</tr>
+<tr class="row-odd"><td><p>上下分屏</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Ctrl+B</span></code> → <code class="docutils literal notranslate"><span class="pre">&quot;</span></code></p></td>
+<td><p>一个窗口拆成上下两半</p></td>
+</tr>
+<tr class="row-even"><td><p>左右分屏</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Ctrl+B</span></code> → <code class="docutils literal notranslate"><span class="pre">%</span></code></p></td>
+<td><p>一个窗口拆成左右两半</p></td>
+</tr>
+<tr class="row-odd"><td><p>在分屏间跳转</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Ctrl+B</span></code> → <code class="docutils literal notranslate"><span class="pre">方向键</span></code></p></td>
+<td><p>切换焦点到另一个分屏</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">tmux vs nohup vs screen</p>
+<ul class="simple">
+<li><p><strong>nohup</strong>：最简单，<code class="docutils literal notranslate"><span class="pre">nohup</span> <span class="pre">python</span> <span class="pre">train.py</span> <span class="pre">&amp;</span></code>，但管理多个进程不方便，不能重连到控制台</p></li>
+<li><p><strong>screen</strong>：tmux的前辈，功能类似但默认不装、界面丑、分屏弱</p></li>
+<li><p><strong>tmux</strong>：现在是主流选择，配置漂亮、分屏强大、会话管理灵活</p></li>
+</ul>
+<p>三句话：<strong>nohup解决&quot;有没有&quot;的问题，tmux解决&quot;好不好用&quot;的问题。</strong> 有条件就用tmux。</p>
+</div>
+</section>
+<section id="id3">
+<h3>真实世界的训练工作流<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<p>结合mosh（<a class="reference internal" href="remote-access.html"><span class="doc">远程访问：从任何地方连上你的GPU服务器</span></a>）和tmux，你的日常会变成这样：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. 用mosh连服务器（不怕切WiFi断连）</span>
+mosh<span class="w"> </span>user@server
+
+<span class="c1"># 2. 创建tmux会话</span>
+tmux<span class="w"> </span>new<span class="w"> </span>-s<span class="w"> </span>experiment-0429
+
+<span class="c1"># 3. 启动训练</span>
+python<span class="w"> </span>train.py<span class="w"> </span>--config<span class="w"> </span>configs/experiment.toml
+
+<span class="c1"># 4. Ctrl+B → D 断开，关掉笔记本电脑走人</span>
+
+<span class="c1"># 5. 晚上回家，重新连上服务器</span>
+mosh<span class="w"> </span>user@server
+tmux<span class="w"> </span>attach<span class="w"> </span>-t<span class="w"> </span>experiment-0429<span class="w">  </span><span class="c1"># 训练还在跑，loss曲线实时更新</span>
+</pre></div>
+</div>
+<div class="warning admonition">
+<p class="admonition-title">警告</p>
+<p>一个tmux新手最容易踩的坑</p>
+<p>不要在tmux里启动Jupyter Notebook。因为Jupyter会打开浏览器，而tmux没有浏览器——它会卡住。正确的做法是在普通SSH窗口里开Jupyter（绑定127.0.0.1），然后通过SSH隧道访问。tmux只用来跑训练脚本、预处理数据这些不需要界面的任务。</p>
+</div>
+</section>
+<section id="id4">
+<h3>自定义tmux配置<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p>如果你觉得默认的tmux界面太素，可以加个简单的配置：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># ~/.tmux.conf</span>
+<span class="c1"># 让Ctrl+B更顺手（连续按两次更快）</span>
+<span class="nb">set</span> <span class="o">-</span><span class="n">g</span> <span class="n">escape</span><span class="o">-</span><span class="n">time</span> <span class="mi">0</span>
+
+<span class="c1"># 开启鼠标支持（可以用鼠标点窗口、拖分屏）</span>
+<span class="nb">set</span> <span class="o">-</span><span class="n">g</span> <span class="n">mouse</span> <span class="n">on</span>
+
+<span class="c1"># 窗口列表显示在底部</span>
+<span class="nb">set</span> <span class="o">-</span><span class="n">g</span> <span class="n">status</span><span class="o">-</span><span class="n">position</span> <span class="n">bottom</span>
+
+<span class="c1"># 每60秒自动刷新状态栏</span>
+<span class="nb">set</span> <span class="o">-</span><span class="n">g</span> <span class="n">status</span><span class="o">-</span><span class="n">interval</span> <span class="mi">60</span>
+</pre></div>
+</div>
+<p>改完配置后，在tmux里按 <code class="docutils literal notranslate"><span class="pre">Ctrl+B</span></code> → <code class="docutils literal notranslate"><span class="pre">:</span></code> → 输入 <code class="docutils literal notranslate"><span class="pre">source-file</span> <span class="pre">~/.tmux.conf</span></code> 重载。</p>
+</section>
+</section>
+<section id="systemd">
+<span id="systemd-basics"></span><h2>systemd：让服务开机自己跑<a class="headerlink" href="#systemd" title="Link to this heading">#</a></h2>
+<p>tmux解决的是&quot;我走了训练别停&quot;的问题。还有一个更根本的问题：<strong>服务器重启了，服务还能自己起来吗？</strong></p>
+<p>系统管理员不可能每次重启都手动去启动服务。systemd就是Linux的标准答案——它是一个&quot;服务管家&quot;，负责在开机时启动你指定的程序，并在程序崩溃后自动重启。</p>
+<section id="service">
+<h3>写一个service文件<a class="headerlink" href="#service" title="Link to this heading">#</a></h3>
+<p>假设你想让Jupyter Notebook开机自启，可以写一个systemd service：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># /etc/systemd/system/jupyter.service</span>
+<span class="p">[</span><span class="n">Unit</span><span class="p">]</span>
+<span class="n">Description</span><span class="o">=</span><span class="n">Jupyter</span> <span class="n">Notebook</span> <span class="n">Server</span>
+<span class="n">After</span><span class="o">=</span><span class="n">network</span><span class="o">.</span><span class="n">target</span>
+
+<span class="p">[</span><span class="n">Service</span><span class="p">]</span>
+<span class="n">Type</span><span class="o">=</span><span class="n">simple</span>
+<span class="n">User</span><span class="o">=</span><span class="n">anson</span>
+<span class="n">WorkingDirectory</span><span class="o">=/</span><span class="n">home</span><span class="o">/</span><span class="n">anson</span><span class="o">/</span><span class="n">projects</span>
+<span class="n">ExecStart</span><span class="o">=/</span><span class="n">home</span><span class="o">/</span><span class="n">anson</span><span class="o">/.</span><span class="n">local</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">jupyter</span> <span class="n">notebook</span> <span class="o">--</span><span class="n">ip</span><span class="o">=</span><span class="mf">127.0.0.1</span> <span class="o">--</span><span class="n">port</span><span class="o">=</span><span class="mi">8888</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">browser</span>
+<span class="n">Restart</span><span class="o">=</span><span class="n">on</span><span class="o">-</span><span class="n">failure</span>
+<span class="n">RestartSec</span><span class="o">=</span><span class="mi">5</span>
+
+<span class="p">[</span><span class="n">Install</span><span class="p">]</span>
+<span class="n">WantedBy</span><span class="o">=</span><span class="n">multi</span><span class="o">-</span><span class="n">user</span><span class="o">.</span><span class="n">target</span>
+</pre></div>
+</div>
+<p>各字段的含义：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>字段</p></th>
+<th class="head"><p>意思</p></th>
+<th class="head"><p>为什么重要</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">After=network.target</span></code></p></td>
+<td><p>等网络就绪再启动</p></td>
+<td><p>有些服务依赖网络，不等就会报错</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">User=anson</span></code></p></td>
+<td><p>以哪个用户身份运行</p></td>
+<td><p>不要用root跑服务，有安全风险</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Restart=on-failure</span></code></p></td>
+<td><p>失败了自动重试</p></td>
+<td><p>程序崩溃了systemd会自动拉起来</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">RestartSec=5</span></code></p></td>
+<td><p>重试前等5秒</p></td>
+<td><p>防止频繁重启把系统搞崩</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">WantedBy=multi-user.target</span></code></p></td>
+<td><p>在多用户模式下启动</p></td>
+<td><p>一般服务都写这个</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id5">
+<h3>管理service<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 重新加载配置文件（改了service文件后必须执行）</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span>daemon-reload
+
+<span class="c1"># 启用开机自启</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>jupyter
+
+<span class="c1"># 立即启动</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>jupyter
+
+<span class="c1"># 查看状态</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>jupyter
+
+<span class="c1"># 查看日志</span>
+sudo<span class="w"> </span>journalctl<span class="w"> </span>-u<span class="w"> </span>jupyter<span class="w"> </span>-f
+
+<span class="c1"># 停止</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span>stop<span class="w"> </span>jupyter
+
+<span class="c1"># 不想开机自启了</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span>disable<span class="w"> </span>jupyter
+</pre></div>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">一个排错技巧</p>
+<p><code class="docutils literal notranslate"><span class="pre">systemctl</span> <span class="pre">status</span></code> 显示的日志通常只保留最后几行。如果服务启动失败且原因不明显，用 <code class="docutils literal notranslate"><span class="pre">journalctl</span> <span class="pre">-u</span> <span class="pre">服务名</span> <span class="pre">-f</span></code> 查看完整日志。<code class="docutils literal notranslate"><span class="pre">-f</span></code> 会持续跟踪新日志，你可以同时重启服务观察报错。</p>
+</div>
+</section>
+<section id="id6">
+<h3>训练脚本也适合用systemd吗？<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p>不适合。systemd适合<strong>服务类程序</strong>（Jupyter、API服务、监控Agent），不适合<strong>一次性任务</strong>（训练脚本）。训练脚本用<a class="reference internal" href="#tmux-basics"><span class="std std-ref">tmux：终端&quot;续命&quot;神器</span></a>管理更灵活。</p>
+<p>为什么？因为训练脚本可能需要你手动中断（调参、看loss曲线、改代码），而systemd设计的是&quot;崩溃了就悄悄重试&quot;——你想要的停止可能被systemd误解为崩溃，然后自动重启。</p>
+<div class="pst-scrollable-table-container"><table class="table" id="id10">
+<caption><span class="caption-text">tmux vs systemd 的分工</span><a class="headerlink" href="#id10" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>场景</strong></p></th>
+<th class="head"><p><strong>用什么</strong></p></th>
+<th class="head"><p><strong>理由</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>跑训练脚本</p></td>
+<td><p>tmux</p></td>
+<td><p>需要手动交互、调试、中断</p></td>
+</tr>
+<tr class="row-odd"><td><p>开Jupyter/TensorBoard</p></td>
+<td><p>systemd</p></td>
+<td><p>开机自启，不用每次手动</p></td>
+</tr>
+<tr class="row-even"><td><p>部署模型API</p></td>
+<td><p>systemd</p></td>
+<td><p>崩溃自动恢复，日志统一管理</p></td>
+</tr>
+<tr class="row-odd"><td><p>数据预处理</p></td>
+<td><p>tmux</p></td>
+<td><p>一次性任务，跑完就结束</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="id7">
+<h2>定时任务与日志管理<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<section id="cron">
+<h3>cron：按计划跑脚本<a class="headerlink" href="#cron" title="Link to this heading">#</a></h3>
+<p>如果你需要&quot;每天早上8点备份一次数据&quot;或者&quot;每周清理一次缓存&quot;，cron是最简单的方式：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 编辑当前用户的crontab</span>
+crontab<span class="w"> </span>-e
+
+<span class="c1"># 格式：分钟 小时 日 月 星期 命令</span>
+<span class="c1"># 每天凌晨3点执行备份</span>
+<span class="m">0</span><span class="w"> </span><span class="m">3</span><span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>/home/anson/scripts/backup.sh
+
+<span class="c1"># 每周日晚上10点清理日志</span>
+<span class="m">0</span><span class="w"> </span><span class="m">22</span><span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span><span class="m">0</span><span class="w"> </span>find<span class="w"> </span>/home/anson/logs<span class="w"> </span>-mtime<span class="w"> </span>+7<span class="w"> </span>-delete
+
+<span class="c1"># 每半小时检查一次GPU温度（如果超过阈值就发通知）</span>
+*/30<span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>/home/anson/scripts/check_gpu_temp.sh
+</pre></div>
+</div>
+</section>
+<section id="logrotate">
+<h3>logrotate：日志别撑爆磁盘<a class="headerlink" href="#logrotate" title="Link to this heading">#</a></h3>
+<p>训练日志如果不做管理，几个月就能把磁盘塞满。logrotate是Linux自带的日志轮转工具：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># /etc/logrotate.d/training-logs</span>
+<span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">anson</span><span class="o">/</span><span class="n">logs</span><span class="o">/</span><span class="n">train</span><span class="o">.</span><span class="n">log</span> <span class="p">{</span>
+    <span class="n">daily</span>          <span class="c1"># 每天轮转一次</span>
+    <span class="n">rotate</span> <span class="mi">7</span>       <span class="c1"># 保留最近7天的日志</span>
+    <span class="n">compress</span>       <span class="c1"># 压缩旧日志</span>
+    <span class="n">missingok</span>      <span class="c1"># 日志文件不存在也不报错</span>
+    <span class="n">notifempty</span>     <span class="c1"># 空日志不轮转</span>
+    <span class="n">copytruncate</span>   <span class="c1"># 复制后截断原文件（不影响正在写的进程）</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="id8">
+<h3>磁盘监控<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 快速查看磁盘使用情况</span>
+df<span class="w"> </span>-h
+
+<span class="c1"># 找出当前目录下最大的文件/目录</span>
+du<span class="w"> </span>-sh<span class="w"> </span>*<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-rh<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-5
+
+<span class="c1"># 安装ncdu，交互式的磁盘分析工具（比du好用）</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>ncdu
+ncdu<span class="w"> </span>/home/anson
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id9">
+<h2>管理面板：图形化监控<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
+<p>如果你不喜欢纯命令行操作，或者想让团队里的非技术成员也能查看服务器状态，可以装一个面板。</p>
+<section id="panel">
+<h3>1Panel<a class="headerlink" href="#panel" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://github.com/1Panel-dev/1Panel">1Panel</a> 是一个开源的Linux服务器管理面板，安装简单：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-sSL<span class="w"> </span>https://resource.fit2cloud.com/1panel/package/quick_start.sh<span class="w"> </span>-o<span class="w"> </span>quick_start.sh
+sudo<span class="w"> </span>bash<span class="w"> </span>quick_start.sh
+</pre></div>
+</div>
+<p>装完后通过浏览器访问 <code class="docutils literal notranslate"><span class="pre">http://服务器IP:端口</span></code>，可以：</p>
+<ul class="simple">
+<li><p>查看CPU、内存、磁盘、网络使用情况</p></li>
+<li><p>查看GPU温度和显存占用</p></li>
+<li><p>管理Docker容器</p></li>
+<li><p>设置防火墙规则</p></li>
+<li><p>查看系统日志</p></li>
+</ul>
+</section>
+<section id="gpu">
+<h3>GPU专用监控<a class="headerlink" href="#gpu" title="Link to this heading">#</a></h3>
+<p>如果你只需要看GPU的状态，有几个轻量的选择：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># nvtop：htop风格的GPU监控</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>nvtop
+nvtop
+
+<span class="c1"># 用watch + nvidia-smi（最轻量，不需要额外装）</span>
+watch<span class="w"> </span>-n<span class="w"> </span><span class="m">2</span><span class="w"> </span>nvidia-smi<span class="w"> </span>--query-gpu<span class="o">=</span>index,name,temperature.gpu,utilization.gpu,memory.used,memory.total<span class="w"> </span>--format<span class="o">=</span>csv
+</pre></div>
+</div>
+<div class="note admonition">
+<p class="admonition-title">监控建议</p>
+<ul class="simple">
+<li><p><strong>个人用</strong>：<code class="docutils literal notranslate"><span class="pre">watch</span> <span class="pre">-n</span> <span class="pre">2</span> <span class="pre">nvidia-smi</span></code> 就够了，零依赖</p></li>
+<li><p><strong>喜欢图形界面</strong>：nvtop，和htop操作逻辑一样</p></li>
+<li><p><strong>团队用</strong>：1Panel或Prometheus + Grafana，可以历史回溯和告警</p></li>
+<li><p><strong>生产环境</strong>：配置Prometheus exporter + Grafana仪表盘，配合企业微信/钉钉告警</p></li>
+</ul>
+</div>
+<hr class="docutils" />
+<p>这一节是附录的最后一篇。从<a class="reference internal" href="linux-basics.html#why-linux"><span class="std std-ref">Linux基础：为什么炼丹用Linux</span></a>到<a class="reference internal" href="nvidia-setup.html#nvidia-arch"><span class="std std-ref">显卡架构简史</span></a>，从<a class="reference internal" href="remote-access.html#ssh-tunnel"><span class="std std-ref">把远程服务&quot;拉&quot;到本地来</span></a>到<a class="reference internal" href="#tmux-basics"><span class="std std-ref">tmux：终端&quot;续命&quot;神器</span></a>——你现在已经拥有了一台&quot;真正能用&quot;的深度学习服务器。回到<span class="xref std std-doc">../index</span>选择你感兴趣的章节继续学习吧。</p>
+</section>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">c71cb87</code>
+                2026-04-29 - <strong>Heyan Zhu</strong>: docs(appendix): add environment setup guide for GPU servers
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="remote-access.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">上一页</p>
+        <p class="prev-next-title">远程访问：从任何地方连上你的GPU服务器</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="the-end.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">下一页</p>
+        <p class="prev-next-title">结语：现在你有一台真正能用的服务器了</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> 目录
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tmux">tmux：终端"续命"神器</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">日常操作就记四组快捷键</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">真实世界的训练工作流</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">自定义tmux配置</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#systemd">systemd：让服务开机自己跑</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#service">写一个service文件</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">管理service</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">训练脚本也适合用systemd吗？</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">定时任务与日志管理</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cron">cron：按计划跑脚本</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#logrotate">logrotate：日志别撑爆磁盘</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">磁盘监控</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">管理面板：图形化监控</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#panel">1Panel</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gpu">GPU专用监控</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+作者： UCS Deep Learning Club
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

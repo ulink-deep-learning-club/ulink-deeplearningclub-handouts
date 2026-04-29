@@ -26,6 +26,7 @@
 3. 理解 PyTorch API 与理论概念的对应关系
 4. 训练并调试一个完整的 MNIST 分类器
 5. 掌握深度学习开发的工程实践技巧
+6. 使用社团的训练框架进行高效的实验管理
 ~~~
 
 ## 本章概览
@@ -41,6 +42,7 @@
 | {doc}`train-workflow` | 完整训练流程 | {doc}`neural-training-basics` 的代码化 |
 | {doc}`debug-and-visualise` | 调试与可视化技巧 | 训练中的常见问题诊断 |
 | {doc}`best-practices` | 工程最佳实践 | {doc}`scaling-law` 中的效率优化 |
+| {doc}`using-framework` | 使用训练框架 | {doc}`best-practices` 的工程化落地 |
 
 ## 学习路径
 
@@ -111,6 +113,7 @@ optimiser
 train-workflow
 debug-and-visualise
 best-practices
+using-framework
 the-end
 ```
 
