@@ -18,6 +18,8 @@ cnn-ablation-study/index
 transfer-learning/index
 attention-mechanisms/index
 unet-image-segmentation/index
+model-serving/index
+appendix/environment-setup/index
 postscript
 ~~~
 
@@ -33,6 +35,7 @@ graph LR
     D --> G[注意力机制]
     D --> H[度量学习]
     D --> I[U-Net分割]
+    D --> J[模型部署]
 ```
 
 **建议顺序**：数学基础 → 神经网络基础 → PyTorch实践 → 选择感兴趣的进阶方向
@@ -57,6 +60,12 @@ graph LR
 | 进阶方向 | 各2-3小时 | 根据兴趣选择，深入特定领域 |
 
 **学习比例**：理论理解 40% + 代码实践 60% = 最佳效果
+
+---
+
+## 附录：环境配置
+
+附录 {doc}`appendix/environment-setup/index` 不讲神经网络，只讲"搞一台GPU服务器并让它跑起来"需要的实操技能——Linux基础、NVIDIA驱动、远程访问、服务管理。遇到环境问题可以直接去翻。
 
 ## 技术细节
 
