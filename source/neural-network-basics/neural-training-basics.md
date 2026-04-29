@@ -280,6 +280,12 @@ class Net(nn.Module):
 
 **早停法的本质**：在"学习真实规律"和"记忆训练噪声"的临界点停止训练。
 
+```{admonition} 工程实现：框架中的早停
+:class: tip
+
+社团框架将早停封装为一行参数——`--patience 5` 表示验证损失连续 5 轮不下降即停止训练。详见{ref}`framework-experiments`。
+```
+
 ---
 
 ### 4. 数据增强：免费的"新数据"
@@ -374,6 +380,12 @@ for epoch in range(num_epochs):
     scheduler.step()  # 更新学习率
 ```
 
+```{admonition} 工程实现：框架中的调度器
+:class: tip
+
+社团框架内置 5 种调度器（Step / Cosine / Plateau / Exponential / None），CLI 参数 `--scheduler cosine --scheduler-t-max 50` 即可启用。详见{ref}`framework-config`。
+```
+
 ---
 
 ## 训练监控指标
@@ -394,20 +406,26 @@ for epoch in range(num_epochs):
 
 回顾本节讨论的**过拟合与欠拟合**现象——这些监控指标就是诊断工具，帮助你在训练过程中实时判断模型状态。
 
+```{admonition} 工程实现：框架中的自动监控
+:class: tip
+
+社团框架每轮自动记录损失、准确率、学习率、训练速度，训练结束后自动绘制 4 面板训练曲线图（`runs/expN/training_curves.png`），无需手动记录和绘图。详见{ref}`framework-experiments`。
+```
+
 ---
 
 ## 总结：训练检查清单
 
 开始训练前，确认以下事项：
 
-| 检查项 | 建议 | 参考章节 |
-|-------|-----|---------|
-| 数据划分 | 训练/验证/测试 = 70%/15%/15% 或类似比例 | 本节"数据划分"部分 |
-| 损失函数 | 分类用CrossEntropy，回归用MSE | {ref}`loss-functions` |
-| 优化器 | Adam {cite}`kingma2014adam` 是默认首选，学习率0.001 | {ref}`gradient-descent` |
-| 正则化 | 至少使用早停法和L2正则化 | 本节"正则化"部分 |
-| 批量大小 | 从64或128开始，根据内存调整 | 本节"批量大小"部分 |
-| 监控指标 | 同时关注训练和验证的表现 | 本节"训练监控指标"部分 |
+| 检查项 | 建议 | 框架实现 | 参考章节 |
+|-------|-----|---------|---------|
+| 数据划分 | 训练/验证/测试 = 70%/15%/15% 或类似比例 | 数据集类内置划分 | 本节"数据划分"部分 |
+| 损失函数 | 分类用CrossEntropy，回归用MSE | 模型自带 `get_criterion()` | {ref}`loss-functions` |
+| 优化器 | Adam {cite}`kingma2014adam` 是默认首选，学习率0.001 | `--optimizer adamw` | {ref}`gradient-descent` |
+| 正则化 | 至少使用早停法和L2正则化 | `--patience` + `--weight-decay` | 本节"正则化"部分 |
+| 批量大小 | 从64或128开始，根据内存调整 | `--batch-size 64` | 本节"批量大小"部分 |
+| 监控指标 | 同时关注训练和验证的表现 | 自动记录并绘制曲线 | 本节"训练监控指标"部分 |
 
 本节将{ref}`gradient-descent`和{ref}`back-propagation`的理论转化为实践——从选择{ref}`loss-functions`、设计正则化策略，到监控训练过程。现在你已经掌握了让神经网络"学会"而不是"记住"的完整工具箱。
 
@@ -415,12 +433,14 @@ for epoch in range(num_epochs):
 
 ## 下一步
 
-掌握了训练基础后，我们将在{doc}`exp-cmp`中通过**实验对比**全连接网络和CNN的性能差异，用数据验证：
-- CNN的归纳偏置究竟带来了多少提升？
-- 参数效率的差距有多大？
-- 不同架构在MNIST上的实际表现如何？
+掌握了训练基础后，你可以在{doc}`../pytorch-practice/using-framework`中用社团框架将本节的理论转化为工程实践——配置 `--optimizer`、`--scheduler`、`--patience` 一行命令验证不同训练策略的效果。
 
-从"知道如何训练"进化到"知道哪种架构更适合"！
+在{doc}`../cnn-ablation-study/index`中，我们还将通过**消融实验**量化 CNN 各组件对性能的影响，用数据回答：
+- 哪些训练技巧是"雪中送炭"，哪些是"锦上添花"？
+- 不同正则化方法的实际贡献有多大？
+- 如何通过控制变量法做出科学的设计决策？
+
+从"知道怎么训练"进化到"知道怎么科学地验证训练方案"！
 
 ---
 

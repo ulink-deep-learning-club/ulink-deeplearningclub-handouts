@@ -3,7 +3,7 @@
 
 恭喜！你已经完成了 PyTorch 实践章节的学习。
 
-从{doc}`introduction`中的第一个张量，到{doc}`train-workflow`中的完整训练流程，再到{doc}`best-practices`中的工程规范——你已经掌握了**用 PyTorch 开发深度学习项目的完整技能栈**。
+从{doc}`introduction`中的第一个张量，到{doc}`train-workflow`中的完整训练流程，再到{doc}`best-practices`中的工程规范，最后到{doc}`using-framework`中的框架使用——你已经掌握了**用 PyTorch 开发深度学习项目的完整技能栈**。
 
 ---
 
@@ -21,6 +21,7 @@ graph LR
     E --> F
     F --> G[调试可视化<br/>诊断问题]
     G --> H[最佳实践<br/>工程规范]
+    H --> I[使用框架<br/>工程化工具]
 ~~~
 
 每个节点都对应着{doc}`../math-fundamentals/index`和{doc}`../neural-network-basics/index`中的理论概念，现在你已经能把它们变成实际运行的代码。
@@ -53,6 +54,7 @@ graph LR
 - ✅ 诊断梯度消失/爆炸等训练问题
 - ✅ 应用混合精度、梯度累积等性能优化技巧
 - ✅ 组织规范的深度学习项目结构
+- ✅ 使用社团训练框架进行高效的实验管理
 
 ---
 
@@ -62,7 +64,8 @@ graph LR
 
 | 项目名称 | 难度 | 练习重点 | 参考章节 |
 |----------|------|----------|----------|
-| **MNIST 分类器** | ⭐ 入门 | 完整训练流程 | {doc}`train-workflow` |
+| **MNIST 分类器**（手写） | ⭐ 入门 | 完整训练流程 | {doc}`train-workflow` |
+| **mnist-helloworld**（框架） | ⭐ 入门 | 工程化项目结构、配置管理、实验追踪 | 社团自有框架 `mnist-helloworld/` |
 | **CIFAR-10 ResNet** | ⭐⭐ 基础 | 更深网络、数据增强 | {doc}`cnn-basics` |
 | **猫狗分类器** | ⭐⭐ 基础 | 迁移学习 | {doc}`../transfer-learning/index` |
 | **情感分析** | ⭐⭐⭐ 进阶 | 文本处理、RNN | {ref}`rnn-basics`（后续章节） |
@@ -115,9 +118,19 @@ graph LR
 
 - 方向四：工程优化
     深入学习{doc}`scaling-law`中提到的：
+
+- 方向四：工程优化
+    深入学习{doc}`scaling-law`中提到的：
     - 分布式训练（Data Parallel / Model Parallel）
     - 模型压缩与部署
     - 高效的数据流水线设计
+
+- 方向五：掌握框架
+    社团的 `mnist-helloworld` 框架将本章所有工程最佳实践集成在一个项目中：
+    - 理解框架的模块设计（config → dataset → model → training → experiment）
+    - 学习如何注册新模型和新数据集（`ModelRegistry`、`DatasetRegistry`）
+    - 用框架复现本章手写的训练流程，对比代码量和维护成本
+    - 通过框架的 GUI demo（`gui-example/`）直观验证模型效果
 
 ---
 

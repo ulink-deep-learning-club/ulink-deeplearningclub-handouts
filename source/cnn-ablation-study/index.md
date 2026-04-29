@@ -12,7 +12,7 @@
 ```{admonition} 前置知识
 :class: important
 
-本章假设你已掌握 {doc}`../pytorch-practice/train-workflow` 中的完整训练流程，以及 {doc}`../neural-network-basics/cnn-basics` 中 CNN 各组件的原理。建议在完成 {doc}`../transfer-learning/index` 后再进行学习。
+本章假设你已掌握 {doc}`../pytorch-practice/train-workflow` 中的完整训练流程，以及 {doc}`../neural-network-basics/cnn-basics` 中 CNN 各组件的原理。建议在完成 {doc}`../pytorch-practice/using-framework`（掌握社团框架的基本使用）和 {doc}`../transfer-learning/index` 后再进行学习。
 
 **预计耗时**：2-4周（需要训练多个模型进行对比实验）
 ```
@@ -24,6 +24,7 @@
 | {doc}`introduction` | 什么是消融研究？为什么要做？ | 科学方法论：控制变量法 |
 | {doc}`experiment-design` | 基线模型、实验方案、结果分析 | 实验设计能力 |
 | {doc}`implementation` | 完整的 PyTorch 代码实现 | 动手实践能力 |
+| {doc}`the-end` | 总结与学习路径 | 知识体系梳理 |
 
 ## 本章定位
 
@@ -49,6 +50,7 @@ graph LR
 | {doc}`../neural-network-basics/neural-training-basics` | 应用批归一化、Dropout等正则化技术 |
 | {doc}`../pytorch-practice/neural-network-module` | 搭建实验用的 CNN 模型 |
 | {doc}`../pytorch-practice/train-workflow` | 实现训练循环，记录实验数据 |
+| {doc}`../pytorch-practice/using-framework` | 使用框架管理实验、配置和模型 |
 | {doc}`../transfer-learning/index` | 理解微调背后的"组件重要性"思想 |
 
 ## 目录
@@ -59,6 +61,7 @@ graph LR
 introduction
 experiment-design
 implementation
+the-end
 
 ```
 

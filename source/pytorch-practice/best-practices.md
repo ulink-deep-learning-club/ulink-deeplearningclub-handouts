@@ -42,6 +42,8 @@ my_project/
 └── requirements.txt      # 依赖列表
 ```
 
+> **参考实现**：社团的 `mnist-helloworld` 框架采用了与此一致的项目结构。详见{ref}`framework-models`和{ref}`framework-datasets`。
+
 ### 为什么这样组织？
 
 | 目录 | 作用 | 与{doc}`../neural-network-basics/scaling-law`的联系 |
@@ -154,6 +156,8 @@ config = load_config('configs/experiment.yaml')
 print(config['training']['optimizer']['name'])  # "AdamW"
 ```
 
+> **参考实现**：`mnist-helloworld` 的配置系统支持 YAML + CLI 双配置模式——`config.yaml` 定义默认值，命令行参数覆盖实验变量。详见{ref}`framework-config`。
+
 ---
 
 ## 可复现性保证
@@ -248,6 +252,8 @@ class ExperimentLogger:
         """获取检查点保存路径"""
         return os.path.join(self.exp_dir, "checkpoints", f"epoch_{epoch}.pt")
 ```
+
+> **参考实现**：`mnist-helloworld` 的 `ExperimentManager` 实现了类似功能，并增加了 YOLO 风格自动实验编号（`runs/exp1`、`runs/exp2`...）和断点续训支持。详见{ref}`framework-experiments`。
 
 ---
 
@@ -461,7 +467,7 @@ for epoch in range(num_epochs):
 
 你已经具备了从理论到实践的完整能力。下一步建议：
 
-1. **实战项目**：尝试实现一个完整的图像分类项目
+1. **实战项目**：尝试给 `mnist-helloworld` 框架添加新的模型或数据集（详见{ref}`framework-add-model`和{ref}`framework-add-dataset`）
 2. **深入研究**：回到{doc}`../neural-network-basics/index`学习更复杂的架构
 3. **前沿探索**：阅读论文，复现SOTA模型
 

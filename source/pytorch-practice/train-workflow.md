@@ -533,6 +533,38 @@ if __name__ == '__main__':
     main()
 ```
 
+### 从手写到工程框架
+
+上面这 200 行代码包含了训练 MNIST 分类器的全部要素。但在真实项目中，每次从头写训练循环、手动管理 checkpoint、手工对比实验是不现实的。
+
+**社团的 `mnist-helloworld` 框架**把这些重复劳动封装成了可复用模块。你刚学到的每个手写环节，在框架中都有对应的工程化模块：
+
+| 手动实现（你刚写的） | 框架模块 | 功能 |
+|---------------------|---------|------|
+| `DataLoader` + transform | `src/datasets/mnist.py` | 数据集封装，自动下载与预处理 |
+| `class MNISTNet(nn.Module)` | `src/models/` | `BaseModel` 抽象，统一接口 |
+| `for epoch` 训练循环 | `src/training/trainer.py` | `Trainer` 类，封装完整训练逻辑 |
+| 手动保存 checkpoint | `src/training/checkpoint.py` | `CheckpointManager`，支持断点续训 |
+| 手动记录实验日志 | `src/training/experiment.py` | `ExperimentManager`，YOLO 风格 `runs/expN/` |
+| 手写 `@dataclass Config` | `src/config/config.py` | YAML + CLI 双配置模式 |
+
+```bash
+# 一行命令跑通默认训练（MNIST + MyNet）
+python train.py
+
+# 更换模型和数据集
+python train.py --model lenet --dataset mnist --training.epochs 30
+
+# 使用配置文件
+python train.py --config my_experiment.yaml
+```
+
+框架采用 YOLO 风格自动管理实验目录，每次运行创建 `runs/exp1/`、`runs/exp2/` ... 自动保存配置、checkpoint 和训练曲线，不再担心覆盖实验结果。
+
+**手写是为了理解原理，框架是为了提升效率**——先理解，再用工具，这是正确的学习路径。
+
+完整的框架使用指南见{doc}`using-framework`，包括{ref}`framework-models`、{ref}`framework-datasets`、{ref}`framework-experiments`、{ref}`framework-config`等全部功能详解。
+
 ### 下一步
 
 掌握了完整训练流程后，下一节 {doc}`./debug-and-visualise` 我们将学习如何调试训练过程中的常见问题，以及如何使用 TensorBoard 等工具可视化训练过程，让"黑盒"训练变得透明可控。
