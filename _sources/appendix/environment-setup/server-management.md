@@ -291,4 +291,4 @@ watch -n 2 nvidia-smi --query-gpu=index,name,temperature.gpu,utilization.gpu,mem
 
 ---
 
-这一节是附录的最后一篇。从{ref}`why-linux`到{ref}`nvidia-arch`，从{ref}`ssh-tunnel`到{ref}`tmux-basics`——你现在已经拥有了一台"真正能用"的深度学习服务器。回到{doc}`../index`选择你感兴趣的章节继续学习吧。
+这一节是附录的最后一篇。从{ref}`why-linux`到{ref}`nvidia-arch`，从{ref}`ssh-tunnel`到{ref}`tmux-basics`——你现在已经拥有了一台"真正能用"的深度学习服务器。回到{doc}`../../index`选择你感兴趣的章节继续学习吧。

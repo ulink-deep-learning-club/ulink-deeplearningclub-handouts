@@ -36,12 +36,12 @@
 | {doc}`introduction` | PyTorch 的设计哲学与学习路径 | 为什么要用框架？ |
 | {doc}`from-numpy-to-pytorch` | 从 NumPy 平滑过渡到 PyTorch | {ref}`computational-graph` 的实现 |
 | {doc}`tensor-ops` | 张量操作详解 | 数据在计算图中如何流动 |
-| {doc}`neural-network-module` | 用 `nn.Module` 搭建网络 | {doc}`fc-layer-basics` 和 {doc}`cnn-basics` 的代码实现 |
+| {doc}`neural-network-module` | 用 `nn.Module` 搭建网络 | {doc}`../neural-network-basics/fc-layer-basics` 和 {doc}`../neural-network-basics/cnn-basics` 的代码实现 |
 | {doc}`auto-grad` | 自动微分机制 | {ref}`back-propagation` 的 PyTorch 实现 |
 | {doc}`optimiser` | 优化器与参数更新 | {ref}`gradient-descent` 的多种变体 |
-| {doc}`train-workflow` | 完整训练流程 | {doc}`neural-training-basics` 的代码化 |
+| {doc}`train-workflow` | 完整训练流程 | {doc}`../neural-network-basics/neural-training-basics` 的代码化 |
 | {doc}`debug-and-visualise` | 调试与可视化技巧 | 训练中的常见问题诊断 |
-| {doc}`best-practices` | 工程最佳实践 | {doc}`scaling-law` 中的效率优化 |
+| {doc}`best-practices` | 工程最佳实践 | {doc}`../neural-network-basics/scaling-law` 中的效率优化 |
 | {doc}`using-framework` | 使用训练框架 | {doc}`best-practices` 的工程化落地 |
 
 ## 学习路径

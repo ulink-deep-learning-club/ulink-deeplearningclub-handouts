@@ -172,6 +172,7 @@ $$\sigma(x) = \frac{1}{1 + e^{-x}}$$
 
 **局限性**：
 
+(sigmoid-gradient-vanish)=
 - **梯度消失**：$|x|$较大时梯度接近0，这会导致{ref}`back-propagation`时梯度衰减
 - **非零中心**：输出始终为正
 

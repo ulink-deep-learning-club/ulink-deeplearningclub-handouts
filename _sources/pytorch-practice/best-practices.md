@@ -3,7 +3,7 @@
 
 {doc}`debug-and-visualise`教会我们如何诊断和修复训练中的问题。但要成为专业的深度学习开发者，还需要掌握工程实践——**如何组织代码、优化性能、保证实验可复现**。
 
-这些实践来自于工业界和学术界多年积累的经验，参考了{doc}`scaling-law`中的效率优化思想。
+这些实践来自于工业界和学术界多年积累的经验，参考了{doc}`../neural-network-basics/scaling-law`中的效率优化思想。
 
 ---
 
@@ -463,7 +463,7 @@ for epoch in range(num_epochs):
 | 自动微分 | {ref}`back-propagation`的PyTorch机制 |
 | 优化器 | {ref}`gradient-descent`的各种变体 |
 | 调试技巧 | {doc}`debug-and-visualise`中的诊断方法 |
-| 工程实践 | {doc}`scaling-law`中的效率优化 |
+| 工程实践 | {doc}`../neural-network-basics/scaling-law`中的效率优化 |
 
 你已经具备了从理论到实践的完整能力。下一步建议：
 

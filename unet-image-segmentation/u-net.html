@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>U 形架构详解 &#8212; Deep Learning Club Lectures 0.0.1 文档</title>
+    <title>U 形架构详解 &#8212; Deep Learning Club Handouts 0.0.1 文档</title>
   
   
   
@@ -31,7 +31,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=3e9436e6" />
+    <link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=a946219f" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -468,24 +468,24 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">解码器路径：恢复空间</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upsampling">1. 上采样（Upsampling）</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#skip-connection">2. 跳跃连接（Skip Connection）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">跳跃连接的梯度分析</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">跳跃连接的梯度分析</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#jacobian">预备知识：导数 → 梯度 → Jacobian 矩阵</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">没有跳跃连接时：Jacobian 连乘</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">有了跳跃连接：梯度抄近道</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">没有跳跃连接时：Jacobian 连乘</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">有了跳跃连接：梯度抄近道</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">输出层设计</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">为什么 U 形架构这么成功？</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">嵌入核心代码：核心组件</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">双卷积块（核心构建单元）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">下采样模块</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">上采样模块（带跳跃连接）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">输出层</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">输出层设计</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">为什么 U 形架构这么成功？</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">嵌入核心代码：核心组件</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">双卷积块（核心构建单元）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">下采样模块</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">上采样模块（带跳跃连接）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">输出层</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">参考文献</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">参考文献</a></li>
 </ul>
             </nav>
         </div>
@@ -503,11 +503,11 @@ document.write(`
 <h2>直觉：U-Net 的整体结构<a class="headerlink" href="#u-net" title="Link to this heading">#</a></h2>
 <p><a class="reference internal" href="introduction.html#unet-introduction"><span class="std std-ref">引言：图像分割问题</span></a> 我们提出了核心问题：<strong>如何把缩小的特征图恢复回原始分辨率，同时不丢失空间细节？</strong></p>
 <p>U-Net 的答案是一个对称的 U 形：</p>
-<figure class="align-center" id="id113">
+<figure class="align-center" id="id114">
 <a class="reference internal image-reference" href="../_images/u-net-architecture.png"><img alt="../_images/u-net-architecture.png" src="../_images/u-net-architecture.png" style="width: 640px;" />
 </a>
 <figcaption>
-<p><span class="caption-text">U-Net 的 U 形对称架构（原论文 <span id="id1">[<a class="reference internal" href="#id107" title="Olaf Ronneberger, Philipp Fischer, and Thomas Brox. U-net: convolutional networks for biomedical image segmentation. In Medical Image Computing and Computer-Assisted Intervention (MICCAI), 234–241. Springer, 2015.">RFB15</a>]</span>）</span><a class="headerlink" href="#id113" title="Link to this image">#</a></p>
+<p><span class="caption-text">U-Net 的 U 形对称架构（原论文 <span id="id1">[<a class="reference internal" href="#id108" title="Olaf Ronneberger, Philipp Fischer, and Thomas Brox. U-net: convolutional networks for biomedical image segmentation. In Medical Image Computing and Computer-Assisted Intervention (MICCAI), 234–241. Springer, 2015.">RFB15</a>]</span>）</span><a class="headerlink" href="#id114" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <section id="id2">
@@ -610,7 +610,7 @@ document.write(`
 <section id="upsampling">
 <h3>1. 上采样（Upsampling）<a class="headerlink" href="#upsampling" title="Link to this heading">#</a></h3>
 <p>U-Net 使用<strong>转置卷积（Transposed Convolution）</strong> 进行上采样。直觉上，它和卷积做的事相反：</p>
-<div class="figure" id="id114" style="text-align: center"><p><img  src="../_images/tikz-b8018251b5a1cf71da986564a17a28109abd802c.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id115" style="text-align: center"><p><img  src="../_images/tikz-b8018251b5a1cf71da986564a17a28109abd802c.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">转置卷积：2×2 → 4×4</span></p>
 </div><div class="note admonition">
 <p class="admonition-title">转置卷积的直觉</p>
@@ -620,7 +620,7 @@ document.write(`
 <p>转置卷积通过在每个输入元素之间插入零值，然后做标准卷积来实现尺寸加倍。它的参数也是<strong>可学习的</strong>，不像双线性插值是固定的。</p>
 </section>
 <section id="skip-connection">
-<h3>2. 跳跃连接（Skip Connection）<a class="headerlink" href="#skip-connection" title="Link to this heading">#</a></h3>
+<span id="id8"></span><h3>2. 跳跃连接（Skip Connection）<a class="headerlink" href="#skip-connection" title="Link to this heading">#</a></h3>
 <p>这是 U-Net 的灵魂。上采样后的特征图与<strong>编码器对应层的特征图在通道维度上拼接</strong>（concatenate）。</p>
 <div class="math notranslate nohighlight">
 \[F_{\text{concat}} = \text{concat}(F_{\text{encoder}}, F_{\text{decoder}}) \in \mathbb{R}^{H \times W \times (C_{\text{enc}} + C_{\text{dec}})}\]</div>
@@ -635,8 +635,8 @@ document.write(`
 </ol>
 </div>
 </section>
-<section id="id8">
-<h3>跳跃连接的梯度分析<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<section id="id9">
+<h3>跳跃连接的梯度分析<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
 <p>跳跃连接对训练的最大贡献是<strong>解决了梯度消失问题</strong>。<a class="reference internal" href="../math-fundamentals/back-propagation.html#gradient-vanishing"><span class="std std-ref">梯度消失（Vanishing Gradient）</span></a> 中我们详细讨论过梯度消失的成因——反向传播时梯度经过多层连乘会指数级衰减，导致浅层无法学习。</p>
 <p>要理解跳跃连接为什么能缓解这个问题，需要先理解 Jacobian 矩阵。</p>
 <section id="jacobian">
@@ -681,8 +681,8 @@ document.write(`
 <p>例如一个全连接层 <span class="math notranslate nohighlight">\(\mathbf{h} = W\mathbf{x} + \mathbf{b}\)</span>，输入 <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> 是 100 维，输出 <span class="math notranslate nohighlight">\(\mathbf{h}\)</span> 是 64 维，那么 Jacobian <span class="math notranslate nohighlight">\(\frac{\partial \mathbf{h}}{\partial \mathbf{x}} = W\)</span> 就是一个 64×100 的矩阵。</p>
 </div>
 </section>
-<section id="id9">
-<h4>没有跳跃连接时：Jacobian 连乘<a class="headerlink" href="#id9" title="Link to this heading">#</a></h4>
+<section id="id10">
+<h4>没有跳跃连接时：Jacobian 连乘<a class="headerlink" href="#id10" title="Link to this heading">#</a></h4>
 <p>链式法则告诉我们，损失 <span class="math notranslate nohighlight">\(L\)</span> 对第 <span class="math notranslate nohighlight">\(l\)</span> 层权重 <span class="math notranslate nohighlight">\(W_l\)</span> 的梯度相当于<strong>每一层 Jacobian 的连乘</strong>：</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial L}{\partial W_l} = \frac{\partial L}{\partial \hat{y}} \cdot
@@ -691,8 +691,8 @@ document.write(`
 \frac{\partial h_{l+1}}{\partial h_{l}}}_{L-l \text{ 个 Jacobian 相乘}}\]</div>
 <p>每乘一个 Jacobian 都可能缩小或放大梯度。如果每层的&quot;放大倍数&quot;都小于 1，<span class="math notranslate nohighlight">\(L-l\)</span> 个 Jacobian 连乘后梯度就会指数级衰减——梯度消失。</p>
 </section>
-<section id="id10">
-<h4>有了跳跃连接：梯度抄近道<a class="headerlink" href="#id10" title="Link to this heading">#</a></h4>
+<section id="id11">
+<h4>有了跳跃连接：梯度抄近道<a class="headerlink" href="#id11" title="Link to this heading">#</a></h4>
 <p>跳跃连接在反向传播中创建了一条<strong>直达路径</strong>，绕过了中间的深度：</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial L}{\partial W_l} = \underbrace{\text{主路径（$L-l$ 个 Jacobian 连乘）}}_{\text{可能消失}} + \underbrace{\text{跳跃路径（仅 1-2 个 Jacobian）}}_{\text{几乎不衰减}}\]</div>
@@ -704,19 +704,19 @@ document.write(`
 <p>跳跃路径（只穿过 2 层）：<span class="math notranslate nohighlight">\(0.8^{2} \approx 0.64\)</span>（只衰减了 36%）</p>
 <p>差距：<span class="math notranslate nohighlight">\(0.01\)</span> vs <span class="math notranslate nohighlight">\(0.64\)</span>，整整 <strong>64 倍</strong>。有了跳跃连接，浅层收到的梯度信号强了几十倍。</p>
 </div>
-<p>这就是跳跃连接被称为&quot;梯度高速公路&quot;的原因——它为梯度提供了<strong>绕过深度、直达浅层</strong>的捷径。这个思路与 ResNet <span id="id11">[<a class="reference internal" href="#id56" title="Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition, 770–778. 2016.">HZRS16</a>]</span> 的残差连接一脉相承：都是通过短路连接为梯度创造高速公路。<a class="reference internal" href="../cnn-ablation-study/experiment-design.html"><span class="doc">实验设计</span></a> 中的消融实验也可以验证：去掉跳跃连接后，深层网络的浅层几乎学不到东西。</p>
+<p>这就是跳跃连接被称为&quot;梯度高速公路&quot;的原因——它为梯度提供了<strong>绕过深度、直达浅层</strong>的捷径。这个思路与 ResNet <span id="id12">[<a class="reference internal" href="#id57" title="Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition, 770–778. 2016.">HZRS16</a>]</span> 的残差连接一脉相承：都是通过短路连接为梯度创造高速公路。<a class="reference internal" href="../cnn-ablation-study/experiment-design.html"><span class="doc">实验设计</span></a> 中的消融实验也可以验证：去掉跳跃连接后，深层网络的浅层几乎学不到东西。</p>
 </section>
 </section>
-</section>
-<section id="id12">
-<h2>输出层设计<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
-<p>输出层用 1×1 卷积把通道数映射到类别数：</p>
-<div class="math notranslate nohighlight">
-\[\text{输出} = \text{Conv2D}(C_{\text{in}}, C_{\text{out}}, \text{kernel_size}=1)\]</div>
-<p>对于二分类任务（如细胞 vs 背景），<span class="math notranslate nohighlight">\(C_{\text{out}} = 2\)</span>，后接 softmax。每个像素的 2 个值表示&quot;属于背景的概率&quot;和&quot;属于细胞的概率&quot;。</p>
 </section>
 <section id="id13">
-<h2>为什么 U 形架构这么成功？<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<h2>输出层设计<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<p>输出层用 1×1 卷积把通道数映射到类别数：</p>
+<div class="math notranslate nohighlight">
+\[\text{输出} = \text{Conv2D}(C_{\text{in}}, C_{\text{out}}, \text{kernel\_size}=1)\]</div>
+<p>对于二分类任务（如细胞 vs 背景），<span class="math notranslate nohighlight">\(C_{\text{out}} = 2\)</span>，后接 softmax。每个像素的 2 个值表示&quot;属于背景的概率&quot;和&quot;属于细胞的概率&quot;。</p>
+</section>
+<section id="id14">
+<h2>为什么 U 形架构这么成功？<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
 <p>回顾 <a class="reference internal" href="introduction.html#unet-introduction"><span class="std std-ref">引言：图像分割问题</span></a> 中讨论的核心矛盾，现在看 U-Net 如何一一解决：</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
@@ -747,11 +747,11 @@ document.write(`
 </div>
 <p>三个组件缺一不可。没有解码器，输出分辨率不够；没有跳跃连接，恢复的细节不够；没有编码器，没有语义理解。</p>
 </section>
-<section id="id14">
-<h2>嵌入核心代码：核心组件<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
-<p>下面先看 U-Net 的四个核心组件，完整的 U-Net 组装会在 <a class="reference internal" href="core-impl.html"><span class="doc">完整实现</span></a> 中展示。</p>
 <section id="id15">
-<h3>双卷积块（核心构建单元）<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<h2>嵌入核心代码：核心组件<a class="headerlink" href="#id15" title="Link to this heading">#</a></h2>
+<p>下面先看 U-Net 的四个核心组件，完整的 U-Net 组装会在 <a class="reference internal" href="core-impl.html"><span class="doc">完整实现</span></a> 中展示。</p>
+<section id="id16">
+<h3>双卷积块（核心构建单元）<a class="headerlink" href="#id16" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">DoubleConv</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;U-Net 中的基本构建单元：两个 3×3 卷积</span>
 <span class="sd">    </span>
@@ -777,11 +777,11 @@ document.write(`
 </pre></div>
 </div>
 <p><strong>为什么两个 3×3 卷积堆叠？</strong></p>
-<p>一个 3×3 卷积感受野是 3×3。堆叠两个 3×3，感受野变成 5×5（<a class="reference internal" href="../neural-network-basics/cnn-basics.html#receptive-field"><span class="std std-ref">感受野</span></a> 的递推公式）。但参数量比一个 5×5 少——<span class="math notranslate nohighlight">\(2 \times 9 \times C^2\)</span> vs <span class="math notranslate nohighlight">\(25 \times C^2\)</span>，减少了 28%。如果堆叠三个 3×3，感受野达到 7×7，参数比一个 7×7 减少 45%。这个设计思路最早来自 VGG 网络 <span id="id16">[<a class="reference internal" href="#id57" title="Karen Simonyan and Andrew Zisserman. Very deep convolutional networks for large-scale image recognition. In International Conference on Learning Representations. 2015.">SZ15</a>]</span>——用小卷积核的堆叠代替大卷积核，在保证感受野的同时减少参数。</p>
-<p>每个卷积后接一个 BatchNorm <span id="id17">[<a class="reference internal" href="#id63" title="Sergey Ioffe and Christian Szegedy. Batch normalization: accelerating deep network training by reducing internal covariate shift. In International conference on machine learning, 448–456. PMLR, 2015.">IS15</a>]</span>，作用是稳定训练：把激活值拉回到零均值单位方差，防止深层网络的激活值剧烈漂移。</p>
+<p>一个 3×3 卷积感受野是 3×3。堆叠两个 3×3，感受野变成 5×5（<a class="reference internal" href="../neural-network-basics/cnn-basics.html#receptive-field"><span class="std std-ref">感受野</span></a> 的递推公式）。但参数量比一个 5×5 少——<span class="math notranslate nohighlight">\(2 \times 9 \times C^2\)</span> vs <span class="math notranslate nohighlight">\(25 \times C^2\)</span>，减少了 28%。如果堆叠三个 3×3，感受野达到 7×7，参数比一个 7×7 减少 45%。这个设计思路最早来自 VGG 网络 <span id="id17">[<a class="reference internal" href="#id58" title="Karen Simonyan and Andrew Zisserman. Very deep convolutional networks for large-scale image recognition. In International Conference on Learning Representations. 2015.">SZ15</a>]</span>——用小卷积核的堆叠代替大卷积核，在保证感受野的同时减少参数。</p>
+<p>每个卷积后接一个 BatchNorm <span id="id18">[<a class="reference internal" href="#id64" title="Sergey Ioffe and Christian Szegedy. Batch normalization: accelerating deep network training by reducing internal covariate shift. In International conference on machine learning, 448–456. PMLR, 2015.">IS15</a>]</span>，作用是稳定训练：把激活值拉回到零均值单位方差，防止深层网络的激活值剧烈漂移。</p>
 </section>
-<section id="id18">
-<h3>下采样模块<a class="headerlink" href="#id18" title="Link to this heading">#</a></h3>
+<section id="id19">
+<h3>下采样模块<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">DownSample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;编码器下采样：MaxPool → DoubleConv</span>
 
@@ -800,8 +800,8 @@ document.write(`
 </pre></div>
 </div>
 </section>
-<section id="id19">
-<h3>上采样模块（带跳跃连接）<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
+<section id="id20">
+<h3>上采样模块（带跳跃连接）<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">UpSample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;解码器上采样：转置卷积 → 跳跃拼接 → DoubleConv</span>
 <span class="sd">    </span>
@@ -832,8 +832,8 @@ document.write(`
 </pre></div>
 </div>
 </section>
-<section id="id20">
-<h3>输出层<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
+<section id="id21">
+<h3>输出层<a class="headerlink" href="#id21" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">OutConv</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;输出层：1×1 卷积</span>
 <span class="sd">    </span>
@@ -854,24 +854,24 @@ document.write(`
 </section>
 </section>
 <hr class="docutils" />
-<section id="id21">
-<h2>参考文献<a class="headerlink" href="#id21" title="Link to this heading">#</a></h2>
-<div class="docutils container" id="id22">
+<section id="id22">
+<h2>参考文献<a class="headerlink" href="#id22" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id23">
 <div role="list" class="citation-list">
-<div class="citation" id="id56" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id11">HZRS16</a><span class="fn-bracket">]</span></span>
+<div class="citation" id="id57" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id12">HZRS16</a><span class="fn-bracket">]</span></span>
 <p>Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In <em>Proceedings of the IEEE conference on computer vision and pattern recognition</em>, 770–778. 2016.</p>
 </div>
-<div class="citation" id="id63" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id17">IS15</a><span class="fn-bracket">]</span></span>
+<div class="citation" id="id64" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id18">IS15</a><span class="fn-bracket">]</span></span>
 <p>Sergey Ioffe and Christian Szegedy. Batch normalization: accelerating deep network training by reducing internal covariate shift. In <em>International conference on machine learning</em>, 448–456. PMLR, 2015.</p>
 </div>
-<div class="citation" id="id107" role="doc-biblioentry">
+<div class="citation" id="id108" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">RFB15</a><span class="fn-bracket">]</span></span>
 <p>Olaf Ronneberger, Philipp Fischer, and Thomas Brox. U-net: convolutional networks for biomedical image segmentation. In <em>Medical Image Computing and Computer-Assisted Intervention (MICCAI)</em>, 234–241. Springer, 2015.</p>
 </div>
-<div class="citation" id="id57" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id16">SZ15</a><span class="fn-bracket">]</span></span>
+<div class="citation" id="id58" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id17">SZ15</a><span class="fn-bracket">]</span></span>
 <p>Karen Simonyan and Andrew Zisserman. Very deep convolutional networks for large-scale image recognition. In <em>International Conference on Learning Representations</em>. 2015.</p>
 </div>
 </div>
@@ -883,7 +883,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (3 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -891,6 +891,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b55c384</code>
+                2026-05-01 - <strong>Heyan Zhu</strong>: docs: fix document cross-references and add anchor tags
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b5e265a</code>
                 2026-04-28 - <strong>Heyan Zhu</strong>: docs(unet): restructure documentation and update content
@@ -963,24 +968,24 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">解码器路径：恢复空间</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upsampling">1. 上采样（Upsampling）</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#skip-connection">2. 跳跃连接（Skip Connection）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">跳跃连接的梯度分析</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">跳跃连接的梯度分析</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#jacobian">预备知识：导数 → 梯度 → Jacobian 矩阵</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">没有跳跃连接时：Jacobian 连乘</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">有了跳跃连接：梯度抄近道</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">没有跳跃连接时：Jacobian 连乘</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">有了跳跃连接：梯度抄近道</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">输出层设计</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">为什么 U 形架构这么成功？</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">嵌入核心代码：核心组件</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">双卷积块（核心构建单元）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">下采样模块</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">上采样模块（带跳跃连接）</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">输出层</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">输出层设计</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">为什么 U 形架构这么成功？</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">嵌入核心代码：核心组件</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">双卷积块（核心构建单元）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">下采样模块</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">上采样模块（带跳跃连接）</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">输出层</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">参考文献</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">参考文献</a></li>
 </ul>
   </nav></div>
 
