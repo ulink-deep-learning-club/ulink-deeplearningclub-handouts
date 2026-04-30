@@ -104,7 +104,7 @@ else:
 
 sys.path.append(str(Path('../exts').resolve()))
 
-project = 'Deep Learning Club Lectures'
+project = 'Deep Learning Club Handouts'
 copyright = '2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0'
 author = 'UCS Deep Learning Club'
 release = '0.0.1'
@@ -121,14 +121,20 @@ extensions = [
     'sphinx_design',
     'sphinxcontrib.tikz',
     'sphinxcontrib.mermaid',
-    'sphinx.ext.mathjax',
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'contributors',
     'fix_mermaid_svgs',
     'sphinxcontrib.bibtex'
 ]
+
+if 'html' in sys.argv:
+    print("MathJax is enabled for html product")
+    extensions.append('sphinx.ext.mathjax')
+    extensions.append('contributors')
+elif 'epub' in sys.argv:
+    print("math-svg conversion is enabled for epub product")
+    extensions.append('math2svg')
 
 mermaid_output_format = 'svg'
 mermaid_params = [
@@ -207,5 +213,14 @@ mathjax3_config = {
       'load': ['input/tex', 'output/svg']
     }
 }
+
+
+imgmath_latex = 'lualatex'
+imgmath_image_format = 'svg'
+imgmath_latex_preamble = r'''
+\usepackage{unicode-math}
+\usepackage[UTF8, fontset=none]{ctex}
+\setCJKmainfont{Noto Serif CJK SC}
+'''
 
 bibtex_bibfiles = ["references.bib"]
