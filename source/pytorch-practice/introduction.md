@@ -111,10 +111,10 @@ flowchart LR
 
 1. **{doc}`from-numpy-to-pytorch`**：理解 `torch.Tensor` 如何对应 {ref}`computational-graph` 中的节点
 2. **{doc}`tensor-ops`**：数据如何在网络中流动（reshape、transpose 对应维度变换）
-3. **{doc}`neural-network-module`**：用 `nn.Module` 实现 {doc}`fc-layer-basics` 和 {doc}`cnn-basics` 中的架构
+3. **{doc}`neural-network-module`**：用 `nn.Module` 实现 {doc}`../neural-network-basics/fc-layer-basics` 和 {doc}`../neural-network-basics/cnn-basics` 中的架构
 4. **{doc}`auto-grad`**：`.backward()` 就是 {ref}`back-propagation` 的自动化
 5. **{doc}`optimiser`**：`optimizer.step()` 实现 {ref}`gradient-descent` 的各种变体
-6. **{doc}`train-workflow`**：把 {doc}`neural-training-basics` 中的流程代码化
+6. **{doc}`train-workflow`**：把 {doc}`../neural-network-basics/neural-training-basics` 中的流程代码化
 
 ## 核心认知：API 即理论
 

@@ -66,9 +66,9 @@ graph LR
 |----------|------|----------|----------|
 | **MNIST 分类器**（手写） | ⭐ 入门 | 完整训练流程 | {doc}`train-workflow` |
 | **mnist-helloworld**（框架） | ⭐ 入门 | 工程化项目结构、配置管理、实验追踪 | 社团自有框架 `mnist-helloworld/` |
-| **CIFAR-10 ResNet** | ⭐⭐ 基础 | 更深网络、数据增强 | {doc}`cnn-basics` |
+| **CIFAR-10 ResNet** | ⭐⭐ 基础 | 更深网络、数据增强 | {doc}`../neural-network-basics/cnn-basics` |
 | **猫狗分类器** | ⭐⭐ 基础 | 迁移学习 | {doc}`../transfer-learning/index` |
-| **情感分析** | ⭐⭐⭐ 进阶 | 文本处理、RNN | {ref}`rnn-basics`（后续章节） |
+| **情感分析** | ⭐⭐⭐ 进阶 | 文本处理、RNN | RNN 基础（后续章节） |
 | **GAN 图像生成** | ⭐⭐⭐⭐ 困难 | 对抗训练、生成模型 | 生成模型专题 |
 
 ### 官方资源
@@ -116,11 +116,7 @@ graph LR
     - 复现经典论文
     - 为开源项目贡献代码
 
-- 方向四：工程优化
-    深入学习{doc}`scaling-law`中提到的：
-
-- 方向四：工程优化
-    深入学习{doc}`scaling-law`中提到的：
+- 方向四：工程优化\n    深入学习{doc}`../neural-network-basics/scaling-law`中提到的：
     - 分布式训练（Data Parallel / Model Parallel）
     - 模型压缩与部署
     - 高效的数据流水线设计

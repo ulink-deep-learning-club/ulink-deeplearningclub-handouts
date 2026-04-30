@@ -3,7 +3,7 @@
 
 恭喜！你已经完成了 U-Net 图像分割章节的全部内容。
 
-从 {doc}`introduction` 的分割任务定义，到 {doc}`unet-arch` 的架构剖析，{doc}`skip-connection` 的跳跃连接原理，{doc}`data-augmentation` 的弹性变形，{doc}`loss-design` 的 Dice 损失设计，直至 {doc}`implementation` 的完整实现——你已经掌握了语义分割的核心技术栈。
+从 {doc}`introduction` 的分割任务定义，到 {doc}`u-net` 的架构剖析，{ref}`skip-connection` 的跳跃连接原理，{doc}`practice` 的弹性变形，{doc}`loss-func` 的 Dice 损失设计，直至 {doc}`core-impl` 的完整实现——你已经掌握了语义分割的核心技术栈。
 
 ## 核心概念映射
 

@@ -500,4 +500,4 @@ def find_lr(model, train_loader, optimizer, criterion, device,
 
 掌握了调试和可视化技巧后，你已经具备了独立训练神经网络的能力。
 
-{doc}`best-practices`中，我们将学习工程最佳实践——如何让代码更规范、更易复现、更易于协作。这些技巧来自于{doc}`scaling-law`中的效率优化思想，是走向专业深度学习开发的必经之路。
+{doc}`best-practices`中，我们将学习工程最佳实践——如何让代码更规范、更易复现、更易于协作。这些技巧来自于{doc}`../neural-network-basics/scaling-law`中的效率优化思想，是走向专业深度学习开发的必经之路。
