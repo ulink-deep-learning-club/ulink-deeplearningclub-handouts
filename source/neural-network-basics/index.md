@@ -31,6 +31,8 @@
 | {doc}`fc-layer-basics` | 全连接层原理与 PyTorch 实现 | {ref}`computational-graph` 的架构实现 |
 | {doc}`cnn-basics` | 卷积操作与参数共享机制 | {ref}`inductive-bias` 的具体体现 |
 | {doc}`le-net` | LeNet-5 架构逐层解析 | 经典 CNN 设计模式 |
+| {doc}`inception` | Inception多尺度感受野探索 | {ref}`receptive-field`的实际应用 |
+| {doc}`res-net` | ResNet残差连接与深层网络 | {ref}`gradient-vanishing`的解决方案 |
 | {doc}`neural-training-basics` | 完整训练流程与监控 | {ref}`back-propagation` 的实践应用 |
 | {doc}`exp-cmp` | 全连接 vs CNN 实验对比 | 数据说话：参数量与准确率 |
 | {doc}`scaling-law` | 模型缩放定律理论 | {ref}`gradient-descent` 与效率优化 |
@@ -91,6 +93,8 @@ introduction
 fc-layer-basics
 cnn-basics
 le-net
+inception
+res-net
 neural-training-basics
 exp-cmp
 scaling-law
