@@ -317,7 +317,7 @@ sudo systemctl restart sshd
 | `cp -r` | 递归复制目录 | `cp -r /data/raw /data/backup` |
 | `mv` | 移动/重命名 | `mv old_name new_name` |
 | `rm -r` | 删除目录（慎用！） | `rm -r /tmp/cache` |
-| `rm` | 删除文件（慎用！） | `rm -r file_path` |
+| `rm` | 删除文件（慎用！） | `rm file_path` |
 | `grep` | 搜索文本 | `grep "error" train.log` |
 | `wc -l` | 统计行数 | `wc -l dataset.csv` |
 | `tar -xzf` | 解压 tar.gz | `tar -xzf imagenet.tar.gz` |
