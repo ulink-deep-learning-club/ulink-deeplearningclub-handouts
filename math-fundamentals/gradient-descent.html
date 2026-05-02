@@ -172,6 +172,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
@@ -516,7 +518,7 @@ document.write(`
 \theta_{t+1} = \theta_t - \eta \cdot \nabla_\theta J(\theta)
 \]</div>
 <p>其中 <span class="math notranslate nohighlight">\(\eta\)</span> 是<strong>学习率</strong>（步长），<span class="math notranslate nohighlight">\(\nabla_\theta J(\theta)\)</span> 是损失函数对参数的梯度。</p>
-<div class="figure" id="id106" style="text-align: center"><p><img  src="../_images/tikz-1fcb6e31998d6ac9bb181d5315ffa43589084ee7.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id107" style="text-align: center"><p><img  src="../_images/tikz-1fcb6e31998d6ac9bb181d5315ffa43589084ee7.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">梯度下降：从初始点逐步逼近最小值</span></p>
 </div><section id="id3">
 <h3>学习率的重要性<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
@@ -544,7 +546,7 @@ document.write(`
 </tbody>
 </table>
 </div>
-<div class="figure" id="id107" style="text-align: center"><p><img  src="../_images/tikz-6d8d98f01221194e32bd78fa9e9ce2022e7bf6b5.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id108" style="text-align: center"><p><img  src="../_images/tikz-6d8d98f01221194e32bd78fa9e9ce2022e7bf6b5.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">学习率过大导致震荡</span></p>
 </div></section>
 </section>
@@ -606,7 +608,7 @@ document.write(`
 <li><p><strong>全局最优</strong>：最深的山谷（最优解）</p></li>
 <li><p><strong>鞍点</strong>：马鞍形状的点（高维空间中非常常见）</p></li>
 </ul>
-<div class="figure" id="id108" style="text-align: center"><p><img  src="../_images/tikz-3132097730a3f1ceea03f8f371df6dc9546db3ce.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id109" style="text-align: center"><p><img  src="../_images/tikz-3132097730a3f1ceea03f8f371df6dc9546db3ce.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Loss Landscape：局部最优 vs 全局最优</span></p>
 </div><p><strong>关键观察</strong>：</p>
 <ul class="simple">
@@ -616,7 +618,7 @@ document.write(`
 </ul>
 <p><strong>鞍点的详细展示</strong>：</p>
 <p>鞍点像一个马鞍——沿一个方向是极小值，沿另一个方向是极大值：</p>
-<div class="figure" id="id109" style="text-align: center"><p><img  src="../_images/tikz-f471d78432b2b2b3a89d15137b679e701956fe2b.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id110" style="text-align: center"><p><img  src="../_images/tikz-f471d78432b2b2b3a89d15137b679e701956fe2b.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">鞍点：马鞍形状</span></p>
 </div><p><strong>深度学习的特殊情况</strong>：</p>
 <ul class="simple">
@@ -978,8 +980,8 @@ v_t &amp;= \beta_2 v_{t-1} + (1-\beta_2) g_t^2 \\
 <li><p>对超参数不敏感，<strong>默认首选</strong></p></li>
 <li><p>适合大多数深度学习任务</p></li>
 </ul>
-<div class="pst-scrollable-table-container"><table class="table" id="id110">
-<caption><span class="caption-text">优化算法选择建议</span><a class="headerlink" href="#id110" title="Link to this table">#</a></caption>
+<div class="pst-scrollable-table-container"><table class="table" id="id111">
+<caption><span class="caption-text">优化算法选择建议</span><a class="headerlink" href="#id111" title="Link to this table">#</a></caption>
 <colgroup>
 <col style="width: 25.0%" />
 <col style="width: 35.0%" />
@@ -1016,12 +1018,12 @@ v_t &amp;= \beta_2 v_{t-1} + (1-\beta_2) g_t^2 \\
 <h3>核心问题<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
 <p>训练初期，参数远离最优，需要<strong>大学习率</strong>快速接近目标。
 训练后期，参数接近最优，需要<strong>小学习率</strong>精细调整，避免在最优点附近震荡。</p>
-<div class="figure" id="id111" style="text-align: center"><p><img  src="../_images/tikz-917c71b5dd181b58ccdf1c66024dd5599a9a8936.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id112" style="text-align: center"><p><img  src="../_images/tikz-917c71b5dd181b58ccdf1c66024dd5599a9a8936.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">固定学习率 vs 学习率调度</span></p>
 </div></section>
 <section id="id10">
 <h3>常见学习率调度策略<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
-<div class="figure" id="id112" style="text-align: center"><p><img  src="../_images/tikz-29d8fbf95122945632fa8a291052b78d67c7bc71.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id113" style="text-align: center"><p><img  src="../_images/tikz-29d8fbf95122945632fa8a291052b78d67c7bc71.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">学习率调度策略对比</span></p>
 </div><section id="step-decay">
 <h4>1. 步长衰减（Step Decay）<a class="headerlink" href="#step-decay" title="Link to this heading">#</a></h4>
@@ -1071,7 +1073,7 @@ v_t &amp;= \beta_2 v_{t-1} + (1-\beta_2) g_t^2 \\
 <h3>4. 预热（Warmup）<a class="headerlink" href="#warmup" title="Link to this heading">#</a></h3>
 <p><strong>问题</strong>：训练初期参数随机初始化，梯度可能很大且不稳定，大学习率会导致震荡。</p>
 <p><strong>策略</strong>：从很小的学习率开始，线性增加到目标学习率。</p>
-<div class="figure" id="id113" style="text-align: center"><p><img  src="../_images/tikz-7eea247496776676952d82efa46cf0cf22fad6d9.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id114" style="text-align: center"><p><img  src="../_images/tikz-7eea247496776676952d82efa46cf0cf22fad6d9.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Warmup + Cosine Annealing</span></p>
 </div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 组合使用：Warmup + Cosine Annealing</span>
 <span class="n">scheduler1</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">LinearLR</span><span class="p">(</span>

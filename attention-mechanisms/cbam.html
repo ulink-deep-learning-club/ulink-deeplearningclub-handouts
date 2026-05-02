@@ -536,6 +536,8 @@ window.addEventListener("load", load);
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
@@ -881,8 +883,8 @@ document.write(`
 <p>CBAM 的通道注意力与 SE-Net 类似，但增加了一个改进：<strong>同时使用平均池化和最大池化</strong>：</p>
 <div class="math notranslate nohighlight">
 \[M_c(F) = \sigma(\text{MLP}(\text{AvgPool}(F)) + \text{MLP}(\text{MaxPool}(F)))\]</div>
-<div class="literal-block-wrapper docutils container" id="id102">
-<div class="code-block-caption"><span class="caption-text">CBAM通道注意力模块实现</span><a class="headerlink" href="#id102" title="Link to this code">#</a></div>
+<div class="literal-block-wrapper docutils container" id="id103">
+<div class="code-block-caption"><span class="caption-text">CBAM通道注意力模块实现</span><a class="headerlink" href="#id103" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="linenos"> 3</span>
@@ -936,8 +938,8 @@ document.write(`
 <section id="id6">
 <h3>空间注意力部分<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
 <p>与 <a class="reference internal" href="spatial-attn.html"><span class="doc">空间注意力</span></a> 中描述的一致，使用通道池化 + <span class="math notranslate nohighlight">\(7 \times 7\)</span> 卷积生成空间注意力图。</p>
-<div class="literal-block-wrapper docutils container" id="id103">
-<div class="code-block-caption"><span class="caption-text">CBAM空间注意力模块实现</span><a class="headerlink" href="#id103" title="Link to this code">#</a></div>
+<div class="literal-block-wrapper docutils container" id="id104">
+<div class="code-block-caption"><span class="caption-text">CBAM空间注意力模块实现</span><a class="headerlink" href="#id104" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="linenos"> 3</span>
@@ -991,8 +993,8 @@ document.write(`
 </section>
 <section id="id7">
 <h3>完整CBAM模块<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
-<div class="literal-block-wrapper docutils container" id="id104">
-<div class="code-block-caption"><span class="caption-text">完整CBAM模块实现</span><a class="headerlink" href="#id104" title="Link to this code">#</a></div>
+<div class="literal-block-wrapper docutils container" id="id105">
+<div class="code-block-caption"><span class="caption-text">完整CBAM模块实现</span><a class="headerlink" href="#id105" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="linenos"> 3</span><span class="kn">from</span><span class="w"> </span><span class="nn">.channel_attention</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChannelAttention</span>
@@ -1037,8 +1039,8 @@ document.write(`
 </pre></div>
 </div>
 </div>
-<div class="literal-block-wrapper docutils container" id="id105">
-<div class="code-block-caption"><span class="caption-text">CBAM-ResNet基础块实现</span><a class="headerlink" href="#id105" title="Link to this code">#</a></div>
+<div class="literal-block-wrapper docutils container" id="id106">
+<div class="code-block-caption"><span class="caption-text">CBAM-ResNet基础块实现</span><a class="headerlink" href="#id106" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="linenos"> 3</span><span class="kn">from</span><span class="w"> </span><span class="nn">.cbam</span><span class="w"> </span><span class="kn">import</span> <span class="n">CBAM</span>

@@ -172,6 +172,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
@@ -508,7 +510,7 @@ document.write(`
 <section id="id2">
 <h2>损失函数的本质：定义优化目标<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
 <p>损失函数衡量模型预测与真实值之间的差异，将训练转化为<strong>优化问题</strong>。不同的任务类型对应不同的损失函数，塑造了不同的<strong>损失曲面几何</strong>，影响<a class="reference internal" href="gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>优化的难易程度。</p>
-<div class="figure" id="id110" style="text-align: center"><p><img  src="../_images/tikz-1fcb6e31998d6ac9bb181d5315ffa43589084ee7.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id111" style="text-align: center"><p><img  src="../_images/tikz-1fcb6e31998d6ac9bb181d5315ffa43589084ee7.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">损失函数定义误差曲面</span></p>
 </div><p><strong>核心作用</strong>：</p>
 <ul class="simple">
@@ -538,7 +540,7 @@ document.write(`
 <li><p>处处可导，便于梯度计算</p></li>
 <li><p>对<strong>异常值敏感</strong></p></li>
 </ul>
-<div class="figure" id="id111" style="text-align: center"><p><img  src="../_images/tikz-5634583b0fe1fa96f8a4a00fd778674ba57a03f0.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id112" style="text-align: center"><p><img  src="../_images/tikz-5634583b0fe1fa96f8a4a00fd778674ba57a03f0.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">MSE损失函数形状</span></p>
 </div></section>
 </section>
@@ -592,7 +594,7 @@ document.write(`
 <p>想象你要传递一条消息：“这是一张猫的图片”。如果只有10个可能的类别，最直接的编码方式是给每个类别分配一个编号（0-9）。但这种方式有问题：<strong>如果模型预测&quot;狗&quot;的概率是80%而&quot;猫&quot;是20%，我们丢失了预测信心信息</strong>。</p>
 <p>更好的方式是使用<strong>概率分布</strong>作为编码。模型输出 <span class="math notranslate nohighlight">\([0.1, 0.7, 0.05, ...]\)</span> 表示对每个类别的信心。</p>
 <p><strong>One-Hot编码</strong>：将类别标签转换为向量，对应类别的位置为1，其余为0。</p>
-<div class="figure" id="id112" style="text-align: center"><p><img  src="../_images/tikz-0d32726a35b9a83f789fce8d44b40520d4a23370.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id113" style="text-align: center"><p><img  src="../_images/tikz-0d32726a35b9a83f789fce8d44b40520d4a23370.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">One-Hot编码示例</span></p>
 </div><p><strong>为什么叫&quot;One-Hot&quot;？</strong></p>
 <ul class="simple">
@@ -614,7 +616,7 @@ document.write(`
 <li><p>对<strong>错误预测惩罚很大</strong>（预测接近0时损失→∞）</p></li>
 <li><p>与softmax配合，梯度形式简洁</p></li>
 </ul>
-<div class="figure" id="id113" style="text-align: center"><p><img  src="../_images/tikz-072ab880e3f6abdb3f0f587d38b94dd51f130f32.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id114" style="text-align: center"><p><img  src="../_images/tikz-072ab880e3f6abdb3f0f587d38b94dd51f130f32.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">交叉熵损失：惩罚错误预测</span></p>
 </div><p><strong>为什么不用MSE做分类？</strong></p>
 <ul class="simple">
@@ -659,8 +661,8 @@ document.write(`
 <hr class="docutils" />
 <section id="id16">
 <h2>损失函数选择指南<a class="headerlink" href="#id16" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="table" id="id114">
-<caption><span class="caption-text">损失函数选择参考</span><a class="headerlink" href="#id114" title="Link to this table">#</a></caption>
+<div class="pst-scrollable-table-container"><table class="table" id="id115">
+<caption><span class="caption-text">损失函数选择参考</span><a class="headerlink" href="#id115" title="Link to this table">#</a></caption>
 <colgroup>
 <col style="width: 25.0%" />
 <col style="width: 25.0%" />

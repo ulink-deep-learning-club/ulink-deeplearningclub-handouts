@@ -536,6 +536,8 @@ window.addEventListener("load", load);
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
@@ -893,11 +895,11 @@ document.write(`
 <section id="decision-boundary">
 <span id="id6"></span><h3>决策边界的形成<a class="headerlink" href="#decision-boundary" title="Link to this heading">#</a></h3>
 <p>没有激活函数，无论堆叠多少层，网络只能学习线性变换——因为多个线性变换的组合仍然是线性的：<span class="math notranslate nohighlight">\(f(W_2(W_1x)) = W_2W_1x = W'x\)</span>。激活函数引入非线性，使网络能够在空间中划分<strong>复杂的决策边界</strong>。</p>
-<figure class="align-center" id="id103">
+<figure class="align-center" id="id104">
 <a class="with-border reference internal image-reference" href="../_images/simple-nn-demo.png"><img alt="../_images/simple-nn-demo.png" class="with-border" src="../_images/simple-nn-demo.png" style="width: 400px;" />
 </a>
 <figcaption>
-<p><span class="caption-text">3神经元网络形成的复杂决策边界</span><a class="headerlink" href="#id103" title="Link to this image">#</a></p>
+<p><span class="caption-text">3神经元网络形成的复杂决策边界</span><a class="headerlink" href="#id104" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <p><strong>网络结构解析</strong>：</p>
@@ -1002,11 +1004,11 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 </li>
 </ol>
 <p><strong>关键结论</strong>：非线性激活函数让神经网络能够将简单的线性决策边界<strong>组合、变换、叠加</strong>成任意复杂的形状。没有非线性激活，无论多少层都只能学习线性分类器：<span class="math notranslate nohighlight">\(f(W_2(W_1x)) = W_2W_1x = W'x\)</span>。</p>
-</section>
-</section>
 <hr class="docutils" />
+</section>
+</section>
 <section id="sigmoid">
-<h2>Sigmoid 函数<a class="headerlink" href="#sigmoid" title="Link to this heading">#</a></h2>
+<span id="sigmoid-gradient-vanish"></span><h2>Sigmoid 函数<a class="headerlink" href="#sigmoid" title="Link to this heading">#</a></h2>
 <p>Sigmoid 将任意实数映射到<span class="math notranslate nohighlight">\((0,1)\)</span>，提供平滑的非线性变换：</p>
 <div class="math notranslate nohighlight">
 \[\sigma(x) = \frac{1}{1 + e^{-x}}\]</div>
@@ -1017,11 +1019,11 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <li><p>平滑可导</p></li>
 </ul>
 <p><strong>局限性</strong>：</p>
-<ul class="simple" id="sigmoid-gradient-vanish">
+<ul class="simple">
 <li><p><strong>梯度消失</strong>：<span class="math notranslate nohighlight">\(|x|\)</span>较大时梯度接近0，这会导致<a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>时梯度衰减</p></li>
 <li><p><strong>非零中心</strong>：输出始终为正</p></li>
 </ul>
-<div class="figure" id="id104" style="text-align: center"><p><img  src="../_images/tikz-edd0f92cd625512bf02e7fffafc9d34929517109.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id105" style="text-align: center"><p><img  src="../_images/tikz-edd0f92cd625512bf02e7fffafc9d34929517109.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Sigmoid 函数</span></p>
 </div></section>
 <hr class="docutils" />
@@ -1037,7 +1039,7 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <li><p>更强梯度信号（最大梯度是 Sigmoid 的4倍）</p></li>
 </ul>
 <p><strong>局限</strong>：仍然存在梯度消失问题</p>
-<div class="figure" id="id105" style="text-align: center"><p><img  src="../_images/tikz-1658b8c837140dcc26171e59642e4bcb2ffe10a3.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id106" style="text-align: center"><p><img  src="../_images/tikz-1658b8c837140dcc26171e59642e4bcb2ffe10a3.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Tanh函数</span></p>
 </div></section>
 <hr class="docutils" />
@@ -1054,7 +1056,7 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <li><p><strong>稀疏激活</strong>：约 50% 神经元输出为 0</p></li>
 </ul>
 <p><strong>问题</strong>：<strong>“死亡神经元”</strong>——若输入始终为负，梯度永远为 0，神经元永久失活</p>
-<div class="figure" id="id106" style="text-align: center"><p><img  src="../_images/tikz-0c40b387d3934f504c6b57d11908b31e0af05bd2.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id107" style="text-align: center"><p><img  src="../_images/tikz-0c40b387d3934f504c6b57d11908b31e0af05bd2.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">ReLU 函数</span></p>
 </div></section>
 <hr class="docutils" />
@@ -1074,7 +1076,7 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <li><p><strong>PReLU</strong>：<span class="math notranslate nohighlight">\(\alpha\)</span> 作为可学习参数</p></li>
 <li><p><strong>ELU</strong>：负区间使用指数函数，更平滑</p></li>
 </ul>
-<div class="figure" id="id107" style="text-align: center"><p><img  src="../_images/tikz-ab7aba33e1318d8f084dc4a0d1e4acb89b7a0562.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id108" style="text-align: center"><p><img  src="../_images/tikz-ab7aba33e1318d8f084dc4a0d1e4acb89b7a0562.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Leaky ReLU函数</span></p>
 </div></section>
 <hr class="docutils" />
@@ -1095,7 +1097,7 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <p>当 <span class="math notranslate nohighlight">\(\beta \to \infty\)</span> 时，<span class="math notranslate nohighlight">\(\sigma(\beta x) \to \text{step}(x)\)</span>，Swish 趋近于 ReLU：</p>
 <div class="math notranslate nohighlight">
 \[\begin{split} \lim_{\beta \to \infty} \frac{x}{1 + e^{-\beta x}} = \begin{cases} x &amp; \text{if } x &gt; 0 \\ 0 &amp; \text{otherwise} \end{cases} \end{split}\]</div>
-<div class="figure" id="id108" style="text-align: center"><p><img  src="../_images/tikz-c6683a00a81d024028fda3ad88d31c08274713f1.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id109" style="text-align: center"><p><img  src="../_images/tikz-c6683a00a81d024028fda3ad88d31c08274713f1.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Swish 函数</span></p>
 </div></section>
 <hr class="docutils" />
@@ -1114,14 +1116,14 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <ul class="simple">
 <li><p>梯度形式简洁：<span class="math notranslate nohighlight">\(\frac{\partial L}{\partial x_i} = \text{softmax}(x_i) - y_i\)</span></p></li>
 </ul>
-<div class="figure" id="id109" style="text-align: center"><p><img  src="../_images/tikz-488a73b31177d9e08e9d2da70aa3dd8b3027d817.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id110" style="text-align: center"><p><img  src="../_images/tikz-488a73b31177d9e08e9d2da70aa3dd8b3027d817.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Softmax 变换示意</span></p>
 </div></section>
 <hr class="docutils" />
 <section id="id9">
 <h2>激活函数选择指南<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="table" id="id110">
-<caption><span class="caption-text">激活函数选择参考</span><a class="headerlink" href="#id110" title="Link to this table">#</a></caption>
+<div class="pst-scrollable-table-container"><table class="table" id="id111">
+<caption><span class="caption-text">激活函数选择参考</span><a class="headerlink" href="#id111" title="Link to this table">#</a></caption>
 <colgroup>
 <col style="width: 20.0%" />
 <col style="width: 20.0%" />
@@ -1199,7 +1201,7 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (7 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (8 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -1207,6 +1209,11 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">42a2ebc</code>
+                2026-05-02 - <strong>Heyan Zhu</strong>: feat(docs): add inception and resnet modules with related content
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b55c384</code>
                 2026-05-01 - <strong>Heyan Zhu</strong>: docs: fix document cross-references and add anchor tags

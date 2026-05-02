@@ -1,7 +1,7 @@
 (neural-training-basics)=
 # 神经网络训练基础
 
-{doc}`fc-layer-basics`和{doc}`cnn-basics`中我们学习了如何**搭建**神经网络架构。但知道"建什么"不等于知道"怎么训练"——就像有了一辆车不等于会开车。本节我们将从{ref}`gradient-descent`和{ref}`back-propagation`的理论出发，掌握让神经网络真正"学会"的实战技巧。
+{doc}`fc-layer-basics`、{doc}`cnn-basics`和{doc}`res-net`中我们学习了如何**搭建**神经网络架构——从简单的全连接层到经典的LeNet，再到深层的ResNet。但知道"建什么"不等于知道"怎么训练"——就像有了一辆车不等于会开车。本节我们将从{ref}`gradient-descent`和{ref}`back-propagation`的理论出发，掌握让神经网络真正"学会"的实战技巧。
 
 ## 训练的本质：从数据到能力
 

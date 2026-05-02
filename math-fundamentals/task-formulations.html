@@ -172,6 +172,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
@@ -513,7 +515,7 @@ document.write(`
 <p>想象你在教小孩认动物。你不会给他看一张 checklist，而是指着图片说：“这个有四条腿、有毛、会汪汪叫，所以是狗。”</p>
 <p><strong>分类的本质</strong>：找到区分不同类别的<strong>边界</strong>——边界这边是A类，那边是B类。</p>
 <p>在特征空间中，每个样本是一个点，分类就是画一条<strong>决策边界</strong>把空间切开：</p>
-<div class="figure" id="id101" style="text-align: center"><p><img  src="../_images/tikz-952b93d49b13bdd09511f405bbe40a5c8c3dff5a.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id102" style="text-align: center"><p><img  src="../_images/tikz-952b93d49b13bdd09511f405bbe40a5c8c3dff5a.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">分类任务的决策边界</span></p>
 </div><p><strong>关键洞察</strong>：</p>
 <ul class="simple">
@@ -544,7 +546,7 @@ document.write(`
 </ul>
 <p><strong>几何意义</strong></p>
 <p>在二维平面上，线性回归就是找一条直线，让所有数据点到直线的<strong>垂直距离之和最小</strong>。</p>
-<div class="figure" id="id102" style="text-align: center"><p><img  src="../_images/tikz-c5fc1ade807aa101786b18f95287024e1a7101e0.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id103" style="text-align: center"><p><img  src="../_images/tikz-c5fc1ade807aa101786b18f95287024e1a7101e0.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">线性回归的几何意义</span></p>
 </div><p><strong>扩展到多元</strong>：现实中的房价不只由面积决定，还取决于位置、房龄、楼层等。多元线性回归：</p>
 <div class="math notranslate nohighlight">
@@ -552,7 +554,7 @@ document.write(`
 <p>这不再是二维平面上的直线，而是<strong>高维空间中的超平面</strong>。</p>
 <p><strong>非线性回归</strong></p>
 <p>线性回归假设关系是直线，但很多规律是曲线。神经网络通过堆叠非线性层，可以学习<strong>任意复杂的函数映射</strong>。</p>
-<div class="figure" id="id103" style="text-align: center"><p><img  src="../_images/tikz-13b2be944082bc6f67e55f33a929791e8d8aaf79.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id104" style="text-align: center"><p><img  src="../_images/tikz-13b2be944082bc6f67e55f33a929791e8d8aaf79.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">从线性到非线性回归</span></p>
 </div><section id="vs">
 <h3>回归 vs 分类的本质区别<a class="headerlink" href="#vs" title="Link to this heading">#</a></h3>
@@ -618,7 +620,7 @@ document.write(`
 <li><p><strong>推理时</strong>：从<start>开始，生成第一个词，然后用这个词作为输入生成第二个词，依此类推。必须<strong>串行</strong>进行。</p></li>
 </ul>
 <p><strong>序列生成的树状结构</strong>：</p>
-<div class="figure" id="id104" style="text-align: center"><p><img  src="../_images/tikz-fcca107b98eb0b04fcf6027c9d88fe742de0f0aa.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id105" style="text-align: center"><p><img  src="../_images/tikz-fcca107b98eb0b04fcf6027c9d88fe742de0f0aa.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">自回归的序列生成</span></p>
 </div><p>在每一步，模型输出一个概率分布，然后采样（或选择最大概率）得到下一个词。</p>
 <p><strong>与分类的联系</strong>：自回归的每一步本质上都是分类——从词汇表中选择一个词。区别在于：普通分类的每次预测独立进行；而自回归的每次预测<strong>依赖所有历史选择</strong>，是&quot;<strong>有记忆的分类</strong>&quot;。评估时也不只看单步准确率，而是看整个序列的质量（用困惑度衡量）。</p>
@@ -659,7 +661,7 @@ document.write(`
 </table>
 </div>
 <p>同一输入在不同任务中的处理流程：</p>
-<div class="figure" id="id105" style="text-align: center"><p><img  src="../_images/tikz-e612aa27cec3898aef2a3877131914ec0a237786.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id106" style="text-align: center"><p><img  src="../_images/tikz-e612aa27cec3898aef2a3877131914ec0a237786.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">三种任务的处理流程对比</span></p>
 </div></section>
 <hr class="docutils" />

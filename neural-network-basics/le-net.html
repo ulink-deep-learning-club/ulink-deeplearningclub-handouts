@@ -49,7 +49,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'neural-network-basics/le-net';</script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="神经网络训练基础" href="neural-training-basics.html" />
+    <link rel="next" title="Inception：多尺度感受野的探索" href="inception.html" />
     <link rel="prev" title="卷积神经网络" href="cnn-basics.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="zh-CN"/>
@@ -172,6 +172,8 @@
 <li class="toctree-l2"><a class="reference internal" href="fc-layer-basics.html">全连接神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cnn-basics.html">卷积神经网络</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="res-net.html">ResNet：深层网络的突破</a></li>
 <li class="toctree-l2"><a class="reference internal" href="neural-training-basics.html">神经网络训练基础</a></li>
 <li class="toctree-l2"><a class="reference internal" href="exp-cmp.html">实验对比：全连接 vs CNN</a></li>
 <li class="toctree-l2"><a class="reference internal" href="scaling-law.html">缩放定律</a></li>
@@ -509,8 +511,8 @@ document.write(`
 \]</div>
 </div>
 <p>具体参数配置：</p>
-<div class="pst-scrollable-table-container"><table class="table" id="id104">
-<caption><span class="caption-text">LeNet-5架构详细配置</span><a class="headerlink" href="#id104" title="Link to this table">#</a></caption>
+<div class="pst-scrollable-table-container"><table class="table" id="id105">
+<caption><span class="caption-text">LeNet-5架构详细配置</span><a class="headerlink" href="#id105" title="Link to this table">#</a></caption>
 <colgroup>
 <col style="width: 25.0%" />
 <col style="width: 25.0%" />
@@ -574,7 +576,7 @@ document.write(`
 <p>LeNet-5的经典架构包含以下层：</p>
 <section id="id5">
 <h3>金字塔视角：数据流的维度变化<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
-<div class="figure" id="id105" style="text-align: center"><p><img  src="../_images/tikz-b2ef10ec6c4f72ff4f046b1b64efd230d90b79f0.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id106" style="text-align: center"><p><img  src="../_images/tikz-b2ef10ec6c4f72ff4f046b1b64efd230d90b79f0.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">LeNet-5 金字塔架构：从图像到类别</span></p>
 </div><p><strong>金字塔的核心洞察</strong>：</p>
 <ul class="simple">
@@ -814,7 +816,7 @@ document.write(`
 <li><p><strong>生物学启发：</strong> 类似于人类视觉系统的信息处理机制，先局部后整体</p></li>
 </ol>
 </div>
-<div class="figure" id="id106" style="text-align: center"><p><img  src="../_images/tikz-68136e4318768009a95c59d56be23a95dd4b0b77.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id107" style="text-align: center"><p><img  src="../_images/tikz-68136e4318768009a95c59d56be23a95dd4b0b77.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">LeNet中特征图的语义演化过程</span></p>
 </div><p>这种从具体到抽象、从局部到整体的特征演化过程，使得卷积神经网络能够有效地理解图像内容，并在MNIST等视觉任务上取得优异的性能。</p>
 </section>
@@ -864,13 +866,15 @@ document.write(`
 <hr class="docutils" />
 <section id="id11">
 <h3>下一步<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
-<p>了解了LeNet-5的经典架构后，下一节<a class="reference internal" href="neural-training-basics.html"><span class="doc">神经网络训练基础</span></a>我们将学习：</p>
+<p>LeNet-5 只有 8 层，但<a class="reference internal" href="cnn-basics.html#receptive-field"><span class="std std-ref">感受野</span></a>告诉我们：层数越多，感受野越大，表达能力越强。然而这里有一个问题——<strong>每一层只有一个固定大小的感受野</strong>。</p>
+<p>如果图片里同时有蚂蚁（需要小感受野）和大象（需要大感受野），LeNet-5 该怎么办呢？下一节<a class="reference internal" href="inception.html"><span class="doc">Inception：多尺度感受野的探索</span></a>我们将探索：</p>
 <ul class="simple">
-<li><p>如何<strong>训练</strong>这样的网络（<a class="reference internal" href="../math-fundamentals/back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>的实践）</p></li>
-<li><p>如何<strong>监控</strong>训练过程（损失曲线、准确率曲线）</p></li>
-<li><p>如何<strong>调试</strong>超参数（学习率、批大小、正则化）</p></li>
+<li><p><strong>多尺度并行</strong>：让网络同时拥有多个大小的感受野</p></li>
+<li><p><strong>1×1 卷积</strong>：降维与跨通道信息融合的智慧</p></li>
+<li><p>Inception 架构：从&quot;固定焦距&quot;到&quot;变焦镜头&quot;</p></li>
 </ul>
-<p>让我们从&quot;知道架构长什么样&quot;进化到&quot;知道如何让架构工作&quot;！</p>
+<p>解决了&quot;感受野应该多大&quot;的问题后，我们再面对&quot;网络可以有多深&quot;的挑战。</p>
+<p>了解了&quot;浅层网络如何工作&quot;后，让我们探索&quot;深层网络如何可能&quot;！</p>
 </section>
 </section>
 <hr class="docutils" />
@@ -891,7 +895,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (3 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (4 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -899,6 +903,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">42a2ebc</code>
+                2026-05-02 - <strong>Heyan Zhu</strong>: feat(docs): add inception and resnet modules with related content
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">59126f4</code>
                 2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and add citations
@@ -939,11 +948,11 @@ document.write(`
       </div>
     </a>
     <a class="right-next"
-       href="neural-training-basics.html"
+       href="inception.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">神经网络训练基础</p>
+        <p class="prev-next-title">Inception：多尺度感受野的探索</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

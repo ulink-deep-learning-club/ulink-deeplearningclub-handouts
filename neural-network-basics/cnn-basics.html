@@ -172,6 +172,8 @@
 <li class="toctree-l2"><a class="reference internal" href="fc-layer-basics.html">全连接神经网络</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">卷积神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="res-net.html">ResNet：深层网络的突破</a></li>
 <li class="toctree-l2"><a class="reference internal" href="neural-training-basics.html">神经网络训练基础</a></li>
 <li class="toctree-l2"><a class="reference internal" href="exp-cmp.html">实验对比：全连接 vs CNN</a></li>
 <li class="toctree-l2"><a class="reference internal" href="scaling-law.html">缩放定律</a></li>
@@ -537,11 +539,11 @@ document.write(`
 <section id="id3">
 <h2>卷积操作的基本原理<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
 <p>卷积操作是CNN的核心，它通过滑动窗口的方式在输入图像上应用（通过点积）滤波器（卷积核）来提取特征。这种思想最早由LeCun等人在1989年提出 <span id="id4">[<a class="reference internal" href="#id76" title="Yann LeCun, Bernhard Boser, John S Denker, Donnie Henderson, Richard E Howard, Wayne Hubbard, and Lawrence D Jackel. Backpropagation applied to handwritten zip code recognition. Neural Computation, 1(4):541–551, 1989.">LBD+89</a>]</span>，并在后续的LeNet-5工作中 <span id="id5">[<a class="reference internal" href="the-end.html#id89" title="Yann LeCun, Léon Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 86(11):2278–2324, 1998.">LBBH98</a>]</span> 得到完善。</p>
-<figure class="align-center" id="id105">
+<figure class="align-center" id="id106">
 <a class="reference internal image-reference" href="../_images/conv-process.png"><img alt="../_images/conv-process.png" src="../_images/conv-process.png" style="width: 40%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">卷积操作示意图</span><a class="headerlink" href="#id105" title="Link to this image">#</a></p>
+<p><span class="caption-text">卷积操作示意图</span><a class="headerlink" href="#id106" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <div class="admonition note">
@@ -569,7 +571,7 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 <p>卷积核提取特征的原理其实很直观：<strong>点积 = 相似度度量</strong>。</p>
 <p>回想一下两个向量的点积：<span class="math notranslate nohighlight">\(\mathbf{a} \cdot \mathbf{b} = \sum_i a_i b_i\)</span>。当两个向量方向一致时，点积最大；方向相反时，点积为负。换句话说，<strong>点积衡量了两个向量的相似程度</strong>。</p>
 <p>卷积操作就是反复做点积：</p>
-<div class="figure" id="id106" style="text-align: center"><p><img  src="../_images/tikz-0ae465dd7e723e27764bae08945e5a36503f86e2.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id107" style="text-align: center"><p><img  src="../_images/tikz-0ae465dd7e723e27764bae08945e5a36503f86e2.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">卷积核=模式匹配器</span></p>
 </div><p>这个 3×3 的卷积核左边全是 -1、中间是 0、右边全是 1——它检测的是<strong>垂直边缘</strong>：</p>
 <ul class="simple">
@@ -639,11 +641,11 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 <section id="id8">
 <h2>参数共享机制<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
 <p>卷积层的一个重要特性是参数共享。同一个卷积核在图像的不同位置重复使用，这大大减少了参数数量。</p>
-<figure class="align-center" id="id107">
+<figure class="align-center" id="id108">
 <a class="reference internal image-reference" href="../_images/conv-param-share.png"><img alt="../_images/conv-param-share.png" src="../_images/conv-param-share.png" style="width: 80%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">参数共享机制示意图</span><a class="headerlink" href="#id107" title="Link to this image">#</a></p>
+<p><span class="caption-text">参数共享机制示意图</span><a class="headerlink" href="#id108" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <p>对于 <span class="math notranslate nohighlight">\(C_{\text{out}}\)</span> 个输出通道，每个通道使用独立的卷积核：</p>
@@ -801,7 +803,7 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 </tbody>
 </table>
 </div>
-<div class="figure" id="id108" style="text-align: center"><p><img  src="../_images/tikz-9dfb9b54f95e09d8b87eb7077a45e5c1b53e8eae.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id109" style="text-align: center"><p><img  src="../_images/tikz-9dfb9b54f95e09d8b87eb7077a45e5c1b53e8eae.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">CNN分层特征提取示意</span></p>
 </div><p><strong>分层学习的启示</strong>：</p>
 <ul class="simple">
@@ -812,8 +814,8 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 </section>
 <section id="id11">
 <h2>CNN的优缺点<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="table" id="id109">
-<caption><span class="caption-text">卷积神经网络优缺点对比</span><a class="headerlink" href="#id109" title="Link to this table">#</a></caption>
+<div class="pst-scrollable-table-container"><table class="table" id="id110">
+<caption><span class="caption-text">卷积神经网络优缺点对比</span><a class="headerlink" href="#id110" title="Link to this table">#</a></caption>
 <colgroup>
 <col style="width: 50.0%" />
 <col style="width: 50.0%" />
