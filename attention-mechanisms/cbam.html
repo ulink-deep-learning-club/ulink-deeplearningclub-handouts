@@ -583,6 +583,16 @@ window.addEventListener("load", load);
 <li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../model-architecture-design/index.html">CNN 架构改造：设计卷积网络的心法</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part1-intro.html">改造的本质：从"会用 CNN"到"会设计 CNN"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
@@ -847,7 +857,7 @@ document.write(`
   <section class="tex2jax_ignore mathjax_ignore" id="cbam">
 <span id="id1"></span><h1>通道+空间注意力：CBAM<a class="headerlink" href="#cbam" title="Link to this heading">#</a></h1>
 <p><a class="reference internal" href="se-net.html#se-net"><span class="std std-ref">通道注意力：SE-Net</span></a> 解决了&quot;什么特征重要&quot;（通道维度），<a class="reference internal" href="spatial-attn.html"><span class="doc">空间注意力</span></a> 解决了&quot;哪里重要&quot;（空间维度）。那么问题来了：<strong>能不能两个都要？</strong></p>
-<p>CBAM（Convolutional Block Attention Module）<span id="id2">[<a class="reference internal" href="spatial-attn.html#id91" title="Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In Proceedings of the European Conference on Computer Vision (ECCV), 3–19. 2018.">WPLK18</a>]</span> 就是答案——它把通道注意力和空间注意力串联起来，形成一个更强大的注意力模块。</p>
+<p>CBAM（Convolutional Block Attention Module）<span id="id2">[<a class="reference internal" href="spatial-attn.html#id92" title="Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In Proceedings of the European Conference on Computer Vision (ECCV), 3–19. 2018.">WPLK18</a>]</span> 就是答案——它把通道注意力和空间注意力串联起来，形成一个更强大的注意力模块。</p>
 <section id="id3">
 <h2>核心思想：先&quot;选频道&quot;再&quot;调区域&quot;<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
 <p>CBAM 的工作流程很直观：先判断哪些通道重要（通道注意力），再判断这些重要通道中的哪些空间位置最关键（空间注意力）。</p>
@@ -883,8 +893,8 @@ document.write(`
 <p>CBAM 的通道注意力与 SE-Net 类似，但增加了一个改进：<strong>同时使用平均池化和最大池化</strong>：</p>
 <div class="math notranslate nohighlight">
 \[M_c(F) = \sigma(\text{MLP}(\text{AvgPool}(F)) + \text{MLP}(\text{MaxPool}(F)))\]</div>
-<div class="literal-block-wrapper docutils container" id="id103">
-<div class="code-block-caption"><span class="caption-text">CBAM通道注意力模块实现</span><a class="headerlink" href="#id103" title="Link to this code">#</a></div>
+<div class="literal-block-wrapper docutils container" id="id105">
+<div class="code-block-caption"><span class="caption-text">CBAM通道注意力模块实现</span><a class="headerlink" href="#id105" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="linenos"> 3</span>
@@ -938,8 +948,8 @@ document.write(`
 <section id="id6">
 <h3>空间注意力部分<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
 <p>与 <a class="reference internal" href="spatial-attn.html"><span class="doc">空间注意力</span></a> 中描述的一致，使用通道池化 + <span class="math notranslate nohighlight">\(7 \times 7\)</span> 卷积生成空间注意力图。</p>
-<div class="literal-block-wrapper docutils container" id="id104">
-<div class="code-block-caption"><span class="caption-text">CBAM空间注意力模块实现</span><a class="headerlink" href="#id104" title="Link to this code">#</a></div>
+<div class="literal-block-wrapper docutils container" id="id106">
+<div class="code-block-caption"><span class="caption-text">CBAM空间注意力模块实现</span><a class="headerlink" href="#id106" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="linenos"> 3</span>
@@ -993,8 +1003,8 @@ document.write(`
 </section>
 <section id="id7">
 <h3>完整CBAM模块<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
-<div class="literal-block-wrapper docutils container" id="id105">
-<div class="code-block-caption"><span class="caption-text">完整CBAM模块实现</span><a class="headerlink" href="#id105" title="Link to this code">#</a></div>
+<div class="literal-block-wrapper docutils container" id="id107">
+<div class="code-block-caption"><span class="caption-text">完整CBAM模块实现</span><a class="headerlink" href="#id107" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="linenos"> 3</span><span class="kn">from</span><span class="w"> </span><span class="nn">.channel_attention</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChannelAttention</span>
@@ -1039,8 +1049,8 @@ document.write(`
 </pre></div>
 </div>
 </div>
-<div class="literal-block-wrapper docutils container" id="id106">
-<div class="code-block-caption"><span class="caption-text">CBAM-ResNet基础块实现</span><a class="headerlink" href="#id106" title="Link to this code">#</a></div>
+<div class="literal-block-wrapper docutils container" id="id108">
+<div class="code-block-caption"><span class="caption-text">CBAM-ResNet基础块实现</span><a class="headerlink" href="#id108" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="linenos"> 3</span><span class="kn">from</span><span class="w"> </span><span class="nn">.cbam</span><span class="w"> </span><span class="kn">import</span> <span class="n">CBAM</span>
@@ -1145,7 +1155,7 @@ document.write(`
 </tbody>
 </table>
 </div>
-<p>CBAM 的实验表明 <span id="id8">[<a class="reference internal" href="spatial-attn.html#id91" title="Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In Proceedings of the European Conference on Computer Vision (ECCV), 3–19. 2018.">WPLK18</a>]</span>：在 ImageNet 上，CBAM-ResNet-50 达到 <strong>78.49%</strong> Top-1 准确率，比基线 ResNet-50（76.15%）提升 <strong>+2.34%</strong>，比 SE-ResNet-50（77.62%）额外提升 <strong>+0.87%</strong>。</p>
+<p>CBAM 的实验表明 <span id="id8">[<a class="reference internal" href="spatial-attn.html#id92" title="Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In Proceedings of the European Conference on Computer Vision (ECCV), 3–19. 2018.">WPLK18</a>]</span>：在 ImageNet 上，CBAM-ResNet-50 达到 <strong>78.49%</strong> Top-1 准确率，比基线 ResNet-50（76.15%）提升 <strong>+2.34%</strong>，比 SE-ResNet-50（77.62%）额外提升 <strong>+0.87%</strong>。</p>
 <div class="note admonition">
 <p class="admonition-title">为什么要先通道再空间？</p>
 <p>CBAM 的作者实验发现<strong>先通道再空间</strong>的效果优于先空间再通道或并行。直觉上：先通过通道注意力突出重要的语义特征，再通过空间注意力定位这些特征在图像中的具体位置——这个顺序更符合人的认知习惯：“先知道看什么，再知道看哪里”。</p>
@@ -1160,7 +1170,7 @@ document.write(`
 <h2>参考文献<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
 <div class="docutils container" id="id11">
 <div role="list" class="citation-list">
-<div class="citation" id="id93" role="doc-biblioentry">
+<div class="citation" id="id94" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>WPLK18<span class="fn-bracket">]</span></span>
 <span class="backrefs">(<a role="doc-backlink" href="#id2">1</a>,<a role="doc-backlink" href="#id8">2</a>)</span>
 <p>Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In <em>Proceedings of the European Conference on Computer Vision (ECCV)</em>, 3–19. 2018.</p>

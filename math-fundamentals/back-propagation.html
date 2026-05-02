@@ -219,6 +219,16 @@
 <li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../model-architecture-design/index.html">CNN 架构改造：设计卷积网络的心法</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part1-intro.html">改造的本质：从"会用 CNN"到"会设计 CNN"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
@@ -459,24 +469,29 @@ document.write(`
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">反向传播的本质：信用分配</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">链式法则：梯度的传递机制</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">示例：简单计算图</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#jacobian">从标量到向量：Jacobian 矩阵</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#jacobian-matrix">定义：Jacobian 矩阵</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gradient-vanishing-math">多层网络的 Jacobian 连乘与梯度消失</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">示例：简单计算图</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch中的自动微分</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">神经网络中的反向传播</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">常见操作的梯度</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">反向传播的优势</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">1. 计算效率</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">2. 模块化设计</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">神经网络中的反向传播</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">常见操作的梯度</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">反向传播的优势</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">1. 计算效率</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">2. 模块化设计</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">常见问题</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">常见问题</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vanishing-gradient">梯度消失（Vanishing Gradient）</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#exploding-gradient">梯度爆炸（Exploding Gradient）</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">总结</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">参考文献</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">参考文献</a></li>
 </ul>
             </nav>
         </div>
@@ -493,7 +508,7 @@ document.write(`
 <section id="id2">
 <h2>反向传播的本质：信用分配<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
 <p>神经网络训练时，我们根据最终损失来调整参数。核心问题是：<strong>损失是由很多参数共同造成的，每个参数该&quot;背多少锅&quot;？</strong></p>
-<p>反向传播（Backpropagation）<span id="id3">[<a class="reference internal" href="#id79" title="David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. Nature, 323(6088):533–536, 1986.">RHW86</a>]</span> 就是解决这个&quot;<strong>信用分配问题</strong>&quot;的高效算法。</p>
+<p>反向传播（Backpropagation）<span id="id3">[<a class="reference internal" href="#id82" title="David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. Nature, 323(6088):533–536, 1986.">RHW86</a>]</span> 就是解决这个&quot;<strong>信用分配问题</strong>&quot;的高效算法。</p>
 <div class="tip admonition">
 <p class="admonition-title">类比：团队项目的责任分摊</p>
 <p>想象一个团队项目失败了（损失很大），需要找出每个人的责任：</p>
@@ -502,13 +517,14 @@ document.write(`
 <li><p><strong>反向传播</strong>：从失败结果倒推，计算每个人对失败的责任（梯度）</p></li>
 <li><p><strong>链式法则</strong>：如果A的工作影响了B，B的责任要按贡献度传递给A</p></li>
 </ul>
-<div class="figure" id="id106" style="text-align: center"><p><img  src="../_images/tikz-71cf7bcf033322592b12289c16ca05c7e9badc1b.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id110" style="text-align: center"><p><img  src="../_images/tikz-71cf7bcf033322592b12289c16ca05c7e9badc1b.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">反向传播：梯度从输出流回输入</span></p>
 </div></div>
 </section>
 <section id="id4">
 <h2>链式法则：梯度的传递机制<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
-<p><a class="reference internal" href="#back-propagation"><span class="std std-ref">反向传播算法</span></a>的核心是<strong>链式法则</strong>（Chain Rule）。想象你改变了输入 <span class="math notranslate nohighlight">\(x\)</span> 一点点，这个变化会层层传递，最终影响损失 <span class="math notranslate nohighlight">\(L\)</span>。链式法则告诉我们：<strong>总的影响是各层影响的乘积</strong>。</p>
+<p><a class="reference internal" href="#back-propagation"><span class="std std-ref">反向传播算法</span></a>的核心是<strong>链式法则</strong>（Chain Rule），这是微积分中复合函数求导的基本法则。想象你改变了输入 <span class="math notranslate nohighlight">\(x\)</span> 一点点，这个变化会层层传递，最终影响损失 <span class="math notranslate nohighlight">\(L\)</span>。链式法则告诉我们：<strong>总的影响是各层影响的乘积</strong>。</p>
+<p>回顾 <a class="reference internal" href="computational-graph.html"><span class="doc">计算图</span></a> 中讨论的<strong>计算图</strong>概念：神经网络可以被看作是一个由许多简单操作（加法、乘法、激活函数等）组成的图。反向传播正是沿着这个图的边，将梯度从输出传递回输入。</p>
 <p>对于复合函数 <span class="math notranslate nohighlight">\(z = f(g(x))\)</span>，如果 <span class="math notranslate nohighlight">\(x\)</span> 变化了 <span class="math notranslate nohighlight">\(\Delta x\)</span>：</p>
 <ul class="simple">
 <li><p>首先影响 <span class="math notranslate nohighlight">\(g\)</span>：<span class="math notranslate nohighlight">\(\Delta g \approx \frac{\partial g}{\partial x} \Delta x\)</span></p></li>
@@ -519,8 +535,182 @@ document.write(`
 <div class="math notranslate nohighlight">
 \[\frac{\partial z}{\partial x} = \frac{\partial z}{\partial g} \cdot \frac{\partial g}{\partial x}\]</div>
 <p><strong>直觉</strong>：影响会<strong>层层叠加</strong>——就像多米诺骨牌，第一块倒下的角度（<span class="math notranslate nohighlight">\(\frac{\partial g}{\partial x}\)</span>）乘以第二块倒下的角度（<span class="math notranslate nohighlight">\(\frac{\partial z}{\partial g}\)</span>），就是最后一块倒下的总角度。</p>
-<section id="id5">
-<h3>示例：简单计算图<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<section id="jacobian">
+<h3>从标量到向量：Jacobian 矩阵<a class="headerlink" href="#jacobian" title="Link to this heading">#</a></h3>
+<p>上述链式法则适用于<strong>标量函数</strong>。但在神经网络中，每一层的输入和输出都是<strong>向量</strong>（几百甚至几千个神经元的值），而不是单个数字。所以我们需要一个推广版的导数——<strong>Jacobian 矩阵</strong>。</p>
+<div class="note admonition">
+<p class="admonition-title">从标量导数到 Jacobian</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>概念</p></th>
+<th class="head"><p>数学表示</p></th>
+<th class="head"><p>输入维度</p></th>
+<th class="head"><p>输出维度</p></th>
+<th class="head"><p>矩阵形状</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>标量导数</strong></p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{df}{dx}\)</span></p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1×1</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>梯度</strong></p></td>
+<td><p><span class="math notranslate nohighlight">\(\nabla f = [\frac{\partial f}{\partial x_1}, \frac{\partial f}{\partial x_2}, ...]\)</span></p></td>
+<td><p>N</p></td>
+<td><p>1</p></td>
+<td><p>1×N 行向量</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Jacobian 矩阵</strong></p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{\partial \mathbf{h}}{\partial \mathbf{x}}\)</span></p></td>
+<td><p>N</p></td>
+<td><p>M</p></td>
+<td><p><strong>M×N 矩阵</strong></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>每个元素 <span class="math notranslate nohighlight">\((i,j)\)</span> 的意思：“第 <span class="math notranslate nohighlight">\(j\)</span> 个输入变一点点，第 <span class="math notranslate nohighlight">\(i\)</span> 个输出变多少”。</p>
+<p>形状：<span class="math notranslate nohighlight">\((\text{输出维度}) \times (\text{输入维度})\)</span>。</p>
+</div>
+<section id="jacobian-matrix">
+<span id="id5"></span><h4>定义：Jacobian 矩阵<a class="headerlink" href="#jacobian-matrix" title="Link to this heading">#</a></h4>
+<p>对于向量值函数 <span class="math notranslate nohighlight">\(\mathbf{f}: \mathbb{R}^n \rightarrow \mathbb{R}^m\)</span>，其 Jacobian 矩阵 <span class="math notranslate nohighlight">\(\mathbf{J} \in \mathbb{R}^{m \times n}\)</span> 定义为：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\mathbf{J} = \frac{\partial \mathbf{f}}{\partial \mathbf{x}} = \begin{bmatrix}
+\frac{\partial f_1}{\partial x_1} &amp; \frac{\partial f_1}{\partial x_2} &amp; \cdots &amp; \frac{\partial f_1}{\partial x_n} \\
+\frac{\partial f_2}{\partial x_1} &amp; \frac{\partial f_2}{\partial x_2} &amp; \cdots &amp; \frac{\partial f_2}{\partial x_n} \\
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+\frac{\partial f_m}{\partial x_1} &amp; \frac{\partial f_m}{\partial x_2} &amp; \cdots &amp; \frac{\partial f_m}{\partial x_n}
+\end{bmatrix}\end{split}\]</div>
+<p>每个元素 <span class="math notranslate nohighlight">\(J_{ij} = \frac{\partial f_i}{\partial x_j}\)</span> 的含义是：<strong>第 <span class="math notranslate nohighlight">\(j\)</span> 个输入变化一点点，第 <span class="math notranslate nohighlight">\(i\)</span> 个输出变化多少</strong>。</p>
+<p><strong>维度规则</strong>：Jacobian 的形状是 <span class="math notranslate nohighlight">\((\text{输出维度}) \times (\text{输入维度})\)</span>。</p>
+<p><strong>神经网络中的例子</strong>：</p>
+<p>一个全连接层 <span class="math notranslate nohighlight">\(\mathbf{h} = W\mathbf{x} + \mathbf{b}\)</span>：</p>
+<ul class="simple">
+<li><p>输入 <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathbb{R}^{100}\)</span>（100维）</p></li>
+<li><p>输出 <span class="math notranslate nohighlight">\(\mathbf{h} \in \mathbb{R}^{64}\)</span>（64维）</p></li>
+<li><p>权重 <span class="math notranslate nohighlight">\(W \in \mathbb{R}^{64 \times 100}\)</span></p></li>
+</ul>
+<p>其 Jacobian <span class="math notranslate nohighlight">\(\frac{\partial \mathbf{h}}{\partial \mathbf{x}} = W\)</span>，正好是一个 <span class="math notranslate nohighlight">\(64 \times 100\)</span> 的矩阵。</p>
+</section>
+<section id="gradient-vanishing-math">
+<span id="id6"></span><h4>多层网络的 Jacobian 连乘与梯度消失<a class="headerlink" href="#gradient-vanishing-math" title="Link to this heading">#</a></h4>
+<p>对于深层网络，损失 <span class="math notranslate nohighlight">\(L\)</span> 对第 <span class="math notranslate nohighlight">\(l\)</span> 层参数的梯度等于<strong>每一层 Jacobian 的连乘</strong>：</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{\partial L}{\partial \mathbf{h}_l} = \underbrace{\frac{\partial L}{\partial \mathbf{h}_L}}_{\text{输出层梯度}} \cdot \underbrace{\frac{\partial \mathbf{h}_L}{\partial \mathbf{h}_{L-1}} \cdot \frac{\partial \mathbf{h}_{L-1}}{\partial \mathbf{h}_{L-2}} \cdots \frac{\partial \mathbf{h}_{l+1}}{\partial \mathbf{h}_l}}_{\text{L-l 个 Jacobian 矩阵相乘}}
+\]</div>
+<p><strong>关键洞察</strong>：Jacobian 矩阵的连乘是梯度消失/爆炸的数学根源。</p>
+<p><strong>如何理解 Jacobian 对梯度的影响？</strong></p>
+<p>想象 Jacobian 矩阵是一个&quot;放大器&quot;——它把输入的梯度变换成输出的梯度。我们用 <span class="math notranslate nohighlight">\(\gamma\)</span> 表示这个<strong>放大倍数</strong>：</p>
+<ul class="simple">
+<li><p>如果 <span class="math notranslate nohighlight">\(\gamma &lt; 1\)</span>：梯度被&quot;缩小&quot;了</p></li>
+<li><p>如果 <span class="math notranslate nohighlight">\(\gamma = 1\)</span>：梯度大小不变</p></li>
+<li><p>如果 <span class="math notranslate nohighlight">\(\gamma &gt; 1\)</span>：梯度被&quot;放大&quot;了</p></li>
+</ul>
+<p>对于简单的标量（单个数字），<span class="math notranslate nohighlight">\(\gamma\)</span> 就是导数的绝对值 <span class="math notranslate nohighlight">\(\left|\dfrac{\partial h_{k+1}}{\partial h_k}\right|\)</span>。</p>
+<p>对于向量（多个数字组成的层），这个放大倍数可以用<strong>行列式</strong>（determinant）来理解——行列式的绝对值告诉我们：经过这个线性变换后，空间的体积被放大或缩小了多少倍。虽然 Jacobian 不一定是方阵，但核心直觉是一样的：每层都会对梯度进行&quot;缩放&quot;。</p>
+<p>假设每层 Jacobian 的放大倍数为 <span class="math notranslate nohighlight">\(\gamma\)</span>，经过 <span class="math notranslate nohighlight">\(n\)</span> 层连乘后，梯度的总体放大倍数为 <span class="math notranslate nohighlight">\(\gamma^n\)</span>：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>层数 <span class="math notranslate nohighlight">\(n\)</span></p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(\gamma = 0.9\)</span> (消失)</p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(\gamma = 1.0\)</span> (稳定)</p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(\gamma = 1.1\)</span> (爆炸)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>10 层</p></td>
+<td><p><span class="math notranslate nohighlight">\(0.9^{10} \approx 0.35\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(1.0\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(1.1^{10} \approx 2.6\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>50 层</p></td>
+<td><p><span class="math notranslate nohighlight">\(0.9^{50} \approx 0.005\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(1.0\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(1.1^{50} \approx 117\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>100 层</p></td>
+<td><p><span class="math notranslate nohighlight">\(0.9^{100} \approx 2.6 \times 10^{-5}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(1.0\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(1.1^{100} \approx 13,780\)</span></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>梯度消失</strong>（<span class="math notranslate nohighlight">\(\gamma &lt; 1\)</span>）：</p>
+<ul class="simple">
+<li><p>当 <span class="math notranslate nohighlight">\(\gamma &lt; 1\)</span> 时，梯度呈<strong>指数级衰减</strong></p></li>
+<li><p>50层后衰减到 0.5%，几乎收不到梯度信号</p></li>
+<li><p>浅层参数无法更新，网络退化为&quot;浅层网络&quot;</p></li>
+</ul>
+<p><strong>梯度爆炸</strong>（<span class="math notranslate nohighlight">\(\gamma &gt; 1\)</span>）：</p>
+<ul class="simple">
+<li><p>当 <span class="math notranslate nohighlight">\(\gamma &gt; 1\)</span> 时，梯度呈<strong>指数级增长</strong></p></li>
+<li><p>100层后放大 13,780 倍，数值溢出</p></li>
+<li><p>参数更新剧烈，损失震荡发散甚至变成 NaN</p></li>
+</ul>
+<p><strong>实际神经网络中的 <span class="math notranslate nohighlight">\(\gamma\)</span> 值</strong>：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>激活函数/技术</p></th>
+<th class="head"><p>典型 <span class="math notranslate nohighlight">\(\gamma\)</span> 值</p></th>
+<th class="head"><p>可训练深度</p></th>
+<th class="head"><p>原因</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Sigmoid</p></td>
+<td><p><span class="math notranslate nohighlight">\(\leq 0.25\)</span></p></td>
+<td><p>&lt; 10 层</p></td>
+<td><p>最大梯度在 0 处也只有 0.25</p></td>
+</tr>
+<tr class="row-odd"><td><p>Tanh</p></td>
+<td><p><span class="math notranslate nohighlight">\(\leq 1.0\)</span></p></td>
+<td><p>&lt; 15 层</p></td>
+<td><p>比 Sigmoid 稍好，但仍会饱和</p></td>
+</tr>
+<tr class="row-even"><td><p>ReLU</p></td>
+<td><p><span class="math notranslate nohighlight">\(\approx 0.5\)</span></p></td>
+<td><p>20-30 层</p></td>
+<td><p>负区间梯度为 0，正区间为 1（见 <a class="reference internal" href="activation-functions.html"><span class="doc">激活函数</span></a>）</p></td>
+</tr>
+<tr class="row-odd"><td><p>BatchNorm</p></td>
+<td><p><span class="math notranslate nohighlight">\(\approx 1.0\)</span></p></td>
+<td><p>50+ 层</p></td>
+<td><p>标准化梯度分布，稳定数值</p></td>
+</tr>
+<tr class="row-even"><td><p>跳跃连接</p></td>
+<td><p><span class="math notranslate nohighlight">\(\approx 1.0\)</span></p></td>
+<td><p>100+ 层</p></td>
+<td><p>提供梯度捷径，减少连乘长度（见 <a class="reference internal" href="../neural-network-basics/res-net.html"><span class="doc">ResNet：深层网络的突破</span></a>）</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>关键结论</strong>：</p>
+<ul class="simple">
+<li><p>只有当 <span class="math notranslate nohighlight">\(\gamma \approx 1\)</span> 时，深层网络才能稳定训练</p></li>
+<li><p>从 Sigmoid → ReLU → BatchNorm → ResNet，每次突破都是让 <span class="math notranslate nohighlight">\(\gamma\)</span> 更接近 1</p></li>
+</ul>
+<p>这就是为什么深层网络训练困难，以及残差连接和跳跃连接能缓解这个问题的数学原理。</p>
+<div class="tip admonition">
+<p class="admonition-title">与后面内容的衔接</p>
+<p>下面&quot;常见问题&quot;部分会从更直观的角度解释梯度消失和爆炸，包括：</p>
+<ul class="simple">
+<li><p>具体场景（什么时候会发生）</p></li>
+<li><p>后果（对训练的影响）</p></li>
+<li><p>解决方案（如何应对）</p></li>
+</ul>
+<p>两部分内容互补：这里侧重<strong>数学原理</strong>（Jacobian 连乘），后面侧重<strong>实践指导</strong>。</p>
+</div>
+</section>
+</section>
+<section id="id7">
+<h3>示例：简单计算图<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
 <p>考虑 <span class="math notranslate nohighlight">\(f(x, y) = (x + y) \times y\)</span>，设 <span class="math notranslate nohighlight">\(x=2, y=3\)</span>：</p>
 <p><strong>前向传播</strong>：</p>
 <ul class="simple">
@@ -564,10 +754,10 @@ document.write(`
 <li><p><code class="docutils literal notranslate"><span class="pre">.backward()</span></code>：自动执行<a class="reference internal" href="#back-propagation"><span class="std std-ref">反向传播算法</span></a>计算所有叶节点的梯度</p></li>
 </ul>
 </section>
-<section id="id6">
-<h2>神经网络中的反向传播<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<section id="id8">
+<h2>神经网络中的反向传播<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
 <p>对于多层神经网络，反向传播从输出层逐层回传：</p>
-<div class="figure" id="id107" style="text-align: center"><p><img  src="../_images/tikz-602a045cabc553a25a48b80d890d1591abb950fc.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id111" style="text-align: center"><p><img  src="../_images/tikz-602a045cabc553a25a48b80d890d1591abb950fc.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">神经网络反向传播示意</span></p>
 </div><p><strong>流程</strong>：</p>
 <ol class="arabic simple">
@@ -576,8 +766,9 @@ document.write(`
 <li><p><strong>参数更新</strong>：使用梯度下降更新权重</p></li>
 </ol>
 </section>
-<section id="id7">
-<h2>常见操作的梯度<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<section id="id9">
+<h2>常见操作的梯度<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="#back-propagation"><span class="std std-ref">反向传播算法</span></a>的实现依赖于定义每个基本操作的梯度规则。下面是神经网络中常用操作的梯度：</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>操作</p></th>
@@ -605,16 +796,17 @@ document.write(`
 </tbody>
 </table>
 </div>
+<p>更多激活函数的梯度定义，参见 <a class="reference internal" href="activation-functions.html"><span class="doc">激活函数</span></a>。</p>
 </section>
-<section id="id8">
-<h2>反向传播的优势<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
-<section id="id9">
-<h3>1. 计算效率<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<section id="id10">
+<h2>反向传播的优势<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
+<section id="id11">
+<h3>1. 计算效率<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
 <p><a class="reference internal" href="#back-propagation"><span class="std std-ref">反向传播算法</span></a>的时间复杂度是 <span class="math notranslate nohighlight">\(O(n)\)</span>，其中 <span class="math notranslate nohighlight">\(n\)</span> 是<a class="reference internal" href="computational-graph.html#computational-graph"><span class="std std-ref">计算图</span></a>中边的数量。相比之下，数值差分需要 <span class="math notranslate nohighlight">\(O(n \times p)\)</span>，其中 <span class="math notranslate nohighlight">\(p\)</span> 是参数数量。</p>
 <p><strong>关键</strong>：通过复用中间计算结果，避免重复求导。</p>
 </section>
-<section id="id10">
-<h3>2. 模块化设计<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<section id="id12">
+<h3>2. 模块化设计<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
 <p>每个操作只需要定义：</p>
 <ul class="simple">
 <li><p>前向：如何计算输出</p></li>
@@ -623,8 +815,8 @@ document.write(`
 <p>这使得添加新操作变得简单。</p>
 </section>
 </section>
-<section id="id11">
-<h2>常见问题<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
+<section id="id13">
+<h2>常见问题<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
 <section id="vanishing-gradient">
 <span id="gradient-vanishing"></span><h3>梯度消失（Vanishing Gradient）<a class="headerlink" href="#vanishing-gradient" title="Link to this heading">#</a></h3>
 <p>想象一个100层的神经网络。当你训练时，发现靠近输出层的参数更新正常，但靠近输入层的参数几乎不动——就像前面几十层&quot;冻住&quot;了一样。这就是<strong>梯度消失</strong>。</p>
@@ -635,9 +827,10 @@ document.write(`
 <p><strong>后果</strong>：前面的层学不到东西，模型退化成&quot;浅层网络&quot;——只有后面几层在学习。对于图像数据，前面的层本应学习边缘、纹理等基础特征，但这些特征学不到。</p>
 <p><strong>解决方案</strong>：</p>
 <ul class="simple">
-<li><p><strong>ReLU激活函数</strong>：正区间的梯度恒为1，不会衰减</p></li>
+<li><p><strong>ReLU激活函数</strong>：正区间的梯度恒为1，不会衰减（见 <a class="reference internal" href="activation-functions.html"><span class="doc">激活函数</span></a>）</p></li>
 <li><p><strong>批归一化（BatchNorm）</strong>：控制每层的数值范围，避免进入饱和区</p></li>
-<li><p><strong>残差连接（ResNet）</strong>：让梯度有&quot;捷径&quot;可以直达前面层</p></li>
+<li><p><strong>残差连接（ResNet）</strong>：让梯度有&quot;捷径&quot;可以直达前面层（见 <a class="reference internal" href="../neural-network-basics/res-net.html"><span class="doc">ResNet：深层网络的突破</span></a> 中的数学推导）</p></li>
+<li><p><strong>跳跃连接（U-Net）</strong>：在编码器-解码器架构中保留梯度路径（见 <a class="reference internal" href="../unet-image-segmentation/u-net.html"><span class="doc">U 形架构详解</span></a>）</p></li>
 </ul>
 </section>
 <hr class="docutils" />
@@ -658,22 +851,23 @@ document.write(`
 </ul>
 </section>
 </section>
-<section id="id12">
-<h2>总结<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
+<section id="id14">
+<h2>总结<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
 <p>反向传播是深度学习的核心算法：</p>
 <ol class="arabic simple">
 <li><p><strong>信用分配</strong>：将最终损失&quot;分摊&quot;给每个参数</p></li>
-<li><p><strong>链式法则</strong>：梯度从输出层逐层回传</p></li>
+<li><p><strong>链式法则</strong>：梯度从输出层逐层回传（基于 <a class="reference internal" href="computational-graph.html"><span class="doc">计算图</span></a> 的结构）</p></li>
 <li><p><strong>高效计算</strong>：复用中间结果，时间与网络规模线性相关</p></li>
 </ol>
-<p>反向传播通过<a class="reference internal" href="computational-graph.html#computational-graph"><span class="std std-ref">计算图</span></a>高效计算梯度。理解反向传播后，我们将探讨<a class="reference internal" href="gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>——如何利用这些梯度来优化模型参数。</p>
+<p>反向传播计算出的梯度用于更新模型参数。下一节 <a class="reference internal" href="gradient-descent.html"><span class="doc">梯度下降与优化算法</span></a> 将详细介绍如何利用这些梯度进行参数优化。</p>
+<p>关于反向传播在实际神经网络训练中的应用，参见 <a class="reference internal" href="../neural-network-basics/neural-training-basics.html"><span class="doc">神经网络训练基础</span></a>。</p>
 </section>
 <hr class="docutils" />
-<section id="id13">
-<h2>参考文献<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
-<div class="docutils container" id="id14">
+<section id="id15">
+<h2>参考文献<a class="headerlink" href="#id15" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id16">
 <div role="list" class="citation-list">
-<div class="citation" id="id79" role="doc-biblioentry">
+<div class="citation" id="id82" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">RHW86</a><span class="fn-bracket">]</span></span>
 <p>David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. <em>Nature</em>, 323(6088):533–536, 1986.</p>
 </div>
@@ -686,7 +880,7 @@ document.write(`
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (6 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (7 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -694,6 +888,11 @@ document.write(`
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">15d1b15</code>
+                2026-05-03 - <strong>Heyan Zhu</strong>: docs(model-architecture-design): add new chapter on CNN architecture design methodology
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b5e265a</code>
                 2026-04-28 - <strong>Heyan Zhu</strong>: docs(unet): restructure documentation and update content
@@ -775,24 +974,29 @@ document.write(`
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">反向传播的本质：信用分配</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">链式法则：梯度的传递机制</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">示例：简单计算图</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#jacobian">从标量到向量：Jacobian 矩阵</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#jacobian-matrix">定义：Jacobian 矩阵</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gradient-vanishing-math">多层网络的 Jacobian 连乘与梯度消失</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">示例：简单计算图</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch">PyTorch中的自动微分</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">神经网络中的反向传播</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">常见操作的梯度</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">反向传播的优势</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">1. 计算效率</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">2. 模块化设计</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">神经网络中的反向传播</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">常见操作的梯度</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">反向传播的优势</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">1. 计算效率</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">2. 模块化设计</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">常见问题</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">常见问题</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vanishing-gradient">梯度消失（Vanishing Gradient）</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#exploding-gradient">梯度爆炸（Exploding Gradient）</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">总结</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">参考文献</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">总结</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">参考文献</a></li>
 </ul>
   </nav></div>
 

@@ -219,6 +219,16 @@
 <li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../model-architecture-design/index.html">CNN 架构改造：设计卷积网络的心法</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part1-intro.html">改造的本质：从"会用 CNN"到"会设计 CNN"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
@@ -538,12 +548,12 @@ document.write(`
 </section>
 <section id="id3">
 <h2>卷积操作的基本原理<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
-<p>卷积操作是CNN的核心，它通过滑动窗口的方式在输入图像上应用（通过点积）滤波器（卷积核）来提取特征。这种思想最早由LeCun等人在1989年提出 <span id="id4">[<a class="reference internal" href="#id76" title="Yann LeCun, Bernhard Boser, John S Denker, Donnie Henderson, Richard E Howard, Wayne Hubbard, and Lawrence D Jackel. Backpropagation applied to handwritten zip code recognition. Neural Computation, 1(4):541–551, 1989.">LBD+89</a>]</span>，并在后续的LeNet-5工作中 <span id="id5">[<a class="reference internal" href="the-end.html#id89" title="Yann LeCun, Léon Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 86(11):2278–2324, 1998.">LBBH98</a>]</span> 得到完善。</p>
-<figure class="align-center" id="id106">
+<p>卷积操作是CNN的核心，它通过滑动窗口的方式在输入图像上应用（通过点积）滤波器（卷积核）来提取特征。这种思想最早由LeCun等人在1989年提出 <span id="id4">[<a class="reference internal" href="#id77" title="Yann LeCun, Bernhard Boser, John S Denker, Donnie Henderson, Richard E Howard, Wayne Hubbard, and Lawrence D Jackel. Backpropagation applied to handwritten zip code recognition. Neural Computation, 1(4):541–551, 1989.">LBD+89</a>]</span>，并在后续的LeNet-5工作中 <span id="id5">[<a class="reference internal" href="the-end.html#id90" title="Yann LeCun, Léon Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 86(11):2278–2324, 1998.">LBBH98</a>]</span> 得到完善。</p>
+<figure class="align-center" id="id108">
 <a class="reference internal image-reference" href="../_images/conv-process.png"><img alt="../_images/conv-process.png" src="../_images/conv-process.png" style="width: 40%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">卷积操作示意图</span><a class="headerlink" href="#id106" title="Link to this image">#</a></p>
+<p><span class="caption-text">卷积操作示意图</span><a class="headerlink" href="#id108" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <div class="admonition note">
@@ -571,7 +581,7 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 <p>卷积核提取特征的原理其实很直观：<strong>点积 = 相似度度量</strong>。</p>
 <p>回想一下两个向量的点积：<span class="math notranslate nohighlight">\(\mathbf{a} \cdot \mathbf{b} = \sum_i a_i b_i\)</span>。当两个向量方向一致时，点积最大；方向相反时，点积为负。换句话说，<strong>点积衡量了两个向量的相似程度</strong>。</p>
 <p>卷积操作就是反复做点积：</p>
-<div class="figure" id="id107" style="text-align: center"><p><img  src="../_images/tikz-0ae465dd7e723e27764bae08945e5a36503f86e2.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id109" style="text-align: center"><p><img  src="../_images/tikz-0ae465dd7e723e27764bae08945e5a36503f86e2.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">卷积核=模式匹配器</span></p>
 </div><p>这个 3×3 的卷积核左边全是 -1、中间是 0、右边全是 1——它检测的是<strong>垂直边缘</strong>：</p>
 <ul class="simple">
@@ -641,11 +651,11 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 <section id="id8">
 <h2>参数共享机制<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
 <p>卷积层的一个重要特性是参数共享。同一个卷积核在图像的不同位置重复使用，这大大减少了参数数量。</p>
-<figure class="align-center" id="id108">
+<figure class="align-center" id="id110">
 <a class="reference internal image-reference" href="../_images/conv-param-share.png"><img alt="../_images/conv-param-share.png" src="../_images/conv-param-share.png" style="width: 80%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">参数共享机制示意图</span><a class="headerlink" href="#id108" title="Link to this image">#</a></p>
+<p><span class="caption-text">参数共享机制示意图</span><a class="headerlink" href="#id110" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <p>对于 <span class="math notranslate nohighlight">\(C_{\text{out}}\)</span> 个输出通道，每个通道使用独立的卷积核：</p>
@@ -803,7 +813,7 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 </tbody>
 </table>
 </div>
-<div class="figure" id="id109" style="text-align: center"><p><img  src="../_images/tikz-9dfb9b54f95e09d8b87eb7077a45e5c1b53e8eae.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id111" style="text-align: center"><p><img  src="../_images/tikz-9dfb9b54f95e09d8b87eb7077a45e5c1b53e8eae.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">CNN分层特征提取示意</span></p>
 </div><p><strong>分层学习的启示</strong>：</p>
 <ul class="simple">
@@ -814,8 +824,8 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 </section>
 <section id="id11">
 <h2>CNN的优缺点<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="table" id="id110">
-<caption><span class="caption-text">卷积神经网络优缺点对比</span><a class="headerlink" href="#id110" title="Link to this table">#</a></caption>
+<div class="pst-scrollable-table-container"><table class="table" id="id112">
+<caption><span class="caption-text">卷积神经网络优缺点对比</span><a class="headerlink" href="#id112" title="Link to this table">#</a></caption>
 <colgroup>
 <col style="width: 50.0%" />
 <col style="width: 50.0%" />
@@ -872,11 +882,11 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 <h2>参考文献<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
 <div class="docutils container" id="id14">
 <div role="list" class="citation-list">
-<div class="citation" id="id76" role="doc-biblioentry">
+<div class="citation" id="id77" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">LBD+89</a><span class="fn-bracket">]</span></span>
 <p>Yann LeCun, Bernhard Boser, John S Denker, Donnie Henderson, Richard E Howard, Wayne Hubbard, and Lawrence D Jackel. Backpropagation applied to handwritten zip code recognition. <em>Neural Computation</em>, 1(4):541–551, 1989.</p>
 </div>
-<div class="citation" id="id75" role="doc-biblioentry">
+<div class="citation" id="id76" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">LBBH98</a><span class="fn-bracket">]</span></span>
 <p>Yann LeCun, Léon Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document recognition. <em>Proceedings of the IEEE</em>, 86(11):2278–2324, 1998.</p>
 </div>

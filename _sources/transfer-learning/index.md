@@ -60,6 +60,7 @@ graph LR
 | {doc}`../pytorch-practice/train-workflow` | 完整训练流程、早停机制 |
 | {doc}`../neural-network-basics/neural-training-basics` | 过拟合诊断、正则化策略 |
 | {doc}`../neural-network-basics/cnn-basics` | {ref}`inductive-bias` 与预训练权重的关系 |
+| {doc}`../model-architecture-design/index` | 微调中的架构改造——何时解冻、何时加模块 |
 
 ## 前置要求
 

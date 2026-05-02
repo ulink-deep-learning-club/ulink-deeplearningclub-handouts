@@ -49,7 +49,9 @@
 
 ## 链式法则：梯度的传递机制
 
-{ref}`back-propagation`的核心是**链式法则**（Chain Rule）。想象你改变了输入 $x$ 一点点，这个变化会层层传递，最终影响损失 $L$。链式法则告诉我们：**总的影响是各层影响的乘积**。
+{ref}`back-propagation`的核心是**链式法则**（Chain Rule），这是微积分中复合函数求导的基本法则。想象你改变了输入 $x$ 一点点，这个变化会层层传递，最终影响损失 $L$。链式法则告诉我们：**总的影响是各层影响的乘积**。
+
+回顾 {doc}`computational-graph` 中讨论的**计算图**概念：神经网络可以被看作是一个由许多简单操作（加法、乘法、激活函数等）组成的图。反向传播正是沿着这个图的边，将梯度从输出传递回输入。
 
 对于复合函数 $z = f(g(x))$，如果 $x$ 变化了 $\Delta x$：
 - 首先影响 $g$：$\Delta g \approx \frac{\partial g}{\partial x} \Delta x$
@@ -61,6 +63,118 @@
 $$\frac{\partial z}{\partial x} = \frac{\partial z}{\partial g} \cdot \frac{\partial g}{\partial x}$$
 
 **直觉**：影响会**层层叠加**——就像多米诺骨牌，第一块倒下的角度（$\frac{\partial g}{\partial x}$）乘以第二块倒下的角度（$\frac{\partial z}{\partial g}$），就是最后一块倒下的总角度。
+
+### 从标量到向量：Jacobian 矩阵
+
+上述链式法则适用于**标量函数**。但在神经网络中，每一层的输入和输出都是**向量**（几百甚至几千个神经元的值），而不是单个数字。所以我们需要一个推广版的导数——**Jacobian 矩阵**。
+
+```{admonition} 从标量导数到 Jacobian
+:class: note
+
+| 概念 | 数学表示 | 输入维度 | 输出维度 | 矩阵形状 |
+|------|---------|---------|---------|---------|
+| **标量导数** | $\frac{df}{dx}$ | 1 | 1 | 1×1 |
+| **梯度** | $\nabla f = [\frac{\partial f}{\partial x_1}, \frac{\partial f}{\partial x_2}, ...]$ | N | 1 | 1×N 行向量 |
+| **Jacobian 矩阵** | $\frac{\partial \mathbf{h}}{\partial \mathbf{x}}$ | N | M | **M×N 矩阵** |
+
+每个元素 $(i,j)$ 的意思："第 $j$ 个输入变一点点，第 $i$ 个输出变多少"。
+
+形状：$(\text{输出维度}) \times (\text{输入维度})$。
+```
+
+(jacobian-matrix)=
+#### 定义：Jacobian 矩阵
+
+对于向量值函数 $\mathbf{f}: \mathbb{R}^n \rightarrow \mathbb{R}^m$，其 Jacobian 矩阵 $\mathbf{J} \in \mathbb{R}^{m \times n}$ 定义为：
+
+$$
+\mathbf{J} = \frac{\partial \mathbf{f}}{\partial \mathbf{x}} = \begin{bmatrix}
+\frac{\partial f_1}{\partial x_1} & \frac{\partial f_1}{\partial x_2} & \cdots & \frac{\partial f_1}{\partial x_n} \\
+\frac{\partial f_2}{\partial x_1} & \frac{\partial f_2}{\partial x_2} & \cdots & \frac{\partial f_2}{\partial x_n} \\
+\vdots & \vdots & \ddots & \vdots \\
+\frac{\partial f_m}{\partial x_1} & \frac{\partial f_m}{\partial x_2} & \cdots & \frac{\partial f_m}{\partial x_n}
+\end{bmatrix}$$
+
+每个元素 $J_{ij} = \frac{\partial f_i}{\partial x_j}$ 的含义是：**第 $j$ 个输入变化一点点，第 $i$ 个输出变化多少**。
+
+**维度规则**：Jacobian 的形状是 $(\text{输出维度}) \times (\text{输入维度})$。
+
+**神经网络中的例子**：
+
+一个全连接层 $\mathbf{h} = W\mathbf{x} + \mathbf{b}$：
+- 输入 $\mathbf{x} \in \mathbb{R}^{100}$（100维）
+- 输出 $\mathbf{h} \in \mathbb{R}^{64}$（64维）
+- 权重 $W \in \mathbb{R}^{64 \times 100}$
+
+其 Jacobian $\frac{\partial \mathbf{h}}{\partial \mathbf{x}} = W$，正好是一个 $64 \times 100$ 的矩阵。
+
+(gradient-vanishing-math)=
+#### 多层网络的 Jacobian 连乘与梯度消失
+
+对于深层网络，损失 $L$ 对第 $l$ 层参数的梯度等于**每一层 Jacobian 的连乘**：
+
+$$
+\frac{\partial L}{\partial \mathbf{h}_l} = \underbrace{\frac{\partial L}{\partial \mathbf{h}_L}}_{\text{输出层梯度}} \cdot \underbrace{\frac{\partial \mathbf{h}_L}{\partial \mathbf{h}_{L-1}} \cdot \frac{\partial \mathbf{h}_{L-1}}{\partial \mathbf{h}_{L-2}} \cdots \frac{\partial \mathbf{h}_{l+1}}{\partial \mathbf{h}_l}}_{\text{L-l 个 Jacobian 矩阵相乘}}
+$$
+
+**关键洞察**：Jacobian 矩阵的连乘是梯度消失/爆炸的数学根源。
+
+**如何理解 Jacobian 对梯度的影响？**
+
+想象 Jacobian 矩阵是一个"放大器"——它把输入的梯度变换成输出的梯度。我们用 $\gamma$ 表示这个**放大倍数**：
+
+- 如果 $\gamma < 1$：梯度被"缩小"了
+- 如果 $\gamma = 1$：梯度大小不变  
+- 如果 $\gamma > 1$：梯度被"放大"了
+
+对于简单的标量（单个数字），$\gamma$ 就是导数的绝对值 $\left|\dfrac{\partial h_{k+1}}{\partial h_k}\right|$。
+
+对于向量（多个数字组成的层），这个放大倍数可以用**行列式**（determinant）来理解——行列式的绝对值告诉我们：经过这个线性变换后，空间的体积被放大或缩小了多少倍。虽然 Jacobian 不一定是方阵，但核心直觉是一样的：每层都会对梯度进行"缩放"。
+
+假设每层 Jacobian 的放大倍数为 $\gamma$，经过 $n$ 层连乘后，梯度的总体放大倍数为 $\gamma^n$：
+
+| 层数 $n$ | $\gamma = 0.9$ (消失) | $\gamma = 1.0$ (稳定) | $\gamma = 1.1$ (爆炸) |
+|---------|----------------------|----------------------|----------------------|
+| 10 层 | $0.9^{10} \approx 0.35$ | $1.0$ | $1.1^{10} \approx 2.6$ |
+| 50 层 | $0.9^{50} \approx 0.005$ | $1.0$ | $1.1^{50} \approx 117$ |
+| 100 层 | $0.9^{100} \approx 2.6 \times 10^{-5}$ | $1.0$ | $1.1^{100} \approx 13,780$ |
+
+**梯度消失**（$\gamma < 1$）：
+- 当 $\gamma < 1$ 时，梯度呈**指数级衰减**
+- 50层后衰减到 0.5%，几乎收不到梯度信号
+- 浅层参数无法更新，网络退化为"浅层网络"
+
+**梯度爆炸**（$\gamma > 1$）：
+- 当 $\gamma > 1$ 时，梯度呈**指数级增长**
+- 100层后放大 13,780 倍，数值溢出
+- 参数更新剧烈，损失震荡发散甚至变成 NaN
+
+**实际神经网络中的 $\gamma$ 值**：
+
+| 激活函数/技术 | 典型 $\gamma$ 值 | 可训练深度 | 原因 |
+|--------------|-----------------|-----------|------|
+| Sigmoid | $\leq 0.25$ | < 10 层 | 最大梯度在 0 处也只有 0.25 |
+| Tanh | $\leq 1.0$ | < 15 层 | 比 Sigmoid 稍好，但仍会饱和 |
+| ReLU | $\approx 0.5$ | 20-30 层 | 负区间梯度为 0，正区间为 1（见 {doc}`activation-functions`）|
+| BatchNorm | $\approx 1.0$ | 50+ 层 | 标准化梯度分布，稳定数值 |
+| 跳跃连接 | $\approx 1.0$ | 100+ 层 | 提供梯度捷径，减少连乘长度（见 {doc}`../neural-network-basics/res-net`）|
+
+**关键结论**：
+- 只有当 $\gamma \approx 1$ 时，深层网络才能稳定训练
+- 从 Sigmoid → ReLU → BatchNorm → ResNet，每次突破都是让 $\gamma$ 更接近 1
+
+这就是为什么深层网络训练困难，以及残差连接和跳跃连接能缓解这个问题的数学原理。
+
+```{admonition} 与后面内容的衔接
+:class: tip
+
+下面"常见问题"部分会从更直观的角度解释梯度消失和爆炸，包括：
+- 具体场景（什么时候会发生）
+- 后果（对训练的影响）
+- 解决方案（如何应对）
+
+两部分内容互补：这里侧重**数学原理**（Jacobian 连乘），后面侧重**实践指导**。
+```
 
 ### 示例：简单计算图
 
@@ -153,12 +267,16 @@ print(f"∂f/∂y = {y.grad}")  # 输出: 8.0
 
 ## 常见操作的梯度
 
+{ref}`back-propagation`的实现依赖于定义每个基本操作的梯度规则。下面是神经网络中常用操作的梯度：
+
 | 操作 | 前向 | 反向梯度 |
 |------|------|----------|
 | 加法 $z = x + y$ | $z = x + y$ | $\frac{\partial L}{\partial x} = \frac{\partial L}{\partial z}$, $\frac{\partial L}{\partial y} = \frac{\partial L}{\partial z}$ |
 | 乘法 $z = x \times y$ | $z = x \times y$ | $\frac{\partial L}{\partial x} = \frac{\partial L}{\partial z} \cdot y$, $\frac{\partial L}{\partial y} = \frac{\partial L}{\partial z} \cdot x$ |
 | ReLU $z = \max(0, x)$ | $z = \max(0, x)$ | $\frac{\partial L}{\partial x} = \frac{\partial L}{\partial z}$ (if $x>0$), else 0 |
 | Sigmoid $z = \sigma(x)$ | $z = \sigma(x)$ | $\frac{\partial L}{\partial x} = \frac{\partial L}{\partial z} \cdot z(1-z)$ |
+
+更多激活函数的梯度定义，参见 {doc}`activation-functions`。
 
 ## 反向传播的优势
 
@@ -193,9 +311,10 @@ $$0.01 \times 0.01 \times ... \times 0.01 \quad (100次) = 10^{-200}$$
 **后果**：前面的层学不到东西，模型退化成"浅层网络"——只有后面几层在学习。对于图像数据，前面的层本应学习边缘、纹理等基础特征，但这些特征学不到。
 
 **解决方案**：
-- **ReLU激活函数**：正区间的梯度恒为1，不会衰减
+- **ReLU激活函数**：正区间的梯度恒为1，不会衰减（见 {doc}`activation-functions`）
 - **批归一化（BatchNorm）**：控制每层的数值范围，避免进入饱和区
-- **残差连接（ResNet）**：让梯度有"捷径"可以直达前面层
+- **残差连接（ResNet）**：让梯度有"捷径"可以直达前面层（见 {doc}`../neural-network-basics/res-net` 中的数学推导）
+- **跳跃连接（U-Net）**：在编码器-解码器架构中保留梯度路径（见 {doc}`../unet-image-segmentation/u-net`）
 
 ---
 
@@ -222,10 +341,12 @@ $$2 \times 2 \times ... \times 2 \quad (100次) = 2^{100} \approx 10^{30}$$
 反向传播是深度学习的核心算法：
 
 1. **信用分配**：将最终损失"分摊"给每个参数
-2. **链式法则**：梯度从输出层逐层回传
+2. **链式法则**：梯度从输出层逐层回传（基于 {doc}`computational-graph` 的结构）
 3. **高效计算**：复用中间结果，时间与网络规模线性相关
 
-反向传播通过{ref}`computational-graph`高效计算梯度。理解反向传播后，我们将探讨{ref}`gradient-descent`——如何利用这些梯度来优化模型参数。
+反向传播计算出的梯度用于更新模型参数。下一节 {doc}`gradient-descent` 将详细介绍如何利用这些梯度进行参数优化。
+
+关于反向传播在实际神经网络训练中的应用，参见 {doc}`../neural-network-basics/neural-training-basics`。
 
 ---
 

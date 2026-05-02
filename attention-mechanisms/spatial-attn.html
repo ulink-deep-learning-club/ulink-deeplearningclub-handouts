@@ -583,6 +583,16 @@ window.addEventListener("load", load);
 <li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
 </ul>
 </details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../model-architecture-design/index.html">CNN 架构改造：设计卷积网络的心法</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part1-intro.html">改造的本质：从"会用 CNN"到"会设计 CNN"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
@@ -869,7 +879,7 @@ document.write(`
 </section>
 <section id="cbam">
 <h2>CBAM风格的空间注意力<a class="headerlink" href="#cbam" title="Link to this heading">#</a></h2>
-<p>最常用的空间注意力方法来自 CBAM <span id="id4">[<a class="reference internal" href="#id91" title="Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In Proceedings of the European Conference on Computer Vision (ECCV), 3–19. 2018.">WPLK18</a>]</span>，步骤如下：</p>
+<p>最常用的空间注意力方法来自 CBAM <span id="id4">[<a class="reference internal" href="#id92" title="Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In Proceedings of the European Conference on Computer Vision (ECCV), 3–19. 2018.">WPLK18</a>]</span>，步骤如下：</p>
 <ol class="arabic simple">
 <li><p><strong>通道池化</strong>：对每个空间位置，分别计算该位置在所有通道上的平均值和最大值，得到两个 <span class="math notranslate nohighlight">\(1 \times H \times W\)</span> 的聚合特征图。</p></li>
 <li><p><strong>拼接</strong>：把两个聚合图拼成 <span class="math notranslate nohighlight">\(2 \times H \times W\)</span>。</p></li>
@@ -882,8 +892,8 @@ document.write(`
 <p class="admonition-title">为什么同时用平均池化和最大池化？</p>
 <p>平均池化捕获&quot;该位置的整体激活强度&quot;——相当于问&quot;这个区域整体上多活跃？“。最大池化捕获&quot;该位置的最强响应”——相当于问&quot;这个区域最突出的特征是什么？&quot;。两者互补，结合起来能更全面地描述每个空间位置的信息量。</p>
 </div>
-<div class="literal-block-wrapper docutils container" id="id101">
-<div class="code-block-caption"><span class="caption-text">CBAM风格的空间注意力实现</span><a class="headerlink" href="#id101" title="Link to this code">#</a></div>
+<div class="literal-block-wrapper docutils container" id="id103">
+<div class="code-block-caption"><span class="caption-text">CBAM风格的空间注意力实现</span><a class="headerlink" href="#id103" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="linenos"> 3</span>
@@ -940,7 +950,7 @@ document.write(`
 <p>除了 CBAM 风格外，还有其他实现方式：</p>
 <ul class="simple">
 <li><p><strong>卷积生成</strong>：直接用 <span class="math notranslate nohighlight">\(1 \times 1\)</span> 卷积降维后接 <span class="math notranslate nohighlight">\(3 \times 3\)</span> 卷积生成注意力图。参数量更多，但可学习性更强。</p></li>
-<li><p><strong>自注意力（Non-local）</strong> <span id="id6">[<a class="reference internal" href="#id92" title="Xiaolong Wang, Ross Girshick, Abhinav Gupta, and Kaiming He. Non-local neural networks. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 7794–7803. 2018.">WGGH18</a>]</span>：计算所有空间位置两两之间的相似度，生成全局注意力图。计算量大（<span class="math notranslate nohighlight">\(O(H^2W^2)\)</span>），但能捕捉长距离依赖。</p></li>
+<li><p><strong>自注意力（Non-local）</strong> <span id="id6">[<a class="reference internal" href="#id93" title="Xiaolong Wang, Ross Girshick, Abhinav Gupta, and Kaiming He. Non-local neural networks. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 7794–7803. 2018.">WGGH18</a>]</span>：计算所有空间位置两两之间的相似度，生成全局注意力图。计算量大（<span class="math notranslate nohighlight">\(O(H^2W^2)\)</span>），但能捕捉长距离依赖。</p></li>
 </ul>
 <p>对于初学者，建议从 CBAM风格开始——它最简单、最轻量，在大多数任务上效果也足够好。</p>
 </section>
@@ -979,11 +989,11 @@ document.write(`
 <h2>参考文献<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
 <div class="docutils container" id="id9">
 <div role="list" class="citation-list">
-<div class="citation" id="id92" role="doc-biblioentry">
+<div class="citation" id="id93" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">WGGH18</a><span class="fn-bracket">]</span></span>
 <p>Xiaolong Wang, Ross Girshick, Abhinav Gupta, and Kaiming He. Non-local neural networks. In <em>Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)</em>, 7794–7803. 2018.</p>
 </div>
-<div class="citation" id="id91" role="doc-biblioentry">
+<div class="citation" id="id92" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">WPLK18</a><span class="fn-bracket">]</span></span>
 <p>Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In <em>Proceedings of the European Conference on Computer Vision (ECCV)</em>, 3–19. 2018.</p>
 </div>

@@ -1,0 +1,847 @@
+
+<!DOCTYPE html>
+
+
+<html lang="zh-CN" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>操控深度与连接：信息如何在网络中流动 &#8212; Deep Learning Club Handouts 0.0.1 文档</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=a946219f" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=eb1cd0b9"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/translations.js?v=beaddf03"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'model-architecture-design/part3-depth-connection';</script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="操控注意力与长程依赖：信息该走哪条路" href="part4-attention.html" />
+    <link rel="prev" title="操控感受野：网络应该看多大" href="part2-receptive-field.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="zh-CN"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">UCS Deep Learning Club</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">搜索</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../math-fundamentals/index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础：从理论到架构</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN 消融研究：理解卷积神经网络各组件的作用</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：消融研究的科学方法论</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/the-end.html">结语：从黑盒到白盒</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../attention-mechanisms/index.html">CNN 中的注意力机制</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/introduction.html">为什么CNN需要注意力机制？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/se-net.html">通道注意力：SE-Net</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/spatial-attn.html">空间注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/cbam.html">通道+空间注意力：CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/comparison.html">注意力机制的选择与应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/practice.html">实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">CNN 架构改造：设计卷积网络的心法</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="part1-intro.html">改造的本质：从"会用 CNN"到"会设计 CNN"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../model-serving/index.html">模型部署与服务：从训练到生产</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置番外篇</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="源码库"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/model-architecture-design/part3-depth-connection.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/issues/new?title=Issue%20on%20page%20%2Fmodel-architecture-design/part3-depth-connection.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="创建议题"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="下载此页面">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/model-architecture-design/part3-depth-connection.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="下载源文件"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="列印成 PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="全屏模式"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>操控深度与连接：信息如何在网络中流动</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> 目录 </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">信息流动的三种通路</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">串行链——梯度消失</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">跳跃连接——信息捷径</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">密集连接——信息高速公路</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">特征融合：不止是连接，而是对话</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">信息论视角：为什么连接方式决定了信息容量</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">失败案例：过度连接的陷阱</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">案例一：浅层网络强行加残差连接</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#densenet">案例二：DenseNet 的内存爆炸</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">案例三：跳跃连接位置放错</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fpn">案例四：FPN 中忘记横向连接</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">决策树：如何选择连接策略</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">下一步</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="arch-depth-connection">
+<span id="id1"></span><h1>操控深度与连接：信息如何在网络中流动<a class="headerlink" href="#arch-depth-connection" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="../neural-network-basics/res-net.html"><span class="doc">ResNet：深层网络的突破</span></a> 揭露了一个惊人的事实：堆更多的层不一定更好，反而可能更差。根源在于<a class="reference internal" href="../math-fundamentals/back-propagation.html#gradient-vanishing"><span class="std std-ref">梯度消失（Vanishing Gradient）</span></a>——梯度在反向传播中逐层衰减，浅层收不到训练信号。</p>
+<p>但 ResNet 只展示了跳跃连接这一种解法。本节从更根本的角度审视：<strong>信息如何在网络中流动？有哪些方式保证信息不丢失？</strong></p>
+<section id="id2">
+<h2>信息流动的三种通路<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-174ab4dca6c3437388e453094c8dcb4b23b5eeac.svg" alt="Figure made with TikZ" /></p>
+</div><section id="id3">
+<h3>串行链——梯度消失<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<p>普通网络只有一个路径：Layer 1 → Layer 2 → … → Layer n。信息在串行中丢失，梯度在乘法中归零。这就是<a class="reference internal" href="part1-intro.html#arch-intro"><span class="std std-ref">改造的本质：从&quot;会用 CNN&quot;到&quot;会设计 CNN&quot;</span></a>中讨论的<strong>信息传不过去</strong>。</p>
+</section>
+<section id="id4">
+<h3>跳跃连接——信息捷径<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p>ResNet 的核心原理和梯度推导已在 <a class="reference internal" href="../neural-network-basics/res-net.html"><span class="doc">ResNet：深层网络的突破</span></a> 中详细介绍。从架构设计角度，我们提炼为一条核心原则：</p>
+<blockquote>
+<div><p><strong>每个模块都应该有一条&quot;不做任何事&quot;的退路。</strong></p>
+</div></blockquote>
+<p>数学上，<span class="math notranslate nohighlight">\(y = F(x) + x\)</span> 中的 <span class="math notranslate nohighlight">\(+x\)</span> 就是这条退路：</p>
+<ul class="simple">
+<li><p>梯度可以沿跳跃路径直接回传（<span class="math notranslate nohighlight">\(+1\)</span> 项），不受残差分支影响</p></li>
+<li><p>即使残差分支梯度消失，主梯度依然能保持（保底机制）</p></li>
+</ul>
+<p>这解释了为什么 ResNet 能训练 100+ 层网络，而普通网络在 20 层就会退化。</p>
+</section>
+<section id="id5">
+<h3>密集连接——信息高速公路<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<p>DenseNet 把跳跃连接推到了极致：<strong>每一层都连接到后面所有层</strong>。这创建了一个密集的信息网络，梯度有多条路径可以回传，几乎不可能完全消失。</p>
+<p>三种连接方式的对比：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>连接方式</p></th>
+<th class="head"><p>参数效率</p></th>
+<th class="head"><p>信息安全</p></th>
+<th class="head"><p>适用深度</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>串行</p></td>
+<td><p>高</p></td>
+<td><p>低——梯度消失</p></td>
+<td><p>&lt; 20 层</p></td>
+</tr>
+<tr class="row-odd"><td><p>跳跃连接</p></td>
+<td><p>中</p></td>
+<td><p>中——有退路</p></td>
+<td><p>20 ~ 200 层</p></td>
+</tr>
+<tr class="row-even"><td><p>密集连接</p></td>
+<td><p>低——每层输入很多</p></td>
+<td><p>高——多重保障</p></td>
+<td><p>任意深度</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">DenseNet 为什么不流行</p>
+<p>既然密集连接的信息安全度最高，为什么现实中 ResNet 比 DenseNet 更常见？三个原因：</p>
+<ol class="arabic simple">
+<li><p><strong>内存爆炸</strong>：第 100 层的输入 = 前 99 层所有输出的拼接，通道数线性增长，显存消耗巨大</p></li>
+<li><p><strong>特征冗余</strong>：很多层的特征非常相似，全部保留存在大量浪费——这违背了<a class="reference internal" href="part5-efficiency.html#arch-efficiency"><span class="std std-ref">操控效率：如何在效果与速度间权衡</span></a> 中讨论的压缩原则</p></li>
+<li><p><strong>跳跃连接已经够用</strong>：对于绝大多数任务，每隔 1~2 层一跳就足够保证梯度流通，不需要每层接所有层</p></li>
+</ol>
+<p>DenseNet 的价值在<strong>思想的完整性</strong>而非实用性——它证明了&quot;连接密度&quot;是一个可以调节的维度，你可以根据计算预算在 ResNet 和 DenseNet 之间做折衷。</p>
+</div>
+</section>
+</section>
+<section id="id6">
+<h2>特征融合：不止是连接，而是对话<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<p>跳跃连接解决的是一根弦上的信息传递。但更深层的问题是：<strong>不同深度的特征如何互相配合？</strong></p>
+<p><a class="reference internal" href="part2-receptive-field.html#arch-receptive-field"><span class="std std-ref">操控感受野：网络应该看多大</span></a> 中介绍了 FPN——从感受野角度看，它让不同深度的层各自负责不同大小的目标。但从信息流动角度看，FPN 做了一件更重要的事：<strong>在深层语义和浅层细节之间建立对话</strong>。</p>
+<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-b1ab44c28cf4c2f1d20febea573d8088f6be7d17.svg" alt="Figure made with TikZ" /></p>
+</div><p><strong>设计心法</strong>：特征融合不是&quot;把两个向量拼起来&quot;，而是<strong>在不同抽象层次的特征之间建立双向信息流动</strong>——就像讨论问题时，从细节（浅层）和全局（深层）两个角度来回碰撞。</p>
+</section>
+<section id="id7">
+<h2>信息论视角：为什么连接方式决定了信息容量<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<p>从信息论来看，连接方式直接决定了<strong>每层能访问多大的信息空间</strong>：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>连接方式</p></th>
+<th class="head"><p>第 <span class="math notranslate nohighlight">\(i\)</span> 层的输入</p></th>
+<th class="head"><p>信息量</p></th>
+<th class="head"><p>瓶颈</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>串行</p></td>
+<td><p><span class="math notranslate nohighlight">\(h_{i-1}\)</span> 一个来源</p></td>
+<td><p>逐层压缩</p></td>
+<td><p>任一层的丢失永久不可恢复</p></td>
+</tr>
+<tr class="row-odd"><td><p>跳跃连接</p></td>
+<td><p><span class="math notranslate nohighlight">\(h_{i-1} + x\)</span> 两个来源</p></td>
+<td><p>恒等映射保证下限</p></td>
+<td><p>残差函数可能退化</p></td>
+</tr>
+<tr class="row-even"><td><p>密集连接</p></td>
+<td><p><span class="math notranslate nohighlight">\([h_0, h_1, ..., h_{i-1}]\)</span> 全部来源</p></td>
+<td><p>任意层的特征都可复用</p></td>
+<td><p>计算量大</p></td>
+</tr>
+<tr class="row-odd"><td><p>FPN 融合</p></td>
+<td><p>同尺度 + 上采样特征</p></td>
+<td><p>跨尺度信息互补</p></td>
+<td><p>上采样可能引入噪声</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>关键洞察</strong>：多一条连接，就多一个信息通道。信息的可恢复性随连接数增加而提升，但代价是计算量。</p>
+<div class="important admonition">
+<p class="admonition-title">设计心法</p>
+<p><strong>操控连接的黄金法则</strong>：</p>
+<ol class="arabic simple">
+<li><p>每个模块都需要一条&quot;退路&quot;（恒等映射）——至少一层一跳</p></li>
+<li><p>特征融合不是简单的拼接，而是<strong>不同抽象层次的双向对话</strong></p></li>
+<li><p>连接方式的选择取决于你的瓶颈：深度（加跳跃）还是尺度（做融合）</p></li>
+</ol>
+</div>
+</section>
+<section id="id8">
+<h2>失败案例：过度连接的陷阱<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<section id="id9">
+<h3>案例一：浅层网络强行加残差连接<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：你的网络只有 4 层，但每层都加了残差连接。</p>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>训练反而变慢了</p></li>
+<li><p>最终准确率没有提升</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>残差连接解决的是<strong>深层网络</strong>的梯度消失问题</p></li>
+<li><p>4 层网络的梯度本来就能正常回传，<span class="math notranslate nohighlight">\(\gamma^4\)</span> 不会太小</p></li>
+<li><p>额外的 <span class="math notranslate nohighlight">\(+x\)</span> 操作引入了不必要的计算，反而可能破坏特征的逐层变换</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>残差连接是&quot;药&quot;，不是&quot;保健品&quot;</strong>。10 层以下不需要，20 层以上才考虑。</p>
+</section>
+<section id="densenet">
+<h3>案例二：DenseNet 的内存爆炸<a class="headerlink" href="#densenet" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：你设计了一个 100 层的 DenseNet，每层都接收之前所有层的输出。</p>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>训练时 GPU 内存溢出（OOM）</p></li>
+<li><p>即使 batch size=1 也跑不动</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>DenseNet 的特征图数量随深度线性增长</p></li>
+<li><p>第 <span class="math notranslate nohighlight">\(L\)</span> 层需要存储之前 <span class="math notranslate nohighlight">\(L-1\)</span> 层的所有特征图</p></li>
+<li><p>100 层 DenseNet 的特征图数量是普通网络的 50 倍</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>密集连接的信息收益有边际递减效应，但内存消耗是线性增长的</strong>。DenseNet 更适合 20-40 层，而不是 100+ 层。</p>
+</section>
+<section id="id10">
+<h3>案例三：跳跃连接位置放错<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：你把 U-Net 的跳跃连接从&quot;编码器→解码器同层&quot;改成了&quot;编码器最深层→解码器最浅层&quot;。</p>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>分割边缘模糊</p></li>
+<li><p>小目标检测不到</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>U-Net 跳跃连接的核心是<strong>同尺度特征融合</strong>（28×28 对 28×28）</p></li>
+<li><p>编码器深层是 4×4，解码器浅层是 56×56——尺度不匹配</p></li>
+<li><p>上采样后的 4×4→56×56 丢失了精确定位信息</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>特征融合的前提是空间对齐</strong>。跳跃连接不是&quot;随便连&quot;，而是需要精心设计融合点的位置。</p>
+</section>
+<section id="fpn">
+<h3>案例四：FPN 中忘记横向连接<a class="headerlink" href="#fpn" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：你实现了 FPN，但只做了自上而下的上采样，没有横向连接（lateral connection）。</p>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>小目标检测率提升不明显</p></li>
+<li><p>整体 mAP 比标准 FPN 低 2-3 个点</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>纯上采样的深层特征虽然语义强，但空间精度差（混叠效应）</p></li>
+<li><p>没有横向连接引入的浅层高分辨率特征，小目标定位不准</p></li>
+<li><p>这正是 FPN 论文强调 lateral connection 的原因</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>FPN 的价值在于&quot;双向融合&quot;，不是单向传递</strong>。少了横向连接，就退化成普通的上采样金字塔。</p>
+</section>
+<section id="id11">
+<h3>决策树：如何选择连接策略<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>网络深度?
+├── &lt; 10 层
+│   └── 标准卷积堆叠即可，不需要特殊连接
+│
+├── 10-30 层
+│   ├── 梯度消失问题? → ResNet 残差连接
+│   └── 需要特征复用? → DenseNet 密集连接
+│
+└── &gt; 50 层
+    ├── 梯度消失严重? → ResNet + Pre-activation
+    ├── 多尺度检测/分割? → FPN + 横向连接
+    └── 内存有限? → 分组密集连接或 Sparse DenseNet
+</pre></div>
+</div>
+<p><strong>核心原则</strong>：连接策略服务于<strong>信息流动问题</strong>。先诊断问题（梯度消失？信息丢失？多尺度？），再选策略，不要盲目堆叠连接。</p>
+</section>
+</section>
+<section id="id12">
+<h2>下一步<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
+<p>感受野决定了信息入口，连接决定了信息通路。但还有一个问题——通路畅通了，信息量也够了，网络知道该让哪些信息优先通过吗？</p>
+<p>这就是<a class="reference internal" href="part4-attention.html"><span class="doc">操控注意力与长程依赖：信息该走哪条路</span></a>要解决的问题。</p>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">15d1b15</code>
+                2026-05-03 - <strong>Heyan Zhu</strong>: docs(model-architecture-design): add new chapter on CNN architecture design methodology
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="part2-receptive-field.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">上一页</p>
+        <p class="prev-next-title">操控感受野：网络应该看多大</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="part4-attention.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">下一页</p>
+        <p class="prev-next-title">操控注意力与长程依赖：信息该走哪条路</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> 目录
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">信息流动的三种通路</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">串行链——梯度消失</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">跳跃连接——信息捷径</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">密集连接——信息高速公路</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">特征融合：不止是连接，而是对话</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">信息论视角：为什么连接方式决定了信息容量</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">失败案例：过度连接的陷阱</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">案例一：浅层网络强行加残差连接</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#densenet">案例二：DenseNet 的内存爆炸</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">案例三：跳跃连接位置放错</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fpn">案例四：FPN 中忘记横向连接</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">决策树：如何选择连接策略</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">下一步</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+作者： UCS Deep Learning Club
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

@@ -55,7 +55,7 @@ ResNet的核心洞察很简单：**如果某一层学不到有用的东西，不
 
 ## 方法二：信息论视角——只学"差异"
 
-从互信息的角度看，深层网络面临一个**信息瓶颈**问题：数据每经过一层，都可能丢失一些原始输入的信息。100 层之后，网络可能已经"忘记"了输入到底是什么。
+从{doc}`互信息<../model-architecture-design/part1-intro>`的角度看，深层网络面临一个**信息瓶颈**问题：数据每经过一层，都可能丢失一些原始输入的信息。100 层之后，网络可能已经"忘记"了输入到底是什么。
 
 ResNet 的解决方案很巧妙：**与其让网络学完整的映射 $H(x)$，不如让它学"需要改什么"——即残差 $F(x) = H(x) - x$**。
 
@@ -89,17 +89,51 @@ $$
 1. **梯度传播**：反向传播时，梯度可以通过恒等映射的x分支直接回传，不受 $F(x)$ 的影响
 2. **优化容易**：如果某一层不需要做任何变换，让 $F(x)=0$ 即可恢复恒等映射，网络总能"退回到"较简单的状态
 
-```{admonition} 恒等映射的梯度特性
-:class: info
+### 梯度流动的数学原理
 
-对于 $y = F(x) + x$，求导得：
+为什么跳跃连接能解决梯度消失？回顾 {doc}`../math-fundamentals/back-propagation` 中的分析：深层网络的梯度等于多层 {ref}`jacobian-matrix` 的连乘，当每层 Jacobian 的奇异值 $< 1$ 时，梯度会指数级衰减（详见 {ref}`gradient-vanishing-math`）。
 
-$$
-\frac{\partial y}{\partial x} = \frac{\partial F(x)}{\partial x} + 1
-$$
+ResNet 的核心突破在于为梯度提供了**第二条路径**：
 
-即使$\frac{\partial F(x)}{\partial x}$很小（梯度消失），$+1$ 保证了梯度至少为 1，不会衰减到零。
-```
+**ResNet 的梯度传播**
+
+残差块：$h_{i+1} = h_i + F(h_i, W_i)$
+
+反向传播时：
+
+$$\frac{\partial \mathcal{L}}{\partial h_i} = \frac{\partial \mathcal{L}}{\partial h_{i+1}} \cdot \frac{\partial h_{i+1}}{\partial h_i} = \frac{\partial \mathcal{L}}{\partial h_{i+1}} \cdot \left(1 + \frac{\partial F}{\partial h_i}\right)$$
+
+**关键洞察**：梯度分成两条路径
+1. **跳跃路径**：$\frac{\partial \mathcal{L}}{\partial h_{i+1}} \cdot 1 = \frac{\partial \mathcal{L}}{\partial h_{i+1}}$（直接回传，不衰减！）
+2. **残差路径**：$\frac{\partial \mathcal{L}}{\partial h_{i+1}} \cdot \frac{\partial F}{\partial h_i}$（可能衰减，但不影响主路径）
+
+对于 $n$ 个残差块的堆叠：
+
+$$\frac{\partial \mathcal{L}}{\partial h_i} = \frac{\partial \mathcal{L}}{\partial h_n} \prod_{k=i}^{n-1} \left(1 + \frac{\partial F_k}{\partial h_k}\right)$$
+
+展开前几项：
+
+$$\prod_{k=i}^{n-1} (1 + a_k) = 1 + \sum a_k + \sum_{k \neq j} a_k a_j + \ldots$$
+
+其中 $a_k = \frac{\partial F_k}{\partial h_k}$。
+
+**保底机制**：即使所有 $a_k \approx 0$（残差分支没学到东西），梯度依然可以通过：
+
+$$\frac{\partial \mathcal{L}}{\partial h_i} \approx \frac{\partial \mathcal{L}}{\partial h_n} \cdot 1 = \frac{\partial \mathcal{L}}{\partial h_n}$$
+
+这就是 $+1$ 的魔力——梯度至少为 1，不会衰减到零。
+
+**数值验证**
+
+假设残差函数的梯度 $\frac{\partial F}{\partial h} \sim \mathcal{N}(0, 0.01)$（均值为0，方差0.01）：
+
+| 网络深度 | 普通网络梯度 | ResNet 梯度 | 改善倍数 |
+|---------|-------------|------------|---------|
+| 10 层 | $0.9^{10} \approx 0.35$ | $\approx 0.95$ | 2.7× |
+| 50 层 | $0.9^{50} \approx 0.005$ | $\approx 0.78$ | 156× |
+| 100 层 | $0.9^{100} \approx 2.6 \times 10^{-5}$ | $\approx 0.61$ | 23,000× |
+
+梯度不再消失，深层网络终于可以训练了！
 
 ## 历史背景：ImageNet 2015的突破
 

@@ -1,0 +1,963 @@
+
+<!DOCTYPE html>
+
+
+<html lang="zh-CN" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>操控感受野：网络应该看多大 &#8212; Deep Learning Club Handouts 0.0.1 文档</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=a946219f" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=eb1cd0b9"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/translations.js?v=beaddf03"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'model-architecture-design/part2-receptive-field';</script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="操控深度与连接：信息如何在网络中流动" href="part3-depth-connection.html" />
+    <link rel="prev" title="改造的本质：从&#34;会用 CNN&#34;到&#34;会设计 CNN&#34;" href="part1-intro.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="zh-CN"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">UCS Deep Learning Club</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">搜索</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../math-fundamentals/index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础：从理论到架构</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN 消融研究：理解卷积神经网络各组件的作用</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：消融研究的科学方法论</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/the-end.html">结语：从黑盒到白盒</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../attention-mechanisms/index.html">CNN 中的注意力机制</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/introduction.html">为什么CNN需要注意力机制？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/se-net.html">通道注意力：SE-Net</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/spatial-attn.html">空间注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/cbam.html">通道+空间注意力：CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/comparison.html">注意力机制的选择与应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/practice.html">实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">CNN 架构改造：设计卷积网络的心法</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="part1-intro.html">改造的本质：从"会用 CNN"到"会设计 CNN"</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../model-serving/index.html">模型部署与服务：从训练到生产</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置番外篇</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="源码库"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/model-architecture-design/part2-receptive-field.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/issues/new?title=Issue%20on%20page%20%2Fmodel-architecture-design/part2-receptive-field.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="创建议题"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="下载此页面">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/model-architecture-design/part2-receptive-field.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="下载源文件"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="列印成 PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="全屏模式"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>操控感受野：网络应该看多大</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> 目录 </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">什么时候需要改造感受野</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">策略一：多尺度并行</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">策略二：空洞卷积</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fpn">策略三：特征金字塔（FPN）——不同深度、不同感受野</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">FPN 的结构：自上而下 + 横向连接</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">三种策略的对比与选择</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">失败案例：什么情况下不该用</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mnist-inception">案例一：MNIST 上用 Inception</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">案例二：分割任务中空洞率过大</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">案例三：分类任务盲目用 FPN</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">决策树：什么时候用什么</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">信息论视角：多尺度 = 多频段采样</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">下一步</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">参考文献</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="arch-receptive-field">
+<span id="id1"></span><h1>操控感受野：网络应该看多大<a class="headerlink" href="#arch-receptive-field" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="../neural-network-basics/cnn-basics.html#receptive-field"><span class="std std-ref">感受野</span></a> 告诉我们：卷积层越深，感受野越大。但 <a class="reference internal" href="../neural-network-basics/inception.html"><span class="doc">Inception：多尺度感受野的探索</span></a> 揭示了一个根本问题——<strong>每一层只有一个固定大小的感受野</strong>。</p>
+<p>这就是操控感受野要解决的核心矛盾：<strong>不同的目标需要不同大小的感受野，但传统 CNN 只有一个</strong>。</p>
+<section id="id2">
+<h2>什么时候需要改造感受野<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>先确认你是不是真的遇到了感受野问题：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>症状</p></th>
+<th class="head"><p>可能原因</p></th>
+<th class="head"><p>是否感受野问题</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>大物体（占据半张图）识别差</p></td>
+<td><p>感受野只能看到局部</p></td>
+<td><p><strong>是</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>同时有大物体和小物体的图效果差</p></td>
+<td><p>单一感受野顾此失彼</p></td>
+<td><p><strong>是</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>所有物体识别都差</p></td>
+<td><p>可能不是感受野问题</p></td>
+<td><p>先检查训练</p></td>
+</tr>
+<tr class="row-odd"><td><p>小物体识别差、大物体尚可</p></td>
+<td><p>大感受野丢失细节</p></td>
+<td><p><strong>是</strong></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">关键判断</p>
+<p>如果加大卷积核尺寸（比如 3→7）能提升效果，那大概率是感受野问题。</p>
+</div>
+</section>
+<section id="id3">
+<h2>策略一：多尺度并行<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>这是 <a class="reference internal" href="../neural-network-basics/inception.html"><span class="doc">Inception：多尺度感受野的探索</span></a> 的核心思想，但我们从<strong>设计心法</strong>而非架构本身来理解它。</p>
+<p><strong>本质</strong>：不说&quot;用多大&quot;，而说&quot;都试试&quot;。同时运行多个感受野的卷积，让网络自己选。</p>
+<div class="figure" id="id109" style="text-align: center"><p><img  src="../_images/tikz-1b09f3bdc7a2c60223eae4c62c68275530772979.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Inception 的多尺度并行</span></p>
+</div><p><strong>适用场景</strong>：你有多个大小悬殊的目标类别（比如自然图像分类）。</p>
+<p><strong>代价与缓解</strong>：参数和计算量增加（多个分支同时跑）。<a class="reference internal" href="../neural-network-basics/inception.html"><span class="doc">Inception：多尺度感受野的探索</span></a> 中的关键创新是用 <strong>1×1 卷积先降维</strong>——在昂贵的 3×3 和 5×5 卷积之前，先用 1×1 把通道数降下来：</p>
+<p><strong>心法</strong>：这是一种&quot;信息保险&quot;——不确定感受野应该多大时，把不同大小的都保留下来。1×1 降维则是&quot;用计算换信息&quot;的精打细算。</p>
+</section>
+<section id="id4">
+<h2>策略二：空洞卷积<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="part1-intro.html#arch-intro"><span class="std std-ref">改造的本质：从&quot;会用 CNN&quot;到&quot;会设计 CNN&quot;</span></a> 中我们简单介绍了空洞卷积——它在不增加参数的情况下扩大感受野。现在从<strong>设计心法</strong>来理解它。</p>
+<p><strong>本质</strong>：用稀疏采样替代密集采样。3×3 卷积 + 空洞率 2 = 5×5 的感受野，但参数还是 9 个。<a class="reference internal" href="../neural-network-basics/inception.html"><span class="doc">Inception：多尺度感受野的探索</span></a> 中我们已用 TikZ 图展示了普通卷积与空洞卷积的直观对比，这里不再重复。</p>
+<p><strong>设计原则</strong>：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>空洞率</p></th>
+<th class="head"><p>3×3 卷积的感受野</p></th>
+<th class="head"><p>相当于普通</p></th>
+<th class="head"><p>参数量</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>3×3</p></td>
+<td><p>3×3</p></td>
+<td><p>9</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>5×5</p></td>
+<td><p>5×5</p></td>
+<td><p>9</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p>7×7</p></td>
+<td><p>7×7</p></td>
+<td><p>9</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p>9×9</p></td>
+<td><p>9×9</p></td>
+<td><p>9</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>心法</strong>：空洞卷积是&quot;用稀疏换取广度&quot;。你牺牲了每个卷积核的采样密度，换来不花钱的大感受野。</p>
+<p><strong>代价：网格效应（Gridding Effect）</strong></p>
+<p>稀疏采样不是免费的午餐。当空洞率过大时，卷积核只采样输入的&quot;离散点&quot;，会丢失局部连续性信息，产生棋盘格状的伪影：</p>
+<div class="figure" id="id110" style="text-align: center"><p><img  src="../_images/tikz-3c81e06a55c6742bf244c9da62f99add8a00e3a7.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">空洞卷积的网格效应对比</span></p>
+</div><p><strong>缓解策略</strong>：</p>
+<ul class="simple">
+<li><p>不要把空洞率设得太大（通常 ≤ 16）</p></li>
+<li><p>不同空洞率的卷积并行（ASPP），互相弥补采样盲区</p></li>
+</ul>
+<p><strong>适用场景</strong>：需要大感受野但参数量、计算量受限（分割任务、轻量模型）。</p>
+<p><strong>典型应用——ASPP（Atrous Spatial Pyramid Pooling）</strong></p>
+<p>DeepLab 系列的核心模块，同时并行 4 个不同空洞率的卷积（空洞率=6, 12, 18, 24）+ 1 个全局平均池化：</p>
+<div class="figure" id="id111" style="text-align: center"><p><img  src="../_images/tikz-5a223f1a8dd7f07c58423e97de3d7cdb28590234.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">ASPP 结构：多空洞率并行</span></p>
+</div><p>ASPP 与 Inception 的区别：</p>
+<ul class="simple">
+<li><p>Inception：多个卷积核尺寸（1×1, 3×3, 5×5）</p></li>
+<li><p>ASPP：相同卷积核，不同空洞率（3×3 with rate=6,12,18,24）</p></li>
+</ul>
+<p>前者增加参数，后者不增加参数——都是多尺度，但代价不同。</p>
+</section>
+<section id="fpn">
+<h2>策略三：特征金字塔（FPN）——不同深度、不同感受野<a class="headerlink" href="#fpn" title="Link to this heading">#</a></h2>
+<p>Inception 和空洞卷积解决的是<strong>同一层的多尺度</strong>问题。但 CNN 有一个天然的多尺度结构——<strong>不同深度的层自然拥有不同感受野</strong>。</p>
+<p>浅层特征：分辨率高、感受野小 → 适合检测小物体
+深层特征：分辨率低、感受野大 → 适合检测大物体</p>
+<p>特征金字塔网络（FPN, Feature Pyramid Network）的洞察是：不给每一层单独分配目标大小，而是<strong>在不同深度的特征之间建立信息通道，让它们对话</strong>。</p>
+<p><strong>心法</strong>：FPN/PAN 的本质是<strong>在不同感受野的特征之间建立信息通道</strong>。信息不仅在层之间流动，还在不同感受野之间流动。</p>
+<section id="id5">
+<h3>FPN 的结构：自上而下 + 横向连接<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<p>FPN 并不是简单的&quot;把不同层的特征拼起来&quot;，它有一个精妙的结构设计：</p>
+<div class="figure" id="id112" style="text-align: center"><p><img  src="../_images/tikz-ab0e8d7fa176cfbdb840c8d7672a91b913b34793.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">FPN 结构：自上而下路径与横向连接</span></p>
+</div><p><strong>为什么需要这种结构？</strong></p>
+<p>单纯使用深层特征的问题：分辨率太低，小物体可能已经&quot;消失&quot;了。单纯使用浅层特征的问题：感受野太小，看不清全局上下文。</p>
+<p>FPN 的解决方案：</p>
+<ol class="arabic simple">
+<li><p><strong>横向连接</strong>：保留浅层的高分辨率细节</p></li>
+<li><p><strong>自上而下路径</strong>：把深层的强语义信息传递回浅层</p></li>
+<li><p><strong>逐层融合</strong>：每个输出层都同时具有&quot;高分辨率 + 强语义&quot;</p></li>
+</ol>
+<p><strong>融合机制的具体操作</strong></p>
+<p>横向连接和自上而下路径相遇时，不是简单相加，而是有一个精心设计的流程：</p>
+<div class="figure" id="id113" style="text-align: center"><p><img  src="../_images/tikz-bbdab256f5331819c70984568a21b000630402cb.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">FPN融合机制流程</span></p>
+</div><p><strong>关键设计选择</strong>：</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>操作</p></th>
+<th class="head"><p>选项</p></th>
+<th class="head"><p>FPN的选择</p></th>
+<th class="head"><p>原因</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>上采样</p></td>
+<td><p>最近邻/双线性/转置卷积</p></td>
+<td><p>最近邻或双线性</p></td>
+<td><p>简单高效，后续有3×3优化</p></td>
+</tr>
+<tr class="row-odd"><td><p>通道调整</p></td>
+<td><p>1×1卷积/直接截断</p></td>
+<td><p>1×1卷积</p></td>
+<td><p>可学习地选择重要通道</p></td>
+</tr>
+<tr class="row-even"><td><p>融合方式</p></td>
+<td><p>相加/拼接</p></td>
+<td><p><strong>相加</strong></p></td>
+<td><p>保持通道数，计算效率高</p></td>
+</tr>
+<tr class="row-odd"><td><p>后处理</p></td>
+<td><p>3×3卷积/无</p></td>
+<td><p>可选3×3</p></td>
+<td><p>消除上采样的混叠效应</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>为什么用<strong>相加</strong>而不是拼接？</p>
+<ul class="simple">
+<li><p>相加：通道数不变，计算效率高，适合&quot;融合语义&quot;</p></li>
+<li><p>拼接：通道数翻倍，信息保留更完整但计算量大</p></li>
+</ul>
+<p>FPN 选择相加，是因为深层的强语义已经足够指导浅层检测——目标是<strong>融合</strong>而非<strong>堆叠</strong>信息。</p>
+<div class="tip admonition">
+<p class="admonition-title">与 Inception 的本质区别</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>策略</p></th>
+<th class="head"><p>多尺度来源</p></th>
+<th class="head"><p>信息如何融合</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Inception</p></td>
+<td><p>同一层的多个卷积核</p></td>
+<td><p>拼接（concat）</p></td>
+</tr>
+<tr class="row-odd"><td><p>FPN</p></td>
+<td><p>不同深度的自然层次</p></td>
+<td><p>自上而下 + 横向连接</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Inception 是&quot;横向并行&quot;，FPN 是&quot;纵向融合&quot;。两者可以结合使用（如 PANet）。</p>
+</div>
+</section>
+</section>
+<section id="id6">
+<h2>三种策略的对比与选择<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>策略</p></th>
+<th class="head"><p>感受野</p></th>
+<th class="head"><p>计算代价</p></th>
+<th class="head"><p>适用任务</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>多尺度并行（Inception）</p></td>
+<td><p>同一层多个固定大小</p></td>
+<td><p>中等（多分支）</p></td>
+<td><p>分类——目标大小不确定</p></td>
+</tr>
+<tr class="row-odd"><td><p>空洞卷积</p></td>
+<td><p>不增参扩大感受野</p></td>
+<td><p>低</p></td>
+<td><p>分割——需要大感受野但计算受限</p></td>
+</tr>
+<tr class="row-even"><td><p>FPN/PAN</p></td>
+<td><p>不同层不同感受野+融合</p></td>
+<td><p>中高（上采样+融合）</p></td>
+<td><p>检测/分割——多尺度目标</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="important admonition">
+<p class="admonition-title">设计心法</p>
+<p><strong>操控感受野的本质不是&quot;选一个大小&quot;，而是&quot;让网络同时看到多个尺度&quot;</strong>。</p>
+<p>三种策略的区别仅在于<strong>实现方式</strong>：Inception 在同一层内并行多个卷积核、空洞卷积用稀疏采样换广度、FPN 利用网络深度天然的多尺度结构。</p>
+</div>
+</section>
+<section id="id7">
+<h2>失败案例：什么情况下不该用<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<section id="mnist-inception">
+<h3>案例一：MNIST 上用 Inception<a class="headerlink" href="#mnist-inception" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：MNIST 手写数字识别（<span class="math notranslate nohighlight">\(28\times28\)</span> 灰度图），你在第一层就加了 Inception 模块（1×1、3×3、5×5、MaxPool 并行）。</p>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>训练时间翻倍</p></li>
+<li><p>准确率从 99.2% 降到 99.0%（或没有提升）</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>MNIST 数字只占图像中心一小块，大小相对固定</p></li>
+<li><p>5×5 卷积核几乎覆盖了整个数字，没有&quot;多尺度&quot;的必要</p></li>
+<li><p>增加的分支引入了更多参数，但没有带来信息增益</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>感受野策略的前提是&quot;确实存在多尺度&quot;</strong>。如果任务本身尺度单一（如对齐良好的人脸、固定大小的字符），多尺度就是浪费。</p>
+</section>
+<section id="id8">
+<h3>案例二：分割任务中空洞率过大<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：医学图像分割（细胞分割），你用空洞率 16 的 3×3 卷积来扩大感受野。</p>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>大细胞分割还可以</p></li>
+<li><p><strong>小细胞大量丢失</strong>——在特征图上彻底&quot;消失&quot;</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>空洞率 16 意味着卷积核实际采样点间距为 16 像素</p></li>
+<li><p>对于直径只有 20-30 像素的细胞，3×3 空洞卷积只能看到 3 个采样点</p></li>
+<li><p>信息严重欠采样，小目标被&quot;跳过&quot;</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>空洞卷积的上限是目标最小尺寸</strong>。如果目标只有 20 像素，空洞率不应超过 5-7。</p>
+</section>
+<section id="id9">
+<h3>案例三：分类任务盲目用 FPN<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：ImageNet 分类，你把 ResNet 改造成了 FPN 结构——多尺度输出、自上而下连接。</p>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>参数量和计算量显著增加</p></li>
+<li><p>Top-5 准确率没有提升，甚至略有下降</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>FPN 的核心价值是<strong>多尺度目标的定位和分类</strong>（检测/分割）</p></li>
+<li><p>分类任务只需要一个全局判断，不需要&quot;每层都输出&quot;</p></li>
+<li><p>额外的上采样和融合引入了计算负担，但没有对应的收益</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>FPN 是为目标检测/分割设计的，不是为纯分类</strong>。分类任务用 FPN 是&quot;杀鸡用牛刀&quot;。</p>
+</section>
+<section id="id10">
+<h3>决策树：什么时候用什么<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>任务类型?
+├── 检测/分割（需要定位）
+│   ├── 多尺度目标明显? → FPN/PAN
+│   ├── 计算资源紧张? → 空洞卷积
+│   └── 固定尺度目标? → 普通卷积即可
+│
+└── 分类（只需要全局判断）
+    ├── 尺度变化大? → Inception/多尺度池化
+    └── 尺度固定? → 标准卷积，别折腾
+</pre></div>
+</div>
+<p><strong>核心原则</strong>：感受野改造是为了解决<strong>特定问题</strong>，不是为了&quot;看起来厉害&quot;。如果 baseline 没有明显问题，不要引入复杂度。</p>
+</section>
+</section>
+<section id="id11">
+<h2>信息论视角：多尺度 = 多频段采样<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
+<p>从信息论来看，感受野策略都是<strong>多频段采样</strong><span id="id12">[<a class="reference internal" href="the-end.html#id110" title="Naftali Tishby, Fernando C Pereira, and William Bialek. The information bottleneck method. arXiv preprint physics/0004057, 2000.">TPB00</a>]</span>：</p>
+<ul class="simple">
+<li><p>自然界图像的<a class="reference internal" href="part1-intro.html#mutual-information"><span class="std std-ref">互信息</span></a>分布在不同的空间频率上</p></li>
+<li><p>小感受野捕捉高频（细节），大感受野捕捉低频（全局结构）</p></li>
+<li><p>单一感受野 = 信息窄带采样，丢失其他频段的信息</p></li>
+<li><p>多尺度策略 = 宽带采样，<strong>最大化 <span class="math notranslate nohighlight">\(I(X;Y)\)</span></strong></p></li>
+</ul>
+<p><a class="reference internal" href="part1-intro.html#arch-intro"><span class="std std-ref">改造的本质：从&quot;会用 CNN&quot;到&quot;会设计 CNN&quot;</span></a> 中讨论的信息漏斗问题，感受野的操控策略本质上是<strong>在空间维度上拓宽漏斗的入口</strong>——不止截取一个频段，而是同时截取所有频段。</p>
+</section>
+<section id="id13">
+<h2>下一步<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<p>操控感受野解决了&quot;看什么&quot;的问题。但光看还不够——信息必须在网络中有效地流动，梯度必须能传回来。这就是下一节<a class="reference internal" href="part3-depth-connection.html"><span class="doc">操控深度与连接：信息如何在网络中流动</span></a>要解决的问题。</p>
+</section>
+<hr class="docutils" />
+<section id="id14">
+<h2>参考文献<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id15">
+<div role="list" class="citation-list">
+<div class="citation" id="id108" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id12">TPB00</a><span class="fn-bracket">]</span></span>
+<p>Naftali Tishby, Fernando C Pereira, and William Bialek. The information bottleneck method. <em>arXiv preprint physics/0004057</em>, 2000.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">15d1b15</code>
+                2026-05-03 - <strong>Heyan Zhu</strong>: docs(model-architecture-design): add new chapter on CNN architecture design methodology
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="part1-intro.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">上一页</p>
+        <p class="prev-next-title">改造的本质：从&quot;会用 CNN&quot;到&quot;会设计 CNN&quot;</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="part3-depth-connection.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">下一页</p>
+        <p class="prev-next-title">操控深度与连接：信息如何在网络中流动</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> 目录
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">什么时候需要改造感受野</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">策略一：多尺度并行</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">策略二：空洞卷积</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fpn">策略三：特征金字塔（FPN）——不同深度、不同感受野</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">FPN 的结构：自上而下 + 横向连接</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">三种策略的对比与选择</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">失败案例：什么情况下不该用</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mnist-inception">案例一：MNIST 上用 Inception</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">案例二：分割任务中空洞率过大</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">案例三：分类任务盲目用 FPN</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">决策树：什么时候用什么</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">信息论视角：多尺度 = 多频段采样</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">下一步</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">参考文献</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+作者： UCS Deep Learning Club
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
