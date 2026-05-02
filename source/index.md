@@ -19,6 +19,7 @@ pytorch-practice/index
 cnn-ablation-study/index
 transfer-learning/index
 attention-mechanisms/index
+model-architecture-design/index
 unet-image-segmentation/index
 model-serving/index
 appendix/environment-setup/index
@@ -31,12 +32,13 @@ postscript
 graph LR
     A[数学基础<br/>计算图与梯度] --> B[神经网络基础<br/>CNN架构]
     B --> C[PyTorch实践<br/>训练流程]
-    C --> D{进阶方向<br/>任选其一}
-    D --> E[CNN消融研究<br/>科学方法论]
-    D --> F[迁移学习<br/>实用技术]
-    D --> G[注意力机制<br/>模型改进]
-    D --> H[U-Net分割<br/>CV实战]
-    D --> I[模型部署<br/>工程实践]
+    C --> D1[注意力机制<br/>模型改进]
+    D1 --> D2[CNN架构改造<br/>设计心法]
+    D2 --> E{进阶方向<br/>任选其一}
+    E --> F[CNN消融研究<br/>科学方法论]
+    E --> G[迁移学习<br/>实用技术]
+    E --> H[U-Net分割<br/>CV实战]
+    E --> I[模型部署<br/>工程实践]
 ```
 
 **核心路径**（必修）：数学基础 → 神经网络基础 → PyTorch实践  
@@ -62,6 +64,7 @@ graph LR
 | **进阶阶段** | CNN消融研究 | 2-4周 | 培养科学实验思维，理解各组件贡献 |
 | | 迁移学习 | 2-3小时 | 掌握小数据集训练大模型的核心技术 |
 | | 注意力机制 | 2-3小时 | 理解SE-Net、CBAM等注意力模块原理 |
+| | CNN架构改造 | 2-3小时 | 掌握CNN架构设计心法，学会系统改造模型 |
 | | U-Net分割 | 3-4小时 | 实现图像分割模型，理解编码器-解码器架构 |
 | | 模型部署 | 2-3小时 | 将训练好的模型导出并部署为API服务 |
 

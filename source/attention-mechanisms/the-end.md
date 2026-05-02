@@ -60,11 +60,12 @@ SE-Net 和 CBAM 是 CNN 中专用的注意力形式。更通用的**自注意力
 
 掌握了 CNN 注意力机制后，你可以探索：
 
-1. **{doc}`../unet-image-segmentation/index`**：Attention U-Net 如何将注意力引入分割任务
-2. **Transformer 与 ViT**：自注意力如何彻底替代卷积
-3. **大语言模型**：GPT、BERT 的核心就是多头自注意力
-4. **多模态注意力**：CLIP 等模型的图像-文本交叉注意力
-5. **高效注意力**：稀疏注意力、线性注意力降低 $O(n^2)$ 复杂度
+1. **{doc}`../model-architecture-design/index`**：将注意力纳入 CNN 架构设计心法——从"会用注意力模块"到"知道什么维度用什么策略"
+2. **{doc}`../unet-image-segmentation/index`**：Attention U-Net 如何将注意力引入分割任务
+3. **Transformer 与 ViT**：自注意力如何彻底替代卷积
+4. **大语言模型**：GPT、BERT 的核心就是多头自注意力
+5. **多模态注意力**：CLIP 等模型的图像-文本交叉注意力
+6. **高效注意力**：稀疏注意力、线性注意力降低 $O(n^2)$ 复杂度
 
 ## 推荐资源
 
