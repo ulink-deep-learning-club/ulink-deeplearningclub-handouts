@@ -303,16 +303,21 @@ Self-Attention 的核心机制是 **Query-Key-Value 计算**（详见 Transforme
 
 ### 决策树：注意力使用指南
 
-```
-网络深度?
-├── 浅层（分辨率 ≥ 56×56）
-│   └── 不加注意力！提取基础特征即可
-│
-└── 深层（分辨率 ≤ 14×14）
-    ├── 需要通道筛选? → SE-Net / ECA
-    ├── 需要空间定位? → CBAM 空间分支
-    ├── 需要长程依赖? → Self-Attention（但注意计算量）
-    └── 资源紧张? → 全局平均池化注意力
+```{mermaid}
+flowchart TD
+    START[网络深度?] --> SHALLOW{浅层<br/>分辨率 ≥ 56×56}
+    SHALLOW -->|是| NOATT[不加注意力<br/>提取基础特征]
+    
+    SHALLOW -->|否| DEEP{深层<br/>分辨率 ≤ 14×14}
+    DEEP -->|是| CHANNEL{需要通道筛选?}
+    CHANNEL -->|是| SE[SE-Net / ECA]
+    CHANNEL -->|否| SPATIAL{需要空间定位?}
+    SPATIAL -->|是| CBAM[CBAM 空间分支]
+    SPATIAL -->|否| LONG{需要长程依赖?}
+    LONG -->|是| SELF[Self-Attention<br/>注意计算量]
+    LONG -->|否| RESOURCE{资源紧张?}
+    RESOURCE -->|是| POOL[全局平均池化注意力]
+    RESOURCE -->|否| NOATT2[不加注意力]
 ```
 
 **核心原则**：
