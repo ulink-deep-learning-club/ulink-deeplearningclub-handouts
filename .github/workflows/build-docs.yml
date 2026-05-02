@@ -27,13 +27,18 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Update apt
-        run: sudo apt update
-
       - name: Purge snap
         run: |
             sudo apt purge snapd
             sudo apt-mark hold snapd
+
+      - name: Setup Chromium Repo
+        run: |
+          sudo wget 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x869689FE09306074' -O '/etc/apt/trusted.gpg.d/phd-chromium.asc'
+          echo "deb https://freeshell.de/phd/chromium/$(lsb_release -sc) /" | sudo tee /etc/apt/sources.list.d/phd-chromium.list
+
+      - name: Update apt
+        run: sudo apt update
 
       - name: Install Dependencies
         run: sudo apt install texlive latex-cjk-all texlive-pictures texlive-latex-extra pdf2svg texlive-xetex fonts-noto-cjk chromium
