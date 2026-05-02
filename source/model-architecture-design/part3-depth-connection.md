@@ -276,19 +276,26 @@ DenseNet 的价值在**思想的完整性**而非实用性——它证明了"连
 
 ### 决策树：如何选择连接策略
 
-```
-网络深度?
-├── < 10 层
-│   └── 标准卷积堆叠即可，不需要特殊连接
-│
-├── 10-30 层
-│   ├── 梯度消失问题? → ResNet 残差连接
-│   └── 需要特征复用? → DenseNet 密集连接
-│
-└── > 50 层
-    ├── 梯度消失严重? → ResNet + Pre-activation
-    ├── 多尺度检测/分割? → FPN + 横向连接
-    └── 内存有限? → 分组密集连接或 Sparse DenseNet
+```{mermaid}
+flowchart TD
+    START[网络深度?] --> L10{< 10 层?}
+    L10 -->|是| STD[标准卷积堆叠<br/>不需要特殊连接]
+    
+    L10 -->|否| L30{10-30 层?}
+    L30 -->|是| GRAD{梯度消失问题?}
+    GRAD -->|是| RES[ResNet 残差连接]
+    GRAD -->|否| REUSE{需要特征复用?}
+    REUSE -->|是| DENSE[DenseNet 密集连接]
+    REUSE -->|否| STD2[标准卷积]
+    
+    L30 -->|否| L50{> 50 层?}
+    L50 -->|是| GRAD_SEV{梯度消失严重?}
+    GRAD_SEV -->|是| PRE[ResNet + Pre-activation]
+    GRAD_SEV -->|否| MULTI{多尺度检测/分割?}
+    MULTI -->|是| FPN[FPN + 横向连接]
+    MULTI -->|否| MEM{内存有限?}
+    MEM -->|是| SPARSE[分组密集连接<br/>或 Sparse DenseNet]
+    MEM -->|否| STD3[标准深层网络]
 ```
 
 **核心原则**：连接策略服务于**信息流动问题**。先诊断问题（梯度消失？信息丢失？多尺度？），再选策略，不要盲目堆叠连接。
