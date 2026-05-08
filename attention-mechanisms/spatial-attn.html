@@ -1,55 +1,518 @@
-
 <!DOCTYPE html>
-
-
-<html lang="zh-CN" data-content_root="../" >
-
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <title>空间注意力 &#8212; Deep Learning Club Handouts 0.0.1 文档</title>
+<html lang="zh-CN" data-content_root="../">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="空间注意力" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="attention-mechanisms/spatial-attn.html" />
+<meta property="og:site_name" content="Deep Learning Club Handouts" />
+<meta property="og:description" content="通道注意力：SE-Net 中，我们学习了通道注意力——让网络关注&quot;什么特征重要&quot;。但还有一个维度没覆盖： 特征出现在哪里 ？一张猫的图片中，猫所在的空间位置比背景更重要。这就是空间注意力要解决的问题。 核心思想: 空间注意力（Spatial Attention）的目标是生成一个 空间注意力图 ——一个与输入特征图同等宽高的二维权重图，每个位置的值表示该位置的重要性。 数学..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_attention-mechanisms_spatial-attn_07a1646f.png" />
+<meta property="og:image:alt" content="通道注意力：SE-Net 中，我们学习了通道注意力——让网络关注&quot;什么特征重要&quot;。但还有一个维度没覆盖： 特征出现在哪里 ？一张猫的图片中，猫所在的空间位置比背景更重要。这就是空间注意力要解决的问题。 核心思想: 空间注意力（Spatial Attention）的目标是生成一个 空间注意力图 ——一个与输入特征图同等宽高的二维权重图，每个位置的值表示该位置的重要性。 数学..." />
+<meta name="description" content="通道注意力：SE-Net 中，我们学习了通道注意力——让网络关注&quot;什么特征重要&quot;。但还有一个维度没覆盖： 特征出现在哪里 ？一张猫的图片中，猫所在的空间位置比背景更重要。这就是空间注意力要解决的问题。 核心思想: 空间注意力（Spatial Attention）的目标是生成一个 空间注意力图 ——一个与输入特征图同等宽高的二维权重图，每个位置的值表示该位置的重要性。 数学..." />
+<meta name="twitter:card" content="summary_large_image" />
+<title>空间注意力 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="通道+空间注意力：CBAM" href="cbam.html"><link rel="prev" title="通道注意力：SE-Net" href="se-net.html"><script data-cfasync="false">(function(){
+    const m = localStorage.getItem("breeze-mode") || "auto";
+    const d = document.documentElement.dataset;
+    d.mode = m;
+    d.theme = m === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : m;
+  })();
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=7d7dd224" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+<body>
   
   
+  <div class="bz-skip-to-content"><a href="#bz-main-content">Skip to main content</a></div><header class="bz-header-main">
+  <div class="bz-header-start"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><a class="bz-header-brand" href="../index.html">
   
-  <script data-cfasync="false">
-    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
-    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
-  </script>
   
-  <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <span>Deep Learning Club Handouts</span>
+</a>
+  </div>
+  <div class="bz-header-end"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><div id="docsearch" class="bz-search-button">
+  <a
+    href="../search.html#q"
+    aria-label="Search the docs"
+    data-tooltip="Search the docs"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 -1 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
+    <span>搜索</span>
+    <kbd>Ctrl+K</kbd>
+  </a>
+</div><div class="bz-theme-switcher">
+  <button aria-label="Switch theme" data-tooltip="Switch theme">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
+      <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-dark" fill="currentColor">
+      <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+    </svg>
+  </button>
+</div>
+  </div>
+</header><hr class="bz-header-hr">
+  <div class="bz-content"><aside class="bz-sidebar-primary" data-drawer="bz-sidebar-primary">
+  
+  
+    <nav class="bz-sidebar-nav" aria-label="Section Navigation"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../math-fundamentals/index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础：从理论到架构</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN 消融研究：理解卷积神经网络各组件的作用</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：消融研究的科学方法论</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/the-end.html">结语：从黑盒到白盒</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul></details></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">CNN 中的注意力机制</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">为什么CNN需要注意力机制？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="se-net.html">通道注意力：SE-Net</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">空间注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cbam.html">通道+空间注意力：CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comparison.html">注意力机制的选择与应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="practice.html">实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../model-architecture-design/index.html">CNN 架构改造：设计卷积网络的心法</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part1-intro.html">改造的本质：从"会用 CNN"到"会设计 CNN"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../model-serving/index.html">模型部署与服务：从训练到生产</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置番外篇</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+</nav>
+  
+
+</aside><main id="bz-main-content"><header class="bz-article-header">
+  
+  
+    <nav class="bz-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li class="bz-breadcrumbs-home">
+      <a href="../index.html" aria-label="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8.543 2.232a.75.75 0 0 0-1.085 0l-5.25 5.5A.75.75 0 0 0 2.75 9H4v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V9h1.25a.75.75 0 0 0 .543-1.268l-5.25-5.5Z" />
+        </svg>
+      </a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="index.html">CNN 中的注意力机制</a>
+    </li><li class="bz-breadcrumbs-current">
+      <span>空间注意力</span>
+    </li>
+  </ol>
+</nav>
+  
+<label
+  class="bz-sidebar-secondary-toggle"
+  for="bz-sidebar-secondary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle table of contents"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75H20.25 M11.25 12H20.25 M7.75 17.25H20.25"
+    />
+  </svg>
+</label></header><article class="bz-article-main" role="main"><div class="bz-page-actions" role="group" aria-label="Page actions">
+  <button data-copy-source="../_sources/attention-mechanisms/spatial-attn.md.txt">
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M7.024 3.75c0-.966.784-1.75 1.75-1.75H20.25c.966 0 1.75.784 1.75 1.75v11.498a1.75 1.75 0 0 1-1.75 1.75H8.774a1.75 1.75 0 0 1-1.75-1.75Zm1.75-.25a.25.25 0 0 0-.25.25v11.498c0 .139.112.25.25.25H20.25a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"></path><path d="M1.995 10.749a1.75 1.75 0 0 1 1.75-1.751H5.25a.75.75 0 1 1 0 1.5H3.745a.25.25 0 0 0-.25.25L3.5 20.25c0 .138.111.25.25.25h9.5a.25.25 0 0 0 .25-.25v-1.51a.75.75 0 1 1 1.5 0v1.51A1.75 1.75 0 0 1 13.25 22h-9.5A1.75 1.75 0 0 1 2 20.25l-.005-9.501Z"></path></svg>
+    <span>Copy page</span>
+  </button>
+  <div class="bz-dropdown">
+    <button
+      aria-label="More actions"
+      aria-haspopup="true"
+      aria-expanded="false"
+    ></button>
+    <ul role="menu" aria-hidden="true">
+      <li>
+        <a href="#" role="menuitem" data-copy-source="../_sources/attention-mechanisms/spatial-attn.md.txt">
+          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M7.024 3.75c0-.966.784-1.75 1.75-1.75H20.25c.966 0 1.75.784 1.75 1.75v11.498a1.75 1.75 0 0 1-1.75 1.75H8.774a1.75 1.75 0 0 1-1.75-1.75Zm1.75-.25a.25.25 0 0 0-.25.25v11.498c0 .139.112.25.25.25H20.25a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"></path><path d="M1.995 10.749a1.75 1.75 0 0 1 1.75-1.751H5.25a.75.75 0 1 1 0 1.5H3.745a.25.25 0 0 0-.25.25L3.5 20.25c0 .138.111.25.25.25h9.5a.25.25 0 0 0 .25-.25v-1.51a.75.75 0 1 1 1.5 0v1.51A1.75 1.75 0 0 1 13.25 22h-9.5A1.75 1.75 0 0 1 2 20.25l-.005-9.501Z"></path></svg>
+          <span>Copy page</span>
+        </a>
+      </li>
+      <li>
+        <a href="../_sources/attention-mechanisms/spatial-attn.md.txt" role="menuitem" class="bz-page-actions-external" target="_blank" rel="noopener">
+          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0Zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5Z"></path><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04Zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45Z"></path></svg>
+          <span>View source</span>
+        </a>
+      </li></ul>
+  </div>
+</div><section class="tex2jax_ignore mathjax_ignore" id="spatial-attn">
+<span id="id1"></span><h1>空间注意力<a class="headerlink" href="#spatial-attn" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="se-net.html#se-net"><span class="std std-ref">通道注意力：SE-Net</span></a> 中，我们学习了通道注意力——让网络关注&quot;什么特征重要&quot;。但还有一个维度没覆盖：<strong>特征出现在哪里</strong>？一张猫的图片中，猫所在的空间位置比背景更重要。这就是空间注意力要解决的问题。</p>
+<section id="id2">
+<h2>核心思想<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>空间注意力（Spatial Attention）的目标是生成一个<strong>空间注意力图</strong>——一个与输入特征图同等宽高的二维权重图，每个位置的值表示该位置的重要性。</p>
+<div class="tip admonition">
+<p class="admonition-title">空间注意力的直觉</p>
+<p>通道注意力是&quot;给每个频道调音量&quot;，空间注意力则是**“给屏幕的每个区域调亮度”**——重要的区域（如物体位置）更亮，不重要的区域（如背景）更暗。</p>
+</div>
+<object data="../_images/mermaid-05016dfef3ba6fd0edaf0c130fbdb3bb5efd9ae9.svg" type="image/svg+xml">
+            <p class="warning">graph LR
+    A[输入特征图&lt;br/&gt;C×H×W] --&gt; B[空间注意力生成器]
+    B --&gt; C[空间注意力图&lt;br/&gt;1×H×W]
+    C --&gt; D[逐元素相乘]
+    A --&gt; D
+    D --&gt; E[加权后的特征图&lt;br/&gt;C×H×W]</p></object>
+</section>
+<section id="id3">
+<h2>数学形式<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>输入特征图 <span class="math notranslate nohighlight">\(F \in \mathbb{R}^{C \times H \times W}\)</span>，空间注意力模块生成注意力图 <span class="math notranslate nohighlight">\(M_s \in \mathbb{R}^{1 \times H \times W}\)</span>：</p>
+<div class="math notranslate nohighlight">
+\[\tilde{F} = F \odot M_s\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\odot\)</span> 表示逐元素乘法（注意力图广播到所有通道）。</p>
+<p><strong>关键问题</strong>：如何从 <span class="math notranslate nohighlight">\(C\)</span> 个通道的特征图生成 <span class="math notranslate nohighlight">\(1\)</span> 个通道的空间注意力图？答案是<strong>沿通道维度聚合信息</strong>。</p>
+</section>
+<section id="cbam">
+<h2>CBAM风格的空间注意力<a class="headerlink" href="#cbam" title="Link to this heading">#</a></h2>
+<p>最常用的空间注意力方法来自 CBAM <span id="id4">[<a class="reference internal" href="#id92" title="Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In Proceedings of the European Conference on Computer Vision (ECCV), 3–19. 2018.">WPLK18</a>]</span>，步骤如下：</p>
+<ol class="arabic simple">
+<li><p><strong>通道池化</strong>：对每个空间位置，分别计算该位置在所有通道上的平均值和最大值，得到两个 <span class="math notranslate nohighlight">\(1 \times H \times W\)</span> 的聚合特征图。</p></li>
+<li><p><strong>拼接</strong>：把两个聚合图拼成 <span class="math notranslate nohighlight">\(2 \times H \times W\)</span>。</p></li>
+<li><p><strong>卷积</strong>：用一个 <span class="math notranslate nohighlight">\(7 \times 7\)</span> 卷积层将 <span class="math notranslate nohighlight">\(2\)</span> 个通道压缩回 <span class="math notranslate nohighlight">\(1\)</span> 个通道。</p></li>
+<li><p><strong>激活</strong>：Sigmoid 将值映射到 <span class="math notranslate nohighlight">\((0,1)\)</span>，得到空间注意力图。</p></li>
+</ol>
+<div class="math notranslate nohighlight">
+\[M_s = \sigma(f^{7\times7}([\text{AvgPool}^c(F); \text{MaxPool}^c(F)]))\]</div>
+<div class="note admonition">
+<p class="admonition-title">为什么同时用平均池化和最大池化？</p>
+<p>平均池化捕获&quot;该位置的整体激活强度&quot;——相当于问&quot;这个区域整体上多活跃？“。最大池化捕获&quot;该位置的最强响应”——相当于问&quot;这个区域最突出的特征是什么？&quot;。两者互补，结合起来能更全面地描述每个空间位置的信息量。</p>
+</div>
+<div class="literal-block-wrapper docutils container" id="id103">
+<div class="code-block-caption"><span class="caption-text">CBAM风格的空间注意力实现</span><a class="headerlink" href="#id103" title="Link to this code">#</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="linenos"> 3</span>
+<span class="linenos"> 4</span><span class="k">class</span><span class="w"> </span><span class="nc">SpatialAttention</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="linenos"> 5</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 6</span><span class="sd">    CBAM 风格的空间注意力模块</span>
+<span class="linenos"> 7</span>
+<span class="linenos"> 8</span><span class="sd">    沿通道维度聚合信息, 生成空间注意力图 (1×H×W):</span>
+<span class="linenos"> 9</span><span class="sd">    1. 通道平均池化 + 通道最大池化 → 2×H×W</span>
+<span class="linenos">10</span><span class="sd">    2. 7×7 卷积压缩为 1×H×W</span>
+<span class="linenos">11</span><span class="sd">    3. Sigmoid 激活</span>
+<span class="linenos">12</span>
+<span class="linenos">13</span><span class="sd">    参数量: 2 * 7 * 7 = 98 (k=7 时)</span>
+<span class="linenos">14</span><span class="sd">    输入: (B, C, H, W)</span>
+<span class="linenos">15</span><span class="sd">    输出: (B, 1, H, W)  — 空间注意力图</span>
+<span class="linenos">16</span><span class="sd">    &quot;&quot;&quot;</span>
+<span class="linenos">17</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">7</span><span class="p">):</span>
+<span class="linenos">18</span>        <span class="nb">super</span><span class="p">(</span><span class="n">SpatialAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+<span class="linenos">19</span>
+<span class="linenos">20</span>        <span class="k">assert</span> <span class="n">kernel_size</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="s1">&#39;kernel size must be 3 or 7&#39;</span>
+<span class="linenos">21</span>        <span class="n">padding</span> <span class="o">=</span> <span class="mi">3</span> <span class="k">if</span> <span class="n">kernel_size</span> <span class="o">==</span> <span class="mi">7</span> <span class="k">else</span> <span class="mi">1</span>
+<span class="linenos">22</span>
+<span class="linenos">23</span>        <span class="c1"># 输入 2 通道 (avg + max), 输出 1 通道 (注意力图)</span>
+<span class="linenos">24</span>        <span class="c1"># 参数量: 2 * 1 * k * k = 2k²</span>
+<span class="linenos">25</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="linenos">26</span>        <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()</span>
+<span class="linenos">27</span>
+<span class="linenos">28</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="linenos">29</span>        <span class="c1"># 沿通道维度 (dim=1) 聚合</span>
+<span class="linenos">30</span>        <span class="c1"># avg_out: (B, 1, H, W), 每个位置的平均激活强度</span>
+<span class="linenos">31</span>        <span class="n">avg_out</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="linenos">32</span>        <span class="c1"># max_out: (B, 1, H, W), 每个位置的最强响应</span>
+<span class="linenos">33</span>        <span class="n">max_out</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="linenos">34</span>
+<span class="linenos">35</span>        <span class="c1"># 拼接: (B, 2, H, W)</span>
+<span class="linenos">36</span>        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">avg_out</span><span class="p">,</span> <span class="n">max_out</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="linenos">37</span>        <span class="c1"># 卷积压缩 + Sigmoid: (B, 1, H, W)</span>
+<span class="linenos">38</span>        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos">39</span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos">40</span>
+<span class="linenos">41</span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="linenos">42</span>    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+<span class="linenos">43</span>    <span class="n">sa</span> <span class="o">=</span> <span class="n">SpatialAttention</span><span class="p">(</span><span class="n">kernel_size</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+<span class="linenos">44</span>    <span class="n">y</span> <span class="o">=</span> <span class="n">sa</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos">45</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input shape: </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">46</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attention shape: </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">47</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SpatialAttention params: </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">sa</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span><span class="si">}</span><span class="s2">  (2*7²=98)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="id5">
+<h2>空间注意力的其他形式<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<p>除了 CBAM 风格外，还有其他实现方式：</p>
+<ul class="simple">
+<li><p><strong>卷积生成</strong>：直接用 <span class="math notranslate nohighlight">\(1 \times 1\)</span> 卷积降维后接 <span class="math notranslate nohighlight">\(3 \times 3\)</span> 卷积生成注意力图。参数量更多，但可学习性更强。</p></li>
+<li><p><strong>自注意力（Non-local）</strong> <span id="id6">[<a class="reference internal" href="#id93" title="Xiaolong Wang, Ross Girshick, Abhinav Gupta, and Kaiming He. Non-local neural networks. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 7794–7803. 2018.">WGGH18</a>]</span>：计算所有空间位置两两之间的相似度，生成全局注意力图。计算量大（<span class="math notranslate nohighlight">\(O(H^2W^2)\)</span>），但能捕捉长距离依赖。</p></li>
+</ul>
+<p>对于初学者，建议从 CBAM风格开始——它最简单、最轻量，在大多数任务上效果也足够好。</p>
+</section>
+<section id="vs">
+<h2>通道 vs 空间：类比总结<a class="headerlink" href="#vs" title="Link to this heading">#</a></h2>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>维度</p></th>
+<th class="head"><p>关心的问题</p></th>
+<th class="head"><p>输出形状</p></th>
+<th class="head"><p>生活类比</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>通道注意力</p></td>
+<td><p>什么特征重要</p></td>
+<td><p><span class="math notranslate nohighlight">\(C \times 1 \times 1\)</span></p></td>
+<td><p>选频道</p></td>
+</tr>
+<tr class="row-odd"><td><p>空间注意力</p></td>
+<td><p>哪里重要</p></td>
+<td><p><span class="math notranslate nohighlight">\(1 \times H \times W\)</span></p></td>
+<td><p>调区域亮度</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>两者不冲突，而是互补。下一节我们将学习如何将它们结合起来。</p>
+<section id="id7">
+<h3>下一步<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="cbam.html"><span class="doc">通道+空间注意力：CBAM</span></a> 将展示如何把通道注意力和空间注意力组合成一个更强大的模块。</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id8">
+<h2>参考文献<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id9">
+<div role="list" class="citation-list">
+<div class="citation" id="id93" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">WGGH18</a><span class="fn-bracket">]</span></span>
+<p>Xiaolong Wang, Ross Girshick, Abhinav Gupta, and Kaiming He. Non-local neural networks. In <em>Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)</em>, 7794–7803. 2018.</p>
+</div>
+<div class="citation" id="id92" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">WPLK18</a><span class="fn-bracket">]</span></span>
+<p>Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In <em>Proceedings of the European Conference on Computer Vision (ECCV)</em>, 3–19. 2018.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (4 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f159d56</code>
+                2026-05-08 - <strong>Heyan Zhu</strong>: fix: address complaints from the linter
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">2231276</code>
+                2026-04-28 - <strong>Heyan Zhu</strong>: feat(attention-mechanisms): restructure and enhance attention mechanisms documentation
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">4b228f7</code>
+                2026-03-09 - <strong>Heyan Zhu</strong>: Fix tikz diagrams
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">0c291d7</code>
+                2025-12-10 - <strong>Heyan Zhu</strong>: docs: restructure course materials and add new content
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+</article><footer class="bz-article-footer">
+  
+  
+    <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="se-net.html" rel="prev">
+    <span>Previous</span><span class="bz-related-pages-title">通道注意力：SE-Net</span></a><a class="bz-related-pages-next" href="cbam.html" rel="next">
+    <span>Next</span>
+    <span class="bz-related-pages-title">通道+空间注意力：CBAM</span>
+  </a></nav>
+  
+
+</footer><aside class="bz-sidebar-secondary" data-drawer="bz-sidebar-secondary">
+  
+  
+    <nav class="bz-sidebar-toc" aria-label="Table of contents">
+  <p>On this page</p><ul>
+<li><a class="reference internal" href="#id2">核心思想</a></li>
+<li><a class="reference internal" href="#id3">数学形式</a></li>
+<li><a class="reference internal" href="#cbam">CBAM风格的空间注意力</a></li>
+<li><a class="reference internal" href="#id5">空间注意力的其他形式</a></li>
+<li><a class="reference internal" href="#vs">通道 vs 空间：类比总结</a><ul>
+<li><a class="reference internal" href="#id7">下一步</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id8">参考文献</a></li>
+</ul></nav>
+  
+    
+
 
   
-  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=a946219f" />
+    
   
-  <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+    
+  
 
-    <script src="../_static/documentation_options.js?v=eb1cd0b9"></script>
-    <script src="../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
-    <script src="../_static/translations.js?v=beaddf03"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
-    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
-    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+</aside></main>
+  </div>
+<footer class="bz-footer">
+  <div class="bz-footer-copyright"><p class="bz-copyright">© Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0</p><p>
+    
+    
+    
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a href="https://github.com/aksiome/breeze">Breeze theme</a>.
+    
+  </p>
+</div>
+</footer><a href="#" class="bz-back-to-top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+    </svg>
+    <span>Back to top</span>
+  </a>
+  <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
+  <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
+  <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../_static/documentation_options.js?v=5a0213dc"></script><script src="../_static/doctools.js?v=9bcbadda"></script><script src="../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../_static/translations.js?v=beaddf03"></script><script src="../_static/design-tabs.js?v=f930bc37"></script><script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script><script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script><script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
 
 const defaultStyle = document.createElement('style');
 defaultStyle.textContent = `pre.mermaid {
@@ -409,736 +872,5 @@ const load = async () => {
 };
 
 window.addEventListener("load", load);
-</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'attention-mechanisms/spatial-attn';</script>
-    <link rel="index" title="索引" href="../genindex.html" />
-    <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="通道+空间注意力：CBAM" href="cbam.html" />
-    <link rel="prev" title="通道注意力：SE-Net" href="se-net.html" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <meta name="docsearch:language" content="zh-CN"/>
-  </head>
-  
-  
-  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
-
-  
-  
-  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
-  
-  <div id="pst-scroll-pixel-helper"></div>
-  
-  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
-    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
-<form class="bd-search d-flex align-items-center"
-      action="../search.html"
-      method="get">
-  <i class="fa-solid fa-magnifying-glass"></i>
-  <input type="search"
-         class="form-control"
-         name="q"
-         id="search-input"
-         placeholder="Search..."
-         aria-label="Search..."
-         autocomplete="off"
-         autocorrect="off"
-         autocapitalize="off"
-         spellcheck="false"/>
-  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
-
-  <div class="pst-async-banner-revealer d-none">
-  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
-</div>
-
-  
-    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-    </header>
-  
-
-  <div class="bd-container">
-    <div class="bd-container__inner bd-page-width">
-      
-      
-      
-      <div class="bd-sidebar-primary bd-sidebar">
-        
-
-  
-  <div class="sidebar-header-items sidebar-primary__section">
-    
-    
-    
-    
-  </div>
-  
-    <div class="sidebar-primary-items__start sidebar-primary__section">
-        <div class="sidebar-primary-item">
-
-  
-    
-  
-
-<a class="navbar-brand logo" href="../index.html">
-  
-  
-  
-  
-  
-  
-    <p class="title logo__title">UCS Deep Learning Club</p>
-  
-</a></div>
-        <div class="sidebar-primary-item">
-
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">搜索</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
-        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
-    <div class="bd-toc-item navbar-nav active">
-        <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../preface.html">写在前面：关于深度学习</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../math-fundamentals/index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/computational-graph.html">计算图</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/activation-functions.html">激活函数</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/loss-functions.html">损失函数</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/back-propagation.html">反向传播算法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/the-end.html">总结与展望</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础：从理论到架构</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">工程最佳实践</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/using-framework.html">使用训练框架</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN 消融研究：理解卷积神经网络各组件的作用</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：消融研究的科学方法论</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/the-end.html">结语：从黑盒到白盒</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part1-intro.html">导论与核心思想</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part4-practical-guide.html">实操指南</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">CNN 中的注意力机制</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="introduction.html">为什么CNN需要注意力机制？</a></li>
-<li class="toctree-l2"><a class="reference internal" href="se-net.html">通道注意力：SE-Net</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">空间注意力</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cbam.html">通道+空间注意力：CBAM</a></li>
-<li class="toctree-l2"><a class="reference internal" href="comparison.html">注意力机制的选择与应用</a></li>
-<li class="toctree-l2"><a class="reference internal" href="practice.html">实践指南</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../model-architecture-design/index.html">CNN 架构改造：设计卷积网络的心法</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part1-intro.html">改造的本质：从"会用 CNN"到"会设计 CNN"</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">完整实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../model-serving/index.html">模型部署与服务：从训练到生产</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../model-serving/introduction.html">引言：训练完模型之后</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-serving/the-end.html">结语：完整的学习链路</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置番外篇</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
-</ul>
-
-    </div>
-</nav></div>
-    </div>
-  
-  
-  <div class="sidebar-primary-items__end sidebar-primary__section">
-  </div>
-  
-  <div id="rtd-footer-container"></div>
-
-
-      </div>
-      
-      <main id="main-content" class="bd-main" role="main">
-        
-        
-
-<div class="sbt-scroll-pixel-helper"></div>
-
-          <div class="bd-content">
-            <div class="bd-article-container">
-              
-              <div class="bd-header-article d-print-none">
-<div class="header-article-items header-article__inner">
-  
-    <div class="header-article-items__start">
-      
-        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <span class="fa-solid fa-bars"></span>
-</button></div>
-      
-    </div>
-  
-  
-    <div class="header-article-items__end">
-      
-        <div class="header-article-item">
-
-<div class="article-header-buttons">
-
-
-
-
-
-<div class="dropdown dropdown-source-buttons">
-  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
-    <i class="fab fa-github"></i>
-  </button>
-  <ul class="dropdown-menu">
-      
-      
-      
-      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts" target="_blank"
-   class="btn btn-sm btn-source-repository-button dropdown-item"
-   title="源码库"
-   data-bs-placement="left" data-bs-toggle="tooltip"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fab fa-github"></i>
-  </span>
-<span class="btn__text-container">Repository</span>
-</a>
-</li>
-      
-      
-      
-      
-      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/attention-mechanisms/spatial-attn.md" target="_blank"
-   class="btn btn-sm btn-source-edit-button dropdown-item"
-   title="Suggest edit"
-   data-bs-placement="left" data-bs-toggle="tooltip"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-pencil-alt"></i>
-  </span>
-<span class="btn__text-container">Suggest edit</span>
-</a>
-</li>
-      
-      
-      
-      
-      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/issues/new?title=Issue%20on%20page%20%2Fattention-mechanisms/spatial-attn.html&body=Your%20issue%20content%20here." target="_blank"
-   class="btn btn-sm btn-source-issues-button dropdown-item"
-   title="创建议题"
-   data-bs-placement="left" data-bs-toggle="tooltip"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-lightbulb"></i>
-  </span>
-<span class="btn__text-container">Open issue</span>
-</a>
-</li>
-      
-  </ul>
-</div>
-
-
-
-
-
-
-<div class="dropdown dropdown-download-buttons">
-  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="下载此页面">
-    <i class="fas fa-download"></i>
-  </button>
-  <ul class="dropdown-menu">
-      
-      
-      
-      <li><a href="../_sources/attention-mechanisms/spatial-attn.md" target="_blank"
-   class="btn btn-sm btn-download-source-button dropdown-item"
-   title="下载源文件"
-   data-bs-placement="left" data-bs-toggle="tooltip"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-file"></i>
-  </span>
-<span class="btn__text-container">.md</span>
-</a>
-</li>
-      
-      
-      
-      
-      <li>
-<button onclick="window.print()"
-  class="btn btn-sm btn-download-pdf-button dropdown-item"
-  title="列印成 PDF"
-  data-bs-placement="left" data-bs-toggle="tooltip"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-file-pdf"></i>
-  </span>
-<span class="btn__text-container">.pdf</span>
-</button>
-</li>
-      
-  </ul>
-</div>
-
-
-
-
-<button onclick="toggleFullScreen()"
-  class="btn btn-sm btn-fullscreen-button"
-  title="全屏模式"
-  data-bs-placement="bottom" data-bs-toggle="tooltip"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-expand"></i>
-  </span>
-
-</button>
-
-
-
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script>
-
-
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
-<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="fa-solid fa-list"></span>
-</button>
-</div></div>
-      
-    </div>
-  
-</div>
-</div>
-              
-              
-
-<div id="jb-print-docs-body" class="onlyprint">
-    <h1>空间注意力</h1>
-    <!-- Table of contents -->
-    <div id="print-main-content">
-        <div id="jb-print-toc">
-            
-            <div>
-                <h2> 目录 </h2>
-            </div>
-            <nav aria-label="Page">
-                <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">核心思想</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">数学形式</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cbam">CBAM风格的空间注意力</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">空间注意力的其他形式</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vs">通道 vs 空间：类比总结</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">下一步</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">参考文献</a></li>
-</ul>
-            </nav>
-        </div>
-    </div>
-</div>
-
-              
-                
-<div id="searchbox"></div>
-                <article class="bd-article">
-                  
-  <section class="tex2jax_ignore mathjax_ignore" id="spatial-attn">
-<span id="id1"></span><h1>空间注意力<a class="headerlink" href="#spatial-attn" title="Link to this heading">#</a></h1>
-<p><a class="reference internal" href="se-net.html#se-net"><span class="std std-ref">通道注意力：SE-Net</span></a> 中，我们学习了通道注意力——让网络关注&quot;什么特征重要&quot;。但还有一个维度没覆盖：<strong>特征出现在哪里</strong>？一张猫的图片中，猫所在的空间位置比背景更重要。这就是空间注意力要解决的问题。</p>
-<section id="id2">
-<h2>核心思想<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>空间注意力（Spatial Attention）的目标是生成一个<strong>空间注意力图</strong>——一个与输入特征图同等宽高的二维权重图，每个位置的值表示该位置的重要性。</p>
-<div class="tip admonition">
-<p class="admonition-title">空间注意力的直觉</p>
-<p>通道注意力是&quot;给每个频道调音量&quot;，空间注意力则是**“给屏幕的每个区域调亮度”**——重要的区域（如物体位置）更亮，不重要的区域（如背景）更暗。</p>
-</div>
-<object data="../_images/mermaid-05016dfef3ba6fd0edaf0c130fbdb3bb5efd9ae9.svg" type="image/svg+xml">
-            <p class="warning">graph LR
-    A[输入特征图&lt;br/&gt;C×H×W] --&gt; B[空间注意力生成器]
-    B --&gt; C[空间注意力图&lt;br/&gt;1×H×W]
-    C --&gt; D[逐元素相乘]
-    A --&gt; D
-    D --&gt; E[加权后的特征图&lt;br/&gt;C×H×W]</p></object>
-</section>
-<section id="id3">
-<h2>数学形式<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
-<p>输入特征图 <span class="math notranslate nohighlight">\(F \in \mathbb{R}^{C \times H \times W}\)</span>，空间注意力模块生成注意力图 <span class="math notranslate nohighlight">\(M_s \in \mathbb{R}^{1 \times H \times W}\)</span>：</p>
-<div class="math notranslate nohighlight">
-\[\tilde{F} = F \odot M_s\]</div>
-<p>其中 <span class="math notranslate nohighlight">\(\odot\)</span> 表示逐元素乘法（注意力图广播到所有通道）。</p>
-<p><strong>关键问题</strong>：如何从 <span class="math notranslate nohighlight">\(C\)</span> 个通道的特征图生成 <span class="math notranslate nohighlight">\(1\)</span> 个通道的空间注意力图？答案是<strong>沿通道维度聚合信息</strong>。</p>
-</section>
-<section id="cbam">
-<h2>CBAM风格的空间注意力<a class="headerlink" href="#cbam" title="Link to this heading">#</a></h2>
-<p>最常用的空间注意力方法来自 CBAM <span id="id4">[<a class="reference internal" href="#id92" title="Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In Proceedings of the European Conference on Computer Vision (ECCV), 3–19. 2018.">WPLK18</a>]</span>，步骤如下：</p>
-<ol class="arabic simple">
-<li><p><strong>通道池化</strong>：对每个空间位置，分别计算该位置在所有通道上的平均值和最大值，得到两个 <span class="math notranslate nohighlight">\(1 \times H \times W\)</span> 的聚合特征图。</p></li>
-<li><p><strong>拼接</strong>：把两个聚合图拼成 <span class="math notranslate nohighlight">\(2 \times H \times W\)</span>。</p></li>
-<li><p><strong>卷积</strong>：用一个 <span class="math notranslate nohighlight">\(7 \times 7\)</span> 卷积层将 <span class="math notranslate nohighlight">\(2\)</span> 个通道压缩回 <span class="math notranslate nohighlight">\(1\)</span> 个通道。</p></li>
-<li><p><strong>激活</strong>：Sigmoid 将值映射到 <span class="math notranslate nohighlight">\((0,1)\)</span>，得到空间注意力图。</p></li>
-</ol>
-<div class="math notranslate nohighlight">
-\[M_s = \sigma(f^{7\times7}([\text{AvgPool}^c(F); \text{MaxPool}^c(F)]))\]</div>
-<div class="note admonition">
-<p class="admonition-title">为什么同时用平均池化和最大池化？</p>
-<p>平均池化捕获&quot;该位置的整体激活强度&quot;——相当于问&quot;这个区域整体上多活跃？“。最大池化捕获&quot;该位置的最强响应”——相当于问&quot;这个区域最突出的特征是什么？&quot;。两者互补，结合起来能更全面地描述每个空间位置的信息量。</p>
-</div>
-<div class="literal-block-wrapper docutils container" id="id103">
-<div class="code-block-caption"><span class="caption-text">CBAM风格的空间注意力实现</span><a class="headerlink" href="#id103" title="Link to this code">#</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
-<span class="linenos"> 3</span>
-<span class="linenos"> 4</span><span class="k">class</span><span class="w"> </span><span class="nc">SpatialAttention</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="linenos"> 5</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="linenos"> 6</span><span class="sd">    CBAM 风格的空间注意力模块</span>
-<span class="linenos"> 7</span>
-<span class="linenos"> 8</span><span class="sd">    沿通道维度聚合信息, 生成空间注意力图 (1×H×W):</span>
-<span class="linenos"> 9</span><span class="sd">    1. 通道平均池化 + 通道最大池化 → 2×H×W</span>
-<span class="linenos">10</span><span class="sd">    2. 7×7 卷积压缩为 1×H×W</span>
-<span class="linenos">11</span><span class="sd">    3. Sigmoid 激活</span>
-<span class="linenos">12</span>
-<span class="linenos">13</span><span class="sd">    参数量: 2 * 7 * 7 = 98 (k=7 时)</span>
-<span class="linenos">14</span><span class="sd">    输入: (B, C, H, W)</span>
-<span class="linenos">15</span><span class="sd">    输出: (B, 1, H, W)  — 空间注意力图</span>
-<span class="linenos">16</span><span class="sd">    &quot;&quot;&quot;</span>
-<span class="linenos">17</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">7</span><span class="p">):</span>
-<span class="linenos">18</span>        <span class="nb">super</span><span class="p">(</span><span class="n">SpatialAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-<span class="linenos">19</span>
-<span class="linenos">20</span>        <span class="k">assert</span> <span class="n">kernel_size</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="s1">&#39;kernel size must be 3 or 7&#39;</span>
-<span class="linenos">21</span>        <span class="n">padding</span> <span class="o">=</span> <span class="mi">3</span> <span class="k">if</span> <span class="n">kernel_size</span> <span class="o">==</span> <span class="mi">7</span> <span class="k">else</span> <span class="mi">1</span>
-<span class="linenos">22</span>
-<span class="linenos">23</span>        <span class="c1"># 输入 2 通道 (avg + max), 输出 1 通道 (注意力图)</span>
-<span class="linenos">24</span>        <span class="c1"># 参数量: 2 * 1 * k * k = 2k²</span>
-<span class="linenos">25</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="linenos">26</span>        <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()</span>
-<span class="linenos">27</span>
-<span class="linenos">28</span>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-<span class="linenos">29</span>        <span class="c1"># 沿通道维度 (dim=1) 聚合</span>
-<span class="linenos">30</span>        <span class="c1"># avg_out: (B, 1, H, W), 每个位置的平均激活强度</span>
-<span class="linenos">31</span>        <span class="n">avg_out</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="linenos">32</span>        <span class="c1"># max_out: (B, 1, H, W), 每个位置的最强响应</span>
-<span class="linenos">33</span>        <span class="n">max_out</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="linenos">34</span>
-<span class="linenos">35</span>        <span class="c1"># 拼接: (B, 2, H, W)</span>
-<span class="linenos">36</span>        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">avg_out</span><span class="p">,</span> <span class="n">max_out</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="linenos">37</span>        <span class="c1"># 卷积压缩 + Sigmoid: (B, 1, H, W)</span>
-<span class="linenos">38</span>        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="linenos">39</span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="linenos">40</span>
-<span class="linenos">41</span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-<span class="linenos">42</span>    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
-<span class="linenos">43</span>    <span class="n">sa</span> <span class="o">=</span> <span class="n">SpatialAttention</span><span class="p">(</span><span class="n">kernel_size</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
-<span class="linenos">44</span>    <span class="n">y</span> <span class="o">=</span> <span class="n">sa</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="linenos">45</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input shape: </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="linenos">46</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attention shape: </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="linenos">47</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SpatialAttention params: </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">sa</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span><span class="si">}</span><span class="s2">  (2*7²=98)&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</section>
-<section id="id5">
-<h2>空间注意力的其他形式<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
-<p>除了 CBAM 风格外，还有其他实现方式：</p>
-<ul class="simple">
-<li><p><strong>卷积生成</strong>：直接用 <span class="math notranslate nohighlight">\(1 \times 1\)</span> 卷积降维后接 <span class="math notranslate nohighlight">\(3 \times 3\)</span> 卷积生成注意力图。参数量更多，但可学习性更强。</p></li>
-<li><p><strong>自注意力（Non-local）</strong> <span id="id6">[<a class="reference internal" href="#id93" title="Xiaolong Wang, Ross Girshick, Abhinav Gupta, and Kaiming He. Non-local neural networks. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 7794–7803. 2018.">WGGH18</a>]</span>：计算所有空间位置两两之间的相似度，生成全局注意力图。计算量大（<span class="math notranslate nohighlight">\(O(H^2W^2)\)</span>），但能捕捉长距离依赖。</p></li>
-</ul>
-<p>对于初学者，建议从 CBAM风格开始——它最简单、最轻量，在大多数任务上效果也足够好。</p>
-</section>
-<section id="vs">
-<h2>通道 vs 空间：类比总结<a class="headerlink" href="#vs" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>维度</p></th>
-<th class="head"><p>关心的问题</p></th>
-<th class="head"><p>输出形状</p></th>
-<th class="head"><p>生活类比</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>通道注意力</p></td>
-<td><p>什么特征重要</p></td>
-<td><p><span class="math notranslate nohighlight">\(C \times 1 \times 1\)</span></p></td>
-<td><p>选频道</p></td>
-</tr>
-<tr class="row-odd"><td><p>空间注意力</p></td>
-<td><p>哪里重要</p></td>
-<td><p><span class="math notranslate nohighlight">\(1 \times H \times W\)</span></p></td>
-<td><p>调区域亮度</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p>两者不冲突，而是互补。下一节我们将学习如何将它们结合起来。</p>
-<section id="id7">
-<h3>下一步<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
-<p><a class="reference internal" href="cbam.html"><span class="doc">通道+空间注意力：CBAM</span></a> 将展示如何把通道注意力和空间注意力组合成一个更强大的模块。</p>
-</section>
-</section>
-<hr class="docutils" />
-<section id="id8">
-<h2>参考文献<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
-<div class="docutils container" id="id9">
-<div role="list" class="citation-list">
-<div class="citation" id="id93" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">WGGH18</a><span class="fn-bracket">]</span></span>
-<p>Xiaolong Wang, Ross Girshick, Abhinav Gupta, and Kaiming He. Non-local neural networks. In <em>Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)</em>, 7794–7803. 2018.</p>
-</div>
-<div class="citation" id="id92" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">WPLK18</a><span class="fn-bracket">]</span></span>
-<p>Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In <em>Proceedings of the European Conference on Computer Vision (ECCV)</em>, 3–19. 2018.</p>
-</div>
-</div>
-</div>
-</section>
-</section>
-
-    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
-        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
-        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
-    
-            <div title="Heyan Zhu (Anson2251) (3 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
-                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
-            </a></div>
-        </div>
-        <details>
-            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
-            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
-    
-            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
-                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">2231276</code>
-                2026-04-28 - <strong>Heyan Zhu</strong>: feat(attention-mechanisms): restructure and enhance attention mechanisms documentation
-            </li>
-        
-            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
-                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">4b228f7</code>
-                2026-03-09 - <strong>Heyan Zhu</strong>: Fix tikz diagrams
-            </li>
-        
-            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
-                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">0c291d7</code>
-                2025-12-10 - <strong>Heyan Zhu</strong>: docs: restructure course materials and add new content
-            </li>
-        
-            </ul>
-        </details>
-    </div>
-    
-
-                </article>
-              
-
-              
-              
-              
-              
-                <footer class="prev-next-footer d-print-none">
-                  
-<div class="prev-next-area">
-    <a class="left-prev"
-       href="se-net.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">上一页</p>
-        <p class="prev-next-title">通道注意力：SE-Net</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="cbam.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">通道+空间注意力：CBAM</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
-</div>
-                </footer>
-              
-            </div>
-            
-            
-              
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
-
-
-  <div class="sidebar-secondary-item">
-  <div class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> 目录
-  </div>
-  <nav class="bd-toc-nav page-toc">
-    <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">核心思想</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">数学形式</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cbam">CBAM风格的空间注意力</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">空间注意力的其他形式</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vs">通道 vs 空间：类比总结</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">下一步</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">参考文献</a></li>
-</ul>
-  </nav></div>
-
-</div></div>
-              
-            
-          </div>
-          <footer class="bd-footer-content">
-            
-<div class="bd-footer-content__inner container">
-  
-  <div class="footer-item">
-    
-<p class="component-author">
-作者： UCS Deep Learning Club
-</p>
-
-  </div>
-  
-  <div class="footer-item">
-    
-
-  <p class="copyright">
-    
-      © Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0.
-      <br/>
-    
-  </p>
-
-  </div>
-  
-  <div class="footer-item">
-    
-  </div>
-  
-  <div class="footer-item">
-    
-  </div>
-  
-</div>
-          </footer>
-        
-
-      </main>
-    </div>
-  </div>
-  
-  <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
-
-  <footer class="bd-footer">
-  </footer>
-  </body>
+</script></body>
 </html>

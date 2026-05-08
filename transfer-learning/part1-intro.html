@@ -1,55 +1,612 @@
-
 <!DOCTYPE html>
-
-
-<html lang="zh-CN" data-content_root="../" >
-
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <title>导论与核心思想 &#8212; Deep Learning Club Handouts 0.0.1 文档</title>
+<html lang="zh-CN" data-content_root="../">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="导论与核心思想" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="transfer-learning/part1-intro.html" />
+<meta property="og:site_name" content="Deep Learning Club Handouts" />
+<meta property="og:description" content="还记得 完整训练流程 中那个 MNIST 分类器吗？我们用 60,000 张图片训练，最终达到了不错的准确率。但如果你的任务只有 100 张医学影像 ，或者 50 张工业缺陷图片 ，还能训练出好的模型吗？ 神经网络训练基础 告诉我们，小数据集上从头训练深度网络极易过拟合。但现实世界中的很多任务恰恰面临这种困境——数据稀缺、标注昂贵、计算资源有限。 迁移学习就是解决这些问题的关键技术 ：与其从..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_transfer-learning_part1-intro_63d6b2c4.png" />
+<meta property="og:image:alt" content="还记得 完整训练流程 中那个 MNIST 分类器吗？我们用 60,000 张图片训练，最终达到了不错的准确率。但如果你的任务只有 100 张医学影像 ，或者 50 张工业缺陷图片 ，还能训练出好的模型吗？ 神经网络训练基础 告诉我们，小数据集上从头训练深度网络极易过拟合。但现实世界中的很多任务恰恰面临这种困境——数据稀缺、标注昂贵、计算资源有限。 迁移学习就是解决这些问题的关键技术 ：与其从..." />
+<meta name="description" content="还记得 完整训练流程 中那个 MNIST 分类器吗？我们用 60,000 张图片训练，最终达到了不错的准确率。但如果你的任务只有 100 张医学影像 ，或者 50 张工业缺陷图片 ，还能训练出好的模型吗？ 神经网络训练基础 告诉我们，小数据集上从头训练深度网络极易过拟合。但现实世界中的很多任务恰恰面临这种困境——数据稀缺、标注昂贵、计算资源有限。 迁移学习就是解决这些问题的关键技术 ：与其从..." />
+<meta name="twitter:card" content="summary_large_image" />
+<title>导论与核心思想 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="迁移学习分类体系" href="part2-taxonomy.html"><link rel="prev" title="迁移学习与微调：站在巨人的肩膀上" href="index.html"><script data-cfasync="false">(function(){
+    const m = localStorage.getItem("breeze-mode") || "auto";
+    const d = document.documentElement.dataset;
+    d.mode = m;
+    d.theme = m === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : m;
+  })();
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=7d7dd224" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+<body>
   
   
+  <div class="bz-skip-to-content"><a href="#bz-main-content">Skip to main content</a></div><header class="bz-header-main">
+  <div class="bz-header-start"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><a class="bz-header-brand" href="../index.html">
   
-  <script data-cfasync="false">
-    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
-    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
-  </script>
   
-  <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <span>Deep Learning Club Handouts</span>
+</a>
+  </div>
+  <div class="bz-header-end"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><div id="docsearch" class="bz-search-button">
+  <a
+    href="../search.html#q"
+    aria-label="Search the docs"
+    data-tooltip="Search the docs"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 -1 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
+    <span>搜索</span>
+    <kbd>Ctrl+K</kbd>
+  </a>
+</div><div class="bz-theme-switcher">
+  <button aria-label="Switch theme" data-tooltip="Switch theme">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
+      <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-dark" fill="currentColor">
+      <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+    </svg>
+  </button>
+</div>
+  </div>
+</header><hr class="bz-header-hr">
+  <div class="bz-content"><aside class="bz-sidebar-primary" data-drawer="bz-sidebar-primary">
+  
+  
+    <nav class="bz-sidebar-nav" aria-label="Section Navigation"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../math-fundamentals/index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础：从理论到架构</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN 消融研究：理解卷积神经网络各组件的作用</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：消融研究的科学方法论</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/the-end.html">结语：从黑盒到白盒</a></li>
+</ul></details></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">迁移学习与微调：站在巨人的肩膀上</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../attention-mechanisms/index.html">CNN 中的注意力机制</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/introduction.html">为什么CNN需要注意力机制？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/se-net.html">通道注意力：SE-Net</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/spatial-attn.html">空间注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/cbam.html">通道+空间注意力：CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/comparison.html">注意力机制的选择与应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/practice.html">实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../model-architecture-design/index.html">CNN 架构改造：设计卷积网络的心法</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part1-intro.html">改造的本质：从"会用 CNN"到"会设计 CNN"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../model-serving/index.html">模型部署与服务：从训练到生产</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置番外篇</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+</nav>
+  
+
+</aside><main id="bz-main-content"><header class="bz-article-header">
+  
+  
+    <nav class="bz-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li class="bz-breadcrumbs-home">
+      <a href="../index.html" aria-label="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8.543 2.232a.75.75 0 0 0-1.085 0l-5.25 5.5A.75.75 0 0 0 2.75 9H4v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V9h1.25a.75.75 0 0 0 .543-1.268l-5.25-5.5Z" />
+        </svg>
+      </a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="index.html">迁移学习与微调：站在巨人的肩膀上</a>
+    </li><li class="bz-breadcrumbs-current">
+      <span>导论与核心思想</span>
+    </li>
+  </ol>
+</nav>
+  
+<label
+  class="bz-sidebar-secondary-toggle"
+  for="bz-sidebar-secondary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle table of contents"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75H20.25 M11.25 12H20.25 M7.75 17.25H20.25"
+    />
+  </svg>
+</label></header><article class="bz-article-main" role="main"><div class="bz-page-actions" role="group" aria-label="Page actions">
+  <button data-copy-source="../_sources/transfer-learning/part1-intro.md.txt">
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M7.024 3.75c0-.966.784-1.75 1.75-1.75H20.25c.966 0 1.75.784 1.75 1.75v11.498a1.75 1.75 0 0 1-1.75 1.75H8.774a1.75 1.75 0 0 1-1.75-1.75Zm1.75-.25a.25.25 0 0 0-.25.25v11.498c0 .139.112.25.25.25H20.25a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"></path><path d="M1.995 10.749a1.75 1.75 0 0 1 1.75-1.751H5.25a.75.75 0 1 1 0 1.5H3.745a.25.25 0 0 0-.25.25L3.5 20.25c0 .138.111.25.25.25h9.5a.25.25 0 0 0 .25-.25v-1.51a.75.75 0 1 1 1.5 0v1.51A1.75 1.75 0 0 1 13.25 22h-9.5A1.75 1.75 0 0 1 2 20.25l-.005-9.501Z"></path></svg>
+    <span>Copy page</span>
+  </button>
+  <div class="bz-dropdown">
+    <button
+      aria-label="More actions"
+      aria-haspopup="true"
+      aria-expanded="false"
+    ></button>
+    <ul role="menu" aria-hidden="true">
+      <li>
+        <a href="#" role="menuitem" data-copy-source="../_sources/transfer-learning/part1-intro.md.txt">
+          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M7.024 3.75c0-.966.784-1.75 1.75-1.75H20.25c.966 0 1.75.784 1.75 1.75v11.498a1.75 1.75 0 0 1-1.75 1.75H8.774a1.75 1.75 0 0 1-1.75-1.75Zm1.75-.25a.25.25 0 0 0-.25.25v11.498c0 .139.112.25.25.25H20.25a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"></path><path d="M1.995 10.749a1.75 1.75 0 0 1 1.75-1.751H5.25a.75.75 0 1 1 0 1.5H3.745a.25.25 0 0 0-.25.25L3.5 20.25c0 .138.111.25.25.25h9.5a.25.25 0 0 0 .25-.25v-1.51a.75.75 0 1 1 1.5 0v1.51A1.75 1.75 0 0 1 13.25 22h-9.5A1.75 1.75 0 0 1 2 20.25l-.005-9.501Z"></path></svg>
+          <span>Copy page</span>
+        </a>
+      </li>
+      <li>
+        <a href="../_sources/transfer-learning/part1-intro.md.txt" role="menuitem" class="bz-page-actions-external" target="_blank" rel="noopener">
+          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0Zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5Z"></path><path d="M4.53 12.24a.75.75 0 0 1-.039 1.06l-2.639 2.45 2.64 2.45a.75.75 0 1 1-1.022 1.1l-3.23-3a.75.75 0 0 1 0-1.1l3.23-3a.75.75 0 0 1 1.06.04Zm3.979 1.06a.75.75 0 1 1 1.02-1.1l3.231 3a.75.75 0 0 1 0 1.1l-3.23 3a.75.75 0 1 1-1.021-1.1l2.639-2.45-2.64-2.45Z"></path></svg>
+          <span>View source</span>
+        </a>
+      </li></ul>
+  </div>
+</div><section class="tex2jax_ignore mathjax_ignore" id="transfer-learning-intro">
+<span id="id1"></span><h1>导论与核心思想<a class="headerlink" href="#transfer-learning-intro" title="Link to this heading">#</a></h1>
+<p>还记得 <a class="reference internal" href="../pytorch-practice/train-workflow.html"><span class="doc">完整训练流程</span></a> 中那个 MNIST 分类器吗？我们用 60,000 张图片训练，最终达到了不错的准确率。但如果你的任务只有 <strong>100 张医学影像</strong>，或者 <strong>50 张工业缺陷图片</strong>，还能训练出好的模型吗？</p>
+<p><a class="reference internal" href="../neural-network-basics/neural-training-basics.html"><span class="doc">神经网络训练基础</span></a> 告诉我们，小数据集上从头训练深度网络极易过拟合。但现实世界中的很多任务恰恰面临这种困境——数据稀缺、标注昂贵、计算资源有限。</p>
+<p><strong>迁移学习就是解决这些问题的关键技术</strong>：与其从零开始，不如借用别人已经学到的知识。就像学会骑自行车的人学摩托车更快，掌握 Python 后再学 JavaScript 事半功倍。</p>
+<p>本部分将介绍迁移学习的核心思想，帮助你理解为什么它能有效，以及何时使用它。</p>
+<section id="id2">
+<h2>为什么需要迁移学习？<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<ol class="arabic">
+<li><p>数据困境</p>
+<p>深度学习模型的性能往往依赖于<strong>海量标注数据</strong>。然而在实际应用中，我们经常面临数据稀缺的挑战：</p>
+<ul class="simple">
+<li><p><strong>医疗影像</strong>：罕见疾病样本往往仅有数百例，难以从零训练深度网络</p></li>
+<li><p><strong>工业缺陷检测</strong>：优质生产线很少产生缺陷样本，缺陷数据极为稀少</p></li>
+<li><p><strong>小众语言</strong>：绝大多数语言缺乏足够的数字化文本资源</p></li>
+</ul>
+<p>此外，特定领域的数据常因隐私或商业原因难以汇聚，形成&quot;数据孤岛&quot;问题。</p>
+</li>
+<li><p>计算成本</p>
+<p>训练具有竞争力的深度学习模型需要巨大的计算投入。ResNet-50训练成本约数百美元，而GPT-3等大模型则需数千万美元。对于大多数研究团队和企业，从头训练既不现实也无必要。</p>
+</li>
+<li><p>过拟合风险</p>
+<p>小数据集上从头训练深度网络极易导致<strong>过拟合</strong>——模型&quot;记住&quot;训练样本而非学习通用规律。迁移学习通过引入预训练知识，相当于为模型提供了强大的&quot;先验正则化&quot;，有效缓解这一问题。</p>
+</li>
+<li><p>人类学习的启示</p>
+<p>人类天然具备知识迁移的能力：会骑自行车的人学摩托车更容易，掌握Python后学习JavaScript事半功倍。迁移学习正是将这一思想引入深度学习——利用在一个领域学到的知识，帮助解决另一个领域的问题。</p>
+</li>
+</ol>
+</section>
+<section id="id3">
+<h2>1.2 什么是迁移学习？<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<section id="id4">
+<h3>站在巨人的肩膀上<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p><strong>类比1：学习乐器</strong></p>
+<p>想象你已经学会了钢琴（源任务）：</p>
+<ul class="simple">
+<li><p>你理解乐谱、节奏、和声</p></li>
+<li><p>你的手指已经训练出协调性</p></li>
+</ul>
+<p>现在你要学小提琴（目标任务）：</p>
+<ul class="simple">
+<li><p><strong>没有迁移</strong>：从头学乐理、识谱、音准——需要数年</p></li>
+<li><p><strong>有迁移</strong>：乐理知识直接用，只需适应新的演奏方式——数月即可</p></li>
+</ul>
+<p>迁移学习就像音乐技能的迁移——底层知识（乐理）通用，只需调整表层技巧（演奏方式）。</p>
+<p><strong>类比2：视觉识别</strong></p>
+<p>预训练模型在 ImageNet（1000类自然图像）上训练后：</p>
+<ul class="simple">
+<li><p>学会了识别<strong>边缘</strong>（直线、曲线）</p></li>
+<li><p>学会了识别<strong>纹理</strong>（皮毛、金属、织物）</p></li>
+<li><p>学会了识别<strong>形状</strong>（圆形、方形、不规则）</p></li>
+</ul>
+<p>这些能力对医学影像同样有用：</p>
+<ul class="simple">
+<li><p>X光片的<strong>边缘</strong>帮助定位器官边界</p></li>
+<li><p>CT扫描的<strong>纹理</strong>帮助区分组织类型</p></li>
+<li><p>肿瘤的<strong>形状</strong>帮助判断良恶性</p></li>
+</ul>
+<p><strong>核心洞察</strong>：预训练模型学到的不是&quot;猫狗分类&quot;，而是&quot;看世界的通用方式&quot;。</p>
+</section>
+<section id="id5">
+<h3>信息流动<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<object data="../_images/mermaid-ddd039495737c8f146d07900202a682739b1e916.svg" type="image/svg+xml">
+            <p class="warning">flowchart TB
+    A[源域知识&lt;br/&gt;ImageNet&lt;br/&gt;1400万张图片] --&gt; B[预训练模型&lt;br/&gt;ResNet50&lt;br/&gt;2500万参数]
+    B --&gt; C[通用视觉特征&lt;br/&gt;边缘 / 纹理 / 形状]
+    C --&gt; D[迁移]
+    D --&gt; E[目标任务&lt;br/&gt;医学影像&lt;br/&gt;100张图片]
+    E --&gt; F[微调适应]
+    F --&gt; G[目标模型&lt;br/&gt;医学分类器]
+    
+    style A fill:#e3f2fd
+    style B fill:#e8f5e9
+    style C fill:#fff3e0
+    style E fill:#fce4ec
+    style G fill:#f3e5f5</p></object>
+<p>知识从海量数据流向预训练模型，再迁移到目标任务，<strong>信息逐渐从通用走向特定</strong>。</p>
+<p><strong>关键洞察</strong>：预训练模型像是&quot;知识压缩机&quot;，把1400万张图片的信息压缩到2500万参数中。迁移学习时，我们只需微调这个压缩表示，而不需要重新学习所有知识。</p>
+</section>
+<section id="id6">
+<h3>形式化定义<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p>迁移学习的核心思想是：利用源领域（Source Domain）<span class="math notranslate nohighlight">\(D_s\)</span> 和源任务（Source Task）<span class="math notranslate nohighlight">\(T_s\)</span> 中学到的知识，来帮助目标领域（Target Domain）<span class="math notranslate nohighlight">\(D_t\)</span> 和目标任务（Target Task）<span class="math notranslate nohighlight">\(T_t\)</span> 的学习 <span id="id7">[<a class="reference internal" href="part2-taxonomy.html#id14" title="Sinno Jialin Pan and Qiang Yang. A survey on transfer learning. IEEE Transactions on Knowledge and Data Engineering, 22(10):1345–1359, 2010.">PY10</a>]</span>。</p>
+<div class="math notranslate nohighlight" id="equation-tl-def">
+<span class="eqno">(1)<a class="headerlink" href="#equation-tl-def" title="Link to this equation">#</a></span>\[\text{目标：} \text{利用 } D_s \text{ 和 } T_s \text{ 的知识，提升在 } D_t \text{ 上学习 } T_t \text{ 的性能}\]</div>
+<p><strong>关键假设</strong>：源领域数据量远大于目标领域（<span class="math notranslate nohighlight">\(n_s \gg n_t\)</span>）。</p>
+</section>
+<section id="id8">
+<h3>核心概念：领域与任务<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<p>理解迁移学习需要明确两个基本概念。</p>
+<section id="domain">
+<h4>领域（Domain）= 数据的&quot;世界&quot;<a class="headerlink" href="#domain" title="Link to this heading">#</a></h4>
+<p><strong>直觉理解</strong>：想象你在学画画。</p>
+<ul class="simple">
+<li><p><strong>源领域</strong>：你在美术课上画水果（苹果、香蕉）</p></li>
+<li><p><strong>目标领域</strong>：现在要画医学解剖图（心脏、肺部）</p></li>
+</ul>
+<p>虽然都是画画（特征空间相同，都是图像），但<strong>画风完全不同</strong>（数据分布不同）——水果是彩色的、光滑的；解剖图是黑白的、复杂的。</p>
+<p><strong>数学上</strong>，领域 = 特征空间 + 数据分布：</p>
+<ul class="simple">
+<li><p><strong>特征空间</strong>：数据的表现形式（如224×224的RGB图像）</p></li>
+<li><p><strong>数据分布</strong>：这些数据实际长什么样（自然照片 vs 医学影像）</p></li>
+</ul>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>对比项</p></th>
+<th class="head"><p>源领域（ImageNet）</p></th>
+<th class="head"><p>目标领域（医学影像）</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>特征空间</p></td>
+<td><p>都是224×224 RGB图像</p></td>
+<td><p>都是224×224 RGB图像</p></td>
+</tr>
+<tr class="row-odd"><td><p>数据分布</p></td>
+<td><p>自然风景、动物、物品</p></td>
+<td><p>X光片、CT扫描</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>直觉</strong></p></td>
+<td><p>照片风格</p></td>
+<td><p>黑白影像风格</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="task">
+<h4>任务（Task）= 要解决的问题<a class="headerlink" href="#task" title="Link to this heading">#</a></h4>
+<p><strong>直觉理解</strong>：同样的数据，可以有不同的任务。</p>
+<ul class="simple">
+<li><p><strong>源任务</strong>：这张图片是猫还是狗？（1000类分类）</p></li>
+<li><p><strong>目标任务</strong>：这张X光片显示肺炎了吗？（2类分类）</p></li>
+</ul>
+</section>
+<section id="domain-shift">
+<h4>领域偏移（Domain Shift）<a class="headerlink" href="#domain-shift" title="Link to this heading">#</a></h4>
+<p><strong>生活中的例子</strong>：</p>
+<blockquote>
+<div><p>假设你学会了识别&quot;水果照片中的苹果&quot;。现在给你看&quot;素描画中的苹果&quot;，虽然都是苹果，但风格完全不同——这就是领域偏移。</p>
+</div></blockquote>
+<p><strong>为什么会出现这个问题？</strong></p>
+<ul class="simple">
+<li><p>预训练模型学会了&quot;识别照片中的物体&quot;</p></li>
+<li><p>但医学影像是&quot;识别黑白影像中的病理特征&quot;</p></li>
+<li><p><strong>底层技巧相通</strong>（边缘检测、形状识别），但<strong>表现形式不同</strong></p></li>
+</ul>
+<p><strong>解决方案</strong>：</p>
+<ul class="simple">
+<li><p>保留底层技巧（浅层特征）</p></li>
+<li><p>调整顶层策略（分类层）</p></li>
+<li><p>这就是<strong>微调</strong>的核心思想</p></li>
+</ul>
+<hr class="docutils" />
+<p><strong>一句话总结</strong>：迁移学习就是「用学画水果的技巧，快速学会画解剖图」——基础技能相通，只需调整应用方式。</p>
+</section>
+</section>
+<section id="id9">
+<h3>迁移学习的效果<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<p>大量实践表明，迁移学习能够带来显著的性能提升：</p>
+<ul class="simple">
+<li><p>ImageNet预训练的ResNet模型，迁移到下游视觉任务平均提升 <strong>5-20%</strong> 准确率 <span id="id10">[<a class="reference internal" href="../unet-image-segmentation/u-net.html#id56" title="Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition, 770–778. 2016.">HZRS16</a>]</span></p></li>
+<li><p>BERT通过大规模预训练，在11项NLP任务上刷新了SOTA <span id="id11">[<a class="reference internal" href="part3-model-transfer.html#id71" title="Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. Bert: pre-training of deep bidirectional transformers for language understanding. In Proceedings of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, 4171–4186. 2019.">DCLT19</a>]</span></p></li>
+<li><p>医学影像领域，迁移学习可将小样本任务准确率从40-50%提升至80-90%</p></li>
+</ul>
+</section>
+</section>
+<section id="id12">
+<h2>迁移学习的适用场景<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
+<p>迁移学习特别适用于以下场景：</p>
+<ol class="arabic simple">
+<li><p><strong>目标领域数据稀缺</strong>：标注数据难以获取或成本高昂</p></li>
+<li><p><strong>快速原型验证</strong>：需要在短时间内建立baseline模型</p></li>
+<li><p><strong>计算资源受限</strong>：无法承担从头训练大模型的成本</p></li>
+<li><p><strong>领域间存在关联</strong>：源任务与目标任务有一定相似性</p></li>
+</ol>
+<div class="caution admonition">
+<p class="admonition-title">何时不适用？负迁移（Negative Transfer）详解</p>
+<p>当源领域与目标领域完全无关时，强行迁移可能导致<strong>负迁移</strong>——迁移后性能比从头训练还差。</p>
+<p><strong>负迁移发生的条件</strong>：</p>
+<ol class="arabic simple">
+<li><p><strong>领域差异过大</strong>：源域和目标域的底层特征完全不同</p>
+<ul class="simple">
+<li><p><span class="bz-emoji">❌</span> 用自然图像模型处理基因组序列</p></li>
+<li><p><span class="bz-emoji">❌</span> 用文本模型处理音频信号</p></li>
+</ul>
+</li>
+<li><p><strong>任务冲突</strong>：源任务和目标任务的要求相互矛盾</p>
+<ul class="simple">
+<li><p><span class="bz-emoji">❌</span> 用&quot;识别猫狗&quot;的模型做&quot;识别猫的品种&quot;（粒度差异过大）</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>数学解释</strong>：</p>
+<p>负迁移发生时，源域知识反而成为噪声：</p>
+<div class="math notranslate nohighlight">
+\[\text{Performance}_{\text{迁移}} &lt; \text{Performance}_{\text{从头训练}}\]</div>
+<p><strong>如何避免负迁移</strong>：</p>
+<ol class="arabic simple">
+<li><p><strong>领域相似性判断</strong>：用预训练模型提取目标域特征，看是否能较好分离</p></li>
+<li><p><strong>渐进式实验</strong>：先尝试特征提取，效果不佳则考虑从头训练</p></li>
+<li><p><strong>可视化分析</strong>：用t-SNE可视化源域和目标域的特征分布，看是否有重叠</p></li>
+</ol>
+<p><strong>负迁移 vs 性能提升有限</strong>：</p>
+<ul class="simple">
+<li><p>负迁移：性能<strong>下降</strong>（有害）</p></li>
+<li><p>性能提升有限：性能<strong>上升但不多</strong>（无害但帮助不大）</p></li>
+</ul>
+</div>
+</section>
+<section id="id13">
+<h2>本章小结<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>动机</strong>：解决数据稀缺、计算成本高、小样本过拟合等问题</p></li>
+<li><p><strong>定义</strong>：利用源领域知识提升目标领域学习性能的范式</p></li>
+<li><p><strong>核心</strong>：领域（特征空间+分布）与任务（标签空间+预测函数）</p></li>
+<li><p><strong>直觉</strong>：像学乐器一样迁移底层知识，像&quot;看世界&quot;一样复用通用特征</p></li>
+</ul>
+<section id="id14">
+<h3>下一步<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
+<p>理解了迁移学习的基本概念后，<a class="reference internal" href="part2-taxonomy.html"><span class="doc">迁移学习分类体系</span></a> 我们将建立一套<strong>分类体系</strong>，帮助你在面对具体问题时快速找到合适的方法——归纳式、直推式、无监督迁移学习，哪种适合你的任务？</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id15">
+<h2>参考文献<a class="headerlink" href="#id15" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id16">
+<div role="list" class="citation-list">
+<div class="citation" id="id62" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id11">DCLT19</a><span class="fn-bracket">]</span></span>
+<p>Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. Bert: pre-training of deep bidirectional transformers for language understanding. In <em>Proceedings of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</em>, 4171–4186. 2019.</p>
+</div>
+<div class="citation" id="id50" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id10">HZRS16</a><span class="fn-bracket">]</span></span>
+<p>Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In <em>Proceedings of the IEEE conference on computer vision and pattern recognition</em>, 770–778. 2016.</p>
+</div>
+<div class="citation" id="id17" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">PY10</a><span class="fn-bracket">]</span></span>
+<p>Sinno Jialin Pan and Qiang Yang. A survey on transfer learning. <em>IEEE Transactions on Knowledge and Data Engineering</em>, 22(10):1345–1359, 2010.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b5be2d6</code>
+                2026-04-28 - <strong>Heyan Zhu</strong>: docs: update documentation and improve content organization
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b7ed915</code>
+                2026-02-28 - <strong>Heyan Zhu</strong>: docs: add transfer learning
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+</article><footer class="bz-article-footer">
+  
+  
+    <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="index.html" rel="prev">
+    <span>Previous</span><span class="bz-related-pages-title">迁移学习与微调：站在巨人的肩膀上</span></a><a class="bz-related-pages-next" href="part2-taxonomy.html" rel="next">
+    <span>Next</span>
+    <span class="bz-related-pages-title">迁移学习分类体系</span>
+  </a></nav>
+  
+
+</footer><aside class="bz-sidebar-secondary" data-drawer="bz-sidebar-secondary">
+  
+  
+    <nav class="bz-sidebar-toc" aria-label="Table of contents">
+  <p>On this page</p><ul>
+<li><a class="reference internal" href="#id2">为什么需要迁移学习？</a></li>
+<li><a class="reference internal" href="#id3">1​.2 什么是迁移学习？</a><ul>
+<li><a class="reference internal" href="#id4">站在巨人的肩膀上</a></li>
+<li><a class="reference internal" href="#id5">信息流动</a></li>
+<li><a class="reference internal" href="#id6">形式化定义</a></li>
+<li><a class="reference internal" href="#id8">核心概念：领域与任务</a><ul>
+<li><a class="reference internal" href="#domain">领域（Domain）= 数据的"世界"</a></li>
+<li><a class="reference internal" href="#task">任务（Task）= 要解决的问题</a></li>
+<li><a class="reference internal" href="#domain-shift">领域偏移（Domain Shift）</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id9">迁移学习的效果</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id12">迁移学习的适用场景</a></li>
+<li><a class="reference internal" href="#id13">本章小结</a><ul>
+<li><a class="reference internal" href="#id14">下一步</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id15">参考文献</a></li>
+</ul></nav>
+  
+    
+
 
   
-  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=a946219f" />
+    
   
-  <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+    
+  
 
-    <script src="../_static/documentation_options.js?v=eb1cd0b9"></script>
-    <script src="../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
-    <script src="../_static/translations.js?v=beaddf03"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
-    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
-    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+</aside></main>
+  </div>
+<footer class="bz-footer">
+  <div class="bz-footer-copyright"><p class="bz-copyright">© Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0</p><p>
+    
+    
+    
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a href="https://github.com/aksiome/breeze">Breeze theme</a>.
+    
+  </p>
+</div>
+</footer><a href="#" class="bz-back-to-top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+    </svg>
+    <span>Back to top</span>
+  </a>
+  <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
+  <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
+  <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../_static/documentation_options.js?v=5a0213dc"></script><script src="../_static/doctools.js?v=9bcbadda"></script><script src="../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../_static/translations.js?v=beaddf03"></script><script src="../_static/design-tabs.js?v=f930bc37"></script><script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script><script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script><script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
 
 const defaultStyle = document.createElement('style');
 defaultStyle.textContent = `pre.mermaid {
@@ -409,846 +966,5 @@ const load = async () => {
 };
 
 window.addEventListener("load", load);
-</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'transfer-learning/part1-intro';</script>
-    <link rel="index" title="索引" href="../genindex.html" />
-    <link rel="search" title="搜索" href="../search.html" />
-    <link rel="next" title="迁移学习分类体系" href="part2-taxonomy.html" />
-    <link rel="prev" title="迁移学习与微调：站在巨人的肩膀上" href="index.html" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <meta name="docsearch:language" content="zh-CN"/>
-  </head>
-  
-  
-  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
-
-  
-  
-  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
-  
-  <div id="pst-scroll-pixel-helper"></div>
-  
-  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
-    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
-<form class="bd-search d-flex align-items-center"
-      action="../search.html"
-      method="get">
-  <i class="fa-solid fa-magnifying-glass"></i>
-  <input type="search"
-         class="form-control"
-         name="q"
-         id="search-input"
-         placeholder="Search..."
-         aria-label="Search..."
-         autocomplete="off"
-         autocorrect="off"
-         autocapitalize="off"
-         spellcheck="false"/>
-  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
-
-  <div class="pst-async-banner-revealer d-none">
-  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
-</div>
-
-  
-    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-    </header>
-  
-
-  <div class="bd-container">
-    <div class="bd-container__inner bd-page-width">
-      
-      
-      
-      <div class="bd-sidebar-primary bd-sidebar">
-        
-
-  
-  <div class="sidebar-header-items sidebar-primary__section">
-    
-    
-    
-    
-  </div>
-  
-    <div class="sidebar-primary-items__start sidebar-primary__section">
-        <div class="sidebar-primary-item">
-
-  
-    
-  
-
-<a class="navbar-brand logo" href="../index.html">
-  
-  
-  
-  
-  
-  
-    <p class="title logo__title">UCS Deep Learning Club</p>
-  
-</a></div>
-        <div class="sidebar-primary-item">
-
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">搜索</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
-        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
-    <div class="bd-toc-item navbar-nav active">
-        <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../preface.html">写在前面：关于深度学习</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../math-fundamentals/index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/computational-graph.html">计算图</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/activation-functions.html">激活函数</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/loss-functions.html">损失函数</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/back-propagation.html">反向传播算法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/the-end.html">总结与展望</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础：从理论到架构</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">工程最佳实践</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/using-framework.html">使用训练框架</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN 消融研究：理解卷积神经网络各组件的作用</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：消融研究的科学方法论</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/the-end.html">结语：从黑盒到白盒</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">迁移学习与微调：站在巨人的肩膀上</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">导论与核心思想</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part2-taxonomy.html">迁移学习分类体系</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part3-model-transfer.html">基于模型的迁移</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part4-practical-guide.html">实操指南</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html">结语：站在巨人的肩膀上</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../attention-mechanisms/index.html">CNN 中的注意力机制</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/introduction.html">为什么CNN需要注意力机制？</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/se-net.html">通道注意力：SE-Net</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/spatial-attn.html">空间注意力</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/cbam.html">通道+空间注意力：CBAM</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/comparison.html">注意力机制的选择与应用</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/practice.html">实践指南</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../model-architecture-design/index.html">CNN 架构改造：设计卷积网络的心法</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part1-intro.html">改造的本质：从"会用 CNN"到"会设计 CNN"</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">完整实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../model-serving/index.html">模型部署与服务：从训练到生产</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../model-serving/introduction.html">引言：训练完模型之后</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-serving/the-end.html">结语：完整的学习链路</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置番外篇</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
-</ul>
-
-    </div>
-</nav></div>
-    </div>
-  
-  
-  <div class="sidebar-primary-items__end sidebar-primary__section">
-  </div>
-  
-  <div id="rtd-footer-container"></div>
-
-
-      </div>
-      
-      <main id="main-content" class="bd-main" role="main">
-        
-        
-
-<div class="sbt-scroll-pixel-helper"></div>
-
-          <div class="bd-content">
-            <div class="bd-article-container">
-              
-              <div class="bd-header-article d-print-none">
-<div class="header-article-items header-article__inner">
-  
-    <div class="header-article-items__start">
-      
-        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <span class="fa-solid fa-bars"></span>
-</button></div>
-      
-    </div>
-  
-  
-    <div class="header-article-items__end">
-      
-        <div class="header-article-item">
-
-<div class="article-header-buttons">
-
-
-
-
-
-<div class="dropdown dropdown-source-buttons">
-  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
-    <i class="fab fa-github"></i>
-  </button>
-  <ul class="dropdown-menu">
-      
-      
-      
-      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts" target="_blank"
-   class="btn btn-sm btn-source-repository-button dropdown-item"
-   title="源码库"
-   data-bs-placement="left" data-bs-toggle="tooltip"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fab fa-github"></i>
-  </span>
-<span class="btn__text-container">Repository</span>
-</a>
-</li>
-      
-      
-      
-      
-      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/transfer-learning/part1-intro.md" target="_blank"
-   class="btn btn-sm btn-source-edit-button dropdown-item"
-   title="Suggest edit"
-   data-bs-placement="left" data-bs-toggle="tooltip"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-pencil-alt"></i>
-  </span>
-<span class="btn__text-container">Suggest edit</span>
-</a>
-</li>
-      
-      
-      
-      
-      <li><a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/issues/new?title=Issue%20on%20page%20%2Ftransfer-learning/part1-intro.html&body=Your%20issue%20content%20here." target="_blank"
-   class="btn btn-sm btn-source-issues-button dropdown-item"
-   title="创建议题"
-   data-bs-placement="left" data-bs-toggle="tooltip"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-lightbulb"></i>
-  </span>
-<span class="btn__text-container">Open issue</span>
-</a>
-</li>
-      
-  </ul>
-</div>
-
-
-
-
-
-
-<div class="dropdown dropdown-download-buttons">
-  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="下载此页面">
-    <i class="fas fa-download"></i>
-  </button>
-  <ul class="dropdown-menu">
-      
-      
-      
-      <li><a href="../_sources/transfer-learning/part1-intro.md" target="_blank"
-   class="btn btn-sm btn-download-source-button dropdown-item"
-   title="下载源文件"
-   data-bs-placement="left" data-bs-toggle="tooltip"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-file"></i>
-  </span>
-<span class="btn__text-container">.md</span>
-</a>
-</li>
-      
-      
-      
-      
-      <li>
-<button onclick="window.print()"
-  class="btn btn-sm btn-download-pdf-button dropdown-item"
-  title="列印成 PDF"
-  data-bs-placement="left" data-bs-toggle="tooltip"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-file-pdf"></i>
-  </span>
-<span class="btn__text-container">.pdf</span>
-</button>
-</li>
-      
-  </ul>
-</div>
-
-
-
-
-<button onclick="toggleFullScreen()"
-  class="btn btn-sm btn-fullscreen-button"
-  title="全屏模式"
-  data-bs-placement="bottom" data-bs-toggle="tooltip"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-expand"></i>
-  </span>
-
-</button>
-
-
-
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script>
-
-
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
-<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="fa-solid fa-list"></span>
-</button>
-</div></div>
-      
-    </div>
-  
-</div>
-</div>
-              
-              
-
-<div id="jb-print-docs-body" class="onlyprint">
-    <h1>导论与核心思想</h1>
-    <!-- Table of contents -->
-    <div id="print-main-content">
-        <div id="jb-print-toc">
-            
-            <div>
-                <h2> 目录 </h2>
-            </div>
-            <nav aria-label="Page">
-                <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">为什么需要迁移学习？</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">1.2 什么是迁移学习？</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">站在巨人的肩膀上</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">信息流动</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">形式化定义</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">核心概念：领域与任务</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#domain">领域（Domain）= 数据的"世界"</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#task">任务（Task）= 要解决的问题</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#domain-shift">领域偏移（Domain Shift）</a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">迁移学习的效果</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">迁移学习的适用场景</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">本章小结</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">下一步</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">参考文献</a></li>
-</ul>
-            </nav>
-        </div>
-    </div>
-</div>
-
-              
-                
-<div id="searchbox"></div>
-                <article class="bd-article">
-                  
-  <section class="tex2jax_ignore mathjax_ignore" id="transfer-learning-intro">
-<span id="id1"></span><h1>导论与核心思想<a class="headerlink" href="#transfer-learning-intro" title="Link to this heading">#</a></h1>
-<p>还记得 <a class="reference internal" href="../pytorch-practice/train-workflow.html"><span class="doc">完整训练流程</span></a> 中那个 MNIST 分类器吗？我们用 60,000 张图片训练，最终达到了不错的准确率。但如果你的任务只有 <strong>100 张医学影像</strong>，或者 <strong>50 张工业缺陷图片</strong>，还能训练出好的模型吗？</p>
-<p><a class="reference internal" href="../neural-network-basics/neural-training-basics.html"><span class="doc">神经网络训练基础</span></a> 告诉我们，小数据集上从头训练深度网络极易过拟合。但现实世界中的很多任务恰恰面临这种困境——数据稀缺、标注昂贵、计算资源有限。</p>
-<p><strong>迁移学习就是解决这些问题的关键技术</strong>：与其从零开始，不如借用别人已经学到的知识。就像学会骑自行车的人学摩托车更快，掌握 Python 后再学 JavaScript 事半功倍。</p>
-<p>本部分将介绍迁移学习的核心思想，帮助你理解为什么它能有效，以及何时使用它。</p>
-<section id="id2">
-<h2>为什么需要迁移学习？<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<ol class="arabic">
-<li><p>数据困境</p>
-<p>深度学习模型的性能往往依赖于<strong>海量标注数据</strong>。然而在实际应用中，我们经常面临数据稀缺的挑战：</p>
-<ul class="simple">
-<li><p><strong>医疗影像</strong>：罕见疾病样本往往仅有数百例，难以从零训练深度网络</p></li>
-<li><p><strong>工业缺陷检测</strong>：优质生产线很少产生缺陷样本，缺陷数据极为稀少</p></li>
-<li><p><strong>小众语言</strong>：绝大多数语言缺乏足够的数字化文本资源</p></li>
-</ul>
-<p>此外，特定领域的数据常因隐私或商业原因难以汇聚，形成&quot;数据孤岛&quot;问题。</p>
-</li>
-<li><p>计算成本</p>
-<p>训练具有竞争力的深度学习模型需要巨大的计算投入。ResNet-50训练成本约数百美元，而GPT-3等大模型则需数千万美元。对于大多数研究团队和企业，从头训练既不现实也无必要。</p>
-</li>
-<li><p>过拟合风险</p>
-<p>小数据集上从头训练深度网络极易导致<strong>过拟合</strong>——模型&quot;记住&quot;训练样本而非学习通用规律。迁移学习通过引入预训练知识，相当于为模型提供了强大的&quot;先验正则化&quot;，有效缓解这一问题。</p>
-</li>
-<li><p>人类学习的启示</p>
-<p>人类天然具备知识迁移的能力：会骑自行车的人学摩托车更容易，掌握Python后学习JavaScript事半功倍。迁移学习正是将这一思想引入深度学习——利用在一个领域学到的知识，帮助解决另一个领域的问题。</p>
-</li>
-</ol>
-</section>
-<section id="id3">
-<h2>1.2 什么是迁移学习？<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
-<section id="id4">
-<h3>站在巨人的肩膀上<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
-<p><strong>类比1：学习乐器</strong></p>
-<p>想象你已经学会了钢琴（源任务）：</p>
-<ul class="simple">
-<li><p>你理解乐谱、节奏、和声</p></li>
-<li><p>你的手指已经训练出协调性</p></li>
-</ul>
-<p>现在你要学小提琴（目标任务）：</p>
-<ul class="simple">
-<li><p><strong>没有迁移</strong>：从头学乐理、识谱、音准——需要数年</p></li>
-<li><p><strong>有迁移</strong>：乐理知识直接用，只需适应新的演奏方式——数月即可</p></li>
-</ul>
-<p>迁移学习就像音乐技能的迁移——底层知识（乐理）通用，只需调整表层技巧（演奏方式）。</p>
-<p><strong>类比2：视觉识别</strong></p>
-<p>预训练模型在 ImageNet（1000类自然图像）上训练后：</p>
-<ul class="simple">
-<li><p>学会了识别<strong>边缘</strong>（直线、曲线）</p></li>
-<li><p>学会了识别<strong>纹理</strong>（皮毛、金属、织物）</p></li>
-<li><p>学会了识别<strong>形状</strong>（圆形、方形、不规则）</p></li>
-</ul>
-<p>这些能力对医学影像同样有用：</p>
-<ul class="simple">
-<li><p>X光片的<strong>边缘</strong>帮助定位器官边界</p></li>
-<li><p>CT扫描的<strong>纹理</strong>帮助区分组织类型</p></li>
-<li><p>肿瘤的<strong>形状</strong>帮助判断良恶性</p></li>
-</ul>
-<p><strong>核心洞察</strong>：预训练模型学到的不是&quot;猫狗分类&quot;，而是&quot;看世界的通用方式&quot;。</p>
-</section>
-<section id="id5">
-<h3>信息流动<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
-<object data="../_images/mermaid-ddd039495737c8f146d07900202a682739b1e916.svg" type="image/svg+xml">
-            <p class="warning">flowchart TB
-    A[源域知识&lt;br/&gt;ImageNet&lt;br/&gt;1400万张图片] --&gt; B[预训练模型&lt;br/&gt;ResNet50&lt;br/&gt;2500万参数]
-    B --&gt; C[通用视觉特征&lt;br/&gt;边缘 / 纹理 / 形状]
-    C --&gt; D[迁移]
-    D --&gt; E[目标任务&lt;br/&gt;医学影像&lt;br/&gt;100张图片]
-    E --&gt; F[微调适应]
-    F --&gt; G[目标模型&lt;br/&gt;医学分类器]
-    
-    style A fill:#e3f2fd
-    style B fill:#e8f5e9
-    style C fill:#fff3e0
-    style E fill:#fce4ec
-    style G fill:#f3e5f5</p></object>
-<p>知识从海量数据流向预训练模型，再迁移到目标任务，<strong>信息逐渐从通用走向特定</strong>。</p>
-<p><strong>关键洞察</strong>：预训练模型像是&quot;知识压缩机&quot;，把1400万张图片的信息压缩到2500万参数中。迁移学习时，我们只需微调这个压缩表示，而不需要重新学习所有知识。</p>
-</section>
-<section id="id6">
-<h3>形式化定义<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
-<p>迁移学习的核心思想是：利用源领域（Source Domain）<span class="math notranslate nohighlight">\(D_s\)</span> 和源任务（Source Task）<span class="math notranslate nohighlight">\(T_s\)</span> 中学到的知识，来帮助目标领域（Target Domain）<span class="math notranslate nohighlight">\(D_t\)</span> 和目标任务（Target Task）<span class="math notranslate nohighlight">\(T_t\)</span> 的学习 <span id="id7">[<a class="reference internal" href="part2-taxonomy.html#id14" title="Sinno Jialin Pan and Qiang Yang. A survey on transfer learning. IEEE Transactions on Knowledge and Data Engineering, 22(10):1345–1359, 2010.">PY10</a>]</span>。</p>
-<div class="math notranslate nohighlight" id="equation-tl-def">
-<span class="eqno">(1)<a class="headerlink" href="#equation-tl-def" title="Link to this equation">#</a></span>\[\text{目标：} \text{利用 } D_s \text{ 和 } T_s \text{ 的知识，提升在 } D_t \text{ 上学习 } T_t \text{ 的性能}\]</div>
-<p><strong>关键假设</strong>：源领域数据量远大于目标领域（<span class="math notranslate nohighlight">\(n_s \gg n_t\)</span>）。</p>
-</section>
-<section id="id8">
-<h3>核心概念：领域与任务<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
-<p>理解迁移学习需要明确两个基本概念。</p>
-<section id="domain">
-<h4>领域（Domain）= 数据的&quot;世界&quot;<a class="headerlink" href="#domain" title="Link to this heading">#</a></h4>
-<p><strong>直觉理解</strong>：想象你在学画画。</p>
-<ul class="simple">
-<li><p><strong>源领域</strong>：你在美术课上画水果（苹果、香蕉）</p></li>
-<li><p><strong>目标领域</strong>：现在要画医学解剖图（心脏、肺部）</p></li>
-</ul>
-<p>虽然都是画画（特征空间相同，都是图像），但<strong>画风完全不同</strong>（数据分布不同）——水果是彩色的、光滑的；解剖图是黑白的、复杂的。</p>
-<p><strong>数学上</strong>，领域 = 特征空间 + 数据分布：</p>
-<ul class="simple">
-<li><p><strong>特征空间</strong>：数据的表现形式（如224×224的RGB图像）</p></li>
-<li><p><strong>数据分布</strong>：这些数据实际长什么样（自然照片 vs 医学影像）</p></li>
-</ul>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>对比项</p></th>
-<th class="head"><p>源领域（ImageNet）</p></th>
-<th class="head"><p>目标领域（医学影像）</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>特征空间</p></td>
-<td><p>都是224×224 RGB图像</p></td>
-<td><p>都是224×224 RGB图像</p></td>
-</tr>
-<tr class="row-odd"><td><p>数据分布</p></td>
-<td><p>自然风景、动物、物品</p></td>
-<td><p>X光片、CT扫描</p></td>
-</tr>
-<tr class="row-even"><td><p><strong>直觉</strong></p></td>
-<td><p>照片风格</p></td>
-<td><p>黑白影像风格</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="task">
-<h4>任务（Task）= 要解决的问题<a class="headerlink" href="#task" title="Link to this heading">#</a></h4>
-<p><strong>直觉理解</strong>：同样的数据，可以有不同的任务。</p>
-<ul class="simple">
-<li><p><strong>源任务</strong>：这张图片是猫还是狗？（1000类分类）</p></li>
-<li><p><strong>目标任务</strong>：这张X光片显示肺炎了吗？（2类分类）</p></li>
-</ul>
-</section>
-<section id="domain-shift">
-<h4>领域偏移（Domain Shift）<a class="headerlink" href="#domain-shift" title="Link to this heading">#</a></h4>
-<p><strong>生活中的例子</strong>：</p>
-<blockquote>
-<div><p>假设你学会了识别&quot;水果照片中的苹果&quot;。现在给你看&quot;素描画中的苹果&quot;，虽然都是苹果，但风格完全不同——这就是领域偏移。</p>
-</div></blockquote>
-<p><strong>为什么会出现这个问题？</strong></p>
-<ul class="simple">
-<li><p>预训练模型学会了&quot;识别照片中的物体&quot;</p></li>
-<li><p>但医学影像是&quot;识别黑白影像中的病理特征&quot;</p></li>
-<li><p><strong>底层技巧相通</strong>（边缘检测、形状识别），但<strong>表现形式不同</strong></p></li>
-</ul>
-<p><strong>解决方案</strong>：</p>
-<ul class="simple">
-<li><p>保留底层技巧（浅层特征）</p></li>
-<li><p>调整顶层策略（分类层）</p></li>
-<li><p>这就是<strong>微调</strong>的核心思想</p></li>
-</ul>
-<hr class="docutils" />
-<p><strong>一句话总结</strong>：迁移学习就是「用学画水果的技巧，快速学会画解剖图」——基础技能相通，只需调整应用方式。</p>
-</section>
-</section>
-<section id="id9">
-<h3>迁移学习的效果<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
-<p>大量实践表明，迁移学习能够带来显著的性能提升：</p>
-<ul class="simple">
-<li><p>ImageNet预训练的ResNet模型，迁移到下游视觉任务平均提升 <strong>5-20%</strong> 准确率 <span id="id10">[<a class="reference internal" href="../unet-image-segmentation/u-net.html#id56" title="Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition, 770–778. 2016.">HZRS16</a>]</span></p></li>
-<li><p>BERT通过大规模预训练，在11项NLP任务上刷新了SOTA <span id="id11">[<a class="reference internal" href="part3-model-transfer.html#id71" title="Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. Bert: pre-training of deep bidirectional transformers for language understanding. In Proceedings of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, 4171–4186. 2019.">DCLT19</a>]</span></p></li>
-<li><p>医学影像领域，迁移学习可将小样本任务准确率从40-50%提升至80-90%</p></li>
-</ul>
-</section>
-</section>
-<section id="id12">
-<h2>迁移学习的适用场景<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
-<p>迁移学习特别适用于以下场景：</p>
-<ol class="arabic simple">
-<li><p><strong>目标领域数据稀缺</strong>：标注数据难以获取或成本高昂</p></li>
-<li><p><strong>快速原型验证</strong>：需要在短时间内建立baseline模型</p></li>
-<li><p><strong>计算资源受限</strong>：无法承担从头训练大模型的成本</p></li>
-<li><p><strong>领域间存在关联</strong>：源任务与目标任务有一定相似性</p></li>
-</ol>
-<div class="caution admonition">
-<p class="admonition-title">何时不适用？负迁移（Negative Transfer）详解</p>
-<p>当源领域与目标领域完全无关时，强行迁移可能导致<strong>负迁移</strong>——迁移后性能比从头训练还差。</p>
-<p><strong>负迁移发生的条件</strong>：</p>
-<ol class="arabic simple">
-<li><p><strong>领域差异过大</strong>：源域和目标域的底层特征完全不同</p>
-<ul class="simple">
-<li><p>❌ 用自然图像模型处理基因组序列</p></li>
-<li><p>❌ 用文本模型处理音频信号</p></li>
-</ul>
-</li>
-<li><p><strong>任务冲突</strong>：源任务和目标任务的要求相互矛盾</p>
-<ul class="simple">
-<li><p>❌ 用&quot;识别猫狗&quot;的模型做&quot;识别猫的品种&quot;（粒度差异过大）</p></li>
-</ul>
-</li>
-</ol>
-<p><strong>数学解释</strong>：</p>
-<p>负迁移发生时，源域知识反而成为噪声：</p>
-<div class="math notranslate nohighlight">
-\[\text{Performance}_{\text{迁移}} &lt; \text{Performance}_{\text{从头训练}}\]</div>
-<p><strong>如何避免负迁移</strong>：</p>
-<ol class="arabic simple">
-<li><p><strong>领域相似性判断</strong>：用预训练模型提取目标域特征，看是否能较好分离</p></li>
-<li><p><strong>渐进式实验</strong>：先尝试特征提取，效果不佳则考虑从头训练</p></li>
-<li><p><strong>可视化分析</strong>：用t-SNE可视化源域和目标域的特征分布，看是否有重叠</p></li>
-</ol>
-<p><strong>负迁移 vs 性能提升有限</strong>：</p>
-<ul class="simple">
-<li><p>负迁移：性能<strong>下降</strong>（有害）</p></li>
-<li><p>性能提升有限：性能<strong>上升但不多</strong>（无害但帮助不大）</p></li>
-</ul>
-</div>
-</section>
-<section id="id13">
-<h2>本章小结<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
-<ul class="simple">
-<li><p><strong>动机</strong>：解决数据稀缺、计算成本高、小样本过拟合等问题</p></li>
-<li><p><strong>定义</strong>：利用源领域知识提升目标领域学习性能的范式</p></li>
-<li><p><strong>核心</strong>：领域（特征空间+分布）与任务（标签空间+预测函数）</p></li>
-<li><p><strong>直觉</strong>：像学乐器一样迁移底层知识，像&quot;看世界&quot;一样复用通用特征</p></li>
-</ul>
-<section id="id14">
-<h3>下一步<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
-<p>理解了迁移学习的基本概念后，<a class="reference internal" href="part2-taxonomy.html"><span class="doc">迁移学习分类体系</span></a> 我们将建立一套<strong>分类体系</strong>，帮助你在面对具体问题时快速找到合适的方法——归纳式、直推式、无监督迁移学习，哪种适合你的任务？</p>
-</section>
-</section>
-<hr class="docutils" />
-<section id="id15">
-<h2>参考文献<a class="headerlink" href="#id15" title="Link to this heading">#</a></h2>
-<div class="docutils container" id="id16">
-<div role="list" class="citation-list">
-<div class="citation" id="id62" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id11">DCLT19</a><span class="fn-bracket">]</span></span>
-<p>Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. Bert: pre-training of deep bidirectional transformers for language understanding. In <em>Proceedings of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</em>, 4171–4186. 2019.</p>
-</div>
-<div class="citation" id="id50" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id10">HZRS16</a><span class="fn-bracket">]</span></span>
-<p>Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In <em>Proceedings of the IEEE conference on computer vision and pattern recognition</em>, 770–778. 2016.</p>
-</div>
-<div class="citation" id="id17" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">PY10</a><span class="fn-bracket">]</span></span>
-<p>Sinno Jialin Pan and Qiang Yang. A survey on transfer learning. <em>IEEE Transactions on Knowledge and Data Engineering</em>, 22(10):1345–1359, 2010.</p>
-</div>
-</div>
-</div>
-</section>
-</section>
-
-    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
-        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
-        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
-    
-            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
-                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
-            </a></div>
-        </div>
-        <details>
-            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
-            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
-    
-            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
-                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b5be2d6</code>
-                2026-04-28 - <strong>Heyan Zhu</strong>: docs: update documentation and improve content organization
-            </li>
-        
-            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
-                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b7ed915</code>
-                2026-02-28 - <strong>Heyan Zhu</strong>: docs: add transfer learning
-            </li>
-        
-            </ul>
-        </details>
-    </div>
-    
-
-                </article>
-              
-
-              
-              
-              
-              
-                <footer class="prev-next-footer d-print-none">
-                  
-<div class="prev-next-area">
-    <a class="left-prev"
-       href="index.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">上一页</p>
-        <p class="prev-next-title">迁移学习与微调：站在巨人的肩膀上</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="part2-taxonomy.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">迁移学习分类体系</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
-</div>
-                </footer>
-              
-            </div>
-            
-            
-              
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
-
-
-  <div class="sidebar-secondary-item">
-  <div class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> 目录
-  </div>
-  <nav class="bd-toc-nav page-toc">
-    <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">为什么需要迁移学习？</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">1.2 什么是迁移学习？</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">站在巨人的肩膀上</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">信息流动</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">形式化定义</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">核心概念：领域与任务</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#domain">领域（Domain）= 数据的"世界"</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#task">任务（Task）= 要解决的问题</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#domain-shift">领域偏移（Domain Shift）</a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">迁移学习的效果</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">迁移学习的适用场景</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">本章小结</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">下一步</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">参考文献</a></li>
-</ul>
-  </nav></div>
-
-</div></div>
-              
-            
-          </div>
-          <footer class="bd-footer-content">
-            
-<div class="bd-footer-content__inner container">
-  
-  <div class="footer-item">
-    
-<p class="component-author">
-作者： UCS Deep Learning Club
-</p>
-
-  </div>
-  
-  <div class="footer-item">
-    
-
-  <p class="copyright">
-    
-      © Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0.
-      <br/>
-    
-  </p>
-
-  </div>
-  
-  <div class="footer-item">
-    
-  </div>
-  
-  <div class="footer-item">
-    
-  </div>
-  
-</div>
-          </footer>
-        
-
-      </main>
-    </div>
-  </div>
-  
-  <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
-
-  <footer class="bd-footer">
-  </footer>
-  </body>
+</script></body>
 </html>
