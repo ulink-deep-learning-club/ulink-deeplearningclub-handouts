@@ -4,28 +4,6 @@
 
 这是我们深度学习社的教学资料库，面向具备微积分基础的高中生，提供从理论到实践的深度学习课程。
 
-## 课程结构
-
-本课程采用**理论→实践→进阶**的三阶段设计：
-
-~~~{toctree}
-:maxdepth: 2
-:hidden:
-
-preface
-math-fundamentals/index
-neural-network-basics/index
-pytorch-practice/index
-cnn-ablation-study/index
-transfer-learning/index
-attention-mechanisms/index
-model-architecture-design/index
-unet-image-segmentation/index
-model-serving/index
-appendix/environment-setup/index
-postscript
-~~~
-
 ## 学习路径
 
 ~~~{mermaid}
@@ -96,3 +74,21 @@ graph LR
 > ⚠️ **警告**：本课程包含大量梯度下降、反向传播和玄学调参。副作用可能包括：对 GPU 产生依赖、对过拟合产生恐惧、以及半夜醒来突然想到"是不是学习率太大"。
 
 **最后更新**：2026-04-29
+
+~~~{toctree}
+:maxdepth: 2
+:hidden:
+
+preface
+math-fundamentals/index
+neural-network-basics/index
+pytorch-practice/index
+cnn-ablation-study/index
+transfer-learning/index
+attention-mechanisms/index
+model-architecture-design/index
+unet-image-segmentation/index
+model-serving/index
+appendix/environment-setup/index
+postscript
+~~~
