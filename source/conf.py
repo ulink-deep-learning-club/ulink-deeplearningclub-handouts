@@ -108,6 +108,7 @@ project = 'Deep Learning Club Handouts'
 copyright = '2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0'
 author = 'UCS Deep Learning Club'
 release = '0.0.1'
+html_title = "Deep Learning Club Handouts"
 
 html_css_files = [
     'style-fixes.css'
@@ -127,6 +128,7 @@ extensions = [
     'fix_mermaid_svgs',
     'sphinxcontrib.bibtex'
 ]
+myst_heading_anchors = 3
 
 if 'html' in sys.argv:
     print("MathJax is enabled for html product")
@@ -139,7 +141,7 @@ elif 'epub' in sys.argv:
 mermaid_output_format = 'svg'
 mermaid_params = [
     '--theme', 'neutral',
-    '--backgroundColor', 'white',
+    '--backgroundColor', 'transparent',
     '--scale', '1'             # 1 = actual size, 2 = 2x, etc.
 ]
 
@@ -187,20 +189,29 @@ exclude_patterns = ['build', 'Thumbs.db', '.DS_Store']
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_book_theme'
+html_theme = 'breeze'
 html_static_path = ['_static']
 
 # Sphinx Book Theme configuration
+html_context = {
+    'github_repo': 'ulink-deep-learning-club',
+    'github_repo': 'ulink-deeplearningclub-handouts',
+    'github_version': 'main',
+    "doc_path": "source",
+}
+
 html_theme_options = {
-    'repository_url': 'https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts',
-    'use_repository_button': True,
-    'use_issues_button': True,
-    'use_edit_page_button': True,
-    'navigation_depth': 4,
-    'show_toc_level': 3,
-    'logo': {
-        'text': 'UCS Deep Learning Club',
-    },
+    "header_start": ["header-brand.html", "version-switcher.html"],
+    "header_end": ["search-button.html", "lang-switcher.html", "theme-switcher.html", "external-links.html"],
+    "sidebar_primary": ["sidebar-nav.html"],
+    "sidebar_secondary": ["sidebar-toc.html", "repo-stats.html", "edit-this-page.html", "sidebar-ethical-ads.html"],
+    "article_header": ["breadcrumbs.html"],
+    "article_footer": ["related-pages.html"],
+    "footer": ["footer-copyright.html", "external-links.html"],
+
+    "header_tabs": False,
+
+    "default_mode": "auto",
 }
 
 # MathJax configuration
