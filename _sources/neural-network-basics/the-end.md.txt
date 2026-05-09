@@ -98,7 +98,7 @@
 ### 1. 架构创新
 
 - **ResNet/DenseNet**：解决深层网络训练难题
-- **Transformer**：注意力机制替代卷积，主导NLP和视觉
+- **Transformer**：注意力机制替代卷积，主导NLP和视觉（详见 {ref}`transformer`）
 - **神经架构搜索（NAS）**：自动化发现最优架构
 
 ### 2. 效率优化

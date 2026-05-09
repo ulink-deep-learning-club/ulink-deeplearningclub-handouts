@@ -68,7 +68,7 @@ graph LR
 | **mnist-helloworld**（框架） | ⭐ 入门 | 工程化项目结构、配置管理、实验追踪 | 社团自有框架 `mnist-helloworld/` |
 | **CIFAR-10 ResNet** | ⭐⭐ 基础 | 更深网络、数据增强 | {doc}`../neural-network-basics/cnn-basics` |
 | **猫狗分类器** | ⭐⭐ 基础 | 迁移学习 | {doc}`../transfer-learning/index` |
-| **情感分析** | ⭐⭐⭐ 进阶 | 文本处理、RNN | RNN 基础（后续章节） |
+| **情感分析** | ⭐⭐⭐ 进阶 | 文本处理、RNN | {ref}`sequence-modeling` |
 | **GAN 图像生成** | ⭐⭐⭐⭐ 困难 | 对抗训练、生成模型 | 生成模型专题 |
 
 ### 官方资源

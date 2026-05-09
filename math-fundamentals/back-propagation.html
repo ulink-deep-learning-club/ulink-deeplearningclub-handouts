@@ -198,6 +198,15 @@
 <li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
 </ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../sequence-modeling/index.html">序列建模：从RNN到Transformer再到Mamba</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/transformer.html">Transformer：注意力的极致</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/mamba-intro.html">Mamba 简述：对RNN思想的回归</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/the-end.html">总结与展望</a></li>
+</ul></details></li>
 <li class="toctree-l1"><a class="reference internal" href="../model-serving/index.html">模型部署与服务：从训练到生产</a>
 <details><summary aria-label="Toggle submenu"></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../model-serving/introduction.html">引言：训练完模型之后</a></li>
@@ -214,6 +223,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
 </ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/sphinx-guide/index.html">Sphinx Markdown 写作指南</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
 </ul>
 </nav>
@@ -260,7 +270,7 @@
 <section id="id2">
 <h2>反向传播的本质：信用分配<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
 <p>神经网络训练时，我们根据最终损失来调整参数。核心问题是：<strong>损失是由很多参数共同造成的，每个参数该&quot;背多少锅&quot;？</strong></p>
-<p>反向传播（Backpropagation）<span id="id3">[<a class="reference internal" href="#id82" title="David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. Nature, 323(6088):533–536, 1986.">RHW86</a>]</span> 就是解决这个&quot;<strong>信用分配问题</strong>&quot;的高效算法。</p>
+<p>反向传播（Backpropagation）<span id="id3">[<a class="reference internal" href="../sequence-modeling/rnn-basics.html#id82" title="David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. Nature, 323(6088):533–536, 1986.">RHW86</a>]</span> 就是解决这个&quot;<strong>信用分配问题</strong>&quot;的高效算法。</p>
 <div class="tip admonition">
 <p class="admonition-title">类比：团队项目的责任分摊</p>
 <p>想象一个团队项目失败了（损失很大），需要找出每个人的责任：</p>
@@ -269,7 +279,7 @@
 <li><p><strong>反向传播</strong>：从失败结果倒推，计算每个人对失败的责任（梯度）</p></li>
 <li><p><strong>链式法则</strong>：如果A的工作影响了B，B的责任要按贡献度传递给A</p></li>
 </ul>
-<div class="figure" id="id110" style="text-align: center"><p><img  src="../_images/tikz-71cf7bcf033322592b12289c16ca05c7e9badc1b.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id120" style="text-align: center"><p><img  src="../_images/tikz-71cf7bcf033322592b12289c16ca05c7e9badc1b.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">反向传播：梯度从输出流回输入</span></p>
 </div></div>
 </section>
@@ -358,7 +368,7 @@
 \]</div>
 <p><strong>关键洞察</strong>：Jacobian 矩阵的连乘是梯度消失/爆炸的数学根源。</p>
 <p><strong>如何理解 Jacobian 对梯度的影响？</strong></p>
-<p>想象 Jacobian 矩阵是一个&quot;放大器&quot;——它把输入的梯度变换成输出的梯度。我们用 <span class="math notranslate nohighlight">\(\gamma\)</span> 表示这个<strong>放大倍数</strong>：</p>
+<p>想象 Jacobian 矩阵是一个&quot;放大器&quot;——它把输入的梯度变换成输出的梯度。我们用 <span class="math notranslate nohighlight">\(\gamma\)</span> 表示这个<strong>放大倍数</strong><a class="footnote-reference brackets" href="#gamma-def" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>：</p>
 <ul class="simple">
 <li><p>如果 <span class="math notranslate nohighlight">\(\gamma &lt; 1\)</span>：梯度被&quot;缩小&quot;了</p></li>
 <li><p>如果 <span class="math notranslate nohighlight">\(\gamma = 1\)</span>：梯度大小不变</p></li>
@@ -464,8 +474,8 @@
 </div>
 </section>
 </section>
-<section id="id7">
-<h3>示例：简单计算图<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<section id="id8">
+<h3>示例：简单计算图<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
 <p>考虑 <span class="math notranslate nohighlight">\(f(x, y) = (x + y) \times y\)</span>，设 <span class="math notranslate nohighlight">\(x=2, y=3\)</span>：</p>
 <p><strong>前向传播</strong>：</p>
 <ul class="simple">
@@ -509,10 +519,10 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">.backward()</span></code>：自动执行<a class="reference internal" href="#back-propagation"><span class="std std-ref">反向传播算法</span></a>计算所有叶节点的梯度</p></li>
 </ul>
 </section>
-<section id="id8">
-<h2>神经网络中的反向传播<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<section id="id9">
+<h2>神经网络中的反向传播<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
 <p>对于多层神经网络，反向传播从输出层逐层回传：</p>
-<div class="figure" id="id111" style="text-align: center"><p><img  src="../_images/tikz-602a045cabc553a25a48b80d890d1591abb950fc.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id121" style="text-align: center"><p><img  src="../_images/tikz-602a045cabc553a25a48b80d890d1591abb950fc.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">神经网络反向传播示意</span></p>
 </div><p><strong>流程</strong>：</p>
 <ol class="arabic simple">
@@ -521,8 +531,8 @@
 <li><p><strong>参数更新</strong>：使用梯度下降更新权重</p></li>
 </ol>
 </section>
-<section id="id9">
-<h2>常见操作的梯度<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
+<section id="id10">
+<h2>常见操作的梯度<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
 <p><a class="reference internal" href="#back-propagation"><span class="std std-ref">反向传播算法</span></a>的实现依赖于定义每个基本操作的梯度规则。下面是神经网络中常用操作的梯度：</p>
 <div class="table colwidths-auto docutils container">
 <table class="docutils align-default">
@@ -554,15 +564,15 @@
 </div>
 <p>更多激活函数的梯度定义，参见 <a class="reference internal" href="activation-functions.html"><span class="doc">激活函数</span></a>。</p>
 </section>
-<section id="id10">
-<h2>反向传播的优势<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
 <section id="id11">
-<h3>1. 计算效率<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<h2>反向传播的优势<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
+<section id="id12">
+<h3>1. 计算效率<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
 <p><a class="reference internal" href="#back-propagation"><span class="std std-ref">反向传播算法</span></a>的时间复杂度是 <span class="math notranslate nohighlight">\(O(n)\)</span>，其中 <span class="math notranslate nohighlight">\(n\)</span> 是<a class="reference internal" href="computational-graph.html#computational-graph"><span class="std std-ref">计算图</span></a>中边的数量。相比之下，数值差分需要 <span class="math notranslate nohighlight">\(O(n \times p)\)</span>，其中 <span class="math notranslate nohighlight">\(p\)</span> 是参数数量。</p>
 <p><strong>关键</strong>：通过复用中间计算结果，避免重复求导。</p>
 </section>
-<section id="id12">
-<h3>2. 模块化设计<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
+<section id="id13">
+<h3>2. 模块化设计<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
 <p>每个操作只需要定义：</p>
 <ul class="simple">
 <li><p>前向：如何计算输出</p></li>
@@ -571,8 +581,8 @@
 <p>这使得添加新操作变得简单。</p>
 </section>
 </section>
-<section id="id13">
-<h2>常见问题<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<section id="id14">
+<h2>常见问题<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
 <section id="vanishing-gradient">
 <span id="gradient-vanishing"></span><h3>梯度消失（Vanishing Gradient）<a class="headerlink" href="#vanishing-gradient" title="Link to this heading">#</a></h3>
 <p>想象一个100层的神经网络。当你训练时，发现靠近输出层的参数更新正常，但靠近输入层的参数几乎不动——就像前面几十层&quot;冻住&quot;了一样。这就是<strong>梯度消失</strong>。</p>
@@ -596,7 +606,7 @@
 <p>为什么会发生？和梯度消失相反，如果每层的梯度都大于1（比如权重初始化过大，梯度为2），100层连乘后：</p>
 <div class="math notranslate nohighlight">
 \[2 \times 2 \times ... \times 2 \quad (100次) = 2^{100} \approx 10^{30}\]</div>
-<p>这是一个天文数字！参数会被更新得极其剧烈，完全偏离最优解。常见于权重初始化不当，或循环神经网络（RNN）处理长序列时。</p>
+<p>这是一个天文数字！参数会被更新得极其剧烈，完全偏离最优解。常见于权重初始化不当，或循环神经网络（RNN，详见 <a class="reference internal" href="../sequence-modeling/rnn-basics.html#rnn-problems"><span class="std std-ref">RNN的两个核心问题</span></a>）处理长序列时的梯度爆炸。</p>
 <p><strong>后果</strong>：参数更新过大跳出最优解区域，损失函数震荡发散，甚至数值溢出（NaN）导致训练彻底失败。</p>
 <p><strong>解决方案</strong>：</p>
 <ul class="simple">
@@ -607,8 +617,8 @@
 </ul>
 </section>
 </section>
-<section id="id14">
-<h2>总结<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
+<section id="id15">
+<h2>总结<a class="headerlink" href="#id15" title="Link to this heading">#</a></h2>
 <p>反向传播是深度学习的核心算法：</p>
 <ol class="arabic simple">
 <li><p><strong>信用分配</strong>：将最终损失&quot;分摊&quot;给每个参数</p></li>
@@ -619,11 +629,11 @@
 <p>关于反向传播在实际神经网络训练中的应用，参见 <a class="reference internal" href="../neural-network-basics/neural-training-basics.html"><span class="doc">神经网络训练基础</span></a>。</p>
 </section>
 <hr class="docutils" />
-<section id="id15">
-<h2>参考文献<a class="headerlink" href="#id15" title="Link to this heading">#</a></h2>
-<div class="docutils container" id="id16">
+<section id="id16">
+<h2>参考文献<a class="headerlink" href="#id16" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id17">
 <div role="list" class="citation-list">
-<div class="citation" id="id82" role="doc-biblioentry">
+<div class="citation" id="id83" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">RHW86</a><span class="fn-bracket">]</span></span>
 <p>David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. <em>Nature</em>, 323(6088):533–536, 1986.</p>
 </div>
@@ -631,12 +641,19 @@
 </div>
 </section>
 </section>
+<hr class="footnotes docutils" />
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="gamma-def" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">1</a><span class="fn-bracket">]</span></span>
+<p>这里是简化的版本，实际应为 <strong>最大奇异值</strong>（maximum singular value）。对向量（多层梯度）而言，局部放大倍数由 Jacobian 矩阵 <span class="math notranslate nohighlight">\(\frac{\partial h_{k+1}}{\partial h_k}\)</span> 的最大奇异值给出，它决定了梯度模长经过这一层映射后被放大或缩小的最大倍数。</p>
+</aside>
+</aside>
 
     <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (8 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (9 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -644,6 +661,11 @@
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">8eb3275</code>
+                2026-05-09 - <strong>Heyan Zhu</strong>: feat(sequence-modeling): add new chapter on sequence modeling from RNN to Mamba
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f159d56</code>
                 2026-05-08 - <strong>Heyan Zhu</strong>: fix: address complaints from the linter
@@ -754,24 +776,24 @@
 <li><a class="reference internal" href="#gradient-vanishing-math">多层网络的 Jacobian 连乘与梯度消失</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id7">示例：简单计算图</a></li>
+<li><a class="reference internal" href="#id8">示例：简单计算图</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#pytorch">PyTorch中的自动微分</a></li>
-<li><a class="reference internal" href="#id8">神经网络中的反向传播</a></li>
-<li><a class="reference internal" href="#id9">常见操作的梯度</a></li>
-<li><a class="reference internal" href="#id10">反向传播的优势</a><ul>
-<li><a class="reference internal" href="#id11">1​. 计算效率</a></li>
-<li><a class="reference internal" href="#id12">2​. 模块化设计</a></li>
+<li><a class="reference internal" href="#id9">神经网络中的反向传播</a></li>
+<li><a class="reference internal" href="#id10">常见操作的梯度</a></li>
+<li><a class="reference internal" href="#id11">反向传播的优势</a><ul>
+<li><a class="reference internal" href="#id12">1​. 计算效率</a></li>
+<li><a class="reference internal" href="#id13">2​. 模块化设计</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id13">常见问题</a><ul>
+<li><a class="reference internal" href="#id14">常见问题</a><ul>
 <li><a class="reference internal" href="#vanishing-gradient">梯度消失（Vanishing Gradient）</a></li>
 <li><a class="reference internal" href="#exploding-gradient">梯度爆炸（Exploding Gradient）</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id14">总结</a></li>
-<li><a class="reference internal" href="#id15">参考文献</a></li>
+<li><a class="reference internal" href="#id15">总结</a></li>
+<li><a class="reference internal" href="#id16">参考文献</a></li>
 </ul></nav>
   
 

@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-content_root="../">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="从RNN到注意力：一个思想的跳跃" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="sequence-modeling/from-rnn-to-attention.html" />
+<meta property="og:site_name" content="Deep Learning Club Handouts" />
+<meta property="og:description" content="循环神经网络：让网络拥有&quot;记忆&quot; 揭示了 RNN 的困境：\mathbf{h}_t 只能通过\mathbf{h}_{t-1} 间接获取前序信息。 LSTM：给记忆装上&quot;门&quot; 用门控机制为梯度开辟了高速公路，但信息仍是串行传递的——经过几十个\mathbf{f}_t \odot \mathbf{c}_{t-1} 操作后，\mathbf{h}_1 的信息在..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_sequence-modeling_from-rnn-to-attention_64f492f9.png" />
+<meta property="og:image:alt" content="循环神经网络：让网络拥有&quot;记忆&quot; 揭示了 RNN 的困境：\mathbf{h}_t 只能通过\mathbf{h}_{t-1} 间接获取前序信息。 LSTM：给记忆装上&quot;门&quot; 用门控机制为梯度开辟了高速公路，但信息仍是串行传递的——经过几十个\mathbf{f}_t \odot \mathbf{c}_{t-1} 操作后，\mathbf{h}_1 的信息在..." />
+<meta name="description" content="循环神经网络：让网络拥有&quot;记忆&quot; 揭示了 RNN 的困境：\mathbf{h}_t 只能通过\mathbf{h}_{t-1} 间接获取前序信息。 LSTM：给记忆装上&quot;门&quot; 用门控机制为梯度开辟了高速公路，但信息仍是串行传递的——经过几十个\mathbf{f}_t \odot \mathbf{c}_{t-1} 操作后，\mathbf{h}_1 的信息在..." />
+<meta name="twitter:card" content="summary_large_image" />
+<title>从RNN到注意力：一个思想的跳跃 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="Transformer：注意力的极致" href="transformer.html"><link rel="prev" title="LSTM：给记忆装上&#34;门&#34;" href="lstm.html"><script data-cfasync="false">(function(){
+    const m = localStorage.getItem("breeze-mode") || "auto";
+    const d = document.documentElement.dataset;
+    d.mode = m;
+    d.theme = m === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : m;
+  })();
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=9c6fee98" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+<body>
+  
+  
+  <div class="bz-skip-to-content"><a href="#bz-main-content">Skip to main content</a></div><header class="bz-header-main">
+  <div class="bz-header-start"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><a class="bz-header-brand" href="../index.html">
+  
+  
+  <span>Deep Learning Club Handouts</span>
+</a>
+  </div>
+  <div class="bz-header-end"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><div id="docsearch" class="bz-search-button">
+  <a
+    href="../search.html#q"
+    aria-label="Search the docs"
+    data-tooltip="Search the docs"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 -1 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
+    <span>搜索</span>
+    <kbd>Ctrl+K</kbd>
+  </a>
+</div><div class="bz-theme-switcher">
+  <button aria-label="Switch theme" data-tooltip="Switch theme">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
+      <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-dark" fill="currentColor">
+      <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+    </svg>
+  </button>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.766 11.695C4.703 11.437 3.25 9.904 3.25 7.92c0-.806.281-1.677.75-2.258-.203-.532-.172-1.662.062-2.129.626-.081 1.469.258 1.969.726.594-.194 1.219-.291 1.985-.291.765 0 1.39.097 1.953.274.484-.451 1.343-.79 1.969-.709.218.435.25 1.564.046 2.113.5.613.766 1.436.766 2.274 0 1.984-1.453 3.485-3.547 3.759.531.355.891 1.129.891 2.016v1.678c0 .484.39.758.859.564C13.781 14.824 16 11.905 16 8.291 16 3.726 12.406 0 7.984 0 3.562 0 0 3.726 0 8.291c0 3.581 2.203 6.55 5.172 7.663A.595.595 0 0 0 6 15.389v-1.291c-.219.097-.5.162-.75.162-1.031 0-1.641-.581-2.078-1.662-.172-.435-.36-.693-.719-.742-.187-.016-.25-.097-.25-.193 0-.194.313-.339.625-.339.453 0 .844.29 1.25.887.313.468.641.678 1.031.678.391 0 .641-.146 1-.516.266-.275.469-.517.657-.678Z"></path></svg>
+    
+    </a>
+  </div>
+  </div>
+</header><hr class="bz-header-hr">
+  <div class="bz-content"><aside class="bz-sidebar-primary" data-drawer="bz-sidebar-primary">
+  
+  
+    <nav class="bz-sidebar-nav" aria-label="Section Navigation"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../math-fundamentals/index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础：从理论到架构</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN 消融研究：理解卷积神经网络各组件的作用</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：消融研究的科学方法论</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/the-end.html">结语：从黑盒到白盒</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../attention-mechanisms/index.html">CNN 中的注意力机制</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/introduction.html">为什么CNN需要注意力机制？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/se-net.html">通道注意力：SE-Net</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/spatial-attn.html">空间注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/cbam.html">通道+空间注意力：CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/comparison.html">注意力机制的选择与应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/practice.html">实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../model-architecture-design/index.html">CNN 架构改造：设计卷积网络的心法</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part1-intro.html">改造的本质：从"会用 CNN"到"会设计 CNN"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">序列建模：从RNN到Transformer再到Mamba</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lstm.html">LSTM：给记忆装上"门"</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">从RNN到注意力：一个思想的跳跃</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transformer.html">Transformer：注意力的极致</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mamba-intro.html">Mamba 简述：对RNN思想的回归</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../model-serving/index.html">模型部署与服务：从训练到生产</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置番外篇</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/sphinx-guide/index.html">Sphinx Markdown 写作指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+</nav>
+  
+
+</aside><main id="bz-main-content"><header class="bz-article-header">
+  
+  
+    <nav class="bz-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li class="bz-breadcrumbs-home">
+      <a href="../index.html" aria-label="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8.543 2.232a.75.75 0 0 0-1.085 0l-5.25 5.5A.75.75 0 0 0 2.75 9H4v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V9h1.25a.75.75 0 0 0 .543-1.268l-5.25-5.5Z" />
+        </svg>
+      </a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="index.html">序列建模：从RNN到Transformer再到Mamba</a>
+    </li><li class="bz-breadcrumbs-current">
+      <span>从RNN到注意力：一个思想的跳跃</span>
+    </li>
+  </ol>
+</nav>
+  
+<label
+  class="bz-sidebar-secondary-toggle"
+  for="bz-sidebar-secondary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle table of contents"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75H20.25 M11.25 12H20.25 M7.75 17.25H20.25"
+    />
+  </svg>
+</label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="rnn">
+<span id="from-rnn-to-attention"></span><h1>从RNN到注意力：一个思想的跳跃<a class="headerlink" href="#rnn" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="rnn-basics.html"><span class="doc">循环神经网络：让网络拥有&quot;记忆&quot;</span></a> 揭示了 RNN 的困境：<span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span> 只能通过 <span class="math notranslate nohighlight">\(\mathbf{h}_{t-1}\)</span> 间接获取前序信息。<a class="reference internal" href="lstm.html"><span class="doc">LSTM：给记忆装上&quot;门&quot;</span></a> 用门控机制为梯度开辟了高速公路，但信息仍是串行传递的——经过几十个 <span class="math notranslate nohighlight">\(\mathbf{f}_t \odot \mathbf{c}_{t-1}\)</span> 操作后，<span class="math notranslate nohighlight">\(\mathbf{h}_1\)</span> 的信息在 <span class="math notranslate nohighlight">\(\mathbf{c}_{100}\)</span> 中终究会衰减。</p>
+<p><strong>关键问题</strong>：如果 <span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span> 能直接看到 <span class="math notranslate nohighlight">\(\mathbf{h}_1, \mathbf{h}_2, ..., \mathbf{h}_{t-1}\)</span> 全部历史，而不只是 <span class="math notranslate nohighlight">\(\mathbf{h}_{t-1}\)</span>，会怎么样？</p>
+<section id="causal-attention-intuition">
+<span id="id1"></span><h2>直觉跳跃：从&quot;传话&quot;到&quot;查档案&quot;<a class="headerlink" href="#causal-attention-intuition" title="Link to this heading">#</a></h2>
+<section id="id2">
+<h3>两个处理模式<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p>RNN的传话模式</p></th>
+<th class="head"><p>注意力的查档模式</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>信息获取</p></td>
+<td><p>只听上一个人说</p></td>
+<td><p>直接查阅所有前序记录</p></td>
+</tr>
+<tr class="row-odd"><td><p>信息质量</p></td>
+<td><p>逐次衰减</p></td>
+<td><p>不受距离影响</p></td>
+</tr>
+<tr class="row-even"><td><p>并行性</p></td>
+<td><p>串行，<span class="math notranslate nohighlight">\(t\)</span> 步等 <span class="math notranslate nohighlight">\(t-1\)</span> 步完成</p></td>
+<td><p>所有步骤可同时计算</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>RNN 就像传话游戏：第100个人想知道第10个人说了什么，只能通过中间90个人的转述。每转述一次，信息就损失一点。</p>
+<p>注意力的做法完全不同：<strong>第100个人能看到所有人的&quot;原始发言记录&quot;，然后自己判断哪些发言对当前理解最重要</strong>。</p>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>这不是一个全新的想法</strong>。<a class="reference internal" href="../neural-network-basics/introduction.html#inductive-bias"><span class="std std-ref">归纳偏置（Inductive Bias）</span></a> 告诉我们，好的架构把对任务结构的理解内置到设计中。RNN 的归纳偏置是&quot;时序因果性&quot;——<span class="math notranslate nohighlight">\(t\)</span> 时刻只能依赖 <span class="math notranslate nohighlight">\(&lt; t\)</span> 的信息。注意力保留了这一偏置，但改变了信息的传递方式：不再通过循环连接一步步传递，而是直接建立全局连接。</p>
+<p>如果你学过 <a class="reference internal" href="../neural-network-basics/res-net.html#res-net"><span class="std std-ref">ResNet：深层网络的突破</span></a>，会发现这和残差网络的思想完全一致——<strong>用一条捷径绕开衰减路径</strong>。ResNet 的跳跃连接让梯度在<strong>深度方向</strong>绕过非线性层直传；注意力让信息在<strong>时间方向</strong>绕过中间步骤直达。两者的核心洞察是同一个：<strong>不让信号被迫穿过每一次变换，给它一条直接通路</strong>。</p>
+</div>
+</section>
+</section>
+<section id="causal-attention-math">
+<span id="id3"></span><h2>数学推导：因果注意力的自然诞生<a class="headerlink" href="#causal-attention-math" title="Link to this heading">#</a></h2>
+<p>我们要解决的问题：在时刻 <span class="math notranslate nohighlight">\(t\)</span>，给定所有前序隐状态 <span class="math notranslate nohighlight">\(\{\mathbf{h}_1, \mathbf{h}_2, ..., \mathbf{h}_{t-1}\}\)</span>（以及当前输入的信息），如何计算出当前的最佳表示？</p>
+<section id="id4">
+<h3>步骤一：衡量&quot;相关性&quot;<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p>首先需要一个机制来判断哪些前序状态对当前时刻重要。最自然的方式是用<strong>相似度</strong>：</p>
+<div class="math notranslate nohighlight">
+\[
+s_{t,i} = \text{score}(\mathbf{h}_t, \mathbf{h}_i), \quad i &lt; t
+\]</div>
+<p>最简单的相似度是点积：</p>
+<div class="math notranslate nohighlight">
+\[
+s_{t,i} = \mathbf{h}_t \cdot \mathbf{h}_i
+\]</div>
+<p>如果 <span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span> 和 <span class="math notranslate nohighlight">\(\mathbf{h}_i\)</span> 方向相似，点积大；方向相反，点积小（甚至为负）。</p>
+</section>
+<section id="id5">
+<h3>步骤二：归一化为权重<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<p>将相似度分数用 Softmax 转为概率分布（权重）：</p>
+<div class="math notranslate nohighlight">
+\[
+\alpha_{t,i} = \frac{\exp(s_{t,i})}{\sum_{j=1}^{t-1} \exp(s_{t,j})}, \quad i &lt; t
+\]</div>
+<p><span class="math notranslate nohighlight">\(\alpha_{t,i}\)</span> 表示&quot;在理解第 <span class="math notranslate nohighlight">\(t\)</span> 步时，第 <span class="math notranslate nohighlight">\(i\)</span> 步的信息有多重要&quot;。所有权重之和为 1。</p>
+</section>
+<section id="id6">
+<h3>步骤三：加权聚合<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p>用这些权重对前序状态加权求和：</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{c}_t = \sum_{i=1}^{t-1} \alpha_{t,i} \cdot \mathbf{h}_i
+\]</div>
+<p><span class="math notranslate nohighlight">\(\mathbf{c}_t\)</span> 称为 <strong>上下文向量（context vector）</strong>——它是所有前序信息的&quot;加权摘要&quot;，权重由当前需求动态决定。</p>
+<div class="important admonition">
+<p class="admonition-title">这就是因果注意力</p>
+<div class="math notranslate nohighlight">
+\[
+\text{CausalAttention}(\mathbf{h}_t, \{\mathbf{h}_1...\mathbf{h}_{t-1}\}) = \sum_{i=1}^{t-1} \text{softmax}(\mathbf{h}_t \cdot \mathbf{h}_i) \cdot \mathbf{h}_i
+\]</div>
+<p>&quot;因果&quot;指的是：<span class="math notranslate nohighlight">\(t\)</span> 时刻只能看到过去（<span class="math notranslate nohighlight">\(i &lt; t\)</span>），不能看到未来。这是序列建模的自然约束——你不能用还没说出的话来理解当前词。</p>
+</div>
+</section>
+<section id="qkv-separation">
+<span id="id7"></span><h3>步骤四：分离&quot;查询&quot;和&quot;被查询&quot;——引入可学习的投影<a class="headerlink" href="#qkv-separation" title="Link to this heading">#</a></h3>
+<p>步骤三的公式已经能工作，但有一个微妙的局限。注意 <span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span> 在公式中出现了两次，扮演了两个不同的角色：</p>
+<ul class="simple">
+<li><p>作为 <strong>“查询方”</strong>：<span class="math notranslate nohighlight">\(\mathbf{h}_t \cdot \mathbf{h}_i\)</span> 中的 <span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span> ——“我现在关心什么？”</p></li>
+<li><p>作为 <strong>“被查询方”</strong>：<span class="math notranslate nohighlight">\(\mathbf{h}_t \cdot \mathbf{h}_i\)</span> 中的 <span class="math notranslate nohighlight">\(\mathbf{h}_i\)</span> ——“我之前是什么？”</p></li>
+</ul>
+<p>同一个向量被迫同时回答&quot;我在找什么&quot;和&quot;我是什么&quot;——这两个问题的答案可能完全不同。</p>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>一个具体的例子</strong>：假设 <span class="math notranslate nohighlight">\(\mathbf{h}_5\)</span> 是一个动词&quot;跑&quot;的表示，而 <span class="math notranslate nohighlight">\(\mathbf{h}_2\)</span> 是一个名词&quot;猫&quot;。在计算 <span class="math notranslate nohighlight">\(\mathbf{h}_5\)</span> 应该分配多少注意力给 <span class="math notranslate nohighlight">\(\mathbf{h}_2\)</span> 时：</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\mathbf{h}_5\)</span> 作为 <strong>查询方</strong>：最关心的是&quot;谁在做动作&quot;——它想找主语</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{h}_2\)</span> 作为 <strong>被查询方</strong>：需要暴露自己是&quot;名词、生物、可以做主语&quot;的信息</p></li>
+</ul>
+<p>如果 <span class="math notranslate nohighlight">\(\mathbf{h}_2\)</span> 必须同时&quot;体现自己的完整语义&quot;（作为 <span class="math notranslate nohighlight">\(\mathbf{h}_{t}\)</span> 传给下一步）和&quot;把自己的主语属性暴露出来供查询&quot;（作为 Key），这两个目标会互相拉扯——表达力受限。</p>
+</div>
+<p>解决方案很自然：<strong>给每个向量三个可学习的投影</strong>，让它能根据&quot;当前扮演什么角色&quot;来调整自己的表达 <span id="id8">[<a class="reference internal" href="transformer.html#id111" title="Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In Advances in Neural Information Processing Systems (NeurIPS), volume 30. 2017.">VSP+17</a>]</span>：</p>
+<ul class="simple">
+<li><p><strong>Query <span class="math notranslate nohighlight">\(\mathbf{q}_t = \mathbf{W}_q \mathbf{h}_t\)</span></strong>（查询）：“作为查询方，我在找什么？”——从当前时刻出发的检索需求</p></li>
+<li><p><strong>Key <span class="math notranslate nohighlight">\(\mathbf{k}_i = \mathbf{W}_k \mathbf{h}_i\)</span></strong>（键）：“作为被查询方，我是什么？”——暴露自己供别人检索的特征</p></li>
+<li><p><strong>Value <span class="math notranslate nohighlight">\(\mathbf{v}_i = \mathbf{W}_v \mathbf{h}_i\)</span></strong>（值）：“不管谁来查，我有什么信息可以提供？”——实际被聚合的内容</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong><span class="math notranslate nohighlight">\(\mathbf{W}_q, \mathbf{W}_k, \mathbf{W}_v\)</span> 是可学习的参数矩阵</strong>（就像 <a class="reference internal" href="../neural-network-basics/fc-layer-basics.html"><span class="doc">全连接神经网络</span></a> 中的全连接层权重），形状均为 <span class="math notranslate nohighlight">\(d \times d\)</span>。网络通过训练自主学会：什么样的投影适合做 Query？什么样的投影适合做 Key？什么样的投影适合做 Value？</p>
+</div>
+<p>对比步骤三的原始公式和推广后的公式：</p>
+<p><strong>原始</strong>（<span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span> 身兼两职）：</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{c}_t = \sum_{i=1}^{t-1} \text{softmax}(\mathbf{h}_t \cdot \mathbf{h}_i) \cdot \mathbf{h}_i
+\]</div>
+<p><strong>推广后</strong>（Q/K/V 三个角色）：</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{c}_t = \sum_{i=1}^{t-1} \text{softmax}\!\left(\frac{(\mathbf{W}_q \mathbf{h}_t) \cdot (\mathbf{W}_k \mathbf{h}_i)}{\sqrt{d_k}}\right) \cdot (\mathbf{W}_v \mathbf{h}_i)
+\]</div>
+<p>即：</p>
+<div class="math notranslate nohighlight">
+\[
+\text{Attention}(\mathbf{q}_t, \mathbf{K}, \mathbf{V}) = \sum_{i=1}^{t-1} \text{softmax}\!\left(\frac{\mathbf{q}_t \cdot \mathbf{k}_i}{\sqrt{d_k}}\right) \cdot \mathbf{v}_i
+\]</div>
+<p>可以看到：如果 <span class="math notranslate nohighlight">\(\mathbf{W}_q = \mathbf{W}_k = \mathbf{W}_v = \mathbf{I}\)</span>（单位矩阵），三式完全等价——步骤三的简单版本是步骤四的一个<strong>特例</strong>。</p>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>为什么除以 <span class="math notranslate nohighlight">\(\sqrt{d_k}\)</span>？</strong></p>
+<p>当 Key 的维度 <span class="math notranslate nohighlight">\(d_k\)</span> 很大时，点积 <span class="math notranslate nohighlight">\(\mathbf{q} \cdot \mathbf{k}\)</span> 的方差约为 <span class="math notranslate nohighlight">\(d_k\)</span>。大点积值会让 Softmax 进入饱和区——大部分 <span class="math notranslate nohighlight">\(\alpha\)</span> 趋近于 0 或 1，梯度几乎为 0。除以 <span class="math notranslate nohighlight">\(\sqrt{d_k}\)</span> 将方差缩放到 1，保持 Softmax 输出平滑、梯度健康。这被称为<strong>缩放点积注意力（Scaled Dot-Product Attention）</strong>。</p>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">类比：图书馆检索</p>
+<ul class="simple">
+<li><p><strong>Query</strong>：你要找的问题（“关于深度学习的书”）</p></li>
+<li><p><strong>Key</strong>：每本书的索引标签（书名、关键词）</p></li>
+<li><p><strong>Value</strong>：书的内容</p></li>
+<li><p><strong>过程</strong>：用 Query 匹配 Key 得到每本书的相关性分数 → Softmax 归一化 → 基于权重从各书的 Value 中聚合信息</p></li>
+</ul>
+<p>你最终得到的是所有相关书的&quot;加权摘要&quot;，而非一本书的全部内容。</p>
+</div>
+</section>
+</section>
+<section id="rnn-vs">
+<h2>对比：RNN串行 vs 注意力并行<a class="headerlink" href="#rnn-vs" title="Link to this heading">#</a></h2>
+<div class="figure" id="id114" style="text-align: center"><p><img  src="../_images/tikz-c7a14c094fc8045289a0fb342303043776195ca0.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">RNN的串行依赖 vs 注意力的全局连接</span></p>
+</div><div class="table docutils container" id="id115">
+<table class="docutils align-default" id="id115">
+<caption><span class="caption-text">RNN vs 因果注意力</span><a class="headerlink" href="#id115" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>对比维度</p></th>
+<th class="head"><p>RNN</p></th>
+<th class="head"><p>因果注意力</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>信息路径长度</p></td>
+<td><p>O(n)：n步才能从位置1传到位置n</p></td>
+<td><p>O(1)：任何位置直接访问所有前序位置</p></td>
+</tr>
+<tr class="row-odd"><td><p>梯度路径</p></td>
+<td><p>穿过n个Jacobian，指数衰减</p></td>
+<td><p>梯度主要通过Softmax传播，与距离无关</p></td>
+</tr>
+<tr class="row-even"><td><p>并行性</p></td>
+<td><p>必须串行：<span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span> 依赖 <span class="math notranslate nohighlight">\(\mathbf{h}_{t-1}\)</span></p></td>
+<td><p>训练时所有位置可并行计算（用mask屏蔽未来）</p></td>
+</tr>
+<tr class="row-odd"><td><p>归纳偏置</p></td>
+<td><p>强：相邻时刻更相关</p></td>
+<td><p>弱：所有前序位置等距（需要位置编码补偿）</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id9">
+<h2>代码实践：因果注意力的实现<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">causal_self_attention</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    输入: x, shape (batch, seq_len, d_model)</span>
+<span class="sd">    输出: context, shape (batch, seq_len, d_model)</span>
+
+<span class="sd">    理论对应 {ref}`from-rnn-to-attention` 中的因果注意力公式</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">D</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="c1"># 步骤1: 线性投影得到 Q, K, V</span>
+    <span class="c1"># 三者形状均为 (batch, seq_len, d_model)</span>
+    <span class="n">W_q</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.02</span>  <span class="c1"># 实际应用中应为可学习参数</span>
+    <span class="n">W_k</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.02</span>
+    <span class="n">W_v</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.02</span>
+
+    <span class="n">Q</span> <span class="o">=</span> <span class="n">x</span> <span class="o">@</span> <span class="n">W_q</span>  <span class="c1"># (B, T, D)</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">x</span> <span class="o">@</span> <span class="n">W_k</span>  <span class="c1"># (B, T, D)</span>
+    <span class="n">V</span> <span class="o">=</span> <span class="n">x</span> <span class="o">@</span> <span class="n">W_v</span>  <span class="c1"># (B, T, D)</span>
+
+    <span class="c1"># 步骤2: 计算注意力分数矩阵</span>
+    <span class="c1"># Q @ K^T 的结果形状为 (B, T, T)</span>
+    <span class="c1"># scores[b, t, i] 表示第t个位置的查询与第i个键的相似度</span>
+    <span class="n">d_k</span> <span class="o">=</span> <span class="n">D</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="p">(</span><span class="n">Q</span> <span class="o">@</span> <span class="n">K</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">d_k</span> <span class="o">**</span> <span class="mf">0.5</span><span class="p">)</span>
+
+    <span class="c1"># 步骤3: 因果mask——禁止关注未来</span>
+    <span class="c1"># mask是一个上三角为 -inf、下三角为 0 的矩阵</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">triu</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">),</span> <span class="n">diagonal</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">bool</span><span class="p">()</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">masked_fill</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;-inf&#39;</span><span class="p">))</span>
+
+    <span class="c1"># 步骤4: Softmax归一化（在最后一个维度上，即所有Key上）</span>
+    <span class="c1"># -inf 位置的 exp(-inf) = 0，实现&quot;禁止关注未来&quot;</span>
+    <span class="n">attn_weights</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># (B, T, T)</span>
+
+    <span class="c1"># 步骤5: 加权聚合Value</span>
+    <span class="c1"># attn_weights[b, t, :] 对 V[b, :, :] 的所有行加权求和</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">attn_weights</span> <span class="o">@</span> <span class="n">V</span>  <span class="c1"># (B, T, D)</span>
+    <span class="k">return</span> <span class="n">context</span>
+
+<span class="c1"># 测试</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>  <span class="c1"># batch=2, seq_len=5, d_model=64</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">causal_self_attention</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="c1"># output[0, 2, :] 只聚合了 x[0, 0:3, :] 的信息（位置0,1,2）</span>
+<span class="c1"># output[0, 2, :] 看不到 x[0, 3:5, :]（位置3,4是&quot;未来&quot;）</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>因果mask的直觉</strong>：在Softmax前将未来位置的分数设为 <span class="math notranslate nohighlight">\(-\infty\)</span>，因为 <span class="math notranslate nohighlight">\(\exp(-\infty) = 0\)</span>，这些位置获得0权重。这与 <a class="reference internal" href="../neural-network-basics/introduction.html#inductive-bias"><span class="std std-ref">归纳偏置（Inductive Bias）</span></a> 中时序因果性的要求一致——<span class="math notranslate nohighlight">\(t\)</span> 时刻的预测只能基于 <span class="math notranslate nohighlight">\(&lt; t\)</span> 的信息。</p>
+</div>
+<div class="note admonition">
+<p class="admonition-title">本节小结</p>
+<ul class="simple">
+<li><p>RNN 的串行传话模式导致长程信息丢失，根本原因是信息必须一步步穿过循环连接</p></li>
+<li><p>注意力的核心思想：<strong>让每一步直接加权聚合所有前序信息</strong>，跳过中间步骤</p></li>
+<li><p>因果注意力 = 相似度计算（点积/缩放点积）→ Softmax归一化 → 加权求和</p></li>
+<li><p>引入 Q/K/V 三个角色将&quot;查询&quot;和&quot;被查询&quot;的职能分离，增强表达力</p></li>
+<li><p>注意力训练时可并行（用mask屏蔽未来），这是相对于RNN的巨大优势</p></li>
+</ul>
+</div>
+<p>从&quot;为什么需要注意力&quot;到&quot;注意力如何工作&quot;，我们已经完成了核心的思想建设。下一节 <a class="reference internal" href="transformer.html"><span class="doc">Transformer：注意力的极致</span></a> 中，我们将看到这一思想如何被推向极致——完全抛弃循环，构建一个纯粹的注意力架构。</p>
+</section>
+<hr class="docutils" />
+<section id="id10">
+<h2>参考文献<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id11">
+<div role="list" class="citation-list">
+<div class="citation" id="id109" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id8">VSP+17</a><span class="fn-bracket">]</span></span>
+<p>Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In <em>Advances in Neural Information Processing Systems (NeurIPS)</em>, volume 30. 2017.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">8eb3275</code>
+                2026-05-09 - <strong>Heyan Zhu</strong>: feat(sequence-modeling): add new chapter on sequence modeling from RNN to Mamba
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+</article><footer class="bz-article-footer">
+  
+  
+    <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="lstm.html" rel="prev">
+    <span>Previous</span><span class="bz-related-pages-title">LSTM：给记忆装上&quot;门&quot;</span></a><a class="bz-related-pages-next" href="transformer.html" rel="next">
+    <span>Next</span>
+    <span class="bz-related-pages-title">Transformer：注意力的极致</span>
+  </a></nav>
+  
+
+</footer><aside class="bz-sidebar-secondary" data-drawer="bz-sidebar-secondary">
+  
+  
+    
+  
+  
+  
+  
+
+
+
+<div class="bz-repo-stats">
+  <a
+    data-provider="github"
+    data-user="ulink-deep-learning-club"
+    data-repo="ulink-deeplearningclub-handouts"
+    href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    aria-label="ulink-deep-learning-club/ulink-deeplearningclub-handouts repository"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    <span
+      style="--bz-repo-stats-name-length: 56"
+      title="ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    >
+      ulink-deep-learning-club/ulink-deeplearningclub-handouts
+    </span>
+    <div class="bz-repo-stats-row">
+      <span class="bz-repo-stats-item" aria-label="Repository stars">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path></svg>
+        <span data-stat="stars">-</span>
+      </span>
+      <span class="bz-repo-stats-item" aria-label="Repository forks">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
+        <span data-stat="forks">-</span>
+      </span>
+    </div>
+  </a>
+</div>
+
+  
+    <div class="bz-edit-this-page">
+  <a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/source/sequence-modeling/from-rnn-to-attention.md" rel="edit">
+    Edit this page
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"></path></svg>
+  </a>
+</div>
+  
+    <nav class="bz-sidebar-toc" aria-label="Table of contents">
+  <p>On this page</p><ul>
+<li><a class="reference internal" href="#causal-attention-intuition">直觉跳跃：从"传话"到"查档案"</a><ul>
+<li><a class="reference internal" href="#id2">两个处理模式</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#causal-attention-math">数学推导：因果注意力的自然诞生</a><ul>
+<li><a class="reference internal" href="#id4">步骤一：衡量"相关性"</a></li>
+<li><a class="reference internal" href="#id5">步骤二：归一化为权重</a></li>
+<li><a class="reference internal" href="#id6">步骤三：加权聚合</a></li>
+<li><a class="reference internal" href="#qkv-separation">步骤四：分离"查询"和"被查询"——引入可学习的投影</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#rnn-vs">对比：RNN串行 vs 注意力并行</a></li>
+<li><a class="reference internal" href="#id9">代码实践：因果注意力的实现</a></li>
+<li><a class="reference internal" href="#id10">参考文献</a></li>
+</ul></nav>
+  
+
+</aside></main>
+  </div>
+<footer class="bz-footer">
+  <div class="bz-footer-copyright"><p class="bz-copyright">© Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0</p><p>
+    
+    
+    
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a href="https://github.com/aksiome/breeze">Breeze theme</a>.
+    
+  </p>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    
+    </a>
+  </div>
+</footer><a href="#" class="bz-back-to-top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+    </svg>
+    <span>Back to top</span>
+  </a>
+  <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
+  <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
+  <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../_static/documentation_options.js?v=5a0213dc"></script><script src="../_static/doctools.js?v=9bcbadda"></script><script src="../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../_static/translations.js?v=beaddf03"></script><script src="../_static/design-tabs.js?v=f930bc37"></script><script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script></body>
+</html>

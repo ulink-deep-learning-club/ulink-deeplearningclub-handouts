@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-content_root="../">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="LSTM：给记忆装上&quot;门&quot;" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="sequence-modeling/lstm.html" />
+<meta property="og:site_name" content="Deep Learning Club Handouts" />
+<meta property="og:description" content="循环神经网络：让网络拥有&quot;记忆&quot; 揭示了 RNN 的根本矛盾：\mathbf{h}_t 必须同时承担两件互相冲突的事—— 记住历史 和 输出当前结果 。一个向量，两种使命，顾此失彼。 就像一个人既要做会议记录，又要即兴发言——记录要求忠实、不遗漏，发言要求提炼、有取舍。用同一个大脑状态同时做这两件事，结果往往是两个都做不好。 关键问题 ：能不能把&quot;记忆存储&qu..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_sequence-modeling_lstm_4008f57f.png" />
+<meta property="og:image:alt" content="循环神经网络：让网络拥有&quot;记忆&quot; 揭示了 RNN 的根本矛盾：\mathbf{h}_t 必须同时承担两件互相冲突的事—— 记住历史 和 输出当前结果 。一个向量，两种使命，顾此失彼。 就像一个人既要做会议记录，又要即兴发言——记录要求忠实、不遗漏，发言要求提炼、有取舍。用同一个大脑状态同时做这两件事，结果往往是两个都做不好。 关键问题 ：能不能把&quot;记忆存储&qu..." />
+<meta name="description" content="循环神经网络：让网络拥有&quot;记忆&quot; 揭示了 RNN 的根本矛盾：\mathbf{h}_t 必须同时承担两件互相冲突的事—— 记住历史 和 输出当前结果 。一个向量，两种使命，顾此失彼。 就像一个人既要做会议记录，又要即兴发言——记录要求忠实、不遗漏，发言要求提炼、有取舍。用同一个大脑状态同时做这两件事，结果往往是两个都做不好。 关键问题 ：能不能把&quot;记忆存储&qu..." />
+<meta name="twitter:card" content="summary_large_image" />
+<title>LSTM：给记忆装上&#34;门&#34; - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="从RNN到注意力：一个思想的跳跃" href="from-rnn-to-attention.html"><link rel="prev" title="循环神经网络：让网络拥有&#34;记忆&#34;" href="rnn-basics.html"><script data-cfasync="false">(function(){
+    const m = localStorage.getItem("breeze-mode") || "auto";
+    const d = document.documentElement.dataset;
+    d.mode = m;
+    d.theme = m === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : m;
+  })();
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=9c6fee98" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+<body>
+  
+  
+  <div class="bz-skip-to-content"><a href="#bz-main-content">Skip to main content</a></div><header class="bz-header-main">
+  <div class="bz-header-start"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><a class="bz-header-brand" href="../index.html">
+  
+  
+  <span>Deep Learning Club Handouts</span>
+</a>
+  </div>
+  <div class="bz-header-end"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><div id="docsearch" class="bz-search-button">
+  <a
+    href="../search.html#q"
+    aria-label="Search the docs"
+    data-tooltip="Search the docs"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 -1 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
+    <span>搜索</span>
+    <kbd>Ctrl+K</kbd>
+  </a>
+</div><div class="bz-theme-switcher">
+  <button aria-label="Switch theme" data-tooltip="Switch theme">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
+      <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-dark" fill="currentColor">
+      <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+    </svg>
+  </button>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.766 11.695C4.703 11.437 3.25 9.904 3.25 7.92c0-.806.281-1.677.75-2.258-.203-.532-.172-1.662.062-2.129.626-.081 1.469.258 1.969.726.594-.194 1.219-.291 1.985-.291.765 0 1.39.097 1.953.274.484-.451 1.343-.79 1.969-.709.218.435.25 1.564.046 2.113.5.613.766 1.436.766 2.274 0 1.984-1.453 3.485-3.547 3.759.531.355.891 1.129.891 2.016v1.678c0 .484.39.758.859.564C13.781 14.824 16 11.905 16 8.291 16 3.726 12.406 0 7.984 0 3.562 0 0 3.726 0 8.291c0 3.581 2.203 6.55 5.172 7.663A.595.595 0 0 0 6 15.389v-1.291c-.219.097-.5.162-.75.162-1.031 0-1.641-.581-2.078-1.662-.172-.435-.36-.693-.719-.742-.187-.016-.25-.097-.25-.193 0-.194.313-.339.625-.339.453 0 .844.29 1.25.887.313.468.641.678 1.031.678.391 0 .641-.146 1-.516.266-.275.469-.517.657-.678Z"></path></svg>
+    
+    </a>
+  </div>
+  </div>
+</header><hr class="bz-header-hr">
+  <div class="bz-content"><aside class="bz-sidebar-primary" data-drawer="bz-sidebar-primary">
+  
+  
+    <nav class="bz-sidebar-nav" aria-label="Section Navigation"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../math-fundamentals/index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础：从理论到架构</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN 消融研究：理解卷积神经网络各组件的作用</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：消融研究的科学方法论</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/the-end.html">结语：从黑盒到白盒</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../attention-mechanisms/index.html">CNN 中的注意力机制</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/introduction.html">为什么CNN需要注意力机制？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/se-net.html">通道注意力：SE-Net</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/spatial-attn.html">空间注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/cbam.html">通道+空间注意力：CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/comparison.html">注意力机制的选择与应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/practice.html">实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../model-architecture-design/index.html">CNN 架构改造：设计卷积网络的心法</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part1-intro.html">改造的本质：从"会用 CNN"到"会设计 CNN"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">序列建模：从RNN到Transformer再到Mamba</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">LSTM：给记忆装上"门"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transformer.html">Transformer：注意力的极致</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mamba-intro.html">Mamba 简述：对RNN思想的回归</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../model-serving/index.html">模型部署与服务：从训练到生产</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置番外篇</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/sphinx-guide/index.html">Sphinx Markdown 写作指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+</nav>
+  
+
+</aside><main id="bz-main-content"><header class="bz-article-header">
+  
+  
+    <nav class="bz-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li class="bz-breadcrumbs-home">
+      <a href="../index.html" aria-label="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8.543 2.232a.75.75 0 0 0-1.085 0l-5.25 5.5A.75.75 0 0 0 2.75 9H4v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V9h1.25a.75.75 0 0 0 .543-1.268l-5.25-5.5Z" />
+        </svg>
+      </a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="index.html">序列建模：从RNN到Transformer再到Mamba</a>
+    </li><li class="bz-breadcrumbs-current">
+      <span>LSTM：给记忆装上&quot;门&quot;</span>
+    </li>
+  </ol>
+</nav>
+  
+<label
+  class="bz-sidebar-secondary-toggle"
+  for="bz-sidebar-secondary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle table of contents"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75H20.25 M11.25 12H20.25 M7.75 17.25H20.25"
+    />
+  </svg>
+</label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="lstm">
+<span id="id1"></span><h1>LSTM：给记忆装上&quot;门&quot;<a class="headerlink" href="#lstm" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="rnn-basics.html"><span class="doc">循环神经网络：让网络拥有&quot;记忆&quot;</span></a> 揭示了 RNN 的根本矛盾：<span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span> 必须同时承担两件互相冲突的事——<strong>记住历史</strong>和<strong>输出当前结果</strong>。一个向量，两种使命，顾此失彼。</p>
+<p>就像一个人既要做会议记录，又要即兴发言——记录要求忠实、不遗漏，发言要求提炼、有取舍。用同一个大脑状态同时做这两件事，结果往往是两个都做不好。</p>
+<p><strong>关键问题</strong>：能不能把&quot;记忆存储&quot;和&quot;对外输出&quot;分开，各司其职？</p>
+<section id="id2">
+<h2>历史背景<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>1991年，Sepp Hochreiter 在其导师 Jürgen Schmidhuber 的指导下，首次在毕业论文中分析了 RNN 梯度消失的数学根源——这正是我们在 <a class="reference internal" href="rnn-basics.html#rnn-problems"><span class="std std-ref">RNN的两个核心问题</span></a> 中讨论的 <span class="math notranslate nohighlight">\(\tanh\)</span> 导数连乘问题。基于这一分析，他们在 1997 年正式提出了 <strong>Long Short-Term Memory (LSTM)</strong> <span id="id3">[<a class="reference internal" href="the-end.html#id116" title="Sepp Hochreiter and Jürgen Schmidhuber. Long short-term memory. Neural Computation, 9(8):1735–1780, 1997.">HS97</a>]</span>。</p>
+<p>LSTM 的核心洞察至今仍是序列建模的基石：<strong>用门控机制管理信息流动</strong>。此后 20 年，LSTM 主导了语音识别、机器翻译、手写识别等几乎所有序列任务，直到 Transformer 出现。</p>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>历史趣闻</strong>：LSTM 的论文最初被 NeurIPS 拒稿，审稿人认为&quot;这个想法太复杂，而且 RNN 的问题可以通过更好的初始化解决&quot;。如今它是 20 世纪被引用最多的深度学习论文之一。</p>
+</div>
+<p>LSTM <span id="id4">[<a class="reference internal" href="the-end.html#id116" title="Sepp Hochreiter and Jürgen Schmidhuber. Long short-term memory. Neural Computation, 9(8):1735–1780, 1997.">HS97</a>]</span> 的回答是：<strong>能。用两个状态，三个门。</strong></p>
+</section>
+<section id="lstm-dual-state">
+<span id="id5"></span><h2>核心洞察：从&quot;一个状态&quot;到&quot;两个状态&quot;<a class="headerlink" href="#lstm-dual-state" title="Link to this heading">#</a></h2>
+<p>RNN 只有一个隐状态 <span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span>，它既是&quot;当前的理解&quot;（输出用），又是&quot;历史的摘要&quot;（传给下一步）。信息在每一步都被 <span class="math notranslate nohighlight">\(\tanh\)</span> 压缩，长此以往，细节尽失。</p>
+<p>LSTM 把这两个职责拆开：</p>
+<div class="figure" id="id118" style="text-align: center"><p><img  src="../_images/tikz-5ee5c587b34a5f81e963157683d56ee578fec69e.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">RNN vs LSTM：从单状态到双状态</span></p>
+</div><div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p>RNN</p></th>
+<th class="head"><p>LSTM</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>状态数量</p></td>
+<td><p>1 个（<span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span>）</p></td>
+<td><p>2 个（<span class="math notranslate nohighlight">\(\mathbf{c}_t\)</span> 和 <span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span>）</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\mathbf{c}_t\)</span>（细胞状态）</p></td>
+<td><p>无</p></td>
+<td><p><strong>长期记忆</strong>：信息的&quot;传送带&quot;，缓慢变化</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span>（隐状态）</p></td>
+<td><p>身兼二职</p></td>
+<td><p><strong>对外输出</strong>：当前时刻的&quot;公开发言&quot;</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>细胞状态 <span class="math notranslate nohighlight">\(\mathbf{c}_t\)</span> 是 LSTM 的灵魂</strong>。它像一条贯穿时间的&quot;信息传送带&quot;——信息在上面流动时，只有少数地方会被门控修改。这与 <a class="reference internal" href="../neural-network-basics/res-net.html#res-net"><span class="std std-ref">ResNet：深层网络的突破</span></a> 中残差连接的思想如出一辙：大部分信号原封不动地通过，只在必要处做修改。</p>
+</div>
+</section>
+<section id="lstm-gates">
+<span id="id6"></span><h2>四个角色：LSTM的门控系统<a class="headerlink" href="#lstm-gates" title="Link to this heading">#</a></h2>
+<p>有了分离的&quot;长期记忆&quot;（<span class="math notranslate nohighlight">\(\mathbf{c}_t\)</span>），自然需要一个机制来管理它——什么时候写入、什么时候擦除、什么时候读出。这个机制就是三个<strong>门（gate）</strong>，外加一个<strong>候选记忆</strong>的提议。</p>
+<p>每个门的核心公式都长这样：</p>
+<div class="math notranslate nohighlight">
+\[
+\text{gate}(\mathbf{h}_{t-1}, \mathbf{x}_t) = \sigma(\mathbf{W} \cdot [\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b})
+\]</div>
+<p><span class="math notranslate nohighlight">\(\sigma\)</span>（Sigmoid）把输出压到 <span class="math notranslate nohighlight">\((0, 1)\)</span>，天然适合做&quot;门&quot;——0 表示&quot;完全关闭&quot;，1 表示&quot;完全打开&quot;，中间值表示&quot;部分开放&quot;。</p>
+<p>下面我们逐个认识这四个角色。</p>
+<section id="lstm-forget-gate">
+<span id="id7"></span><h3>角色一：遗忘门——“档案管理员”<a class="headerlink" href="#lstm-forget-gate" title="Link to this heading">#</a></h3>
+<div class="tip admonition">
+<p class="admonition-title">遗忘门的职责</p>
+<p><strong>一句话</strong>：面对旧记忆 <span class="math notranslate nohighlight">\(\mathbf{c}_{t-1}\)</span>，决定<strong>哪些内容该丢掉</strong>。</p>
+</div>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{f}_t = \sigma(\mathbf{W}_f \cdot [\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b}_f)
+\]</div>
+<p><strong>逐步拆解遗忘门</strong>：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>符号</p></th>
+<th class="head"><p>含义</p></th>
+<th class="head"><p>维度</p></th>
+<th class="head"><p>直觉理解</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\([\mathbf{h}_{t-1}, \mathbf{x}_t]\)</span></p></td>
+<td><p>拼接上一时刻的输出和当前输入</p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathbb{R}^{d+m}\)</span></p></td>
+<td><p>把&quot;历史上下文&quot;和&quot;新读到的词&quot;摆在一起</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\mathbf{W}_f\)</span></p></td>
+<td><p>遗忘门的权重矩阵</p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathbb{R}^{d \times (d+m)}\)</span></p></td>
+<td><p>学到&quot;什么样的上下文暗示该遗忘&quot;</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\mathbf{b}_f\)</span></p></td>
+<td><p>遗忘门的偏置</p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathbb{R}^d\)</span></p></td>
+<td><p>通常初始化为 1（偏向&quot;先别忘&quot;，训练中再调整）</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\sigma\)</span></p></td>
+<td><p>Sigmoid 函数</p></td>
+<td><p>输出 <span class="math notranslate nohighlight">\((0, 1)^d\)</span></p></td>
+<td><p>将线性组合映射为&quot;保留比例&quot;：0 = 全忘，1 = 全留</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\mathbf{f}_t\)</span></p></td>
+<td><p>遗忘门输出</p></td>
+<td><p><span class="math notranslate nohighlight">\((0, 1)^d\)</span></p></td>
+<td><p>每个维度一个保留指令——<span class="math notranslate nohighlight">\(\mathbf{c}_{t-1}\)</span> 的第 <span class="math notranslate nohighlight">\(i\)</span> 维保留 <span class="math notranslate nohighlight">\(\mathbf{f}_t^{(i)} \times 100\%\)</span></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>为什么偏置初始化为 1 而不是 0？</strong> 在训练初期，网络还不知道该忘什么。如果遗忘门默认输出 0（全忘），梯度高速公路上全是&quot;关闭&quot;的闸门——信息流直接断裂，无法学习长程依赖。初始化为 1 意味着&quot;默认全保留，需要时才忘掉&quot;——先保证信息能流动，再逐步学会选择性遗忘。</p>
+</div>
+<p><strong>直觉</strong>：你正在读一篇文章。读到新的段落时，你需要判断——前面提到的某个细节现在还重要吗？&quot;遗忘门&quot;就是用当前上下文（<span class="math notranslate nohighlight">\(\mathbf{h}_{t-1}\)</span> 和 <span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span>）来判断旧记忆 <span class="math notranslate nohighlight">\(\mathbf{c}_{t-1}\)</span> 中每个维度的去留。比如读到&quot;然而&quot;这个词时（<span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span>），你知道前面的论述可能需要被&quot;遗忘&quot;一部分，为新的转折腾出空间。</p>
+</section>
+<section id="lstm-input-gate">
+<span id="id8"></span><h3>角色二：输入门 + 候选记忆——“采购员&quot;和&quot;新提案”<a class="headerlink" href="#lstm-input-gate" title="Link to this heading">#</a></h3>
+<div class="tip admonition">
+<p class="admonition-title">输入门的职责</p>
+<p><strong>一句话</strong>：面对当前时刻的新信息，决定<strong>哪些内容值得写入长期记忆</strong>。</p>
+</div>
+<p>输入门的特殊之处在于它由两个组件配合完成——<strong>输入门</strong>本身（决定&quot;在哪里写&quot;）和<strong>候选记忆</strong>（提供&quot;写什么内容&quot;）：</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{i}_t = \sigma(\mathbf{W}_i \cdot [\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b}_i)
+\]</div>
+<div class="math notranslate nohighlight">
+\[
+\tilde{\mathbf{c}}_t = \tanh(\mathbf{W}_c \cdot [\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b}_c)
+\]</div>
+<p><strong>逐步拆解输入门</strong>：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>符号</p></th>
+<th class="head"><p>含义</p></th>
+<th class="head"><p>维度</p></th>
+<th class="head"><p>直觉理解</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\mathbf{W}_i\)</span></p></td>
+<td><p>输入门的权重矩阵</p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathbb{R}^{d \times (d+m)}\)</span></p></td>
+<td><p>学到&quot;什么样的上下文值得记录&quot;</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\mathbf{b}_i\)</span></p></td>
+<td><p>输入门的偏置</p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathbb{R}^d\)</span></p></td>
+<td><p>控制默认的&quot;记录意愿&quot;（通常初始化为 0）</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\sigma\)</span></p></td>
+<td><p>Sigmoid 函数</p></td>
+<td><p>输出 <span class="math notranslate nohighlight">\((0, 1)^d\)</span></p></td>
+<td><p>每个维度输出一个&quot;写入许可&quot;：0 = 不写，1 = 全写</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\mathbf{i}_t\)</span></p></td>
+<td><p>输入门输出</p></td>
+<td><p><span class="math notranslate nohighlight">\((0, 1)^d\)</span></p></td>
+<td><p><strong>权限</strong>——对候选记忆的每个维度，允许多大比例写入</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>逐步拆解候选记忆</strong>：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>符号</p></th>
+<th class="head"><p>含义</p></th>
+<th class="head"><p>维度</p></th>
+<th class="head"><p>直觉理解</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\mathbf{W}_c\)</span></p></td>
+<td><p>候选记忆的权重矩阵</p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathbb{R}^{d \times (d+m)}\)</span></p></td>
+<td><p>学到&quot;如何从上下文提炼新记忆内容&quot;</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\mathbf{b}_c\)</span></p></td>
+<td><p>候选记忆的偏置</p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathbb{R}^d\)</span></p></td>
+<td><p>偏置项</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\tanh\)</span></p></td>
+<td><p>双曲正切函数</p></td>
+<td><p>输出 <span class="math notranslate nohighlight">\((-1, 1)^d\)</span></p></td>
+<td><p>将候选内容压缩到有界范围，防止数值发散</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\tilde{\mathbf{c}}_t\)</span></p></td>
+<td><p>候选记忆</p></td>
+<td><p><span class="math notranslate nohighlight">\((-1, 1)^d\)</span></p></td>
+<td><p><strong>内容</strong>——基于当前上下文提出的新信息草稿</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>为什么需要两个组件配合？</strong></p>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><span class="math notranslate nohighlight">\(\tilde{\mathbf{c}}_t\)</span> 像一个&quot;提案人&quot;，提出一份新内容的草稿（用 <span class="math notranslate nohighlight">\(\tanh\)</span> 压缩到 <span class="math notranslate nohighlight">\((-1, 1)\)</span>，类似于 LSTM 内部的&quot;标准信息格式&quot;）。<span class="math notranslate nohighlight">\(\mathbf{i}_t\)</span> 像一位&quot;审批官&quot;，决定这份提案的哪些部分可以进入正式记录。</p>
+<p>为什么&quot;产生内容&quot;和&quot;决定是否采纳&quot;要分开？</p>
+<ul class="simple">
+<li><p>你可以提出很多想法（<span class="math notranslate nohighlight">\(\tilde{\mathbf{c}}_t\)</span> 的各个维度都可能非零）——这是<strong>信息生成</strong></p></li>
+<li><p>但只采纳与当前上下文相关的部分（<span class="math notranslate nohighlight">\(\mathbf{i}_t\)</span> 选择性放行）——这是<strong>信息筛选</strong></p></li>
+<li><p>分离这两个职责，让网络学会&quot;大胆提案，谨慎采纳&quot;</p></li>
+</ul>
+</div>
+<p><strong>两个激活函数的分工</strong>：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>对比维度</p></th>
+<th class="head"><p>Sigmoid（<span class="math notranslate nohighlight">\(\mathbf{i}_t\)</span>）</p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(\tanh\)</span>（<span class="math notranslate nohighlight">\(\tilde{\mathbf{c}}_t\)</span>）</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>输出范围</p></td>
+<td><p><span class="math notranslate nohighlight">\((0, 1)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\((-1, 1)\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>角色</p></td>
+<td><p><strong>门控</strong>——决定&quot;写多少&quot;</p></td>
+<td><p><strong>内容</strong>——决定&quot;写什么&quot;</p></td>
+</tr>
+<tr class="row-even"><td><p>语义</p></td>
+<td><p>天然适合做比例/概率</p></td>
+<td><p>天然适合做有正有负的特征值</p></td>
+</tr>
+<tr class="row-odd"><td><p>类比</p></td>
+<td><p>水龙头的阀门（0=关，1=开）</p></td>
+<td><p>水管里的水（水本身的内容）</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="lstm-output-gate">
+<span id="id9"></span><h3>角色三：输出门——“发言人”<a class="headerlink" href="#lstm-output-gate" title="Link to this heading">#</a></h3>
+<div class="tip admonition">
+<p class="admonition-title">输出门的职责</p>
+<p><strong>一句话</strong>：从长期记忆 <span class="math notranslate nohighlight">\(\mathbf{c}_t\)</span> 中提取<strong>当前需要对外输出的内容</strong>。</p>
+</div>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{o}_t = \sigma(\mathbf{W}_o \cdot [\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b}_o)
+\]</div>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{h}_t = \mathbf{o}_t \odot \tanh(\mathbf{c}_t)
+\]</div>
+<p><strong>逐步拆解输出门</strong>：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>符号</p></th>
+<th class="head"><p>含义</p></th>
+<th class="head"><p>维度</p></th>
+<th class="head"><p>直觉理解</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\mathbf{W}_o\)</span></p></td>
+<td><p>输出门的权重矩阵</p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathbb{R}^{d \times (d+m)}\)</span></p></td>
+<td><p>学到&quot;当前上下文需要输出记忆中的哪些部分&quot;</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\mathbf{b}_o\)</span></p></td>
+<td><p>输出门的偏置</p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathbb{R}^d\)</span></p></td>
+<td><p>控制默认的&quot;输出意愿&quot;</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\sigma\)</span></p></td>
+<td><p>Sigmoid 函数</p></td>
+<td><p>输出 <span class="math notranslate nohighlight">\((0, 1)^d\)</span></p></td>
+<td><p>每个维度输出一个&quot;暴露许可&quot;：0 = 隐藏，1 = 公开</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\mathbf{o}_t\)</span></p></td>
+<td><p>输出门输出</p></td>
+<td><p><span class="math notranslate nohighlight">\((0, 1)^d\)</span></p></td>
+<td><p>决定了 <span class="math notranslate nohighlight">\(\mathbf{c}_t\)</span> 中哪些维度应出现在 <span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span> 中</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong><span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span> 的生成——两步走</strong>：</p>
+<p><strong>第一步</strong>：<span class="math notranslate nohighlight">\(\tanh(\mathbf{c}_t)\)</span>——将细胞状态压缩到 <span class="math notranslate nohighlight">\((-1, 1)\)</span></p>
+<p>这一步有两个作用：</p>
+<ul class="simple">
+<li><p>防止输出值过大（<span class="math notranslate nohighlight">\(\mathbf{c}_t\)</span> 中的值理论上可以无限增长，因为遗忘门允许 <span class="math notranslate nohighlight">\(f_t=1\)</span> 的累积）</p></li>
+<li><p>将记忆归一化到标准范围，方便后续层处理</p></li>
+</ul>
+<p><strong>第二步</strong>：<span class="math notranslate nohighlight">\(\mathbf{o}_t \odot \tanh(\mathbf{c}_t)\)</span>——选择性暴露</p>
+<p><span class="math notranslate nohighlight">\(\mathbf{o}_t\)</span> 像一个&quot;发言人&quot;，它基于当前需要（<span class="math notranslate nohighlight">\(\mathbf{h}_{t-1}\)</span> 和 <span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span>）决定：记忆中的哪些部分应该体现在当前输出中。比如，当预测下一个词是动词时，输出门可能重点暴露记忆中关于&quot;动作&quot;的维度，而压抑关于&quot;形容词&quot;的维度。</p>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>直觉</strong>：你拥有完整的长期记忆 <span class="math notranslate nohighlight">\(\mathbf{c}_t\)</span>（整本书的内容），但当别人问你&quot;刚才讲了什么&quot;时，你只会说出与当前问题相关的部分。这个&quot;根据当前需要筛选发言内容&quot;的过程，就是 <span class="math notranslate nohighlight">\(\mathbf{o}_t\)</span> 在做的事。</p>
+</div>
+</section>
+</section>
+<section id="id10">
+<h2>完整更新公式<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
+<p>把四个角色组合在一起，LSTM 的一步更新为：</p>
+<div class="important admonition">
+<p class="admonition-title">LSTM 完整公式</p>
+<p><strong>门控计算</strong>（所有门共享相同的输入 <span class="math notranslate nohighlight">\([\mathbf{h}_{t-1}, \mathbf{x}_t]\)</span>）：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\mathbf{f}_t &amp;= \sigma(\mathbf{W}_f \cdot [\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b}_f) \quad &amp;\text{遗忘门} \\
+\mathbf{i}_t &amp;= \sigma(\mathbf{W}_i \cdot [\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b}_i) \quad &amp;\text{输入门} \\
+\tilde{\mathbf{c}}_t &amp;= \tanh(\mathbf{W}_c \cdot [\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b}_c) \quad &amp;\text{候选记忆} \\
+\mathbf{o}_t &amp;= \sigma(\mathbf{W}_o \cdot [\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b}_o) \quad &amp;\text{输出门}
+\end{aligned}
+\end{split}\]</div>
+<p><strong>状态更新</strong>：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\mathbf{c}_t &amp;= \mathbf{f}_t \odot \mathbf{c}_{t-1} + \mathbf{i}_t \odot \tilde{\mathbf{c}}_t \quad &amp;\text{记忆更新} \\
+\mathbf{h}_t &amp;= \mathbf{o}_t \odot \tanh(\mathbf{c}_t) \quad &amp;\text{对外输出}
+\end{aligned}
+\end{split}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\odot\)</span> 表示逐元素乘法（Hadamard 积）。</p>
+</div>
+<p><strong>记忆更新公式详解</strong>：<span class="math notranslate nohighlight">\(\mathbf{c}_t = \mathbf{f}_t \odot \mathbf{c}_{t-1} + \mathbf{i}_t \odot \tilde{\mathbf{c}}_t\)</span></p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>项</p></th>
+<th class="head"><p>含义</p></th>
+<th class="head"><p>直觉</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\mathbf{f}_t \odot \mathbf{c}_{t-1}\)</span></p></td>
+<td><p>遗忘门 × 旧记忆</p></td>
+<td><p><strong>保留部分</strong>——旧记忆中通过遗忘门筛选后留下的</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\mathbf{i}_t \odot \tilde{\mathbf{c}}_t\)</span></p></td>
+<td><p>输入门 × 候选新信息</p></td>
+<td><p><strong>新增部分</strong>——候选信息中通过输入门批准写入的</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(+\)</span></p></td>
+<td><p>逐元素加法</p></td>
+<td><p>新旧混编——记忆的更新是&quot;删掉一些旧的，添加一些新的&quot;</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>读作：<strong>新记忆 = 旧记忆中保留下的 + 新信息中被批准写入的</strong>。</p>
+<figure class="align-center" id="id119">
+<a class="reference internal image-reference" href="../_images/lstm.png"><img alt="../_images/lstm.png" src="../_images/lstm.png" style="width: 400px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">LSTM 内部的门控结构。信息沿顶部的水平线（细胞状态 <span class="math notranslate nohighlight">\(\mathbf{c}_t\)</span>）流动——<span class="math notranslate nohighlight">\(\times\)</span> 表示门控的逐元素乘法，<span class="math notranslate nohighlight">\(+\)</span> 表示新旧信息的合并。图片来自 Chris Olah 的博客 “<a class="reference external" href="https://colah.github.io/posts/2015-08-Understanding-LSTMs/">Understanding LSTM Networks</a>”——深度学习领域最经典的可视化之一。</span><a class="headerlink" href="#id119" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>四类参数的规模</strong>：设隐状态维度为 <span class="math notranslate nohighlight">\(d\)</span>，输入维度为 <span class="math notranslate nohighlight">\(m\)</span>。每个门都是一个 <span class="math notranslate nohighlight">\(\mathbb{R}^{d+m} \to \mathbb{R}^d\)</span> 的线性映射，参数量为 <span class="math notranslate nohighlight">\(d \times (d+m) + d\)</span>。四个门总计 <span class="math notranslate nohighlight">\(4d(d+m+1)\)</span> 个参数。对于一个 <span class="math notranslate nohighlight">\(d=256\)</span>、<span class="math notranslate nohighlight">\(m=128\)</span> 的 LSTM，约为 <span class="math notranslate nohighlight">\(4 \times 256 \times 385 \approx 394,240\)</span> 个参数——是同等 RNN 的 4 倍，但换来了可控的长期记忆。</p>
+</div>
+</section>
+<section id="lstm-gradient-highway">
+<span id="id11"></span><h2>为什么LSTM能缓解梯度消失：梯度高速公路<a class="headerlink" href="#lstm-gradient-highway" title="Link to this heading">#</a></h2>
+<p>回顾 <a class="reference internal" href="../math-fundamentals/back-propagation.html#gradient-vanishing"><span class="std std-ref">梯度消失（Vanishing Gradient）</span></a> 中的分析：梯度消失的根源是 Jacobian 连乘。RNN 中，<span class="math notranslate nohighlight">\(\frac{\partial \mathbf{h}_t}{\partial \mathbf{h}_{t-1}}\)</span> 包含 <span class="math notranslate nohighlight">\(\tanh\)</span> 的导数，它始终 <span class="math notranslate nohighlight">\(\leq 1\)</span>，连乘后指数衰减。</p>
+<p>LSTM 的关键差异在于<strong>细胞状态 <span class="math notranslate nohighlight">\(\mathbf{c}_t\)</span> 的梯度路径</strong>：</p>
+<p>对 <span class="math notranslate nohighlight">\(\mathbf{c}_t = \mathbf{f}_t \odot \mathbf{c}_{t-1} + \mathbf{i}_t \odot \tilde{\mathbf{c}}_t\)</span> 求导：</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{\partial \mathbf{c}_t}{\partial \mathbf{c}_{t-1}} = \mathbf{f}_t \quad \text{（对角矩阵，每个维度独立）}
+\]</div>
+<p><strong>核心洞察</strong>：<span class="math notranslate nohighlight">\(\mathbf{c}_{t-1}\)</span> 对 <span class="math notranslate nohighlight">\(\mathbf{c}_t\)</span> 的梯度就是遗忘门 <span class="math notranslate nohighlight">\(\mathbf{f}_t\)</span> 本身——<strong>没有 <span class="math notranslate nohighlight">\(\tanh\)</span>，没有复杂的非线性</strong>。如果 <span class="math notranslate nohighlight">\(\mathbf{f}_t \approx 1\)</span>（网络选择&quot;保留&quot;），梯度几乎无损地穿过这一时间步。</p>
+<div class="tip admonition">
+<p class="admonition-title">类比：传送带 vs 搅拌机</p>
+<ul class="simple">
+<li><p><strong>RNN</strong>：信息每步都经过 <span class="math notranslate nohighlight">\(\tanh\)</span> 的&quot;搅拌&quot;——100 步后，原始内容面目全非，梯度也一样</p></li>
+<li><p><strong>LSTM</strong>：信息在一条<strong>传送带</strong>（<span class="math notranslate nohighlight">\(\mathbf{c}_t\)</span>）上流动。遗忘门 <span class="math notranslate nohighlight">\(\mathbf{f}_t\)</span> 只在传送带上打开小的&quot;丢弃口&quot;——大部分东西原封不动地通过。梯度也沿这条传送带几乎无损地回传</p></li>
+</ul>
+<p>这与 <a class="reference internal" href="../neural-network-basics/res-net.html#res-net"><span class="std std-ref">ResNet：深层网络的突破</span></a> 中 <span class="math notranslate nohighlight">\(\mathbf{x} + F(\mathbf{x})\)</span> 的设计哲学完全一致：<strong>让梯度有一条不经过非线性的捷径</strong>。</p>
+</div>
+<div class="table docutils container" id="id120">
+<table class="docutils align-default" id="id120">
+<caption><span class="caption-text">RNN vs LSTM 梯度传播对比</span><a class="headerlink" href="#id120" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>对比维度</p></th>
+<th class="head"><p>RNN</p></th>
+<th class="head"><p>LSTM</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>梯度路径</p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{\partial \mathbf{h}_t}{\partial \mathbf{h}_{t-1}}\)</span> 包含 <span class="math notranslate nohighlight">\(\tanh'\)</span>，始终 <span class="math notranslate nohighlight">\(\leq 1\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{\partial \mathbf{c}_t}{\partial \mathbf{c}_{t-1}} = \mathbf{f}_t\)</span>，可接近 1</p></td>
+</tr>
+<tr class="row-odd"><td><p>100步后梯度</p></td>
+<td><p><span class="math notranslate nohighlight">\(\approx 0.5^{100} \approx 10^{-31}\)</span>（消失）</p></td>
+<td><p>若 <span class="math notranslate nohighlight">\(\mathbf{f}_t \approx 1\)</span>，梯度几乎不变</p></td>
+</tr>
+<tr class="row-even"><td><p>能否学到千步依赖</p></td>
+<td><p>几乎不可能</p></td>
+<td><p>理论上可以（实践中困难但可行）</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id12">
+<h2>LSTM 仍有局限<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
+<p>LSTM 解决了梯度消失，但没有解决所有问题：</p>
+<ol class="arabic simple">
+<li><p><strong>仍是串行处理</strong>：<span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span> 必须等 <span class="math notranslate nohighlight">\(\mathbf{h}_{t-1}\)</span> 算完。序列长度 1000 意味着 1000 次串行计算，无法并行训练</p></li>
+<li><p><strong>固定尺寸的瓶颈</strong>：所有历史信息必须压缩进一个固定维度的 <span class="math notranslate nohighlight">\(\mathbf{c}_t\)</span>。序列越长，压缩越有损——就像把一本书总结成一段话，总有信息丢失</p></li>
+<li><p><strong>门控也会饱和</strong>：当 <span class="math notranslate nohighlight">\(\mathbf{f}_t\)</span> 在训练中饱和为 0（网络学会了&quot;这段必须忘掉&quot;），梯度仍然会切断——只是比 RNN 更可控</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p>LSTM 的贡献不是&quot;解决了所有问题&quot;，而是<strong>把问题的维度降低了</strong>：从&quot;梯度指数衰减到 0&quot;变成&quot;网络可以通过学习门控来调控梯度流动&quot;。这为深度学习处理序列打开了大门——此后 20 年里，LSTM 是 NLP 领域的主力架构，直到 Transformer 出现。</p>
+</div>
+</section>
+<section id="id13">
+<h2>代码实践：LSTM 的梯度保持能力<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+
+<span class="c1"># RNN: 参数量 = W_h(64×64) + W_x(64×32) + b(64) + W_y(64×32) = 8,256</span>
+<span class="n">rnn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">RNN</span><span class="p">(</span><span class="n">input_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">hidden_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">num_layers</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># LSTM: 四个门，每个门 = W(64×96) + b(64) = 6,208</span>
+<span class="c1">#       四个门总计 = 24,832（约RNN的3倍）</span>
+<span class="c1">#       外加输出投影权重不计入（PyTorch默认不自动回归输出）</span>
+<span class="n">lstm</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">input_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">hidden_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">num_layers</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># 长序列测试——100步，梯度必须穿越100次门控操作</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>  <span class="c1"># (seq_len=100, batch=1, features=32)</span>
+
+<span class="c1"># RNN前向——隐状态 h_t 每一步经过 {ref}`lstm-gradient-highway` 中描述的 tanh 压缩</span>
+<span class="n">rnn_out</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">rnn</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>          <span class="c1"># rnn_out: (100, 1, 64)</span>
+<span class="n">rnn_out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>  <span class="c1"># 只对最后一步求梯度</span>
+<span class="c1"># 查看输入权重的梯度范数——由于梯度消失（{ref}`gradient-vanishing`），接近0</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RNN   W_ih grad norm: </span><span class="si">{</span><span class="n">rnn</span><span class="o">.</span><span class="n">weight_ih_l0</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span><span class="si">:</span><span class="s2">.10f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># LSTM前向——输出 (output, (h_n, c_n))</span>
+<span class="c1">#   output: (100, 1, 64) ——每一步的隐状态（对外输出）</span>
+<span class="c1">#   h_n:    (  1, 1, 64) ——最后一步的隐状态</span>
+<span class="c1">#   c_n:    (  1, 1, 64) ——最后一步的细胞状态（长期记忆）</span>
+<span class="n">lstm_out</span><span class="p">,</span> <span class="p">(</span><span class="n">h_n</span><span class="p">,</span> <span class="n">c_n</span><span class="p">)</span> <span class="o">=</span> <span class="n">lstm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">lstm_out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="c1"># LSTM的输入权重梯度显著更大——遗忘门 f_t 为梯度保留了通路（{ref}`lstm-gradient-highway`）</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LSTM  W_ih grad norm: </span><span class="si">{</span><span class="n">lstm</span><span class="o">.</span><span class="n">weight_ih_l0</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span><span class="si">:</span><span class="s2">.10f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># 典型输出：LSTM的梯度范数比RNN大2-3个数量级</span>
+</pre></div>
+</div>
+<div class="note admonition">
+<p class="admonition-title">本节小结</p>
+<ul class="simple">
+<li><p>LSTM 的核心洞察：<strong>把&quot;记忆存储&quot;（<span class="math notranslate nohighlight">\(\mathbf{c}_t\)</span>）和&quot;对外输出&quot;（<span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span>）分离</strong></p></li>
+<li><p>三个门各司其职：遗忘门（擦除）、输入门（写入）、输出门（读取）</p></li>
+<li><p>细胞状态 <span class="math notranslate nohighlight">\(\mathbf{c}_t\)</span> 的梯度路径几乎不经过非线性——这是缓解梯度消失的关键</p></li>
+<li><p>LSTM 缓解了梯度消失，但<strong>串行处理和固定状态尺寸</strong>的根本限制仍在——这是下一跳的起点</p></li>
+</ul>
+</div>
+<p>掌握了 LSTM 如何用门控机制&quot;管理记忆&quot;后，我们面临一个更深层的问题：即使有了门控，信息还是要一步步传递——<span class="math notranslate nohighlight">\(\mathbf{h}_1\)</span> 到 <span class="math notranslate nohighlight">\(\mathbf{h}_{100}\)</span> 必须经过 99 步。下一节 <a class="reference internal" href="from-rnn-to-attention.html"><span class="doc">从RNN到注意力：一个思想的跳跃</span></a> 中，我们将看到一种彻底颠覆的思路：<strong>为什么不让第 100 步直接看到第 1 步？</strong></p>
+</section>
+<hr class="docutils" />
+<section id="id14">
+<h2>参考文献<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id15">
+<div role="list" class="citation-list">
+<div class="citation" id="id111" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>HS97<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id3">1</a>,<a role="doc-backlink" href="#id4">2</a>)</span>
+<p>Sepp Hochreiter and Jürgen Schmidhuber. Long short-term memory. <em>Neural Computation</em>, 9(8):1735–1780, 1997.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">8eb3275</code>
+                2026-05-09 - <strong>Heyan Zhu</strong>: feat(sequence-modeling): add new chapter on sequence modeling from RNN to Mamba
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+</article><footer class="bz-article-footer">
+  
+  
+    <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="rnn-basics.html" rel="prev">
+    <span>Previous</span><span class="bz-related-pages-title">循环神经网络：让网络拥有&quot;记忆&quot;</span></a><a class="bz-related-pages-next" href="from-rnn-to-attention.html" rel="next">
+    <span>Next</span>
+    <span class="bz-related-pages-title">从RNN到注意力：一个思想的跳跃</span>
+  </a></nav>
+  
+
+</footer><aside class="bz-sidebar-secondary" data-drawer="bz-sidebar-secondary">
+  
+  
+    
+  
+  
+  
+  
+
+
+
+<div class="bz-repo-stats">
+  <a
+    data-provider="github"
+    data-user="ulink-deep-learning-club"
+    data-repo="ulink-deeplearningclub-handouts"
+    href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    aria-label="ulink-deep-learning-club/ulink-deeplearningclub-handouts repository"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    <span
+      style="--bz-repo-stats-name-length: 56"
+      title="ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    >
+      ulink-deep-learning-club/ulink-deeplearningclub-handouts
+    </span>
+    <div class="bz-repo-stats-row">
+      <span class="bz-repo-stats-item" aria-label="Repository stars">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path></svg>
+        <span data-stat="stars">-</span>
+      </span>
+      <span class="bz-repo-stats-item" aria-label="Repository forks">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
+        <span data-stat="forks">-</span>
+      </span>
+    </div>
+  </a>
+</div>
+
+  
+    <div class="bz-edit-this-page">
+  <a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/source/sequence-modeling/lstm.md" rel="edit">
+    Edit this page
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"></path></svg>
+  </a>
+</div>
+  
+    <nav class="bz-sidebar-toc" aria-label="Table of contents">
+  <p>On this page</p><ul>
+<li><a class="reference internal" href="#id2">历史背景</a></li>
+<li><a class="reference internal" href="#lstm-dual-state">核心洞察：从"一个状态"到"两个状态"</a></li>
+<li><a class="reference internal" href="#lstm-gates">四个角色：LSTM的门控系统</a><ul>
+<li><a class="reference internal" href="#lstm-forget-gate">角色一：遗忘门——“档案管理员”</a></li>
+<li><a class="reference internal" href="#lstm-input-gate">角色二：输入门 + 候选记忆——“采购员"和"新提案”</a></li>
+<li><a class="reference internal" href="#lstm-output-gate">角色三：输出门——“发言人”</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id10">完整更新公式</a></li>
+<li><a class="reference internal" href="#lstm-gradient-highway">为什么LSTM能缓解梯度消失：梯度高速公路</a></li>
+<li><a class="reference internal" href="#id12">LSTM 仍有局限</a></li>
+<li><a class="reference internal" href="#id13">代码实践：LSTM 的梯度保持能力</a></li>
+<li><a class="reference internal" href="#id14">参考文献</a></li>
+</ul></nav>
+  
+
+</aside></main>
+  </div>
+<footer class="bz-footer">
+  <div class="bz-footer-copyright"><p class="bz-copyright">© Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0</p><p>
+    
+    
+    
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a href="https://github.com/aksiome/breeze">Breeze theme</a>.
+    
+  </p>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    
+    </a>
+  </div>
+</footer><a href="#" class="bz-back-to-top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+    </svg>
+    <span>Back to top</span>
+  </a>
+  <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
+  <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
+  <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../_static/documentation_options.js?v=5a0213dc"></script><script src="../_static/doctools.js?v=9bcbadda"></script><script src="../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../_static/translations.js?v=beaddf03"></script><script src="../_static/design-tabs.js?v=f930bc37"></script><script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script></body>
+</html>

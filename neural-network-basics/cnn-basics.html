@@ -198,6 +198,15 @@
 <li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
 </ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../sequence-modeling/index.html">序列建模：从RNN到Transformer再到Mamba</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/transformer.html">Transformer：注意力的极致</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/mamba-intro.html">Mamba 简述：对RNN思想的回归</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/the-end.html">总结与展望</a></li>
+</ul></details></li>
 <li class="toctree-l1"><a class="reference internal" href="../model-serving/index.html">模型部署与服务：从训练到生产</a>
 <details><summary aria-label="Toggle submenu"></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../model-serving/introduction.html">引言：训练完模型之后</a></li>
@@ -214,6 +223,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
 </ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/sphinx-guide/index.html">Sphinx Markdown 写作指南</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
 </ul>
 </nav>
@@ -312,11 +322,11 @@
 <section id="id3">
 <h2>卷积操作的基本原理<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
 <p>卷积操作是CNN的核心，它通过滑动窗口的方式在输入图像上应用（通过点积）滤波器（卷积核）来提取特征。这种思想最早由LeCun等人在1989年提出 <span id="id4">[<a class="reference internal" href="#id77" title="Yann LeCun, Bernhard Boser, John S Denker, Donnie Henderson, Richard E Howard, Wayne Hubbard, and Lawrence D Jackel. Backpropagation applied to handwritten zip code recognition. Neural Computation, 1(4):541–551, 1989.">LBD+89</a>]</span>，并在后续的LeNet-5工作中 <span id="id5">[<a class="reference internal" href="the-end.html#id90" title="Yann LeCun, Léon Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 86(11):2278–2324, 1998.">LBBH98</a>]</span> 得到完善。</p>
-<figure class="align-center" id="id108">
+<figure class="align-center" id="id117">
 <a class="reference internal image-reference" href="../_images/conv-process.png"><img alt="../_images/conv-process.png" src="../_images/conv-process.png" style="width: 40%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">卷积操作示意图</span><a class="headerlink" href="#id108" title="Link to this image">#</a></p>
+<p><span class="caption-text">卷积操作示意图</span><a class="headerlink" href="#id117" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <div class="admonition note">
@@ -344,7 +354,7 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 <p>卷积核提取特征的原理其实很直观：<strong>点积 = 相似度度量</strong>。</p>
 <p>回想一下两个向量的点积：<span class="math notranslate nohighlight">\(\mathbf{a} \cdot \mathbf{b} = \sum_i a_i b_i\)</span>。当两个向量方向一致时，点积最大；方向相反时，点积为负。换句话说，<strong>点积衡量了两个向量的相似程度</strong>。</p>
 <p>卷积操作就是反复做点积：</p>
-<div class="figure" id="id109" style="text-align: center"><p><img  src="../_images/tikz-0ae465dd7e723e27764bae08945e5a36503f86e2.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id118" style="text-align: center"><p><img  src="../_images/tikz-0ae465dd7e723e27764bae08945e5a36503f86e2.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">卷积核=模式匹配器</span></p>
 </div><p>这个 3×3 的卷积核左边全是 -1、中间是 0、右边全是 1——它检测的是<strong>垂直边缘</strong>：</p>
 <ul class="simple">
@@ -415,11 +425,11 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 <section id="id8">
 <h2>参数共享机制<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
 <p>卷积层的一个重要特性是参数共享。同一个卷积核在图像的不同位置重复使用，这大大减少了参数数量。</p>
-<figure class="align-center" id="id110">
+<figure class="align-center" id="id119">
 <a class="reference internal image-reference" href="../_images/conv-param-share.png"><img alt="../_images/conv-param-share.png" src="../_images/conv-param-share.png" style="width: 80%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">参数共享机制示意图</span><a class="headerlink" href="#id110" title="Link to this image">#</a></p>
+<p><span class="caption-text">参数共享机制示意图</span><a class="headerlink" href="#id119" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <p>对于 <span class="math notranslate nohighlight">\(C_{\text{out}}\)</span> 个输出通道，每个通道使用独立的卷积核：</p>
@@ -578,7 +588,7 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 </tbody>
 </table>
 </div>
-<div class="figure" id="id111" style="text-align: center"><p><img  src="../_images/tikz-9dfb9b54f95e09d8b87eb7077a45e5c1b53e8eae.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id120" style="text-align: center"><p><img  src="../_images/tikz-9dfb9b54f95e09d8b87eb7077a45e5c1b53e8eae.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">CNN分层特征提取示意</span></p>
 </div><p><strong>分层学习的启示</strong>：</p>
 <ul class="simple">
@@ -589,9 +599,9 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 </section>
 <section id="id11">
 <h2>CNN的优缺点<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
-<div class="table colwidths-given docutils container" id="id112">
-<table class="docutils align-default" id="id112">
-<caption><span class="caption-text">卷积神经网络优缺点对比</span><a class="headerlink" href="#id112" title="Link to this table">#</a></caption>
+<div class="table colwidths-given docutils container" id="id121">
+<table class="docutils align-default" id="id121">
+<caption><span class="caption-text">卷积神经网络优缺点对比</span><a class="headerlink" href="#id121" title="Link to this table">#</a></caption>
 <colgroup>
 <col style="width: 50.0%" />
 <col style="width: 50.0%" />

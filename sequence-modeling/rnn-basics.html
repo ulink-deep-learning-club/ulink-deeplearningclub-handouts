@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-content_root="../">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="循环神经网络：让网络拥有&quot;记忆&quot;" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="sequence-modeling/rnn-basics.html" />
+<meta property="og:site_name" content="Deep Learning Club Handouts" />
+<meta property="og:description" content="全连接神经网络 中的全连接网络和 卷积神经网络 中的 CNN 有一个共同特征： 给定一个输入，产生一个输出，然后&quot;忘记&quot;这个输入 。每次前向传播是独立的，网络不记得上一秒看到了什么。 这显然不符合我们处理序列的方式。读这句话时，你的大脑记住了前文——&quot;这&quot;指代什么，&quot;显然&quot;修饰什么——这些理解都依赖于 记忆 。 关键问题 ：如何让神..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_sequence-modeling_rnn-basics_278cface.png" />
+<meta property="og:image:alt" content="全连接神经网络 中的全连接网络和 卷积神经网络 中的 CNN 有一个共同特征： 给定一个输入，产生一个输出，然后&quot;忘记&quot;这个输入 。每次前向传播是独立的，网络不记得上一秒看到了什么。 这显然不符合我们处理序列的方式。读这句话时，你的大脑记住了前文——&quot;这&quot;指代什么，&quot;显然&quot;修饰什么——这些理解都依赖于 记忆 。 关键问题 ：如何让神..." />
+<meta name="description" content="全连接神经网络 中的全连接网络和 卷积神经网络 中的 CNN 有一个共同特征： 给定一个输入，产生一个输出，然后&quot;忘记&quot;这个输入 。每次前向传播是独立的，网络不记得上一秒看到了什么。 这显然不符合我们处理序列的方式。读这句话时，你的大脑记住了前文——&quot;这&quot;指代什么，&quot;显然&quot;修饰什么——这些理解都依赖于 记忆 。 关键问题 ：如何让神..." />
+<meta name="twitter:card" content="summary_large_image" />
+<title>循环神经网络：让网络拥有&#34;记忆&#34; - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="LSTM：给记忆装上&#34;门&#34;" href="lstm.html"><link rel="prev" title="序列建模：从RNN到Transformer再到Mamba" href="index.html"><script data-cfasync="false">(function(){
+    const m = localStorage.getItem("breeze-mode") || "auto";
+    const d = document.documentElement.dataset;
+    d.mode = m;
+    d.theme = m === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : m;
+  })();
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=9c6fee98" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+<body>
+  
+  
+  <div class="bz-skip-to-content"><a href="#bz-main-content">Skip to main content</a></div><header class="bz-header-main">
+  <div class="bz-header-start"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><a class="bz-header-brand" href="../index.html">
+  
+  
+  <span>Deep Learning Club Handouts</span>
+</a>
+  </div>
+  <div class="bz-header-end"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><div id="docsearch" class="bz-search-button">
+  <a
+    href="../search.html#q"
+    aria-label="Search the docs"
+    data-tooltip="Search the docs"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 -1 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
+    <span>搜索</span>
+    <kbd>Ctrl+K</kbd>
+  </a>
+</div><div class="bz-theme-switcher">
+  <button aria-label="Switch theme" data-tooltip="Switch theme">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
+      <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-dark" fill="currentColor">
+      <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+    </svg>
+  </button>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.766 11.695C4.703 11.437 3.25 9.904 3.25 7.92c0-.806.281-1.677.75-2.258-.203-.532-.172-1.662.062-2.129.626-.081 1.469.258 1.969.726.594-.194 1.219-.291 1.985-.291.765 0 1.39.097 1.953.274.484-.451 1.343-.79 1.969-.709.218.435.25 1.564.046 2.113.5.613.766 1.436.766 2.274 0 1.984-1.453 3.485-3.547 3.759.531.355.891 1.129.891 2.016v1.678c0 .484.39.758.859.564C13.781 14.824 16 11.905 16 8.291 16 3.726 12.406 0 7.984 0 3.562 0 0 3.726 0 8.291c0 3.581 2.203 6.55 5.172 7.663A.595.595 0 0 0 6 15.389v-1.291c-.219.097-.5.162-.75.162-1.031 0-1.641-.581-2.078-1.662-.172-.435-.36-.693-.719-.742-.187-.016-.25-.097-.25-.193 0-.194.313-.339.625-.339.453 0 .844.29 1.25.887.313.468.641.678 1.031.678.391 0 .641-.146 1-.516.266-.275.469-.517.657-.678Z"></path></svg>
+    
+    </a>
+  </div>
+  </div>
+</header><hr class="bz-header-hr">
+  <div class="bz-content"><aside class="bz-sidebar-primary" data-drawer="bz-sidebar-primary">
+  
+  
+    <nav class="bz-sidebar-nav" aria-label="Section Navigation"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../math-fundamentals/index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础：从理论到架构</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN 消融研究：理解卷积神经网络各组件的作用</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：消融研究的科学方法论</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/the-end.html">结语：从黑盒到白盒</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../attention-mechanisms/index.html">CNN 中的注意力机制</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/introduction.html">为什么CNN需要注意力机制？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/se-net.html">通道注意力：SE-Net</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/spatial-attn.html">空间注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/cbam.html">通道+空间注意力：CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/comparison.html">注意力机制的选择与应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/practice.html">实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../model-architecture-design/index.html">CNN 架构改造：设计卷积网络的心法</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part1-intro.html">改造的本质：从"会用 CNN"到"会设计 CNN"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">序列建模：从RNN到Transformer再到Mamba</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">循环神经网络：让网络拥有"记忆"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lstm.html">LSTM：给记忆装上"门"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transformer.html">Transformer：注意力的极致</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mamba-intro.html">Mamba 简述：对RNN思想的回归</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../model-serving/index.html">模型部署与服务：从训练到生产</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置番外篇</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/sphinx-guide/index.html">Sphinx Markdown 写作指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+</nav>
+  
+
+</aside><main id="bz-main-content"><header class="bz-article-header">
+  
+  
+    <nav class="bz-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li class="bz-breadcrumbs-home">
+      <a href="../index.html" aria-label="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8.543 2.232a.75.75 0 0 0-1.085 0l-5.25 5.5A.75.75 0 0 0 2.75 9H4v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V9h1.25a.75.75 0 0 0 .543-1.268l-5.25-5.5Z" />
+        </svg>
+      </a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="index.html">序列建模：从RNN到Transformer再到Mamba</a>
+    </li><li class="bz-breadcrumbs-current">
+      <span>循环神经网络：让网络拥有&quot;记忆&quot;</span>
+    </li>
+  </ol>
+</nav>
+  
+<label
+  class="bz-sidebar-secondary-toggle"
+  for="bz-sidebar-secondary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle table of contents"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75H20.25 M11.25 12H20.25 M7.75 17.25H20.25"
+    />
+  </svg>
+</label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="rnn-basics">
+<span id="id1"></span><h1>循环神经网络：让网络拥有&quot;记忆&quot;<a class="headerlink" href="#rnn-basics" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html"><span class="doc">全连接神经网络</span></a> 中的全连接网络和 <a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a> 中的 CNN 有一个共同特征：<strong>给定一个输入，产生一个输出，然后&quot;忘记&quot;这个输入</strong>。每次前向传播是独立的，网络不记得上一秒看到了什么。</p>
+<p>这显然不符合我们处理序列的方式。读这句话时，你的大脑记住了前文——&quot;这&quot;指代什么，&quot;显然&quot;修饰什么——这些理解都依赖于<strong>记忆</strong>。</p>
+<p><strong>关键问题</strong>：如何让神经网络在处理序列时拥有记忆？</p>
+<section id="id2">
+<h2>历史背景<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>1986年，David Rumelhart 和 Geoffrey Hinton 等人发表了反向传播论文 <span id="id3">[<a class="reference internal" href="#id82" title="David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. Nature, 323(6088):533–536, 1986.">RHW86</a>]</span>，为训练多层网络奠定了基础。几乎同时，Michael Jordan 提出了带有循环连接的网络架构 <span id="id4">[<a class="reference internal" href="#id111" title="Michael I Jordan. Serial order: a parallel distributed processing approach. Technical Report ICS Report 8604, Institute for Cognitive Science, University of California, San Diego, 1986.">Jor86</a>]</span>——让网络将上一时刻的输出作为当前输入的一部分，从而拥有对过去的&quot;记忆&quot;。</p>
+<p>1990年，Jeffrey Elman 在此基础上提出了<strong>简单循环网络（Simple Recurrent Network）</strong> <span id="id5">[<a class="reference internal" href="the-end.html#id114" title="Jeffrey L Elman. Finding structure in time. Cognitive Science, 14(2):179–211, 1990.">Elm90</a>]</span>，其核心结构——一个隐状态 <span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span> 在每一步基于 <span class="math notranslate nohighlight">\(\mathbf{h}_{t-1}\)</span> 和 <span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span> 更新——成为此后三十年所有循环架构的基石。</p>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>为什么叫&quot;循环&quot;？</strong> 因为网络在时间上的每一步使用<strong>相同的权重</strong> <span class="math notranslate nohighlight">\(\mathbf{W}_h\)</span> 和 <span class="math notranslate nohighlight">\(\mathbf{W}_x\)</span>。这类似于 <a class="reference internal" href="../neural-network-basics/cnn-basics.html#cnn-basics"><span class="std std-ref">卷积神经网络</span></a> 中卷积核的权值共享——同一个规则应用到所有位置，只是 CNN 共享空间位置，RNN 共享时间位置。</p>
+</div>
+</section>
+<section id="rnn">
+<h2>从大脑到RNN：记忆的直觉<a class="headerlink" href="#rnn" title="Link to this heading">#</a></h2>
+<section id="id6">
+<h3>你如何理解一句话？<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p>想象你逐字阅读：“今天天气很好所以我决定去公园散步”。</p>
+<ul class="simple">
+<li><p>读到&quot;今天天气很好&quot;时，你建立了一个上下文</p></li>
+<li><p>读到&quot;所以&quot;时，你知道接下来是结论</p></li>
+<li><p>读到&quot;我决定去&quot;时，你预期一个动作</p></li>
+<li><p>读到&quot;公园散步&quot;时，你把它和&quot;天气好&quot;建立了因果联系</p></li>
+</ul>
+<p>每一步，你的大脑都在<strong>更新一个内部状态</strong>——一个不断演化的、包含前文信息的&quot;摘要&quot;。这个摘要不是完整记忆（你不会逐字背诵前文），而是对理解当前词最关键的<strong>压缩表示</strong>。</p>
+</section>
+<section id="id7">
+<h3>生物学的启发：大脑不&quot;反复读取&quot;历史<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<p>RNN 的灵感直接来自大脑中一个更根本的事实——<strong>大脑不是每个瞬间把所有历史&quot;重新读一遍&quot;</strong>。</p>
+<p>想想你是怎么理解一段音乐的。听到第三个音符时，你并没有重新播放前两个音符。你对前两个音符的感知已经&quot;融入&quot;了当前的神经活动——大脑利用一系列<strong>持续变化的物理状态</strong>来自然携带历史信息：</p>
+<ul class="simple">
+<li><p><strong>神经元膜电位</strong>：一个神经元被激活后，它的膜电位不会瞬间归零，而是逐渐衰减。这个衰减过程本身就在&quot;记住&quot;最近发生过什么。</p></li>
+<li><p><strong>突触短期可塑性</strong>：高频使用一个突触后，它的传递效率会在短时间内改变（增强或抑制）——这是突触层面上的&quot;工作记忆&quot;。</p></li>
+<li><p><strong>钙离子浓度</strong>：当神经元放电时，钙离子流入细胞内，浓度缓慢下降。这个化学梯度编码了过去几百毫秒内的活动强度。</p></li>
+<li><p><strong>神经递质残留</strong>：突触间隙中的神经递质分子不会瞬间清除，它们的残余浓度携带着&quot;刚才这里发生了信号传递&quot;的信息。</p></li>
+</ul>
+<p>这些都不是&quot;显式的记忆存储&quot;——大脑没有一个单独的&quot;历史缓冲区&quot;。历史信息是<strong>物理地、连续地</strong>嵌入在神经元和突触的状态变化中的。每一个瞬间的大脑状态都已经是所有过去输入的<strong>压缩结果</strong>。</p>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>RNN 的本质</strong>：<span class="math notranslate nohighlight">\(\mathbf{h}_t = \tanh(\mathbf{W}_h \mathbf{h}_{t-1} + \mathbf{W}_x \mathbf{x}_t)\)</span> 就是对这个过程的数学抽象。<span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span> 对应神经元群的膜电位模式——它随时间连续演化，每一步吸收新的输入（<span class="math notranslate nohighlight">\(\mathbf{W}_x \mathbf{x}_t\)</span>），同时自然地携带上一步的状态（<span class="math notranslate nohighlight">\(\mathbf{W}_h \mathbf{h}_{t-1}\)</span>）。信息通过时间上连续的状态变化向前传递，而不是反复从静态记忆中读取。</p>
+<p>这就是&quot;循环&quot;二字的生物学含义：<strong>不是重新读取，而是持续继承</strong>。</p>
+</div>
+</section>
+<section id="id8">
+<h3>RNN的循环结构<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<p>RNN做的正是这件事 <span id="id9">[<a class="reference internal" href="the-end.html#id114" title="Jeffrey L Elman. Finding structure in time. Cognitive Science, 14(2):179–211, 1990.">Elm90</a>]</span>。它维护一个<strong>隐状态（hidden state）</strong> <span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span>，在处理每一步输入 <span class="math notranslate nohighlight">\(\mathbf{x}_t\)</span> 时：</p>
+<div class="figure" id="id119" style="text-align: center"><p><img  src="../_images/tikz-db8186f3b13a060b556fa99691896825f11729f4.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">RNN循环结构：同一模块在时间上展开</span></p>
+</div><p>两行公式定义了RNN的全部行为：</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{h}_t = \tanh(\mathbf{W}_h \mathbf{h}_{t-1} + \mathbf{W}_x \mathbf{x}_t + \mathbf{b})
+\]</div>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{y}_t = \mathbf{W}_y \mathbf{h}_t + \mathbf{b}_y
+\]</div>
+<p>其中：</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\mathbf{h}_t \in \mathbb{R}^d\)</span>：时刻 <span class="math notranslate nohighlight">\(t\)</span> 的隐状态（网络的&quot;记忆&quot;）</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{x}_t \in \mathbb{R}^m\)</span>：时刻 <span class="math notranslate nohighlight">\(t\)</span> 的输入</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{W}_h \in \mathbb{R}^{d \times d}\)</span>：<strong>循环权重</strong>——控制&quot;如何混合旧记忆和新输入&quot;</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{W}_x \in \mathbb{R}^{d \times m}\)</span>：输入投影——将输入映射到隐空间</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{W}_y \in \mathbb{R}^{k \times d}\)</span>：输出投影——从隐状态产生预测</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>直觉</strong>：<span class="math notranslate nohighlight">\(\mathbf{W}_h \mathbf{h}_{t-1}\)</span> 是&quot;提炼旧记忆&quot;，<span class="math notranslate nohighlight">\(\mathbf{W}_x \mathbf{x}_t\)</span> 是&quot;吸收新信息&quot;，<span class="math notranslate nohighlight">\(\tanh\)</span> 将两者混合并压缩到 <span class="math notranslate nohighlight">\((-1, 1)\)</span>，防止数值发散。</p>
+<p>注意这里用的是 <span class="math notranslate nohighlight">\(\tanh\)</span> 而不是 ReLU。这是因为循环连接会让信号反复通过激活函数——ReLU 的正区间可能让激活值在循环中不断放大直至爆炸，而 <span class="math notranslate nohighlight">\(\tanh\)</span> 天然有界，提供了一种&quot;自我保护&quot;机制（<a class="reference internal" href="../math-fundamentals/activation-functions.html#activation-functions"><span class="std std-ref">激活函数</span></a> 中讨论过各激活函数的特性）。</p>
+</div>
+</section>
+</section>
+<section id="rnn-bptt">
+<span id="rnn-training"></span><h2>RNN的训练：穿过时间的反向传播（BPTT）<a class="headerlink" href="#rnn-bptt" title="Link to this heading">#</a></h2>
+<p>RNN如何学习？答案就在 <a class="reference internal" href="../math-fundamentals/back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a> 和 <a class="reference internal" href="../math-fundamentals/computational-graph.html#computational-graph"><span class="std std-ref">计算图</span></a> 中。</p>
+<p>把RNN在时间上展开：时刻1的处理产生 <span class="math notranslate nohighlight">\(\mathbf{h}_1\)</span>，传给时刻2的使用；时刻2产生 <span class="math notranslate nohighlight">\(\mathbf{h}_2\)</span>，传给时刻3……这恰好形成了一个<strong>计算图</strong>——每个时间步是一个节点，<span class="math notranslate nohighlight">\(\mathbf{h}_{t-1} \to \mathbf{h}_t\)</span> 是连接节点的边。</p>
+<p>反向传播在这个展开的图上运行，称为 <strong>BPTT（Backpropagation Through Time）</strong> <span id="id10">[<a class="reference internal" href="#id88" title="Paul J Werbos. Backpropagation through time: what it does and how to do it. Proceedings of the IEEE, 78(10):1550–1560, 1990.">Wer90</a>]</span>：</p>
+<div class="figure" id="id120" style="text-align: center"><p><img  src="../_images/tikz-de6c41be0ab44c3a425e0faf1da376bcde166895.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">BPTT：梯度沿时间反向流动</span></p>
+</div><p>损失 <span class="math notranslate nohighlight">\(L\)</span> 对 <span class="math notranslate nohighlight">\(\mathbf{h}_1\)</span> 的梯度需要穿越所有中间隐状态：</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{\partial L}{\partial \mathbf{h}_1} = \frac{\partial L}{\partial \mathbf{h}_4} \cdot \frac{\partial \mathbf{h}_4}{\partial \mathbf{h}_3} \cdot \frac{\partial \mathbf{h}_3}{\partial \mathbf{h}_2} \cdot \frac{\partial \mathbf{h}_2}{\partial \mathbf{h}_1}
+\]</div>
+<p>这正是 <a class="reference internal" href="../math-fundamentals/back-propagation.html#gradient-vanishing-math"><span class="std std-ref">多层网络的 Jacobian 连乘与梯度消失</span></a> 中讨论的 <strong>Jacobian 连乘</strong>的序列版本——每个 <span class="math notranslate nohighlight">\(\frac{\partial \mathbf{h}_{t}}{\partial \mathbf{h}_{t-1}}\)</span> 是一个 Jacobian 矩阵，经过 <span class="math notranslate nohighlight">\(T\)</span> 步连乘后，梯度呈指数级衰减（或爆炸）。</p>
+<div class="admonition important">
+<p class="admonition-title">重要</p>
+<p><strong>RNN训练的根本矛盾</strong>：要学习长程依赖，梯度必须穿越很长的路径。但路径越长，连乘的 Jacobian 越多，梯度消失越严重——网络&quot;记不住&quot;太远的信息。</p>
+</div>
+</section>
+<section id="rnn-problems">
+<span id="id11"></span><h2>RNN的两个核心问题<a class="headerlink" href="#rnn-problems" title="Link to this heading">#</a></h2>
+<section id="id12">
+<h3>问题一：长程依赖困难<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
+<p>从信息流动的直觉来理解：</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\mathbf{h}_1\)</span> 的信息要传递到 <span class="math notranslate nohighlight">\(\mathbf{h}_{100}\)</span>，需要经过 99 次 <span class="math notranslate nohighlight">\(\tanh(\mathbf{W}_h \cdot)\)</span> 变换</p></li>
+<li><p>每一次变换都是一次&quot;有损压缩&quot;——就像反复复印一份文件，复印100次后，原文已面目全非</p></li>
+<li><p>原始信号的哪些部分被保留、哪些被丢弃，网络无法直接控制</p></li>
+</ul>
+<div class="tip admonition">
+<p class="admonition-title">生活类比</p>
+<p><strong>RNN的传话游戏</strong>：100个人排成一列传一句话，第一个人说&quot;今天天气很好&quot;，但每个人传话时只能听到上一个人说的。到第100个人时，可能已经变成&quot;今天有飞机&quot;。</p>
+<p><strong>注意力机制的传话游戏</strong>：第100个人能同时听到前面99个人说的话，然后自己判断谁说的最关键。</p>
+</div>
+</section>
+<section id="id13">
+<h3>问题二：梯度消失<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="../math-fundamentals/back-propagation.html#gradient-vanishing"><span class="std std-ref">梯度消失（Vanishing Gradient）</span></a> 中讨论过，假设每层 Jacobian 的&quot;放大倍数&quot;为 <span class="math notranslate nohighlight">\(\gamma\)</span>，经过 <span class="math notranslate nohighlight">\(n\)</span> 层连乘后为 <span class="math notranslate nohighlight">\(\gamma^n\)</span>。</p>
+<p>RNN 中，这个 <span class="math notranslate nohighlight">\(n\)</span> 不是网络深度，而是<strong>序列长度</strong>。考虑 <span class="math notranslate nohighlight">\(\tanh\)</span> 的导数：</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{d}{dx}\tanh(x) = 1 - \tanh^2(x) \in (0, 1]
+\]</div>
+<p>在大部分输入区域，<span class="math notranslate nohighlight">\(\tanh\)</span> 的梯度远小于 1（饱和时接近 0）。假设平均 <span class="math notranslate nohighlight">\(\gamma = 0.5\)</span>：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>序列长度</p></th>
+<th class="head"><p>梯度衰减</p></th>
+<th class="head"><p>能否学到依赖？</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>10个词</p></td>
+<td><p><span class="math notranslate nohighlight">\(0.5^{10} \approx 0.001\)</span></p></td>
+<td><p>勉强可以</p></td>
+</tr>
+<tr class="row-odd"><td><p>50个词</p></td>
+<td><p><span class="math notranslate nohighlight">\(0.5^{50} \approx 8.9 \times 10^{-16}\)</span></p></td>
+<td><p>基本不可能</p></td>
+</tr>
+<tr class="row-even"><td><p>100个词</p></td>
+<td><p><span class="math notranslate nohighlight">\(0.5^{100} \approx 7.9 \times 10^{-31}\)</span></p></td>
+<td><p>完全不可能</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这意味着：<strong>RNN 只能学会几十步以内的依赖关系</strong>。更长的依赖（如段首的主题词与段尾的结论词之间的关联）在训练中几乎收不到梯度信号。</p>
+<p>RNN 用一个隐状态同时承担&quot;存储记忆&quot;和&quot;对外输出&quot;——这个设计本身就是矛盾的。下一节 <a class="reference internal" href="lstm.html"><span class="doc">LSTM：给记忆装上&quot;门&quot;</span></a> 中，我们将看到如何通过<strong>分离两个状态、引入三个门控</strong>来大幅缓解梯度消失——为梯度创建一条不经过 <span class="math notranslate nohighlight">\(\tanh\)</span> 的&quot;高速公路&quot;。</p>
+</section>
+</section>
+<section id="id14">
+<h2>代码实践：RNN的梯度消失有多严重？<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+
+<span class="c1"># RNN参数: input_size=32（输入特征维度）, hidden_size=64（隐状态维度）</span>
+<span class="c1"># 参数量 = W_h(64×64) + W_x(64×32) + b(64) + W_y(64×32:默认输出维度=输入维度)</span>
+<span class="c1">#        = 4096 + 2048 + 64 + 2048 = 8256</span>
+<span class="n">rnn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">RNN</span><span class="p">(</span><span class="n">input_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">hidden_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">num_layers</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># 输入：50个时间步的序列 (seq_len=50, batch=1, features=32)</span>
+<span class="c1"># 理论对应 {ref}`rnn-problems` 中的序列长度 vs 梯度衰减表</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+
+<span class="c1"># 前向传播——沿时间步串行执行（无法并行，{ref}`rnn-problems`）</span>
+<span class="c1">#   output: (50, 1, 64) ——每一步的隐状态 h_1...h_50</span>
+<span class="c1">#   h_n:    ( 1, 1, 64) ——最后一步的隐状态（等于 output[-1]）</span>
+<span class="n">output</span><span class="p">,</span> <span class="n">h_n</span> <span class="o">=</span> <span class="n">rnn</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="c1"># 用最后一步的隐状态求和作为损失</span>
+<span class="c1"># 这模拟了&quot;基于整个序列的最终理解做预测&quot;的典型RNN用法</span>
+<span class="n">loss</span> <span class="o">=</span> <span class="n">h_n</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+
+<span class="c1"># 查看 W_x 的梯度——它接收从第50步一路回传到第1步的信号</span>
+<span class="c1"># 由于 {ref}`gradient-vanishing`，如果权重初始化不当或序列过长</span>
+<span class="c1"># 靠近输入层的梯度几乎为0</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;W_ih grad norm: </span><span class="si">{</span><span class="n">rnn</span><span class="o">.</span><span class="n">weight_ih_l0</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span><span class="si">:</span><span class="s2">.10f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># 典型输出：~1e-6 或更小（序列越长，范数越小）</span>
+</pre></div>
+</div>
+<div class="note admonition">
+<p class="admonition-title">本节小结</p>
+<ul class="simple">
+<li><p>RNN 通过循环连接给了神经网络&quot;记忆&quot;——隐状态随输入逐步更新</p></li>
+<li><p>BPTT 是反向传播在时间展开的计算图上的应用，本质是 Jacobian 连乘</p></li>
+<li><p>RNN 的两个核心问题：<strong>长程依赖困难</strong>（信息经过多次变换后失真）和<strong>梯度消失</strong>（梯度指数级衰减到0）</p></li>
+<li><p>这两个问题源于同一个根源：<strong>信息必须一步步穿过循环连接</strong></p></li>
+<li><p>LSTM 缓解了梯度消失，但串行处理的根本限制仍在</p></li>
+</ul>
+</div>
+<p>下一节 <a class="reference internal" href="lstm.html"><span class="doc">LSTM：给记忆装上&quot;门&quot;</span></a> 中，我们将看到 LSTM 如何通过门控机制为梯度开辟一条&quot;高速公路&quot;——这让我们在处理序列时走得更远，但串行传递的根本矛盾仍然存在。</p>
+</section>
+<hr class="docutils" />
+<section id="id15">
+<h2>参考文献<a class="headerlink" href="#id15" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id16">
+<div role="list" class="citation-list">
+<div class="citation" id="id110" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>Elm90<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id5">1</a>,<a role="doc-backlink" href="#id9">2</a>)</span>
+<p>Jeffrey L Elman. Finding structure in time. <em>Cognitive Science</em>, 14(2):179–211, 1990.</p>
+</div>
+<div class="citation" id="id111" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">Jor86</a><span class="fn-bracket">]</span></span>
+<p>Michael I Jordan. Serial order: a parallel distributed processing approach. Technical Report ICS Report 8604, Institute for Cognitive Science, University of California, San Diego, 1986.</p>
+</div>
+<div class="citation" id="id82" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">RHW86</a><span class="fn-bracket">]</span></span>
+<p>David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. <em>Nature</em>, 323(6088):533–536, 1986.</p>
+</div>
+<div class="citation" id="id88" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id10">Wer90</a><span class="fn-bracket">]</span></span>
+<p>Paul J Werbos. Backpropagation through time: what it does and how to do it. <em>Proceedings of the IEEE</em>, 78(10):1550–1560, 1990.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">8eb3275</code>
+                2026-05-09 - <strong>Heyan Zhu</strong>: feat(sequence-modeling): add new chapter on sequence modeling from RNN to Mamba
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+</article><footer class="bz-article-footer">
+  
+  
+    <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="index.html" rel="prev">
+    <span>Previous</span><span class="bz-related-pages-title">序列建模：从RNN到Transformer再到Mamba</span></a><a class="bz-related-pages-next" href="lstm.html" rel="next">
+    <span>Next</span>
+    <span class="bz-related-pages-title">LSTM：给记忆装上&quot;门&quot;</span>
+  </a></nav>
+  
+
+</footer><aside class="bz-sidebar-secondary" data-drawer="bz-sidebar-secondary">
+  
+  
+    
+  
+  
+  
+  
+
+
+
+<div class="bz-repo-stats">
+  <a
+    data-provider="github"
+    data-user="ulink-deep-learning-club"
+    data-repo="ulink-deeplearningclub-handouts"
+    href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    aria-label="ulink-deep-learning-club/ulink-deeplearningclub-handouts repository"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    <span
+      style="--bz-repo-stats-name-length: 56"
+      title="ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    >
+      ulink-deep-learning-club/ulink-deeplearningclub-handouts
+    </span>
+    <div class="bz-repo-stats-row">
+      <span class="bz-repo-stats-item" aria-label="Repository stars">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path></svg>
+        <span data-stat="stars">-</span>
+      </span>
+      <span class="bz-repo-stats-item" aria-label="Repository forks">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
+        <span data-stat="forks">-</span>
+      </span>
+    </div>
+  </a>
+</div>
+
+  
+    <div class="bz-edit-this-page">
+  <a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/source/sequence-modeling/rnn-basics.md" rel="edit">
+    Edit this page
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"></path></svg>
+  </a>
+</div>
+  
+    <nav class="bz-sidebar-toc" aria-label="Table of contents">
+  <p>On this page</p><ul>
+<li><a class="reference internal" href="#id2">历史背景</a></li>
+<li><a class="reference internal" href="#rnn">从大脑到RNN：记忆的直觉</a><ul>
+<li><a class="reference internal" href="#id6">你如何理解一句话？</a></li>
+<li><a class="reference internal" href="#id7">生物学的启发：大脑不"反复读取"历史</a></li>
+<li><a class="reference internal" href="#id8">RNN的循环结构</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#rnn-bptt">RNN的训练：穿过时间的反向传播（BPTT）</a></li>
+<li><a class="reference internal" href="#rnn-problems">RNN的两个核心问题</a><ul>
+<li><a class="reference internal" href="#id12">问题一：长程依赖困难</a></li>
+<li><a class="reference internal" href="#id13">问题二：梯度消失</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id14">代码实践：RNN的梯度消失有多严重？</a></li>
+<li><a class="reference internal" href="#id15">参考文献</a></li>
+</ul></nav>
+  
+
+</aside></main>
+  </div>
+<footer class="bz-footer">
+  <div class="bz-footer-copyright"><p class="bz-copyright">© Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0</p><p>
+    
+    
+    
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a href="https://github.com/aksiome/breeze">Breeze theme</a>.
+    
+  </p>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    
+    </a>
+  </div>
+</footer><a href="#" class="bz-back-to-top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+    </svg>
+    <span>Back to top</span>
+  </a>
+  <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
+  <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
+  <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../_static/documentation_options.js?v=5a0213dc"></script><script src="../_static/doctools.js?v=9bcbadda"></script><script src="../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../_static/translations.js?v=beaddf03"></script><script src="../_static/design-tabs.js?v=f930bc37"></script><script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script></body>
+</html>

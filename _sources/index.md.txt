@@ -10,13 +10,14 @@
 graph LR
     A[数学基础<br/>计算图与梯度] --> B[神经网络基础<br/>CNN架构]
     B --> C[PyTorch实践<br/>训练流程]
-    C --> D1[注意力机制<br/>模型改进]
-    D1 --> D2[CNN架构改造<br/>设计心法]
-    D2 --> E{进阶方向<br/>任选其一}
+    C --> E{进阶方向<br/>任选其一}
+    E --> D1[注意力机制<br/>模型改进]
+    E --> D3[序列建模<br/>RNN到Transformer到Mamba]
     E --> F[CNN消融研究<br/>科学方法论]
     E --> G[迁移学习<br/>实用技术]
     E --> H[U-Net分割<br/>CV实战]
     E --> I[模型部署<br/>工程实践]
+    D1 --> D2[CNN架构改造<br/>设计心法]
 ~~~
 
 **核心路径**（必修）：数学基础 → 神经网络基础 → PyTorch实践  
@@ -41,6 +42,7 @@ graph LR
 | **实践阶段** | PyTorch实践 | 4-5小时 | 动手搭建并训练完整神经网络 |
 | **进阶阶段** | CNN消融研究 | 2-4周 | 培养科学实验思维，理解各组件贡献 |
 | | 迁移学习 | 2-3小时 | 掌握小数据集训练大模型的核心技术 |
+| | 序列建模 | 4-6小时 | 理解RNN/LSTM/Transformer/Mamba的演化逻辑与核心直觉 |
 | | 注意力机制 | 2-3小时 | 理解SE-Net、CBAM等注意力模块原理 |
 | | CNN架构改造 | 2-3小时 | 掌握CNN架构设计心法，学会系统改造模型 |
 | | U-Net分割 | 3-4小时 | 实现图像分割模型，理解编码器-解码器架构 |
@@ -88,7 +90,9 @@ transfer-learning/index
 attention-mechanisms/index
 model-architecture-design/index
 unet-image-segmentation/index
+sequence-modeling/index
 model-serving/index
 appendix/environment-setup/index
+appendix/sphinx-guide/index
 postscript
 ~~~

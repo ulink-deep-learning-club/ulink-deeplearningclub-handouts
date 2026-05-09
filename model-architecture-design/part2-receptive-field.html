@@ -198,6 +198,15 @@
 <li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
 </ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../sequence-modeling/index.html">序列建模：从RNN到Transformer再到Mamba</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/transformer.html">Transformer：注意力的极致</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/mamba-intro.html">Mamba 简述：对RNN思想的回归</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/the-end.html">总结与展望</a></li>
+</ul></details></li>
 <li class="toctree-l1"><a class="reference internal" href="../model-serving/index.html">模型部署与服务：从训练到生产</a>
 <details><summary aria-label="Toggle submenu"></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../model-serving/introduction.html">引言：训练完模型之后</a></li>
@@ -214,6 +223,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
 </ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/sphinx-guide/index.html">Sphinx Markdown 写作指南</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
 </ul>
 </nav>
@@ -299,7 +309,7 @@
 <h2>策略一：多尺度并行<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
 <p>这是 <a class="reference internal" href="../neural-network-basics/inception.html"><span class="doc">Inception：多尺度感受野的探索</span></a> 的核心思想，但我们从<strong>设计心法</strong>而非架构本身来理解它。</p>
 <p><strong>本质</strong>：不说&quot;用多大&quot;，而说&quot;都试试&quot;。同时运行多个感受野的卷积，让网络自己选。</p>
-<div class="figure" id="id109" style="text-align: center"><p><img  src="../_images/tikz-1b09f3bdc7a2c60223eae4c62c68275530772979.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id118" style="text-align: center"><p><img  src="../_images/tikz-1b09f3bdc7a2c60223eae4c62c68275530772979.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Inception 的多尺度并行</span></p>
 </div><p><strong>适用场景</strong>：你有多个大小悬殊的目标类别（比如自然图像分类）。</p>
 <p><strong>代价与缓解</strong>：参数和计算量增加（多个分支同时跑）。<a class="reference internal" href="../neural-network-basics/inception.html"><span class="doc">Inception：多尺度感受野的探索</span></a> 中的关键创新是用 <strong>1×1 卷积先降维</strong>——在昂贵的 3×3 和 5×5 卷积之前，先用 1×1 把通道数降下来：</p>
@@ -346,7 +356,7 @@
 <p><strong>心法</strong>：空洞卷积是&quot;用稀疏换取广度&quot;。你牺牲了每个卷积核的采样密度，换来不花钱的大感受野。</p>
 <p><strong>代价：网格效应（Gridding Effect）</strong></p>
 <p>稀疏采样不是免费的午餐。当空洞率过大时，卷积核只采样输入的&quot;离散点&quot;，会丢失局部连续性信息，产生棋盘格状的伪影：</p>
-<div class="figure" id="id110" style="text-align: center"><p><img  src="../_images/tikz-3c81e06a55c6742bf244c9da62f99add8a00e3a7.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id119" style="text-align: center"><p><img  src="../_images/tikz-3c81e06a55c6742bf244c9da62f99add8a00e3a7.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">空洞卷积的网格效应对比</span></p>
 </div><p><strong>缓解策略</strong>：</p>
 <ul class="simple">
@@ -356,7 +366,7 @@
 <p><strong>适用场景</strong>：需要大感受野但参数量、计算量受限（分割任务、轻量模型）。</p>
 <p><strong>典型应用——ASPP（Atrous Spatial Pyramid Pooling）</strong></p>
 <p>DeepLab 系列的核心模块，同时并行 4 个不同空洞率的卷积（空洞率=6, 12, 18, 24）+ 1 个全局平均池化：</p>
-<div class="figure" id="id111" style="text-align: center"><p><img  src="../_images/tikz-5a223f1a8dd7f07c58423e97de3d7cdb28590234.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id120" style="text-align: center"><p><img  src="../_images/tikz-5a223f1a8dd7f07c58423e97de3d7cdb28590234.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">ASPP 结构：多空洞率并行</span></p>
 </div><p>ASPP 与 Inception 的区别：</p>
 <ul class="simple">
@@ -375,7 +385,7 @@
 <section id="id5">
 <h3>FPN 的结构：自上而下 + 横向连接<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
 <p>FPN 并不是简单的&quot;把不同层的特征拼起来&quot;，它有一个精妙的结构设计：</p>
-<div class="figure" id="id112" style="text-align: center"><p><img  src="../_images/tikz-ab0e8d7fa176cfbdb840c8d7672a91b913b34793.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id121" style="text-align: center"><p><img  src="../_images/tikz-ab0e8d7fa176cfbdb840c8d7672a91b913b34793.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">FPN 结构：自上而下路径与横向连接</span></p>
 </div><p><strong>为什么需要这种结构？</strong></p>
 <p>单纯使用深层特征的问题：分辨率太低，小物体可能已经&quot;消失&quot;了。单纯使用浅层特征的问题：感受野太小，看不清全局上下文。</p>
@@ -387,7 +397,7 @@
 </ol>
 <p><strong>融合机制的具体操作</strong></p>
 <p>横向连接和自上而下路径相遇时，不是简单相加，而是有一个精心设计的流程：</p>
-<div class="figure" id="id113" style="text-align: center"><p><img  src="../_images/tikz-bbdab256f5331819c70984568a21b000630402cb.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id122" style="text-align: center"><p><img  src="../_images/tikz-bbdab256f5331819c70984568a21b000630402cb.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">FPN融合机制流程</span></p>
 </div><p><strong>关键设计选择</strong>：</p>
 <div class="table colwidths-auto docutils container">

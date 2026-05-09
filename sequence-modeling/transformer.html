@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-content_root="../">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Transformer：注意力的极致" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="sequence-modeling/transformer.html" />
+<meta property="og:site_name" content="Deep Learning Club Handouts" />
+<meta property="og:description" content="从RNN到注意力：一个思想的跳跃 中，因果注意力已经可以把每个位置与所有前序位置直接关联。但你可能会问： 既然注意力这么好，为什么还要保留 RNN 的循环结构？ Transformer 的回答是： 不要了 。把 RNN 全部扔掉，整个架构只靠注意力来传递信息。这就是 “Attention Is All You Need”[ VSP+17] 的核心主张。 历史背景: 2014年，Bahdana..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_sequence-modeling_transformer_d3f27438.png" />
+<meta property="og:image:alt" content="从RNN到注意力：一个思想的跳跃 中，因果注意力已经可以把每个位置与所有前序位置直接关联。但你可能会问： 既然注意力这么好，为什么还要保留 RNN 的循环结构？ Transformer 的回答是： 不要了 。把 RNN 全部扔掉，整个架构只靠注意力来传递信息。这就是 “Attention Is All You Need”[ VSP+17] 的核心主张。 历史背景: 2014年，Bahdana..." />
+<meta name="description" content="从RNN到注意力：一个思想的跳跃 中，因果注意力已经可以把每个位置与所有前序位置直接关联。但你可能会问： 既然注意力这么好，为什么还要保留 RNN 的循环结构？ Transformer 的回答是： 不要了 。把 RNN 全部扔掉，整个架构只靠注意力来传递信息。这就是 “Attention Is All You Need”[ VSP+17] 的核心主张。 历史背景: 2014年，Bahdana..." />
+<meta name="twitter:card" content="summary_large_image" />
+<title>Transformer：注意力的极致 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="Mamba 简述：对RNN思想的回归" href="mamba-intro.html"><link rel="prev" title="从RNN到注意力：一个思想的跳跃" href="from-rnn-to-attention.html"><script data-cfasync="false">(function(){
+    const m = localStorage.getItem("breeze-mode") || "auto";
+    const d = document.documentElement.dataset;
+    d.mode = m;
+    d.theme = m === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : m;
+  })();
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=9c6fee98" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+<body>
+  
+  
+  <div class="bz-skip-to-content"><a href="#bz-main-content">Skip to main content</a></div><header class="bz-header-main">
+  <div class="bz-header-start"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><a class="bz-header-brand" href="../index.html">
+  
+  
+  <span>Deep Learning Club Handouts</span>
+</a>
+  </div>
+  <div class="bz-header-end"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><div id="docsearch" class="bz-search-button">
+  <a
+    href="../search.html#q"
+    aria-label="Search the docs"
+    data-tooltip="Search the docs"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 -1 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
+    <span>搜索</span>
+    <kbd>Ctrl+K</kbd>
+  </a>
+</div><div class="bz-theme-switcher">
+  <button aria-label="Switch theme" data-tooltip="Switch theme">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
+      <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-dark" fill="currentColor">
+      <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+    </svg>
+  </button>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.766 11.695C4.703 11.437 3.25 9.904 3.25 7.92c0-.806.281-1.677.75-2.258-.203-.532-.172-1.662.062-2.129.626-.081 1.469.258 1.969.726.594-.194 1.219-.291 1.985-.291.765 0 1.39.097 1.953.274.484-.451 1.343-.79 1.969-.709.218.435.25 1.564.046 2.113.5.613.766 1.436.766 2.274 0 1.984-1.453 3.485-3.547 3.759.531.355.891 1.129.891 2.016v1.678c0 .484.39.758.859.564C13.781 14.824 16 11.905 16 8.291 16 3.726 12.406 0 7.984 0 3.562 0 0 3.726 0 8.291c0 3.581 2.203 6.55 5.172 7.663A.595.595 0 0 0 6 15.389v-1.291c-.219.097-.5.162-.75.162-1.031 0-1.641-.581-2.078-1.662-.172-.435-.36-.693-.719-.742-.187-.016-.25-.097-.25-.193 0-.194.313-.339.625-.339.453 0 .844.29 1.25.887.313.468.641.678 1.031.678.391 0 .641-.146 1-.516.266-.275.469-.517.657-.678Z"></path></svg>
+    
+    </a>
+  </div>
+  </div>
+</header><hr class="bz-header-hr">
+  <div class="bz-content"><aside class="bz-sidebar-primary" data-drawer="bz-sidebar-primary">
+  
+  
+    <nav class="bz-sidebar-nav" aria-label="Section Navigation"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../math-fundamentals/index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础：从理论到架构</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN 消融研究：理解卷积神经网络各组件的作用</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：消融研究的科学方法论</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/the-end.html">结语：从黑盒到白盒</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../attention-mechanisms/index.html">CNN 中的注意力机制</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/introduction.html">为什么CNN需要注意力机制？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/se-net.html">通道注意力：SE-Net</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/spatial-attn.html">空间注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/cbam.html">通道+空间注意力：CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/comparison.html">注意力机制的选择与应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/practice.html">实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../model-architecture-design/index.html">CNN 架构改造：设计卷积网络的心法</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part1-intro.html">改造的本质：从"会用 CNN"到"会设计 CNN"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">序列建模：从RNN到Transformer再到Mamba</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lstm.html">LSTM：给记忆装上"门"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Transformer：注意力的极致</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mamba-intro.html">Mamba 简述：对RNN思想的回归</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../model-serving/index.html">模型部署与服务：从训练到生产</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置番外篇</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/sphinx-guide/index.html">Sphinx Markdown 写作指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+</nav>
+  
+
+</aside><main id="bz-main-content"><header class="bz-article-header">
+  
+  
+    <nav class="bz-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li class="bz-breadcrumbs-home">
+      <a href="../index.html" aria-label="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8.543 2.232a.75.75 0 0 0-1.085 0l-5.25 5.5A.75.75 0 0 0 2.75 9H4v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V9h1.25a.75.75 0 0 0 .543-1.268l-5.25-5.5Z" />
+        </svg>
+      </a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="index.html">序列建模：从RNN到Transformer再到Mamba</a>
+    </li><li class="bz-breadcrumbs-current">
+      <span>Transformer：注意力的极致</span>
+    </li>
+  </ol>
+</nav>
+  
+<label
+  class="bz-sidebar-secondary-toggle"
+  for="bz-sidebar-secondary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle table of contents"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75H20.25 M11.25 12H20.25 M7.75 17.25H20.25"
+    />
+  </svg>
+</label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="transformer">
+<span id="id1"></span><h1>Transformer：注意力的极致<a class="headerlink" href="#transformer" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="from-rnn-to-attention.html"><span class="doc">从RNN到注意力：一个思想的跳跃</span></a> 中，因果注意力已经可以把每个位置与所有前序位置直接关联。但你可能会问：<strong>既然注意力这么好，为什么还要保留 RNN 的循环结构？</strong></p>
+<p>Transformer 的回答是：<strong>不要了</strong>。把 RNN 全部扔掉，整个架构只靠注意力来传递信息。这就是 “Attention Is All You Need” <span id="id2">[<a class="reference internal" href="#id111" title="Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In Advances in Neural Information Processing Systems (NeurIPS), volume 30. 2017.">VSP+17</a>]</span> 的核心主张。</p>
+<section id="id3">
+<h2>历史背景<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>2014年，Bahdanau 等人提出了注意力机制 <span id="id4">[<a class="reference internal" href="#id110" title="Dzmitry Bahdanau, Kyunghyun Cho, and Yoshua Bengio. Neural machine translation by jointly learning to align and translate. In International Conference on Learning Representations (ICLR). 2015.">BCB15</a>]</span>，让解码器在生成每个词时能&quot;回顾&quot;编码器的所有隐状态——我们已在 <a class="reference internal" href="from-rnn-to-attention.html"><span class="doc">从RNN到注意力：一个思想的跳跃</span></a> 中推导了这一思想的起源。但 Bahdanau 的架构仍以 RNN 为骨架，注意力只是&quot;外挂&quot;。</p>
+<p>2017年，Vaswani 等人在 “Attention Is All You Need” 中做了一个大胆的决定：<strong>完全抛弃 RNN</strong>。他们证明，纯注意力架构不仅在翻译质量上超越了当时最好的 RNN 模型，而且训练更快（因为可以并行）。</p>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>历史意义</strong>：“Attention Is All You Need” 或许是深度学习史上影响力最大的单篇论文。它不仅创造了 Transformer，还催生了 BERT、GPT、ViT 等几乎所有现代大模型的架构基座。7年后的今天，Transformer 仍是工业界和学术界的主流选择。</p>
+</div>
+</section>
+<section id="id5">
+<h2>从因果注意力到Transformer的四个升级<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<section id="self-attention">
+<span id="id6"></span><h3>升级一：自注意力——所有位置互相关注<a class="headerlink" href="#self-attention" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="from-rnn-to-attention.html"><span class="doc">从RNN到注意力：一个思想的跳跃</span></a> 中实现的是<strong>因果注意力</strong>——<span class="math notranslate nohighlight">\(t\)</span> 只能看到 <span class="math notranslate nohighlight">\(&lt; t\)</span>。但 Transformer 的一个关键洞察是：<strong>在编码阶段（理解输入），每个位置应该能看到所有位置</strong>，包括&quot;未来&quot;的词。</p>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p>为什么？理解一个句子时，后面的词确实能帮助理解前面的词。比如&quot;我把苹果<strong>吃了</strong>&quot;——&quot;吃了&quot;帮助确定&quot;苹果&quot;是食物（而非手机品牌）。好的编码器应该双向理解。</p>
+</div>
+<p>但 Transformer 分两个阶段使用注意力：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>阶段</p></th>
+<th class="head"><p>注意力类型</p></th>
+<th class="head"><p>能看到什么</p></th>
+<th class="head"><p>目的</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>编码器（Encoder）</strong></p></td>
+<td><p>全自注意力</p></td>
+<td><p>所有位置（含未来）</p></td>
+<td><p>双向理解输入</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>解码器（Decoder）</strong></p></td>
+<td><p>因果自注意力</p></td>
+<td><p>只有过去</p></td>
+<td><p>逐词生成输出</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>我们集中讨论核心机制——<strong>自注意力（Self-Attention）</strong>：在一个序列内部，每个位置作为 Query，去关注所有位置的 Key 和 Value。</p>
+<div class="important admonition">
+<p class="admonition-title">自注意力是卷积的超集</p>
+<p>如果你已经学过 <a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a>，这里有一个重要的联系：<strong>自注意力在表达能力上是卷积的严格超集</strong>。</p>
+<p><strong>卷积</strong>（<a class="reference internal" href="../neural-network-basics/cnn-basics.html#receptive-field"><span class="std std-ref">感受野</span></a>）：一个 <span class="math notranslate nohighlight">\(3 \times 3\)</span> 卷积核只看相邻 9 个像素。它对所有输入位置使用<strong>同一套权重</strong>（权值共享），且<strong>感受野范围是固定的</strong>——无论输入是什么，每个神经元看到的区域大小不变。</p>
+<p><strong>自注意力</strong>：通过注意力分数矩阵 <span class="math notranslate nohighlight">\(\text{softmax}(QK^T/\sqrt{d_k})\)</span>，每个位置可以关注<strong>任意其他位置</strong>。权值是<strong>输入依赖的</strong>——不同输入产生不同的注意力分布。感受野是<strong>动态的</strong>——遇到相关的内容就多关注，不相关的就忽略。</p>
+<p>卷积是自注意力的一个特例：如果把注意力限制为只在局部邻域内计算，且固定注意力权重（不依赖输入），就退化成了卷积。<span id="id7">[<a class="reference internal" href="#id113" title="Jean-Baptiste Cordonnier, Andreas Loukas, and Martin Jaggi. On the relationship between self-attention and convolutional layers. In International Conference on Learning Representations (ICLR). 2020.">CLJ20</a>]</span></p>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>ViT 为什么能成功？</strong> <a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a> 告诉我们，CNN 成功的核心是 <a class="reference internal" href="../neural-network-basics/introduction.html#inductive-bias"><span class="std std-ref">归纳偏置（Inductive Bias）</span></a>——局部感受野和权值共享。自注意力放弃了这些硬编码的先验，换来了更大的灵活性。在数据量充足时，灵活性胜出（ViT 超越 CNN）；在数据量不足时，CNN 的先验仍然宝贵（CNN 在小数据集上更好）。</p>
+<p>这也是为什么现代架构设计的方向之一是<strong>让网络自己学会感受野</strong>——自注意力做到了这一点：它不是被动接受&quot;只看邻居&quot;的限制，而是主动学习&quot;该看哪里&quot;。</p>
+</div>
+</div>
+</section>
+<section id="multi-head-attention">
+<span id="id8"></span><h3>升级二：多头注意力——多个视角并行<a class="headerlink" href="#multi-head-attention" title="Link to this heading">#</a></h3>
+<p>单头注意力有一个局限：在一次 Softmax 中只能表达一种&quot;关联模式&quot;。但语言中的关联是多维度的——同一个词可能同时关注&quot;主语是谁&quot;、“在描述什么动作”、“有什么修饰关系”。</p>
+<p><strong>多头注意力（Multi-Head Attention）</strong> 的解决方案很简单：并行运行 <span class="math notranslate nohighlight">\(h\)</span> 个独立的注意力，每个头有自己的 <span class="math notranslate nohighlight">\(\mathbf{W}_q, \mathbf{W}_k, \mathbf{W}_v\)</span>，最后拼接输出：</p>
+<div class="math notranslate nohighlight">
+\[
+\text{MultiHead}(\mathbf{x}) = \text{Concat}(\text{head}_1, ..., \text{head}_h) \mathbf{W}_o
+\]</div>
+<div class="math notranslate nohighlight">
+\[
+\text{head}_i = \text{Attention}(\mathbf{x}\mathbf{W}_q^i, \mathbf{x}\mathbf{W}_k^i, \mathbf{x}\mathbf{W}_v^i)
+\]</div>
+<div class="tip admonition">
+<p class="admonition-title">生活类比</p>
+<ul class="simple">
+<li><p><strong>单头注意力</strong>：请一位专家审阅文档，她只能关注一个方面（如语法）</p></li>
+<li><p><strong>多头注意力</strong>：同时请语法专家、逻辑专家、风格专家，每人从自己的角度审阅，最后汇总意见</p></li>
+</ul>
+</div>
+</section>
+<section id="positional-encoding">
+<span id="id9"></span><h3>升级三：位置编码——告诉注意力&quot;顺序&quot;在哪<a class="headerlink" href="#positional-encoding" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="../neural-network-basics/introduction.html#inductive-bias"><span class="std std-ref">归纳偏置（Inductive Bias）</span></a> 告诉我们，CNN 通过局部连接内置了&quot;相邻像素相关&quot;的先验。但自注意力有一个致命缺陷：<strong>它完全不知道位置信息</strong>——&quot;A 看到 B&quot;和&quot;B 看到 A&quot;在注意力评分中是对称的（如果不加 mask），位置 1 和位置 100 在相似度计算中没有本质区别。</p>
+<p>解决方案是<strong>位置编码（Positional Encoding）</strong>：在输入嵌入中加入一个仅依赖位置的信号，让注意力&quot;知道&quot;每个词在序列中的位置。原始 Transformer 使用正弦/余弦函数：</p>
+<div class="math notranslate nohighlight">
+\[
+\text{PE}(pos, 2i) = \sin\!\left(\frac{pos}{10000^{2i/d_{\text{model}}}}\right)
+\]</div>
+<div class="math notranslate nohighlight">
+\[
+\text{PE}(pos, 2i+1) = \cos\!\left(\frac{pos}{10000^{2i/d_{\text{model}}}}\right)
+\]</div>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>为什么用正弦/余弦而不是学出来的位置编码？</strong></p>
+<ol class="arabic simple">
+<li><p>可以外推到训练时未见过的序列长度</p></li>
+<li><p>相对位置关系可以通过三角函数公式推导出来——<span class="math notranslate nohighlight">\(\text{PE}(pos+k)\)</span> 可以表示为 <span class="math notranslate nohighlight">\(\text{PE}(pos)\)</span> 的线性函数</p></li>
+<li><p>不同频率的正弦波在&quot;位置分辨率&quot;上互补——低频率编码大范围位置关系，高频率编码精细位置差异</p></li>
+</ol>
+</div>
+</section>
+<section id="transformer-block">
+<h3>升级四：完整的Transformer Block<a class="headerlink" href="#transformer-block" title="Link to this heading">#</a></h3>
+<p>除了注意力，Transformer 还引入了另外两个关键组件：</p>
+<div class="figure" id="id116" style="text-align: center"><p><img  src="../_images/tikz-57b79d6fee27002673d39b624a19ff8b85010db2.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Transformer Block 结构</span></p>
+</div><p><strong>残差连接 + LayerNorm</strong>：与 <a class="reference internal" href="../neural-network-basics/res-net.html#res-net"><span class="std std-ref">ResNet：深层网络的突破</span></a> 的设计思想一致——为梯度创建&quot;捷径&quot;，让深层网络更易训练。区别在于 Transformer 用 LayerNorm（沿特征维度归一化），ResNet 多用 BatchNorm（沿批次维度归一化）<span id="id10">[<a class="reference internal" href="#id54" title="Jimmy Lei Ba, Jamie Ryan Kiros, and Geoffrey E Hinton. Layer normalization. In International Conference on Machine Learning, 1247–1256. PMLR, 2016.">BKH16</a>]</span>。</p>
+</section>
+<section id="ffn">
+<span id="transformer-ffn"></span><h3>前馈网络（FFN）：被低估的&quot;知识存储器&quot;<a class="headerlink" href="#ffn" title="Link to this heading">#</a></h3>
+<p>注意力完成&quot;跨位置的信息交互&quot;后，FFN 负责&quot;每个位置内部的特征变换&quot;：</p>
+<div class="math notranslate nohighlight">
+\[
+\text{FFN}(\mathbf{x}) = \text{ReLU}(\mathbf{x}\mathbf{W}_1 + \mathbf{b}_1)\mathbf{W}_2 + \mathbf{b}_2
+\]</div>
+<p>表面上看，这只是一个简单的两层全连接。但它藏着 Transformer 的一个重要设计哲学。</p>
+<div class="important admonition">
+<p class="admonition-title">注意力 vs FFN 的分工</p>
+<ul class="simple">
+<li><p><strong>注意力</strong>：“和其他位置交换信息”——每个位置的表示吸收其他位置的内容。操作在<strong>序列维度</strong>上</p></li>
+<li><p><strong>FFN</strong>：“自己内部消化信息”——每个位置独立地对自己吸收来的信息做非线性处理。操作在<strong>特征维度</strong>上</p></li>
+</ul>
+<p>类比：开会时，听别人发言是&quot;注意力&quot;（收集信息），自己整理笔记是&quot;FFN&quot;（加工信息）。</p>
+</div>
+<p><strong>为什么中间维度要扩大 4 倍？</strong></p>
+<p>FFN 采用一个&quot;瓶颈&quot;结构：<span class="math notranslate nohighlight">\(d_{\text{model}} \to d_{\text{ff}} \to d_{\text{model}}\)</span>，且 <span class="math notranslate nohighlight">\(d_{\text{ff}} = 4 \times d_{\text{model}}\)</span>。这不是随意选的：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>设计选择</p></th>
+<th class="head"><p>直觉</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>先升维</p></td>
+<td><p>将特征投影到高维空间，让不同维度之间的交互更充分——就像把一页纸的内容摊开在桌面上，更容易发现关联</p></td>
+</tr>
+<tr class="row-odd"><td><p>ReLU 非线性</p></td>
+<td><p>在高维空间中做非线性&quot;折叠&quot;——激活某些模式，抑制另一些（回顾 <a class="reference internal" href="../math-fundamentals/activation-functions.html#activation-functions"><span class="std std-ref">激活函数</span></a>）</p></td>
+</tr>
+<tr class="row-even"><td><p>再降维</p></td>
+<td><p>压缩回原始维度，只保留对当前任务最有用的特征组合</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>4 倍这个数字是经验性的——太小（如 2 倍）表达能力不足，太大（如 8 倍）参数量激增但收益递减。实践中 4 倍是一个广泛验证的甜点。</p>
+<p><strong>参数量对比——FFN 才是&quot;大头&quot;</strong>：</p>
+<p>设 <span class="math notranslate nohighlight">\(d_{\text{model}} = 512\)</span>，<span class="math notranslate nohighlight">\(d_{\text{ff}} = 2048\)</span>：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>组件</p></th>
+<th class="head"><p>参数量</p></th>
+<th class="head"><p>占比</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>多头注意力（Q/K/V/O 四个投影）</p></td>
+<td><p><span class="math notranslate nohighlight">\(4 \times 512^2 \approx 1.05\)</span>M</p></td>
+<td><p>~33%</p></td>
+</tr>
+<tr class="row-odd"><td><p>FFN（<span class="math notranslate nohighlight">\(\mathbf{W}_1 + \mathbf{W}_2\)</span>）</p></td>
+<td><p><span class="math notranslate nohighlight">\(512 \times 2048 \times 2 \approx 2.10\)</span>M</p></td>
+<td><p>~67%</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>FFN 的参数量是注意力的约 2 倍！</strong> 在 GPT-3（175B 参数）中，FFN 层占总参数的大多数。这暗示了一个重要事实：Transformer 的知识主要存储在 FFN 的权重中——注意力负责&quot;查什么&quot;，FFN 负责&quot;知道什么&quot; <span id="id11">[<a class="reference internal" href="#id115" title="Mor Geva, Roei Schuster, Jonathan Berant, and Omer Levy. Transformer feed-forward layers are key-value memories. In Proceedings of the Conference on Empirical Methods in Natural Language Processing (EMNLP), 5484–5495. 2021.">GSBL21</a>]</span>。</p>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>FFN 可以看作一种键值存储器</strong>：</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\mathbf{W}_1\)</span> 的各行可以视为大量&quot;键&quot;（keys）——“我存储了哪些模式”</p></li>
+<li><p>ReLU 后的激活模式 <span class="math notranslate nohighlight">\(\text{ReLU}(\mathbf{x}\mathbf{W}_1 + \mathbf{b}_1)\)</span> 表示&quot;当前输入匹配了哪些模式&quot;</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{W}_2\)</span> 的各列可以视为&quot;值&quot;（values）——“匹配后输出什么”</p></li>
+</ul>
+<p>这种&quot;键值存储&quot;的视角可以解释为什么大模型能记住大量事实——FFN 的权重为每个学到的知识模式提供了存储空间。</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>Transformer 和 <a class="reference internal" href="../attention-mechanisms/index.html"><span class="doc">CNN 中的注意力机制</span></a> 中的注意力是同一种&quot;注意力&quot;吗？</strong></p>
+<p>不是。注意区分：</p>
+<ul class="simple">
+<li><p><strong>CNN注意力（SE-Net、CBAM）</strong>：在卷积特征图的<strong>通道或空间维度</strong>上做重加权，目的是让网络学会&quot;哪些特征更重要&quot;。权重是输入依赖的标量（每个通道一个权重，或每个空间位置一个权重）。</p></li>
+<li><p><strong>Transformer自注意力</strong>：在<strong>序列维度</strong>上做重加权，目的是让每个位置聚合所有其他位置的信息。权重是输入依赖的矩阵（每个位置对关注所有其他位置）。</p></li>
+</ul>
+</div>
+</section>
+</section>
+<section id="transformer-o-n2">
+<span id="transformer-complexity"></span><h2>Transformer的代价：O(n²)复杂度<a class="headerlink" href="#transformer-o-n2" title="Link to this heading">#</a></h2>
+<p>自注意力的核心计算是计算注意力分数矩阵：</p>
+<div class="math notranslate nohighlight">
+\[
+\text{Scores} = \frac{\mathbf{Q} \mathbf{K}^T}{\sqrt{d_k}}, \quad \mathbf{Q}, \mathbf{K} \in \mathbb{R}^{n \times d_k}
+\]</div>
+<p><span class="math notranslate nohighlight">\(\mathbf{Q} \mathbf{K}^T\)</span> 的结果是一个 <span class="math notranslate nohighlight">\(n \times n\)</span> 的矩阵——<strong>序列中每对位置之间都有一个分数</strong>。这一步的时间和空间复杂度都是 <span class="math notranslate nohighlight">\(O(n^2)\)</span>。</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>序列长度 <span class="math notranslate nohighlight">\(n\)</span></p></th>
+<th class="head"><p>注意力矩阵大小</p></th>
+<th class="head"><p>内存占用 (fp16)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1,000</p></td>
+<td><p>1,000 × 1,000</p></td>
+<td><p>~2 MB</p></td>
+</tr>
+<tr class="row-odd"><td><p>10,000</p></td>
+<td><p>10,000 × 10,000</p></td>
+<td><p>~200 MB</p></td>
+</tr>
+<tr class="row-even"><td><p>100,000</p></td>
+<td><p>100,000 × 100,000</p></td>
+<td><p>~20 GB</p></td>
+</tr>
+<tr class="row-odd"><td><p>1,000,000</p></td>
+<td><p>1,000,000 × 1,000,000</p></td>
+<td><p>~2 TB</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="important admonition">
+<p class="admonition-title">Transformer的核心矛盾</p>
+<p>Transformer 通过注意力解决了 RNN 的长程依赖问题——任何两个位置之间只有 O(1) 的信息路径。但代价是<strong>计算复杂度从 RNN 的 O(n) 变成了 O(n²)</strong>。对于长序列（如整本书、长视频、DNA序列），这个代价变得不可承受。</p>
+</div>
+<p>这正是为什么现代大语言模型的上下文窗口如此&quot;昂贵&quot;——每翻倍一次上下文长度，计算量增长四倍。FlashAttention 等工程优化可以缓解常数因子，但无法改变 <span class="math notranslate nohighlight">\(O(n^2)\)</span> 的渐进复杂性。</p>
+</section>
+<section id="transformer-encoder">
+<h2>代码实践：简化的Transformer Encoder<a class="headerlink" href="#transformer-encoder" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MultiHeadSelfAttention</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    多头自注意力（无因果mask，用于编码器）</span>
+
+<span class="sd">    理论对应 {ref}`transformer` 中 Q/K/V 的完整推广</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_model</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">n_heads</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">d_model</span> <span class="o">%</span> <span class="n">n_heads</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span> <span class="o">=</span> <span class="n">d_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_heads</span> <span class="o">=</span> <span class="n">n_heads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_k</span> <span class="o">=</span> <span class="n">d_model</span> <span class="o">//</span> <span class="n">n_heads</span>  <span class="c1"># 每个头处理的维度</span>
+
+        <span class="c1"># Q, K, V 的投影矩阵——将 d_model 维映射到 d_model 维</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">W_q</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">W_k</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">W_v</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">W_o</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span>  <span class="c1"># 输出投影</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">D</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>  <span class="c1"># batch, seq_len, d_model</span>
+
+        <span class="c1"># 步骤1: 投影并拆分为多头</span>
+        <span class="c1"># 将 (B, T, D) 投影为 (B, T, D)，再拆成 (B, n_heads, T, d_k)</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">W_q</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_heads</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_k</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">K</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">W_k</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_heads</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_k</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">W_v</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_heads</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_k</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># 步骤2: 缩放点积注意力——O(n²) 复杂度就在这里</span>
+        <span class="c1"># scores: (B, n_heads, T, T) ——每个头有自己的注意力矩阵</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="p">(</span><span class="n">Q</span> <span class="o">@</span> <span class="n">K</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d_k</span><span class="p">)</span>
+        <span class="n">attn</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># 按 Key 维度归一化</span>
+
+        <span class="c1"># 步骤3: 加权聚合 Value</span>
+        <span class="c1"># (B, n_heads, T, d_k) ——每个位置获得所有位置的加权表示</span>
+        <span class="n">head_outputs</span> <span class="o">=</span> <span class="n">attn</span> <span class="o">@</span> <span class="n">V</span>
+
+        <span class="c1"># 步骤4: 合并多头输出</span>
+        <span class="c1"># 从 (B, n_heads, T, d_k) 变回 (B, T, D)</span>
+        <span class="n">concat</span> <span class="o">=</span> <span class="n">head_outputs</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">W_o</span><span class="p">(</span><span class="n">concat</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TransformerEncoderBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    单个Transformer编码器块（{ref}`transformer` 中的完整Block）</span>
+
+<span class="sd">    结构：输入 → 多头注意力（+残差+LN）→ FFN（+残差+LN）→ 输出</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_model</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">n_heads</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">d_ff</span><span class="o">=</span><span class="mi">2048</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attention</span> <span class="o">=</span> <span class="n">MultiHeadSelfAttention</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">d_model</span><span class="p">)</span>  <span class="c1"># 注意力后的归一化</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">d_model</span><span class="p">)</span>  <span class="c1"># FFN后的归一化</span>
+
+        <span class="c1"># FFN：两层全连接，中间维度通常为 d_model 的 4 倍</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ffn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">d_ff</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">d_ff</span><span class="p">,</span> <span class="n">d_model</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="c1"># 残差连接：x + Attention(Norm(x))</span>
+        <span class="c1"># Pre-LN 风格：先归一化再进入子层（更稳定的训练）</span>
+        <span class="n">attn_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attention</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">norm1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">attn_out</span>  <span class="c1"># 残差（{ref}`res-net` 的思想）</span>
+
+        <span class="c1"># FFN + 残差</span>
+        <span class="n">ffn_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">norm2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">ffn_out</span>
+        <span class="k">return</span> <span class="n">x</span>
+
+
+<span class="c1"># 测试：6层编码器处理长度为100的序列</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>  <span class="c1"># batch=2, seq_len=100, d_model=512</span>
+<span class="n">encoder</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">TransformerEncoderBlock</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">6</span><span class="p">)])</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="c1"># 如果序列长度翻倍到200，计算量约增长4倍 → 验证 O(n²)</span>
+</pre></div>
+</div>
+<div class="note admonition">
+<p class="admonition-title">本节小结</p>
+<ul class="simple">
+<li><p>Transformer 的四个升级：自注意力（双向）、多头（多视角）、位置编码（注入顺序信息）、残差+FFN（深层架构）</p></li>
+<li><p>注意力和 <a class="reference internal" href="../attention-mechanisms/index.html"><span class="doc">CNN 中的注意力机制</span></a> 中的 CNN 注意力是不同的概念——一个在序列维度上交互，一个在通道/空间维度上重加权</p></li>
+<li><p>Transformer 以 O(n²) 的代价换来了 O(1) 的信息路径——用计算量换长程依赖能力</p></li>
+<li><p>这个代价推动了对更高效架构的探索——我们的下一站</p></li>
+</ul>
+</div>
+<p>Transformer 成功了——它几乎统治了 NLP、CV 乃至更多领域的序列建模。但 <span class="math notranslate nohighlight">\(O(n^2)\)</span> 这个&quot;原罪&quot;始终存在。下一节 <a class="reference internal" href="mamba-intro.html"><span class="doc">Mamba 简述：对RNN思想的回归</span></a> 中，我们将看到一个有趣的思想回归：<strong>能不能既拥有 RNN 的 O(n) 效率，又解决长程依赖问题？</strong></p>
+</section>
+<hr class="docutils" />
+<section id="id12">
+<h2>参考文献<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id13">
+<div role="list" class="citation-list">
+<div class="citation" id="id54" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id10">BKH16</a><span class="fn-bracket">]</span></span>
+<p>Jimmy Lei Ba, Jamie Ryan Kiros, and Geoffrey E Hinton. Layer normalization. In <em>International Conference on Machine Learning</em>, 1247–1256. PMLR, 2016.</p>
+</div>
+<div class="citation" id="id110" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">BCB15</a><span class="fn-bracket">]</span></span>
+<p>Dzmitry Bahdanau, Kyunghyun Cho, and Yoshua Bengio. Neural machine translation by jointly learning to align and translate. In <em>International Conference on Learning Representations (ICLR)</em>. 2015.</p>
+</div>
+<div class="citation" id="id113" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">CLJ20</a><span class="fn-bracket">]</span></span>
+<p>Jean-Baptiste Cordonnier, Andreas Loukas, and Martin Jaggi. On the relationship between self-attention and convolutional layers. In <em>International Conference on Learning Representations (ICLR)</em>. 2020.</p>
+</div>
+<div class="citation" id="id115" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id11">GSBL21</a><span class="fn-bracket">]</span></span>
+<p>Mor Geva, Roei Schuster, Jonathan Berant, and Omer Levy. Transformer feed-forward layers are key-value memories. In <em>Proceedings of the Conference on Empirical Methods in Natural Language Processing (EMNLP)</em>, 5484–5495. 2021.</p>
+</div>
+<div class="citation" id="id111" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">VSP+17</a><span class="fn-bracket">]</span></span>
+<p>Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In <em>Advances in Neural Information Processing Systems (NeurIPS)</em>, volume 30. 2017.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">8eb3275</code>
+                2026-05-09 - <strong>Heyan Zhu</strong>: feat(sequence-modeling): add new chapter on sequence modeling from RNN to Mamba
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+</article><footer class="bz-article-footer">
+  
+  
+    <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="from-rnn-to-attention.html" rel="prev">
+    <span>Previous</span><span class="bz-related-pages-title">从RNN到注意力：一个思想的跳跃</span></a><a class="bz-related-pages-next" href="mamba-intro.html" rel="next">
+    <span>Next</span>
+    <span class="bz-related-pages-title">Mamba 简述：对RNN思想的回归</span>
+  </a></nav>
+  
+
+</footer><aside class="bz-sidebar-secondary" data-drawer="bz-sidebar-secondary">
+  
+  
+    
+  
+  
+  
+  
+
+
+
+<div class="bz-repo-stats">
+  <a
+    data-provider="github"
+    data-user="ulink-deep-learning-club"
+    data-repo="ulink-deeplearningclub-handouts"
+    href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    aria-label="ulink-deep-learning-club/ulink-deeplearningclub-handouts repository"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    <span
+      style="--bz-repo-stats-name-length: 56"
+      title="ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    >
+      ulink-deep-learning-club/ulink-deeplearningclub-handouts
+    </span>
+    <div class="bz-repo-stats-row">
+      <span class="bz-repo-stats-item" aria-label="Repository stars">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path></svg>
+        <span data-stat="stars">-</span>
+      </span>
+      <span class="bz-repo-stats-item" aria-label="Repository forks">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
+        <span data-stat="forks">-</span>
+      </span>
+    </div>
+  </a>
+</div>
+
+  
+    <div class="bz-edit-this-page">
+  <a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/source/sequence-modeling/transformer.md" rel="edit">
+    Edit this page
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"></path></svg>
+  </a>
+</div>
+  
+    <nav class="bz-sidebar-toc" aria-label="Table of contents">
+  <p>On this page</p><ul>
+<li><a class="reference internal" href="#id3">历史背景</a></li>
+<li><a class="reference internal" href="#id5">从因果注意力到Transformer的四个升级</a><ul>
+<li><a class="reference internal" href="#self-attention">升级一：自注意力——所有位置互相关注</a></li>
+<li><a class="reference internal" href="#multi-head-attention">升级二：多头注意力——多个视角并行</a></li>
+<li><a class="reference internal" href="#positional-encoding">升级三：位置编码——告诉注意力"顺序"在哪</a></li>
+<li><a class="reference internal" href="#transformer-block">升级四：完整的Transformer Block</a></li>
+<li><a class="reference internal" href="#ffn">前馈网络（FFN）：被低估的"知识存储器"</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#transformer-o-n2">Transformer的代价：O(n²)复杂度</a></li>
+<li><a class="reference internal" href="#transformer-encoder">代码实践：简化的Transformer Encoder</a></li>
+<li><a class="reference internal" href="#id12">参考文献</a></li>
+</ul></nav>
+  
+
+</aside></main>
+  </div>
+<footer class="bz-footer">
+  <div class="bz-footer-copyright"><p class="bz-copyright">© Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0</p><p>
+    
+    
+    
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a href="https://github.com/aksiome/breeze">Breeze theme</a>.
+    
+  </p>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    
+    </a>
+  </div>
+</footer><a href="#" class="bz-back-to-top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+    </svg>
+    <span>Back to top</span>
+  </a>
+  <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
+  <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
+  <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../_static/documentation_options.js?v=5a0213dc"></script><script src="../_static/doctools.js?v=9bcbadda"></script><script src="../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../_static/translations.js?v=beaddf03"></script><script src="../_static/design-tabs.js?v=f930bc37"></script><script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script></body>
+</html>
