@@ -1,6 +1,20 @@
 (math-fundamentals)=
 # 计算图、反向传播与梯度下降：深度学习核心数学基础
 
+```{toctree}
+:maxdepth: 2
+:hidden:
+
+introduction
+computational-graph
+task-formulations
+activation-functions
+loss-functions
+back-propagation
+gradient-descent
+the-end
+```
+
 ## 摘要
 
 深度学习的核心问题是什么？**让机器从数据中学习规律**。
@@ -94,18 +108,3 @@ graph LR
 | {ref}`activation-functions` | {doc}`../neural-network-basics/cnn-basics` 中的卷积网络 |
 
 下一章 {doc}`../neural-network-basics/index` 将基于这些理论，用 PyTorch 搭建和训练实际的神经网络。
-
-## 目录
-
-```{toctree}
-:maxdepth: 2
-
-introduction
-computational-graph
-task-formulations
-activation-functions
-loss-functions
-back-propagation
-gradient-descent
-the-end
-```

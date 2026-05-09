@@ -2,6 +2,19 @@
 
 # CNN 中的注意力机制
 
+```{toctree}
+:maxdepth: 2
+:hidden:
+
+introduction
+se-net
+spatial-attn
+cbam
+comparison
+practice
+the-end
+```
+
 ## 摘要
 
 还记得 {doc}`../cnn-ablation-study/experiment-design` 中的消融实验吗？我们发现不同通道和空间位置的特征重要性差异很大。但 CNN 有一个根本局限：**它对所有输入特征一视同仁**。
@@ -83,18 +96,4 @@ graph LR
 :class: tip
 
 建议先完成 {doc}`../cnn-ablation-study/index` 的学习，理解为什么不同特征的重要性会有差异。
-```
-
-## 目录
-
-```{toctree}
-:maxdepth: 2
-
-introduction
-se-net
-spatial-attn
-cbam
-comparison
-practice
-the-end
 ```

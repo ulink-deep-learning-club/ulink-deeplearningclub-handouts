@@ -41,7 +41,7 @@ jobs:
         run: sudo apt update
 
       - name: Install Dependencies
-        run: sudo apt install texlive latex-cjk-all texlive-pictures texlive-latex-extra pdf2svg texlive-xetex fonts-noto-cjk chromium
+        run: sudo apt install texlive latex-cjk-all texlive-pictures texlive-latex-extra pdf2svg texlive-xetex fonts-noto-cjk fonts-noto-emoji chromium
 
       - name: Install Mermaid-cli
         run: sudo npm install -g @mermaid-js/mermaid-cli
@@ -54,10 +54,16 @@ jobs:
             uv venv
             uv sync
 
-      - name: Build Documents
+      - name: Build HTML Pages
         run: |
             source .venv/bin/activate
             make html
+
+      - name: Build PDF Documents
+        run: |
+            source .venv/bin/activate
+            make latexpdf
+            mv build/latex/deeplearningclubhandouts.pdf ./build/html # Move PDF to HTML folder for uploading
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@4.1.0

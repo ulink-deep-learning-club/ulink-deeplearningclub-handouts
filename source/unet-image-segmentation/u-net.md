@@ -5,13 +5,13 @@
 
 {ref}`unet-introduction` 我们提出了核心问题：**如何把缩小的特征图恢复回原始分辨率，同时不丢失空间细节？**
 
-U-Net 的答案是一个对称的 U 形：
+U-Net{cite}`ronneberger2015u` 的答案是一个对称的 U 形：
 
 ```{figure} ../../_static/images/u-net-architecture.png
 :width: 640px
 :align: center
 
-U-Net 的 U 形对称架构（原论文 {cite}`ronneberger2015u`）
+U-Net 的 U 形对称架构
 ```
 
 ### 架构速览

@@ -110,6 +110,55 @@ author = 'UCS Deep Learning Club'
 release = '0.0.1'
 html_title = "Deep Learning Club Handouts"
 
+# conf.py
+
+latex_engine = "lualatex"
+
+latex_elements = {
+    'passoptionstopackages': r'''
+\PassOptionsToPackage{svgnames}{xcolor}
+\PassOptionsToPackage{nocheck}{fancyhdr}
+''',
+    'sphinxsetup': r'HeaderFamily=\rmfamily\bfseries',
+    'fontpkg': r'''
+\usepackage{fontspec}
+\usepackage[UTF8, fontset=none]{ctex}
+\usepackage{times}
+
+% 声明 HarfBuzz 渲染器
+\defaultfontfeatures{Renderer=HarfBuzz}
+
+% Emoji Fallback 设置
+\directlua{
+  luaotfload.add_fallback("emojifallback", {
+    "NotoEmoji-Regular:mode=harf;",        
+    "NotoSansCJKsc-Regular:mode=harf;"     
+  })
+}
+
+% 设置英文字体 (必须紧跟着 ctex 声明)
+\setmainfont{Noto Serif CJK SC}[Scale=MatchLowercase, RawFeature={fallback=emojifallback}]
+\setsansfont{Noto Sans CJK SC}[Scale=MatchLowercase, RawFeature={fallback=emojifallback}]
+\setmonofont{Noto Sans Mono}[Scale=MatchLowercase, RawFeature={fallback=emojifallback}]
+
+% 设置中文字体
+\setCJKmainfont{Noto Serif CJK SC}[AutoFakeSlant=true]
+\setCJKsansfont{Noto Sans CJK SC}[AutoFakeSlant=true]
+\setCJKmonofont{Noto Sans Mono CJK SC}[AutoFakeSlant=true]
+''',
+    'preamble': r'''
+\addtolength{\topmargin}{-1pt}
+\renewcommand{\familydefault}{\rmdefault}
+
+% 顺便解决你刚才提到的 \times 书签警告问题
+\pdfstringdefDisableCommands{%
+  \def\times{×}% 
+}
+''',
+}
+latex_show_urls = 'footnote'
+
+
 html_css_files = [
     'style-fixes.css'
 ]
@@ -144,6 +193,8 @@ mermaid_params = [
     '--backgroundColor', 'transparent',
     '--scale', '1'             # 1 = actual size, 2 = 2x, etc.
 ]
+mermaid_pdfcrop = 'pdfcrop'
+mermaid_cmd = "mmdc -f"
 
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.cache']
 

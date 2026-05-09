@@ -30,13 +30,13 @@ L_{\text{WCE}} = -\frac{1}{N} \sum_{i=1}^N \sum_{c=1}^C w_c \cdot y_{i,c} \log(p
 
 权重 $w_c$ 通常与类别频率成反比。肿瘤只有 1% 像素，$w_{\text{肿瘤}}$ = 99，$w_{\text{正常}}$ = 1。
 
-### 焦点损失（Focal Loss）{cite}`lin2017focal`
+### 焦点损失（Focal Loss）
 
 ```{math}
 L_{\text{FL}} = -\frac{1}{N} \sum_{i=1}^N \sum_{c=1}^C (1 - p_{i,c})^\gamma \cdot y_{i,c} \log(p_{i,c})
 ```
 
-$\gamma$ 控制聚焦程度：$\gamma=2$ 时，易分类样本的贡献被大幅降低，模型被迫关注难分类样本。
+$\gamma$ 控制聚焦程度：$\gamma=2$ 时，易分类样本的贡献被大幅降低，模型被迫关注难分类样本{cite}`lin2017focal`。
 
 ### 交叉熵的局限
 

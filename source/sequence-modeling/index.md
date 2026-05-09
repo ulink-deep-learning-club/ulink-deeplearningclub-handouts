@@ -1,5 +1,17 @@
 (sequence-modeling)=
-# 序列建模：从RNN到Transformer再到Mamba
+# 序列建模：从 RNN 到 Transformer 到 Mamba
+
+```{toctree}
+:maxdepth: 2
+:hidden:
+
+rnn-basics
+lstm
+from-rnn-to-attention
+transformer
+mamba-intro
+the-end
+```
 
 ## 摘要
 
@@ -80,17 +92,4 @@ graph LR
 如果梯度消失和 BPTT 的概念还不够清晰，建议先回顾：
 - {ref}`gradient-vanishing-math`：Jacobian 连乘如何导致梯度指数级衰减
 - {ref}`inductive-bias`：好的架构设计如何把先验内置到模型中
-```
-
-## 目录
-
-```{toctree}
-:maxdepth: 2
-
-rnn-basics
-lstm
-from-rnn-to-attention
-transformer
-mamba-intro
-the-end
 ```
