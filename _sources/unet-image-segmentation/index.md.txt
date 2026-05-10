@@ -1,6 +1,18 @@
 (unet-image-segmentation)=
 # U-Net：图像分割的革命
 
+```{toctree}
+:maxdepth: 2
+:hidden:
+
+introduction
+u-net
+loss-func
+core-impl
+practice
+the-end
+```
+
 ## 摘要
 
 还记得 {doc}`../neural-network-basics/cnn-basics` 中的 CNN 分类吗？输入一张图，输出一个标签——"这是一只猫"。但现实中很多任务需要的不只是"这是什么"，而是 **"这些像素属于什么"**：哪里是肿瘤、哪里是道路、哪里是细胞核。
@@ -80,17 +92,4 @@ U-Net 的解决方案：
 :class: tip
 
 如果注意力机制（{doc}`../attention-mechanisms/index`）还没读过也不影响，但读过会更有感觉。
-```
-
-## 目录
-
-```{toctree}
-:maxdepth: 2
-
-introduction
-u-net
-loss-func
-core-impl
-practice
-the-end
 ```

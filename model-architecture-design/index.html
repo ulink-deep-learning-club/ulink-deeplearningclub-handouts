@@ -198,7 +198,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
 </ul></details></li>
-<li class="toctree-l1"><a class="reference internal" href="../sequence-modeling/index.html">序列建模：从RNN到Transformer再到Mamba</a>
+<li class="toctree-l1"><a class="reference internal" href="../sequence-modeling/index.html">序列建模：从 RNN 到 Transformer 到 Mamba</a>
 <details><summary aria-label="Toggle submenu"></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
@@ -265,6 +265,8 @@
   </svg>
 </label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="cnn">
 <span id="model-architecture-design"></span><h1>CNN 架构改造：设计卷积网络的心法<a class="headerlink" href="#cnn" title="Link to this heading">#</a></h1>
+<div class="toctree-wrapper compound">
+</div>
 <section id="id1">
 <h2>摘要<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
 <p>还记得 <a class="reference internal" href="../neural-network-basics/index.html"><span class="doc">神经网络基础：从理论到架构</span></a> 中我们学习过的经典架构吗？LeNet 的卷积-池化-全连接、Inception 的多尺度并行、ResNet 的跳跃连接——每个设计都解决了一个具体问题。但有一个问题一直藏在水面下：<strong>这些设计思想之间有什么联系？我自己的模型该怎么改？</strong></p>
@@ -272,7 +274,7 @@
 <p>本章要回答的正是这个核心问题。我们不介绍更多&quot;新技术&quot;，而是提炼<strong>设计 CNN 的心法</strong>——从感受野、信息流动、注意力、计算效率四个维度，建立一套系统化的架构改造方法论。</p>
 <div class="note admonition">
 <p class="admonition-title">本章范围</p>
-<p>本章聚焦于 <strong>CNN（卷积神经网络）</strong> 的架构设计。虽然部分原则（如跳跃连接、注意力）具有跨架构的通用性，但感受野、空洞卷积、DW 卷积等策略是 CNN 特有的。序列处理（RNN、Transformer）和生成模型（扩散模型、GAN）的架构设计不在本章讨论范围内——详见 <a class="reference internal" href="../sequence-modeling/index.html#sequence-modeling"><span class="std std-ref">序列建模：从RNN到Transformer再到Mamba</span></a>。</p>
+<p>本章聚焦于 <strong>CNN（卷积神经网络）</strong> 的架构设计。虽然部分原则（如跳跃连接、注意力）具有跨架构的通用性，但感受野、空洞卷积、DW 卷积等策略是 CNN 特有的。序列处理（RNN、Transformer）和生成模型（扩散模型、GAN）的架构设计不在本章讨论范围内——详见 <a class="reference internal" href="../sequence-modeling/index.html#sequence-modeling"><span class="std std-ref">序列建模：从 RNN 到 Transformer 到 Mamba</span></a>。</p>
 </div>
 <div class="important admonition">
 <p class="admonition-title">学习目标</p>
@@ -389,88 +391,13 @@
 <p>建议先完成 <a class="reference internal" href="../neural-network-basics/index.html"><span class="doc">神经网络基础：从理论到架构</span></a> 和 <a class="reference internal" href="../attention-mechanisms/index.html"><span class="doc">CNN 中的注意力机制</span></a> 的学习。本章假设你已熟悉这些架构组件。</p>
 </div>
 </section>
-<section id="id6">
-<h2>目录<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="part1-intro.html">改造的本质：从&quot;会用 CNN&quot;到&quot;会设计 CNN&quot;</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="part1-intro.html#id1">信息论：诊断架构瓶颈的工具</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part1-intro.html#id9">改造的四个维度</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part1-intro.html#id10">从本章开始</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="part2-receptive-field.html">操控感受野：网络应该看多大</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="part2-receptive-field.html#id2">什么时候需要改造感受野</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part2-receptive-field.html#id3">策略一：多尺度并行</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part2-receptive-field.html#id4">策略二：空洞卷积</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part2-receptive-field.html#fpn">策略三：特征金字塔（FPN）——不同深度、不同感受野</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part2-receptive-field.html#id6">三种策略的对比与选择</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part2-receptive-field.html#id7">失败案例：什么情况下不该用</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part2-receptive-field.html#id11">信息论视角：多尺度 = 多频段采样</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part2-receptive-field.html#id13">下一步</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part2-receptive-field.html#id14">参考文献</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="part3-depth-connection.html#id2">信息流动的三种通路</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part3-depth-connection.html#id6">特征融合：不止是连接，而是对话</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part3-depth-connection.html#id7">信息论视角：为什么连接方式决定了信息容量</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part3-depth-connection.html#id8">失败案例：过度连接的陷阱</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part3-depth-connection.html#id12">下一步</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="part4-attention.html#id2">重新理解注意力：从&quot;模块&quot;到&quot;路由&quot;</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part4-attention.html#id3">三种注意力，三种路由策略</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part4-attention.html#id10">什么时候需要长程依赖</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part4-attention.html#id11">注意力的代价</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part4-attention.html#id12">失败案例：注意力的误用</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part4-attention.html#mutual-information">信息论视角：注意力 = 最大化任务相关<span class="xref std std-ref">mutual-information</span></a></li>
-<li class="toctree-l2"><a class="reference internal" href="part4-attention.html#id17">下一步</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="part5-efficiency.html">操控效率：如何在效果与速度间权衡</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="part5-efficiency.html#id2">帕累托边界：效果的物理上限</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part5-efficiency.html#id3">效率问题从哪来</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part5-efficiency.html#id4">策略一：深度可分离卷积</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part5-efficiency.html#bottleneck">策略二：Bottleneck</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part5-efficiency.html#id7">两种策略的对比与选择</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part5-efficiency.html#id8">失败案例：效率优化的陷阱</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part5-efficiency.html#id13">信息论视角：效率优化为什么可能</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part5-efficiency.html#id14">下一步</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part5-efficiency.html#id15">参考文献</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="part6-diagnosis.html">诊断与心法：当模型表现不佳时</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="part6-diagnosis.html#id2">症状与对策</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part6-diagnosis.html#id7">完整的诊断流程图</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part6-diagnosis.html#id8">验证诊断：与消融研究的结合</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part6-diagnosis.html#id12">反直觉案例</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part6-diagnosis.html#id16">改造十诫</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part6-diagnosis.html#id17">心法实践：一个改造示例</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part6-diagnosis.html#id18">从&quot;心法&quot;到&quot;实战&quot;</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="the-end.html">总结与展望</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id2">核心概念映射</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id3">与前面章节的联系</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id4">关键数字速查</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id7">下一节方向</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id8">推荐资源</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id15">最后的话</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the-end.html#id16">参考文献</a></li>
-</ul>
-</li>
-</ul>
-</div>
-</section>
 </section>
 
     <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (3 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (4 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -478,6 +405,11 @@
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">2dc78ed</code>
+                2026-05-09 - <strong>Heyan Zhu</strong>: fix: address latex errors when building pdf
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">8eb3275</code>
                 2026-05-09 - <strong>Heyan Zhu</strong>: feat(sequence-modeling): add new chapter on sequence modeling from RNN to Mamba
@@ -561,7 +493,6 @@
 <li><a class="reference internal" href="#id3">学习路径</a></li>
 <li><a class="reference internal" href="#id4">本章定位</a></li>
 <li><a class="reference internal" href="#id5">前置要求</a></li>
-<li><a class="reference internal" href="#id6">目录</a></li>
 </ul></nav>
   
 

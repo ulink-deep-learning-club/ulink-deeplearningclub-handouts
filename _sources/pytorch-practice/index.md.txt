@@ -1,6 +1,23 @@
 (pytorch-practice)=
 # PyTorch 实践：把理论变成代码
 
+```{toctree}
+:maxdepth: 2
+:hidden:
+
+introduction
+from-numpy-to-pytorch
+tensor-ops
+neural-network-module
+auto-grad
+optimiser
+train-workflow
+debug-and-visualise
+best-practices
+using-framework
+the-end
+```
+
 ## 摘要
 
 还记得 {doc}`../math-fundamentals/index` 中那些抽象的公式吗？
@@ -99,24 +116,6 @@ import torch
 print(torch.__version__)
 print(torch.cuda.is_available())  # 有 GPU 会显示 True
 ~~~
-```
-
-## 目录
-
-```{toctree}
-:maxdepth: 2
-
-introduction
-from-numpy-to-pytorch
-tensor-ops
-neural-network-module
-auto-grad
-optimiser
-train-workflow
-debug-and-visualise
-best-practices
-using-framework
-the-end
 ```
 
 ---

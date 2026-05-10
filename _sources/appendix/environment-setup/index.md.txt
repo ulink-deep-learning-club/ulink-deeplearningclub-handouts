@@ -2,6 +2,17 @@
 
 # 环境配置番外篇
 
+```{toctree}
+:hidden:
+:maxdepth: 2
+
+linux-basics
+nvidia-setup
+remote-access
+server-management
+the-end
+```
+
 前面章节的所有内容都可以在笔记本或Google Colab上完成——有PyTorch、有Jupyter、有GPU，就够了。但当你开始认真做深度学习项目，迟早会遇到一个绕不开的问题：**我需要一台自己的GPU服务器**。
 
 这篇附录不讲神经网络，不讲训练技巧，只讲"搞一台GPU服务器并让它稳定跑起来"需要的那些非技术知识。它们不属于深度学习本身，但没有它们，你的深度学习代码就跑不起来。
@@ -43,14 +54,3 @@ graph TD
 - 知道什么是终端/命令行
 
 没有更多前置要求了——这篇附录就是从零开始的。
-
-```{toctree}
-:hidden:
-:maxdepth: 2
-
-linux-basics
-nvidia-setup
-remote-access
-server-management
-the-end
-```

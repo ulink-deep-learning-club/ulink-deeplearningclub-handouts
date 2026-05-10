@@ -1,6 +1,18 @@
 (transfer-learning)=
 # 迁移学习与微调：站在巨人的肩膀上
 
+```{toctree}
+:maxdepth: 2
+:hidden:
+
+part1-intro
+part2-taxonomy
+part3-model-transfer
+part4-practical-guide
+the-end
+```
+
+```{only} not latex
 ## 摘要
 
 还记得 {doc}`../pytorch-practice/train-workflow` 中那个 MNIST 分类器吗？我们用 60,000 张图片训练，达到了不错的准确率。但现实世界中的很多任务**没有这么多数据**——医学影像可能只有几百张，工业缺陷图片可能只有几十张。
@@ -11,7 +23,7 @@
 
 迁移学习是深度学习中最重要的技术范式之一，通过复用预训练模型的知识，有效解决数据稀缺、计算资源受限等实际问题。
 
-```{admonition} 学习目标
+~~~{admonition} 学习目标
 :class: important
 
 完成本章后，你将能够：
@@ -20,7 +32,7 @@
 3. **熟练运用核心技术**：正确选择并实施特征提取与微调策略
 4. **避免实践陷阱**：识别并解决灾难性遗忘、过拟合等常见问题
 5. **完成实际项目**：根据任务特点选择合适的预训练模型和迁移策略
-```
+~~~
 
 ## 本章概览
 
@@ -36,14 +48,14 @@
 
 本章是 {doc}`../pytorch-practice/index` 中技能的**高级应用**：
 
-```{mermaid}
+~~~{mermaid}
 graph LR
     A[预训练模型<br/>已学知识] --> B[迁移学习<br/>复用知识]
     B --> C[特征提取<br/>冻结骨干]
     B --> D[微调<br/>适配任务]
     C --> E[小数据<br/>大效果]
     D --> E
-```
+~~~
 
 **核心认知**：迁移学习不是新技术，而是前面所有知识的**综合运用**——你仍然在使用相同的 PyTorch API，只是站在了巨人的肩膀上。
 
@@ -64,7 +76,7 @@ graph LR
 
 ## 前置要求
 
-```{admonition} 学习本章前，请确保你已经掌握
+~~~{admonition} 学习本章前，请确保你已经掌握
 :class: caution
 
 本讲义假设你已经熟悉神经网络训练的基本流程，包括：
@@ -74,22 +86,11 @@ graph LR
 3. **优化器**：熟悉 SGD、Adam 等优化器的使用（{doc}`../pytorch-practice/optimiser`）
 4. **过拟合与正则化**：了解过拟合现象，会使用 Dropout、早停等策略（{ref}`regularization`）
 5. **实际训练经验**：至少完成过 1-2 个完整的训练项目
-```
+~~~
 
-```{admonition} 还没掌握？
+~~~{admonition} 还没掌握？
 :class: tip
 
 如果你还没有这些基础，建议先学习 {doc}`../pytorch-practice/index` 章节。
-```
-
-## 目录
-
-```{toctree}
-:maxdepth: 2
-
-part1-intro
-part2-taxonomy
-part3-model-transfer
-part4-practical-guide
-the-end
+~~~
 ```

@@ -1,6 +1,23 @@
 (neural-network-basics)=
 # 神经网络基础：从理论到架构
 
+
+```{toctree}
+:maxdepth: 2
+:hidden:
+
+introduction
+fc-layer-basics
+cnn-basics
+le-net
+inception
+res-net
+neural-training-basics
+exp-cmp
+scaling-law
+the-end
+```
+
 ## 摘要
 
 还记得 {doc}`../math-fundamentals/index` 中那些抽象的数学原理吗？
@@ -85,21 +102,4 @@ graph LR
 - {ref}`computational-graph`：数据流动的直觉
 - {ref}`back-propagation`：梯度如何回传
 - {ref}`gradient-descent`：参数如何更新
-```
-
-## 目录
-
-```{toctree}
-:maxdepth: 2
-
-introduction
-fc-layer-basics
-cnn-basics
-le-net
-inception
-res-net
-neural-training-basics
-exp-cmp
-scaling-law
-the-end
 ```

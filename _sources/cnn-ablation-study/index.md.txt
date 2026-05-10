@@ -2,6 +2,16 @@
 
 # CNN 消融研究：理解卷积神经网络各组件的作用
 
+```{toctree}
+:maxdepth: 2
+:hidden:
+
+introduction
+experiment-design
+implementation
+the-end
+```
+
 ## 摘要
 
 还记得 {doc}`../neural-network-basics/cnn-basics` 中学习的卷积、池化、激活函数吗？还记得 {doc}`../neural-network-basics/le-net` 中完整的 LeNet-5 架构吗？
@@ -86,15 +96,4 @@ graph LR
 :class: note
 
 本章的所有实验数据都是示例，你的实际结果可能不同——这正是科学研究的魅力所在！
-```
-
-## 目录
-
-```{toctree}
-:maxdepth: 2
-
-introduction
-experiment-design
-implementation
-the-end
 ```

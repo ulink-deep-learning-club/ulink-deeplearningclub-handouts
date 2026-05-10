@@ -1,6 +1,19 @@
 (model-architecture-design)=
 # CNN 架构改造：设计卷积网络的心法
 
+```{toctree}
+:maxdepth: 2
+:hidden:
+
+part1-intro
+part2-receptive-field
+part3-depth-connection
+part4-attention
+part5-efficiency
+part6-diagnosis
+the-end
+```
+
 ## 摘要
 
 还记得 {doc}`../neural-network-basics/index` 中我们学习过的经典架构吗？LeNet 的卷积-池化-全连接、Inception 的多尺度并行、ResNet 的跳跃连接——每个设计都解决了一个具体问题。但有一个问题一直藏在水面下：**这些设计思想之间有什么联系？我自己的模型该怎么改？**
@@ -84,18 +97,4 @@ graph LR
 :class: tip
 
 建议先完成 {doc}`../neural-network-basics/index` 和 {doc}`../attention-mechanisms/index` 的学习。本章假设你已熟悉这些架构组件。
-```
-
-## 目录
-
-```{toctree}
-:maxdepth: 2
-
-part1-intro
-part2-receptive-field
-part3-depth-connection
-part4-attention
-part5-efficiency
-part6-diagnosis
-the-end
 ```
