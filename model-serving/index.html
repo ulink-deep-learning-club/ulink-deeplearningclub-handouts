@@ -6,12 +6,12 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="model-serving/index.html" />
 <meta property="og:site_name" content="Deep Learning Club Handouts" />
-<meta property="og:description" content="摘要: 上一章我们用消融实验验证了 CNN 各组件的贡献，但一个模型在实验环境跑出好结果之后呢？ 在 PyTorch 实践：把理论变成代码 中你学会了训练模型，在 CNN 消融研究：理解卷积神经网络各组件的作用 中你学会了验证模型——现在我们将学习如何把模型部署到生产环境，让它真正对外提供服务。 本章将回答四个核心问题： 训练好的 PyTorch 模型如何跨平台导出？, 生产环境需要支持多少..." />
+<meta property="og:description" content="模型训练好了， 怎么让别人用？ 本章从 ONNX 导出到 Ferrinx 部署，打通从训练到生产的最后一公里。 本章概览,,, 章节, 内容, 与前面章节的联系,,, 引言：训练完模型之后, 从训练到生产的完整链路, 完整训练流程 中的模型 → 这里导出,, ONNX：模型的中立语言, PyTorch 模型导出为 ONNX 格式, LeNet-5架构详解 的 LeNet → 导出示例,, 服..." />
 <meta property="og:image:width" content="1146" />
 <meta property="og:image:height" content="600" />
-<meta property="og:image" content="_images/social_previews/summary_model-serving_index_f2d4bff2.png" />
-<meta property="og:image:alt" content="摘要: 上一章我们用消融实验验证了 CNN 各组件的贡献，但一个模型在实验环境跑出好结果之后呢？ 在 PyTorch 实践：把理论变成代码 中你学会了训练模型，在 CNN 消融研究：理解卷积神经网络各组件的作用 中你学会了验证模型——现在我们将学习如何把模型部署到生产环境，让它真正对外提供服务。 本章将回答四个核心问题： 训练好的 PyTorch 模型如何跨平台导出？, 生产环境需要支持多少..." />
-<meta name="description" content="摘要: 上一章我们用消融实验验证了 CNN 各组件的贡献，但一个模型在实验环境跑出好结果之后呢？ 在 PyTorch 实践：把理论变成代码 中你学会了训练模型，在 CNN 消融研究：理解卷积神经网络各组件的作用 中你学会了验证模型——现在我们将学习如何把模型部署到生产环境，让它真正对外提供服务。 本章将回答四个核心问题： 训练好的 PyTorch 模型如何跨平台导出？, 生产环境需要支持多少..." />
+<meta property="og:image" content="_images/social_previews/summary_model-serving_index_a3c5e6e5.png" />
+<meta property="og:image:alt" content="模型训练好了， 怎么让别人用？ 本章从 ONNX 导出到 Ferrinx 部署，打通从训练到生产的最后一公里。 本章概览,,, 章节, 内容, 与前面章节的联系,,, 引言：训练完模型之后, 从训练到生产的完整链路, 完整训练流程 中的模型 → 这里导出,, ONNX：模型的中立语言, PyTorch 模型导出为 ONNX 格式, LeNet-5架构详解 的 LeNet → 导出示例,, 服..." />
+<meta name="description" content="模型训练好了， 怎么让别人用？ 本章从 ONNX 导出到 Ferrinx 部署，打通从训练到生产的最后一公里。 本章概览,,, 章节, 内容, 与前面章节的联系,,, 引言：训练完模型之后, 从训练到生产的完整链路, 完整训练流程 中的模型 → 这里导出,, ONNX：模型的中立语言, PyTorch 模型导出为 ONNX 格式, LeNet-5架构详解 的 LeNet → 导出示例,, 服..." />
 <meta name="twitter:card" content="summary_large_image" />
 <title>模型部署与服务：从训练到生产 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="引言：训练完模型之后" href="introduction.html"><link rel="prev" title="总结与展望" href="../sequence-modeling/the-end.html"><script data-cfasync="false">(function(){
     const m = localStorage.getItem("breeze-mode") || "auto";
@@ -185,7 +185,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：效果、速度与硬件的三角权衡</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
 </ul></details></li>
@@ -200,6 +200,7 @@
 </ul></details></li>
 <li class="toctree-l1"><a class="reference internal" href="../sequence-modeling/index.html">序列建模：从 RNN 到 Transformer 到 Mamba</a>
 <details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/introduction.html">引言：从空间到时间</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
@@ -265,35 +266,8 @@
   </svg>
 </label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="model-serving">
 <span id="id1"></span><h1>模型部署与服务：从训练到生产<a class="headerlink" href="#model-serving" title="Link to this heading">#</a></h1>
-<div class="toctree-wrapper compound">
-</div>
-<section id="id2">
-<h2>摘要<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>上一章我们用消融实验验证了 CNN 各组件的贡献，但一个模型在实验环境跑出好结果之后呢？</p>
-<p>在 <a class="reference internal" href="../pytorch-practice/index.html"><span class="doc">PyTorch 实践：把理论变成代码</span></a> 中你学会了训练模型，在 <a class="reference internal" href="../cnn-ablation-study/index.html"><span class="doc">CNN 消融研究：理解卷积神经网络各组件的作用</span></a> 中你学会了验证模型——现在我们将学习如何把模型部署到生产环境，让它真正对外提供服务。</p>
-<p>本章将回答四个核心问题：</p>
-<ol class="arabic simple">
-<li><p>训练好的 PyTorch 模型如何跨平台导出？</p></li>
-<li><p>生产环境需要支持多少并发请求？</p></li>
-<li><p>同步推理和异步推理各适合什么场景？</p></li>
-<li><p>如何用 CLI 和配置文件管理模型的生命周期？</p></li>
-</ol>
-<p>我们将以 <strong>Ferrinx</strong>——深度学习社团开源的轻量级 ONNX 推理服务（<a class="reference external" href="https://github.com/ulink-deep-learning-club/ferrinx.git">GitHub</a>）——作为教学工具，让你理解从训练到生产的完整链路。</p>
-<div class="important admonition">
-<p class="admonition-title">学习目标</p>
-<p>完成本章后，你将能够：</p>
-<ol class="arabic simple">
-<li><p>用 <code class="docutils literal notranslate"><span class="pre">torch.onnx.export</span></code> 将 PyTorch 模型导出为 ONNX 格式</p></li>
-<li><p>理解模型服务架构：同步推理 vs 异步推理、简单模式 vs 分布式模式</p></li>
-<li><p>使用 Ferrinx 部署并管理模型的生命周期</p></li>
-<li><p>通过 CLI 完成模型注册、推理调用等操作</p></li>
-<li><p>为模型配置预处理/后处理流水线</p></li>
-<li><p>理解 API 认证、限流等生产环境必备的安全机制</p></li>
-</ol>
-</div>
-</section>
-<section id="id3">
-<h2>本章概览<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>模型训练好了，<strong>怎么让别人用？</strong> 本章从 ONNX 导出到 Ferrinx 部署，打通从训练到生产的最后一公里。</p>
+<h2 class="rubric">本章概览</h2>
 <div class="table colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -326,9 +300,7 @@
 </tbody>
 </table>
 </div>
-</section>
-<section id="id4">
-<h2>学习路径<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<h2 class="rubric">学习路径</h2>
 <p>本章是模型从&quot;实验&quot;到&quot;生产&quot;的<strong>最后一公里</strong>：</p>
 <object data="../_images/mermaid-f1254270c13ee6177920d8c392dd5730a6a9d83f.svg" type="image/svg+xml">
             <p class="warning">graph LR
@@ -337,17 +309,7 @@
     C --&gt; D[部署实践&lt;br/&gt;Ferrinx CLI]
     D --&gt; E[生产环境&lt;br/&gt;API服务]</p></object>
 <p><strong>核心认知</strong>：模型部署不是训练的附属品，而是让 AI 产生价值的<strong>必要环节</strong>——没有部署，再高精度的模型也只是实验室的玩具。</p>
-</section>
-<section id="id5">
-<h2>本章定位<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
-<p>本章和之前章节的关系：</p>
-<ul class="simple">
-<li><p><a class="reference internal" href="../neural-network-basics/index.html"><span class="doc">神经网络基础：从理论到架构</span></a> 给出了网络架构的理论</p></li>
-<li><p><a class="reference internal" href="../pytorch-practice/index.html"><span class="doc">PyTorch 实践：把理论变成代码</span></a> 让你能用 PyTorch 实现训练</p></li>
-<li><p><a class="reference internal" href="../cnn-ablation-study/index.html"><span class="doc">CNN 消融研究：理解卷积神经网络各组件的作用</span></a> 让你能系统验证模型设计</p></li>
-<li><p>本章则将这些训练的模型<strong>推向生产环境</strong></p></li>
-</ul>
-<p>Ferrinx 是社团开源的项目，目标让 ONNX 模型的部署&quot;一个二进制文件，一个配置文件，就能跑起来&quot;——这与 <a class="reference internal" href="../pytorch-practice/using-framework.html"><span class="doc">使用训练框架</span></a> 中框架的设计哲学一脉相承。你可以在 <a class="reference external" href="https://github.com/ulink-deep-learning-club/ferrinx">GitHub</a> 找到源码并贡献代码。欢迎提 Issue 和 PR 参与贡献！</p>
+<h2 class="rubric">前置知识</h2>
 <div class="table colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -368,26 +330,15 @@
 </tbody>
 </table>
 </div>
-</section>
-<section id="id6">
-<h2>前置要求<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
-<div class="caution admonition">
-<p class="admonition-title">学习本章前，请确保你已经掌握</p>
-<p>学习本章前，请确保你已经掌握：</p>
-<ol class="arabic simple">
-<li><p><a class="reference internal" href="../pytorch-practice/index.html"><span class="doc">PyTorch 实践：把理论变成代码</span></a>：用 PyTorch 训练和导出模型</p></li>
-<li><p>熟悉基础的 REST API 概念（HTTP 方法、JSON 格式）</p></li>
-<li><p>了解 <a class="reference internal" href="../cnn-ablation-study/experiment-design.html"><span class="doc">实验设计</span></a> 中的实验管理思维</p></li>
-</ol>
+<div class="toctree-wrapper compound">
 </div>
-</section>
 </section>
 
     <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (4 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (5 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -395,6 +346,11 @@
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f1c39fd</code>
+                2026-05-11 - <strong>Heyan Zhu</strong>: docs: deduplicate index & introduction; fix the latex export problem on index content structures
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">2dc78ed</code>
                 2026-05-09 - <strong>Heyan Zhu</strong>: fix: address latex errors when building pdf
@@ -476,14 +432,7 @@
   </a>
 </div>
   
-    <nav class="bz-sidebar-toc" aria-label="Table of contents">
-  <p>On this page</p><ul>
-<li><a class="reference internal" href="#id2">摘要</a></li>
-<li><a class="reference internal" href="#id3">本章概览</a></li>
-<li><a class="reference internal" href="#id4">学习路径</a></li>
-<li><a class="reference internal" href="#id5">本章定位</a></li>
-<li><a class="reference internal" href="#id6">前置要求</a></li>
-</ul></nav>
+    
   
 
 </aside></main>

@@ -13,7 +13,7 @@
 <meta property="og:image:alt" content="前面四节我们分别学习了四个维度的改造策略。现在是最后一关： 面对一个实际表现不佳的模型，你怎么知道该用哪个策略？ 症状与对策: 从训练和验证曲线的表现可以推断瓶颈：,,,, 症状, 诊断, 对应维度, 改造策略,,, 训练 loss 不降或降得很慢，测试 loss 也不降, 容量不够（欠拟合）, 感受野 / 深度与连接, 加深度、加宽度、检查训练配置,, 深层网络训不动，浅层梯度接近零, 信..." />
 <meta name="description" content="前面四节我们分别学习了四个维度的改造策略。现在是最后一关： 面对一个实际表现不佳的模型，你怎么知道该用哪个策略？ 症状与对策: 从训练和验证曲线的表现可以推断瓶颈：,,,, 症状, 诊断, 对应维度, 改造策略,,, 训练 loss 不降或降得很慢，测试 loss 也不降, 容量不够（欠拟合）, 感受野 / 深度与连接, 加深度、加宽度、检查训练配置,, 深层网络训不动，浅层梯度接近零, 信..." />
 <meta name="twitter:card" content="summary_large_image" />
-<title>诊断与心法：当模型表现不佳时 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="总结与展望" href="the-end.html"><link rel="prev" title="操控效率：如何在效果与速度间权衡" href="part5-efficiency.html"><script data-cfasync="false">(function(){
+<title>诊断与心法：当模型表现不佳时 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="总结与展望" href="the-end.html"><link rel="prev" title="操控效率：效果、速度与硬件的三角权衡" href="part5-efficiency.html"><script data-cfasync="false">(function(){
     const m = localStorage.getItem("breeze-mode") || "auto";
     const d = document.documentElement.dataset;
     d.mode = m;
@@ -185,7 +185,7 @@
 <li class="toctree-l2"><a class="reference internal" href="part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
 <li class="toctree-l2"><a class="reference internal" href="part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
 <li class="toctree-l2"><a class="reference internal" href="part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
-<li class="toctree-l2"><a class="reference internal" href="part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part5-efficiency.html">操控效率：效果、速度与硬件的三角权衡</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">诊断与心法：当模型表现不佳时</a></li>
 <li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
 </ul></details></li>
@@ -200,6 +200,7 @@
 </ul></details></li>
 <li class="toctree-l1"><a class="reference internal" href="../sequence-modeling/index.html">序列建模：从 RNN 到 Transformer 到 Mamba</a>
 <details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/introduction.html">引言：从空间到时间</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
@@ -297,9 +298,9 @@
 <td><p>多尺度 / 空洞卷积 / FPN</p></td>
 </tr>
 <tr class="row-odd"><td><p>训练/推理时间不可接受，显存不足</p></td>
-<td><p>计算冗余</p></td>
+<td><p>效率瓶颈（<a class="reference internal" href="part5-efficiency.html"><span class="doc">操控效率：效果、速度与硬件的三角权衡</span></a>）</p></td>
 <td><p>计算效率</p></td>
-<td><p>DW 卷积、Bottleneck</p></td>
+<td><p>视瓶颈而定：DW卷积、Bottleneck、向量化、混合精度</p></td>
 </tr>
 </tbody>
 </table>
@@ -396,7 +397,6 @@
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;梯度流动正常（比率: </span><span class="si">{</span><span class="n">deep_mean</span><span class="o">/</span><span class="n">shallow_mean</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">）&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>可视化方法</strong>：</p>
 <div class="figure" id="id19" style="text-align: center"><p><img  src="../_images/tikz-96888e50a87b000f7dfec4921d664c2beb071c74.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">梯度分布可视化示意</span></p>
 </div></section>
@@ -587,8 +587,8 @@
 <td><p>通道注意力（SE-Net）、空间注意力（CBAM）</p></td>
 </tr>
 <tr class="row-odd"><td><p>推理速度太慢</p></td>
-<td><p>计算效率（<a class="reference internal" href="part5-efficiency.html"><span class="doc">操控效率：如何在效果与速度间权衡</span></a>）</p></td>
-<td><p>DW 卷积、Bottleneck</p></td>
+<td><p>计算效率（<a class="reference internal" href="part5-efficiency.html"><span class="doc">操控效率：效果、速度与硬件的三角权衡</span></a>）</p></td>
+<td><p>视瓶颈而定：DW卷积、Bottleneck、向量化、混合精度</p></td>
 </tr>
 <tr class="row-even"><td><p>远距离关联失效</p></td>
 <td><p>注意力（<a class="reference internal" href="part4-attention.html"><span class="doc">操控注意力与长程依赖：信息该走哪条路</span></a>）</p></td>
@@ -800,7 +800,7 @@
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (3 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -808,6 +808,11 @@
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f1c39fd</code>
+                2026-05-11 - <strong>Heyan Zhu</strong>: docs: deduplicate index & introduction; fix the latex export problem on index content structures
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f159d56</code>
                 2026-05-08 - <strong>Heyan Zhu</strong>: fix: address complaints from the linter
@@ -826,7 +831,7 @@
   
   
     <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="part5-efficiency.html" rel="prev">
-    <span>Previous</span><span class="bz-related-pages-title">操控效率：如何在效果与速度间权衡</span></a><a class="bz-related-pages-next" href="the-end.html" rel="next">
+    <span>Previous</span><span class="bz-related-pages-title">操控效率：效果、速度与硬件的三角权衡</span></a><a class="bz-related-pages-next" href="the-end.html" rel="next">
     <span>Next</span>
     <span class="bz-related-pages-title">总结与展望</span>
   </a></nav>

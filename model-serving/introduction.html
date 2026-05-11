@@ -185,7 +185,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：效果、速度与硬件的三角权衡</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
 </ul></details></li>
@@ -200,6 +200,7 @@
 </ul></details></li>
 <li class="toctree-l1"><a class="reference internal" href="../sequence-modeling/index.html">序列建模：从 RNN 到 Transformer 到 Mamba</a>
 <details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/introduction.html">引言：从空间到时间</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
@@ -269,6 +270,18 @@
 <span id="id1"></span><h1>引言：训练完模型之后<a class="headerlink" href="#model-serving-intro" title="Link to this heading">#</a></h1>
 <p>你在<a class="reference internal" href="../pytorch-practice/train-workflow.html"><span class="doc">完整训练流程</span></a>中完成了模型的训练，在<a class="reference internal" href="../cnn-ablation-study/index.html"><span class="doc">CNN 消融研究：理解卷积神经网络各组件的作用</span></a>中验证了各组件的贡献，在<a class="reference internal" href="../unet-image-segmentation/index.html"><span class="doc">U-Net：图像分割的革命</span></a>中用UNet处理了具体的图像分割任务——模型在测试集上跑出了不错的准确率，一切都很好。但现在有一个更现实的问题：<strong>这个模型怎么给别人用？</strong></p>
 <p>让模型真正产生价值，不是训练完就结束了。你需要考虑的事情比训练多得多：别人怎么调用它？它能同时处理多少个请求？如果图片不是28×28的怎么办？别人会不会把它搞崩溃？这些问题没有一个是训练的loss曲线能回答的。</p>
+<div class="important admonition">
+<p class="admonition-title">学习目标</p>
+<p>完成本章后，你将能够：</p>
+<ol class="arabic simple">
+<li><p>用 <code class="docutils literal notranslate"><span class="pre">torch.onnx.export</span></code> 将 PyTorch 模型导出为 ONNX 格式</p></li>
+<li><p>理解模型服务架构：同步推理 vs 异步推理、简单模式 vs 分布式模式</p></li>
+<li><p>使用 Ferrinx 部署并管理模型的生命周期</p></li>
+<li><p>通过 CLI 完成模型注册、推理调用等操作</p></li>
+<li><p>为模型配置预处理/后处理流水线</p></li>
+<li><p>理解 API 认证、限流等生产环境必备的安全机制</p></li>
+</ol>
+</div>
 <section id="id2">
 <h2>从训练到服务的跨越<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
 <p>想象一下，你训练了一个手写数字识别模型，想做一个&quot;拍照识数&quot;的App。这个场景下，模型需要：</p>
@@ -363,7 +376,7 @@
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -371,6 +384,11 @@
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f1c39fd</code>
+                2026-05-11 - <strong>Heyan Zhu</strong>: docs: deduplicate index & introduction; fix the latex export problem on index content structures
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">0cdb1e4</code>
                 2026-04-29 - <strong>Heyan Zhu</strong>: feat: add model-serving chapter and update related content

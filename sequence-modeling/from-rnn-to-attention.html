@@ -185,7 +185,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：效果、速度与硬件的三角权衡</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
 </ul></details></li>
@@ -200,6 +200,7 @@
 </ul></details></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">序列建模：从 RNN 到 Transformer 到 Mamba</a>
 <details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言：从空间到时间</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
 <li class="toctree-l2"><a class="reference internal" href="lstm.html">LSTM：给记忆装上"门"</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">从RNN到注意力：一个思想的跳跃</a></li>
@@ -351,51 +352,47 @@ s_{t,i} = \mathbf{h}_t \cdot \mathbf{h}_i
 </section>
 <section id="qkv-separation">
 <span id="id7"></span><h3>步骤四：分离&quot;查询&quot;和&quot;被查询&quot;——引入可学习的投影<a class="headerlink" href="#qkv-separation" title="Link to this heading">#</a></h3>
-<p>步骤三的公式已经能工作，但有一个微妙的局限。注意 <span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span> 在公式中出现了两次，扮演了两个不同的角色：</p>
+<p>步骤三的公式已经能工作，但有一个微妙的局限。在整个序列的计算中，<strong>同一个隐状态向量 <span class="math notranslate nohighlight">\(\mathbf{h}\)</span></strong> 会被迫扮演三个不同的角色：</p>
 <ul class="simple">
-<li><p>作为 <strong>“查询方”</strong>：<span class="math notranslate nohighlight">\(\mathbf{h}_t \cdot \mathbf{h}_i\)</span> 中的 <span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span> ——“我现在关心什么？”</p></li>
-<li><p>作为 <strong>“被查询方”</strong>：<span class="math notranslate nohighlight">\(\mathbf{h}_t \cdot \mathbf{h}_i\)</span> 中的 <span class="math notranslate nohighlight">\(\mathbf{h}_i\)</span> ——“我之前是什么？”</p></li>
+<li><p>当它是当前时刻的查询出发点时（<span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span>），它需要表达&quot;<strong>我在找什么？</strong>&quot;（Query）</p></li>
+<li><p>当它是被查询的历史记录时（<span class="math notranslate nohighlight">\(\mathbf{h}_i\)</span>），它需要表达&quot;<strong>我有什么特征可以被匹配？</strong>&quot;（Key）</p></li>
+<li><p>当它被选中并参与聚合时（<span class="math notranslate nohighlight">\(\mathbf{h}_i\)</span>），它还需要表达&quot;<strong>我能提供什么具体信息？</strong>&quot;（Value）</p></li>
 </ul>
-<p>同一个向量被迫同时回答&quot;我在找什么&quot;和&quot;我是什么&quot;——这两个问题的答案可能完全不同。</p>
+<p>在步骤三的公式 <span class="math notranslate nohighlight">\(\mathbf{c}_t = \sum_{i=1}^{t-1} \text{softmax}(\mathbf{h}_t \cdot \mathbf{h}_i) \cdot \mathbf{h}_i\)</span> 中，这种冲突直接体现在了 <strong><span class="math notranslate nohighlight">\(\mathbf{h}_i\)</span> 出现了两次</strong>：一次在点积中充当 Key，一次在加权求和中充当 Value。同一个向量必须同时回答&quot;我是什么&quot;和&quot;我能提供什么&quot;——这两个目标可能完全不同。</p>
 <div class="admonition note">
 <p class="admonition-title">备注</p>
-<p><strong>一个具体的例子</strong>：假设 <span class="math notranslate nohighlight">\(\mathbf{h}_5\)</span> 是一个动词&quot;跑&quot;的表示，而 <span class="math notranslate nohighlight">\(\mathbf{h}_2\)</span> 是一个名词&quot;猫&quot;。在计算 <span class="math notranslate nohighlight">\(\mathbf{h}_5\)</span> 应该分配多少注意力给 <span class="math notranslate nohighlight">\(\mathbf{h}_2\)</span> 时：</p>
+<p><strong>一个具体的例子</strong>：假设 <span class="math notranslate nohighlight">\(\mathbf{h}_2\)</span> 是名词&quot;猫&quot;的表示。当未来的动词&quot;跑&quot;（<span class="math notranslate nohighlight">\(\mathbf{h}_5\)</span>）来查询它时：</p>
 <ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(\mathbf{h}_5\)</span> 作为 <strong>查询方</strong>：最关心的是&quot;谁在做动作&quot;——它想找主语</p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathbf{h}_2\)</span> 作为 <strong>被查询方</strong>：需要暴露自己是&quot;名词、生物、可以做主语&quot;的信息</p></li>
+<li><p>作为 <strong>Key</strong>：<span class="math notranslate nohighlight">\(\mathbf{h}_2\)</span> 需要暴露&quot;我是名词、生物、可以做主语&quot;的索引特征，以便和 <span class="math notranslate nohighlight">\(\mathbf{h}_5\)</span> 的查询向量匹配</p></li>
+<li><p>作为 <strong>Value</strong>：<span class="math notranslate nohighlight">\(\mathbf{h}_2\)</span> 需要提供&quot;猫&quot;的完整语义信息，以便聚合到上下文中</p></li>
 </ul>
-<p>如果 <span class="math notranslate nohighlight">\(\mathbf{h}_2\)</span> 必须同时&quot;体现自己的完整语义&quot;（作为 <span class="math notranslate nohighlight">\(\mathbf{h}_{t}\)</span> 传给下一步）和&quot;把自己的主语属性暴露出来供查询&quot;（作为 Key），这两个目标会互相拉扯——表达力受限。</p>
+<p>如果 <span class="math notranslate nohighlight">\(\mathbf{h}_2\)</span> 必须用同一套数值同时满足&quot;做索引标签&quot;和&quot;做内容载体&quot;两个目标，表达力会严重受限——它无法针对不同职能做专门的优化。</p>
 </div>
 <p>解决方案很自然：<strong>给每个向量三个可学习的投影</strong>，让它能根据&quot;当前扮演什么角色&quot;来调整自己的表达 <span id="id8">[<a class="reference internal" href="transformer.html#id111" title="Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In Advances in Neural Information Processing Systems (NeurIPS), volume 30. 2017.">VSP+17</a>]</span>：</p>
 <ul class="simple">
-<li><p><strong>Query <span class="math notranslate nohighlight">\(\mathbf{q}_t = \mathbf{W}_q \mathbf{h}_t\)</span></strong>（查询）：“作为查询方，我在找什么？”——从当前时刻出发的检索需求</p></li>
-<li><p><strong>Key <span class="math notranslate nohighlight">\(\mathbf{k}_i = \mathbf{W}_k \mathbf{h}_i\)</span></strong>（键）：“作为被查询方，我是什么？”——暴露自己供别人检索的特征</p></li>
-<li><p><strong>Value <span class="math notranslate nohighlight">\(\mathbf{v}_i = \mathbf{W}_v \mathbf{h}_i\)</span></strong>（值）：“不管谁来查，我有什么信息可以提供？”——实际被聚合的内容</p></li>
+<li><p><strong>Query <span class="math notranslate nohighlight">\(\mathbf{q}_t = \mathbf{W}_q \mathbf{h}_t\)</span></strong>（查询）：从当前时刻出发的检索需求</p></li>
+<li><p><strong>Key <span class="math notranslate nohighlight">\(\mathbf{k}_i = \mathbf{W}_k \mathbf{h}_i\)</span></strong>（键）：暴露自己供别人检索的特征</p></li>
+<li><p><strong>Value <span class="math notranslate nohighlight">\(\mathbf{v}_i = \mathbf{W}_v \mathbf{h}_i\)</span></strong>（值）：实际被聚合的内容</p></li>
 </ul>
-<div class="admonition note">
-<p class="admonition-title">备注</p>
-<p><strong><span class="math notranslate nohighlight">\(\mathbf{W}_q, \mathbf{W}_k, \mathbf{W}_v\)</span> 是可学习的参数矩阵</strong>（就像 <a class="reference internal" href="../neural-network-basics/fc-layer-basics.html"><span class="doc">全连接神经网络</span></a> 中的全连接层权重），形状均为 <span class="math notranslate nohighlight">\(d \times d\)</span>。网络通过训练自主学会：什么样的投影适合做 Query？什么样的投影适合做 Key？什么样的投影适合做 Value？</p>
-</div>
 <p>对比步骤三的原始公式和推广后的公式：</p>
-<p><strong>原始</strong>（<span class="math notranslate nohighlight">\(\mathbf{h}_t\)</span> 身兼两职）：</p>
+<p><strong>原始</strong>（<span class="math notranslate nohighlight">\(\mathbf{h}_i\)</span> 身兼 Key/Value 两职）：</p>
 <div class="math notranslate nohighlight">
 \[
 \mathbf{c}_t = \sum_{i=1}^{t-1} \text{softmax}(\mathbf{h}_t \cdot \mathbf{h}_i) \cdot \mathbf{h}_i
 \]</div>
-<p><strong>推广后</strong>（Q/K/V 三个角色）：</p>
+<p><strong>推广后</strong>（Q/K/V 三个角色分离）：</p>
 <div class="math notranslate nohighlight">
 \[
-\mathbf{c}_t = \sum_{i=1}^{t-1} \text{softmax}\!\left(\frac{(\mathbf{W}_q \mathbf{h}_t) \cdot (\mathbf{W}_k \mathbf{h}_i)}{\sqrt{d_k}}\right) \cdot (\mathbf{W}_v \mathbf{h}_i)
+\mathbf{c}_t = \sum_{i=1}^{t-1} \text{softmax}\!\left((\mathbf{W}_q \mathbf{h}_t) \cdot (\mathbf{W}_k \mathbf{h}_i)\right) \cdot (\mathbf{W}_v \mathbf{h}_i) = \sum_{i=1}^{t-1} \text{softmax}\!\left(\mathbf{q}_t \cdot \mathbf{k}_i\right) \cdot \mathbf{v}_i
 \]</div>
-<p>即：</p>
+<p>可以看到：如果 <span class="math notranslate nohighlight">\(\mathbf{W}_q = \mathbf{W}_k = \mathbf{W}_v = \mathbf{I}\)</span>（单位矩阵），两式完全等价——步骤三的简单版本是步骤四的一个<strong>特例</strong>。</p>
+<p>除以 <span class="math notranslate nohighlight">\(\sqrt{d_k}\)</span>，即：</p>
 <div class="math notranslate nohighlight">
 \[
 \text{Attention}(\mathbf{q}_t, \mathbf{K}, \mathbf{V}) = \sum_{i=1}^{t-1} \text{softmax}\!\left(\frac{\mathbf{q}_t \cdot \mathbf{k}_i}{\sqrt{d_k}}\right) \cdot \mathbf{v}_i
 \]</div>
-<p>可以看到：如果 <span class="math notranslate nohighlight">\(\mathbf{W}_q = \mathbf{W}_k = \mathbf{W}_v = \mathbf{I}\)</span>（单位矩阵），三式完全等价——步骤三的简单版本是步骤四的一个<strong>特例</strong>。</p>
-<div class="admonition note">
-<p class="admonition-title">备注</p>
-<p><strong>为什么除以 <span class="math notranslate nohighlight">\(\sqrt{d_k}\)</span>？</strong></p>
+<div class="note admonition">
+<p class="admonition-title">为什么除以 <span class="math notranslate nohighlight">\(\sqrt{d_k}\)</span>?</p>
 <p>当 Key 的维度 <span class="math notranslate nohighlight">\(d_k\)</span> 很大时，点积 <span class="math notranslate nohighlight">\(\mathbf{q} \cdot \mathbf{k}\)</span> 的方差约为 <span class="math notranslate nohighlight">\(d_k\)</span>。大点积值会让 Softmax 进入饱和区——大部分 <span class="math notranslate nohighlight">\(\alpha\)</span> 趋近于 0 或 1，梯度几乎为 0。除以 <span class="math notranslate nohighlight">\(\sqrt{d_k}\)</span> 将方差缩放到 1，保持 Softmax 输出平滑、梯度健康。这被称为<strong>缩放点积注意力（Scaled Dot-Product Attention）</strong>。</p>
 </div>
 <div class="tip admonition">
@@ -529,7 +526,7 @@ s_{t,i} = \mathbf{h}_t \cdot \mathbf{h}_i
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -537,6 +534,11 @@ s_{t,i} = \mathbf{h}_t \cdot \mathbf{h}_i
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f1c39fd</code>
+                2026-05-11 - <strong>Heyan Zhu</strong>: docs: deduplicate index & introduction; fix the latex export problem on index content structures
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">8eb3275</code>
                 2026-05-09 - <strong>Heyan Zhu</strong>: feat(sequence-modeling): add new chapter on sequence modeling from RNN to Mamba

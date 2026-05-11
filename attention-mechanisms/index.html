@@ -6,12 +6,12 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="attention-mechanisms/index.html" />
 <meta property="og:site_name" content="Deep Learning Club Handouts" />
-<meta property="og:description" content="摘要: 还记得 实验设计 中的消融实验吗？我们发现不同通道和空间位置的特征重要性差异很大。但 CNN 有一个根本局限： 它对所有输入特征一视同仁 。 卷积核滑过图像时，无论当前区域是背景还是关键目标，都使用相同的权重计算。这就像阅读时每个字都用同样的精力，不分重点——显然效率低下。 本章要回答的核心问题是： 如何让网络动态地知道&quot;哪些特征更重要&quot;？ 卷积神经网络 中讨论的..." />
+<meta property="og:description" content="CNN 对所有特征一视同仁——无论背景还是关键目标。 如何让网络动态地知道&quot;哪些特征更重要&quot;？ 注意力机制就是答案：通过可学习的&quot;放大镜&quot;，关注重要特征、抑制无关特征。 本章概览,,, 章节, 内容, 与前面章节的联系,,, 为什么CNN需要注意力机制？, 为什么 CNN 需要注意力？, 实验设计 的问题驱动,, 通道注意力：SE-Net, 通道注意力..." />
 <meta property="og:image:width" content="1146" />
 <meta property="og:image:height" content="600" />
-<meta property="og:image" content="_images/social_previews/summary_attention-mechanisms_index_eb4d0069.png" />
-<meta property="og:image:alt" content="摘要: 还记得 实验设计 中的消融实验吗？我们发现不同通道和空间位置的特征重要性差异很大。但 CNN 有一个根本局限： 它对所有输入特征一视同仁 。 卷积核滑过图像时，无论当前区域是背景还是关键目标，都使用相同的权重计算。这就像阅读时每个字都用同样的精力，不分重点——显然效率低下。 本章要回答的核心问题是： 如何让网络动态地知道&quot;哪些特征更重要&quot;？ 卷积神经网络 中讨论的..." />
-<meta name="description" content="摘要: 还记得 实验设计 中的消融实验吗？我们发现不同通道和空间位置的特征重要性差异很大。但 CNN 有一个根本局限： 它对所有输入特征一视同仁 。 卷积核滑过图像时，无论当前区域是背景还是关键目标，都使用相同的权重计算。这就像阅读时每个字都用同样的精力，不分重点——显然效率低下。 本章要回答的核心问题是： 如何让网络动态地知道&quot;哪些特征更重要&quot;？ 卷积神经网络 中讨论的..." />
+<meta property="og:image" content="_images/social_previews/summary_attention-mechanisms_index_d2632af7.png" />
+<meta property="og:image:alt" content="CNN 对所有特征一视同仁——无论背景还是关键目标。 如何让网络动态地知道&quot;哪些特征更重要&quot;？ 注意力机制就是答案：通过可学习的&quot;放大镜&quot;，关注重要特征、抑制无关特征。 本章概览,,, 章节, 内容, 与前面章节的联系,,, 为什么CNN需要注意力机制？, 为什么 CNN 需要注意力？, 实验设计 的问题驱动,, 通道注意力：SE-Net, 通道注意力..." />
+<meta name="description" content="CNN 对所有特征一视同仁——无论背景还是关键目标。 如何让网络动态地知道&quot;哪些特征更重要&quot;？ 注意力机制就是答案：通过可学习的&quot;放大镜&quot;，关注重要特征、抑制无关特征。 本章概览,,, 章节, 内容, 与前面章节的联系,,, 为什么CNN需要注意力机制？, 为什么 CNN 需要注意力？, 实验设计 的问题驱动,, 通道注意力：SE-Net, 通道注意力..." />
 <meta name="twitter:card" content="summary_large_image" />
 <title>CNN 中的注意力机制 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="为什么CNN需要注意力机制？" href="introduction.html"><link rel="prev" title="结语：站在巨人的肩膀上" href="../transfer-learning/the-end.html"><script data-cfasync="false">(function(){
     const m = localStorage.getItem("breeze-mode") || "auto";
@@ -185,7 +185,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：效果、速度与硬件的三角权衡</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
 </ul></details></li>
@@ -200,6 +200,7 @@
 </ul></details></li>
 <li class="toctree-l1"><a class="reference internal" href="../sequence-modeling/index.html">序列建模：从 RNN 到 Transformer 到 Mamba</a>
 <details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/introduction.html">引言：从空间到时间</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
@@ -265,28 +266,8 @@
   </svg>
 </label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="cnn">
 <span id="attention-mechanisms"></span><h1>CNN 中的注意力机制<a class="headerlink" href="#cnn" title="Link to this heading">#</a></h1>
-<div class="toctree-wrapper compound">
-</div>
-<section id="id1">
-<h2>摘要<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
-<p>还记得 <a class="reference internal" href="../cnn-ablation-study/experiment-design.html"><span class="doc">实验设计</span></a> 中的消融实验吗？我们发现不同通道和空间位置的特征重要性差异很大。但 CNN 有一个根本局限：<strong>它对所有输入特征一视同仁</strong>。</p>
-<p>卷积核滑过图像时，无论当前区域是背景还是关键目标，都使用相同的权重计算。这就像阅读时每个字都用同样的精力，不分重点——显然效率低下。</p>
-<p>本章要回答的核心问题是：<strong>如何让网络动态地知道&quot;哪些特征更重要&quot;？</strong></p>
-<p><a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a> 中讨论的 <a class="reference internal" href="../neural-network-basics/introduction.html#inductive-bias"><span class="std std-ref">归纳偏置（Inductive Bias）</span></a> 告诉我们，好的架构设计能把先验知识内置到网络中。注意力机制正是这种思想的延续——通过增加&quot;动态权重&quot;组件，让网络学会<strong>关注重要特征、抑制无关特征</strong>。它不替换现有的卷积或池化，而是在它们之上叠加一层&quot;可学习的放大镜&quot;。</p>
-<div class="important admonition">
-<p class="admonition-title">学习目标</p>
-<p>完成本章后，你将能够：</p>
-<ol class="arabic simple">
-<li><p><strong>理解为什么需要注意力</strong>：解释 CNN 平等对待所有特征的局限性</p></li>
-<li><p><strong>掌握通道注意力</strong>：理解 SE-Net 的 Squeeze-Excitation 机制及其实现</p></li>
-<li><p><strong>掌握空间注意力</strong>：理解空间注意力的作用&quot;哪里重要&quot;和实现方式</p></li>
-<li><p><strong>理解 CBAM</strong>：掌握通道与空间注意力的组合策略</p></li>
-<li><p><strong>学会选择</strong>：根据任务特点选择适合的注意力模块</p></li>
-</ol>
-</div>
-</section>
-<section id="id2">
-<h2>本章概览<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>CNN 对所有特征一视同仁——无论背景还是关键目标。<strong>如何让网络动态地知道&quot;哪些特征更重要&quot;？</strong> 注意力机制就是答案：通过可学习的&quot;放大镜&quot;，关注重要特征、抑制无关特征。</p>
+<h2 class="rubric">本章概览</h2>
 <div class="table colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -323,9 +304,7 @@
 </tbody>
 </table>
 </div>
-</section>
-<section id="id3">
-<h2>学习路径<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<h2 class="rubric">学习路径</h2>
 <p>本章是在 CNN 基础上的<strong>能力增强</strong>：</p>
 <object data="../_images/mermaid-546279c15849df9119fcb14faab6b962a8ef69de.svg" type="image/svg+xml">
             <p class="warning">graph LR
@@ -335,17 +314,7 @@
     D --&gt; E[CBAM&lt;br/&gt;两者结合]
     E --&gt; F[选择与应用&lt;br/&gt;实践指南]</p></object>
 <p><strong>核心认知</strong>：注意力不是替代 CNN，而是让 CNN &quot;学会看重点&quot;的可学习组件。</p>
-</section>
-<section id="id4">
-<h2>本章定位<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
-<p>前面章节我们学习了 CNN 的工作原理和各组件的贡献——卷积核提取特征、池化降维、激活函数引入非线性、批归一化加速训练。但所有这些组件都有一个共同点：<strong>它们对所有输入特征一视同仁</strong>。</p>
-<p>注意力机制的解决方案：</p>
-<ul class="simple">
-<li><p><strong>通道注意力</strong>：让网络学会&quot;哪些特征通道更重要&quot;（SE-Net）</p></li>
-<li><p><strong>空间注意力</strong>：让网络学会&quot;图像的哪些位置更重要&quot;</p></li>
-<li><p><strong>组合注意力</strong>：同时关注&quot;什么&quot;和&quot;哪里&quot;（CBAM）</p></li>
-</ul>
-<p><strong>学习路径</strong>：理解局限 → 掌握机制 → 动手实现 → 学会选择</p>
+<h2 class="rubric">前置知识</h2>
 <div class="table colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -366,30 +335,15 @@
 </tbody>
 </table>
 </div>
-</section>
-<section id="id5">
-<h2>前置要求<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
-<div class="caution admonition">
-<p class="admonition-title">学习本章前，请确保你已经掌握</p>
-<p>本章假设你已掌握以下内容：</p>
-<ol class="arabic simple">
-<li><p><strong>CNN 基础知识</strong>：卷积层、池化层、全连接层的作用（<a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a>）</p></li>
-<li><p><strong>CNN 各组件的贡献</strong>：通过消融研究理解每个组件的重要性（<a class="reference internal" href="../cnn-ablation-study/index.html"><span class="doc">CNN 消融研究：理解卷积神经网络各组件的作用</span></a>）</p></li>
-<li><p><strong>PyTorch 基础</strong>：能独立搭建和训练模型（<a class="reference internal" href="../pytorch-practice/neural-network-module.html"><span class="doc">神经网络模块：搭建计算图</span></a>）</p></li>
-</ol>
+<div class="toctree-wrapper compound">
 </div>
-<div class="tip admonition">
-<p class="admonition-title">还没掌握？</p>
-<p>建议先完成 <a class="reference internal" href="../cnn-ablation-study/index.html"><span class="doc">CNN 消融研究：理解卷积神经网络各组件的作用</span></a> 的学习，理解为什么不同特征的重要性会有差异。</p>
-</div>
-</section>
 </section>
 
     <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (5 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (6 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -397,6 +351,11 @@
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f1c39fd</code>
+                2026-05-11 - <strong>Heyan Zhu</strong>: docs: deduplicate index & introduction; fix the latex export problem on index content structures
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">2dc78ed</code>
                 2026-05-09 - <strong>Heyan Zhu</strong>: fix: address latex errors when building pdf
@@ -483,14 +442,7 @@
   </a>
 </div>
   
-    <nav class="bz-sidebar-toc" aria-label="Table of contents">
-  <p>On this page</p><ul>
-<li><a class="reference internal" href="#id1">摘要</a></li>
-<li><a class="reference internal" href="#id2">本章概览</a></li>
-<li><a class="reference internal" href="#id3">学习路径</a></li>
-<li><a class="reference internal" href="#id4">本章定位</a></li>
-<li><a class="reference internal" href="#id5">前置要求</a></li>
-</ul></nav>
+    
   
 
 </aside></main>

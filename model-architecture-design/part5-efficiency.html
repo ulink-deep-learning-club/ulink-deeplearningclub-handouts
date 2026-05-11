@@ -2,18 +2,18 @@
 <html lang="zh-CN" data-content_root="../">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta property="og:title" content="操控效率：如何在效果与速度间权衡" />
+<meta property="og:title" content="操控效率：效果、速度与硬件的三角权衡" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="model-architecture-design/part5-efficiency.html" />
 <meta property="og:site_name" content="Deep Learning Club Handouts" />
-<meta property="og:description" content="前面的章节都在讲&quot;如何让模型更好&quot;。但现实是：你的模型需要在具体的硬件上跑。如果训练一个 epoch 要三天，推理一张图要一分钟，再好的效果也无法落地。 效率优化的核心矛盾： 如何在不显著牺牲效果的前提下，大幅降低计算量？ 帕累托边界：效果的物理上限: 在讨论效率优化之前，需要先理解一个基本概念： 没有免费的午餐 。 对于给定的计算预算，存在一个 帕累托边界（Pareto..." />
+<meta property="og:description" content="操控注意力与长程依赖：信息该走哪条路 教会了我们信息该往哪走。但信息走哪条路只是问题的一半—— 每条路能承载多少车流 同样重要。本节我们从四个维度拆解效率瓶颈： 参数量、计算量、控制流、硬件利用 。 关键问题 ：同样的准确率，为什么一个模型比另一个慢 10 倍？参数量小就一定快吗？ 帕累托边界：效果的物理上限: 在讨论效率优化之前，需要先理解一个基本概念： 没有免费的午餐 。 对于给定的计算..." />
 <meta property="og:image:width" content="1146" />
 <meta property="og:image:height" content="600" />
-<meta property="og:image" content="_images/social_previews/summary_model-architecture-design_part5-efficiency_092d50a7.png" />
-<meta property="og:image:alt" content="前面的章节都在讲&quot;如何让模型更好&quot;。但现实是：你的模型需要在具体的硬件上跑。如果训练一个 epoch 要三天，推理一张图要一分钟，再好的效果也无法落地。 效率优化的核心矛盾： 如何在不显著牺牲效果的前提下，大幅降低计算量？ 帕累托边界：效果的物理上限: 在讨论效率优化之前，需要先理解一个基本概念： 没有免费的午餐 。 对于给定的计算预算，存在一个 帕累托边界（Pareto..." />
-<meta name="description" content="前面的章节都在讲&quot;如何让模型更好&quot;。但现实是：你的模型需要在具体的硬件上跑。如果训练一个 epoch 要三天，推理一张图要一分钟，再好的效果也无法落地。 效率优化的核心矛盾： 如何在不显著牺牲效果的前提下，大幅降低计算量？ 帕累托边界：效果的物理上限: 在讨论效率优化之前，需要先理解一个基本概念： 没有免费的午餐 。 对于给定的计算预算，存在一个 帕累托边界（Pareto..." />
+<meta property="og:image" content="_images/social_previews/summary_model-architecture-design_part5-efficiency_1dfad541.png" />
+<meta property="og:image:alt" content="操控注意力与长程依赖：信息该走哪条路 教会了我们信息该往哪走。但信息走哪条路只是问题的一半—— 每条路能承载多少车流 同样重要。本节我们从四个维度拆解效率瓶颈： 参数量、计算量、控制流、硬件利用 。 关键问题 ：同样的准确率，为什么一个模型比另一个慢 10 倍？参数量小就一定快吗？ 帕累托边界：效果的物理上限: 在讨论效率优化之前，需要先理解一个基本概念： 没有免费的午餐 。 对于给定的计算..." />
+<meta name="description" content="操控注意力与长程依赖：信息该走哪条路 教会了我们信息该往哪走。但信息走哪条路只是问题的一半—— 每条路能承载多少车流 同样重要。本节我们从四个维度拆解效率瓶颈： 参数量、计算量、控制流、硬件利用 。 关键问题 ：同样的准确率，为什么一个模型比另一个慢 10 倍？参数量小就一定快吗？ 帕累托边界：效果的物理上限: 在讨论效率优化之前，需要先理解一个基本概念： 没有免费的午餐 。 对于给定的计算..." />
 <meta name="twitter:card" content="summary_large_image" />
-<title>操控效率：如何在效果与速度间权衡 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="诊断与心法：当模型表现不佳时" href="part6-diagnosis.html"><link rel="prev" title="操控注意力与长程依赖：信息该走哪条路" href="part4-attention.html"><script data-cfasync="false">(function(){
+<title>操控效率：效果、速度与硬件的三角权衡 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="诊断与心法：当模型表现不佳时" href="part6-diagnosis.html"><link rel="prev" title="操控注意力与长程依赖：信息该走哪条路" href="part4-attention.html"><script data-cfasync="false">(function(){
     const m = localStorage.getItem("breeze-mode") || "auto";
     const d = document.documentElement.dataset;
     d.mode = m;
@@ -185,7 +185,7 @@
 <li class="toctree-l2"><a class="reference internal" href="part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
 <li class="toctree-l2"><a class="reference internal" href="part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
 <li class="toctree-l2"><a class="reference internal" href="part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">操控效率：效果、速度与硬件的三角权衡</a></li>
 <li class="toctree-l2"><a class="reference internal" href="part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
 <li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
 </ul></details></li>
@@ -200,6 +200,7 @@
 </ul></details></li>
 <li class="toctree-l1"><a class="reference internal" href="../sequence-modeling/index.html">序列建模：从 RNN 到 Transformer 到 Mamba</a>
 <details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/introduction.html">引言：从空间到时间</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
@@ -243,7 +244,7 @@
     </li><li class="bz-breadcrumbs-parent">
       <a href="index.html">CNN 架构改造：设计卷积网络的心法</a>
     </li><li class="bz-breadcrumbs-current">
-      <span>操控效率：如何在效果与速度间权衡</span>
+      <span>操控效率：效果、速度与硬件的三角权衡</span>
     </li>
   </ol>
 </nav>
@@ -266,9 +267,9 @@
     />
   </svg>
 </label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="arch-efficiency">
-<span id="id1"></span><h1>操控效率：如何在效果与速度间权衡<a class="headerlink" href="#arch-efficiency" title="Link to this heading">#</a></h1>
-<p>前面的章节都在讲&quot;如何让模型更好&quot;。但现实是：你的模型需要在具体的硬件上跑。如果训练一个 epoch 要三天，推理一张图要一分钟，再好的效果也无法落地。</p>
-<p>效率优化的核心矛盾：<strong>如何在不显著牺牲效果的前提下，大幅降低计算量？</strong></p>
+<span id="id1"></span><h1>操控效率：效果、速度与硬件的三角权衡<a class="headerlink" href="#arch-efficiency" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="part4-attention.html"><span class="doc">操控注意力与长程依赖：信息该走哪条路</span></a> 教会了我们信息该往哪走。但信息走哪条路只是问题的一半——<strong>每条路能承载多少车流</strong>同样重要。本节我们从四个维度拆解效率瓶颈：<strong>参数量、计算量、控制流、硬件利用</strong>。</p>
+<p><strong>关键问题</strong>：同样的准确率，为什么一个模型比另一个慢 10 倍？参数量小就一定快吗？</p>
 <section id="id2">
 <h2>帕累托边界：效果的物理上限<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
 <p>在讨论效率优化之前，需要先理解一个基本概念：<strong>没有免费的午餐</strong>。</p>
@@ -277,46 +278,67 @@
 </div><p><strong>帕累托最优</strong>的意思是：如果一个模型在帕累托边界上，你没法让它在不牺牲效果的前提下变得更快，也没法在不牺牲效率的前提下让它更好。</p>
 <p>而<strong>架构改造的意义</strong>就是<strong>推动帕累托边界向外移动</strong>——不是在同一曲线上往返，而是在相同计算量下达到更好效果，或在相同效果下减少更多计算量。</p>
 <p>这解释了为什么 Inception、ResNet、MobileNet 被认为是里程碑级别的贡献：它们不只是在已有曲线上滑动，而是<strong>重新定义了什么算&quot;最优&quot;</strong>。</p>
+<p>但帕累托边界的横轴&quot;计算量&quot;其实掩盖了很多细节。两个模型 FLOPs 相同，一个可能比另一个慢好几倍——因为效率不仅仅是&quot;算多少&quot;的问题，更是&quot;怎么算&quot;的问题。</p>
 </section>
-<section id="id3">
-<h2>效率问题从哪来<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
-<p>普通卷积的参数量和计算量：</p>
-<p>一个 3×3 卷积（输入 <span class="math notranslate nohighlight">\(C_{in}\)</span> 通道，输出 <span class="math notranslate nohighlight">\(C_{out}\)</span> 通道，空间 <span class="math notranslate nohighlight">\(H \times W\)</span>）：</p>
-<ul class="simple">
-<li><p>参数量：<span class="math notranslate nohighlight">\(3 \times 3 \times C_{in} \times C_{out}\)</span></p></li>
-<li><p>计算量：<span class="math notranslate nohighlight">\(3 \times 3 \times C_{in} \times C_{out} \times H \times W\)</span></p></li>
-</ul>
-<p><strong>关键观察</strong>：空间和通道混在一起计算。能不能分拆？</p>
+<section id="efficiency-four-dimensions">
+<span id="id3"></span><h2>效率问题的四个源头<a class="headerlink" href="#efficiency-four-dimensions" title="Link to this heading">#</a></h2>
+<p>如果把神经网络比作一条高速公路，效率问题可以归结为四类：</p>
+<div class="table docutils container" id="id136">
+<table class="docutils align-default" id="id136">
+<caption><span class="caption-text">效率问题的四个维度</span><a class="headerlink" href="#id136" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>维度</p></th>
+<th class="head"><p>问题表现</p></th>
+<th class="head"><p>根本原因</p></th>
+<th class="head"><p>就像…</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="#efficiency-parameters"><span class="std std-ref">维度一：参数量——让模型&quot;瘦身&quot;</span></a></p></td>
+<td><p>模型太大，存不下、传不动</p></td>
+<td><p>权重有冗余，很多连接不重要</p></td>
+<td><p>车上装了一堆空箱子</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#efficiency-computation"><span class="std std-ref">维度二：计算量——让每一次乘法都有价值</span></a></p></td>
+<td><p>训练/推理太慢，FLOPs 太高</p></td>
+<td><p>乘法太多，很多可以合并或省略</p></td>
+<td><p>每个路口都停下来称重</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#efficiency-control-flow"><span class="std std-ref">维度三：控制流——让计算不再&quot;排队等待&quot;</span></a></p></td>
+<td><p>GPU 利用率低，时快时慢</p></td>
+<td><p>Python 循环和分支阻止了并行和编译</p></td>
+<td><p>收费站一次只放一辆车</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#efficiency-hardware"><span class="std std-ref">维度四：硬件利用——让芯片&quot;吃饱&quot;</span></a></p></td>
+<td><p>算力浪费，功耗高，发热大</p></td>
+<td><p>数据搬运比计算还慢，芯片&quot;吃不饱&quot;</p></td>
+<td><p>高速公路限速 120，但每辆车只能开 30</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这四个维度相互独立又相互交织。接下来我们逐一拆解每个维度的直觉、问题和策略。</p>
 </section>
-<section id="id4">
-<h2>策略一：深度可分离卷积<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
-<p>深度可分离卷积（Depthwise Separable Convolution，MobileNet 核心<span id="id5">[<a class="reference internal" href="the-end.html#id97" title="Andrew G Howard, Menglong Zhu, Bo Chen, Dmitry Kalenichenko, Weijun Wang, Tobias Weyand, Marco Andreetto, and Hartwig Adam. Mobilenets: efficient convolutional neural networks for mobile vision applications. arXiv preprint arXiv:1704.04861, 2017.">HZC+17</a>]</span>）的洞察：<strong>把空间和通道分开处理</strong>。</p>
-<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-dbdc8e085a0edbb59d9dff75773a522c09dd1689.svg" alt="Figure made with TikZ" /></p>
-</div><p><strong>两步拆分</strong>：</p>
-<ol class="arabic simple">
-<li><p><strong>Depthwise</strong>：<span class="math notranslate nohighlight">\(K \times K\)</span> 卷积，但每个通道独立处理（不跨通道）——参数量 <span class="math notranslate nohighlight">\(K^2 \cdot C_{in}\)</span></p></li>
-<li><p><strong>Pointwise</strong>：<span class="math notranslate nohighlight">\(1 \times 1\)</span> 卷积，只在通道间融合——参数量 <span class="math notranslate nohighlight">\(C_{in} \cdot C_{out}\)</span></p></li>
-</ol>
-<p>普通卷积参数量：<span class="math notranslate nohighlight">\(K^2 \cdot C_{in} \cdot C_{out}\)</span>
-分离卷积参数量：<span class="math notranslate nohighlight">\(K^2 \cdot C_{in} + C_{in} \cdot C_{out}\)</span></p>
-<p>减少倍数 <span class="math notranslate nohighlight">\(= \dfrac{K^2 \cdot C_{in} \cdot C_{out}}{K^2 \cdot C_{in} + C_{in} \cdot C_{out}} = \dfrac{K^2 \cdot C_{out}}{K^2 + C_{out}}\)</span></p>
-<p>当 <span class="math notranslate nohighlight">\(C_{out} = 256\)</span>, <span class="math notranslate nohighlight">\(K=3\)</span> 时，<span class="math notranslate nohighlight">\(\dfrac{9 \times 256}{9 + 256} \approx 8.7\)</span>，约减少 <strong>8.7 倍</strong>。</p>
-</section>
+<section id="efficiency-parameters">
+<span id="id4"></span><h2>维度一：参数量——让模型&quot;瘦身&quot;<a class="headerlink" href="#efficiency-parameters" title="Link to this heading">#</a></h2>
+<p><strong>直觉</strong>：一个 3×3 卷积的权重数量是 <span class="math notranslate nohighlight">\(K^2 \cdot C_{in} \cdot C_{out}\)</span>。当 <span class="math notranslate nohighlight">\(C_{in}=C_{out}=256\)</span> 时，仅一层就有 <span class="math notranslate nohighlight">\(9 \times 256 \times 256 = 589,824\)</span> 个参数。但 256 个通道之间真的需要全连接吗？<strong>通道之间可能存在大量冗余</strong>——很多通道捕捉的是几乎相同的信息。</p>
 <section id="bottleneck">
-<h2>策略二：Bottleneck<a class="headerlink" href="#bottleneck" title="Link to this heading">#</a></h2>
+<h3>Bottleneck：先压缩，再膨胀<a class="headerlink" href="#bottleneck" title="Link to this heading">#</a></h3>
 <p>Bottleneck 的核心思想来自 <a class="reference internal" href="../neural-network-basics/inception.html"><span class="doc">Inception：多尺度感受野的探索</span></a> 的 1×1 降维——<strong>先压缩再膨胀</strong>：</p>
-<object data="../_images/mermaid-9e5317a57ba8927865d7a01206c57d533a571c3f.svg" type="image/svg+xml">
+<object data="../_images/mermaid-d4cd99b9360e4a9c7c9754b90bb78c51e6681d6f.svg" type="image/svg+xml">
             <p class="warning">flowchart LR
   A[&quot;`输入
   $$H \times W \times C_{in}$$`&quot;]
   B[&quot;`1×1 卷积
-  $$C_{in} \times C_{out}$$`&quot;]
+  $$C_{in} \to C_{bottleneck}$$`&quot;]
   C[&quot;`3×3 卷积
-  $$C_{out} \times C_{out}$$`&quot;]
-  D[&quot;`输出
+  $$C_{bottleneck} \to C_{bottleneck}$$`&quot;]
+  D[&quot;`1×1 卷积
+  $$C_{bottleneck} \to C_{out}$$`&quot;]
+  E[&quot;`输出
   $$H \times W \times C_{out}$$`&quot;]
 
-  A --&gt; B --&gt; C --&gt; D</p></object>
+  A --&gt; B --&gt; C --&gt; D --&gt; E</p></object>
 <p>这种&quot;沙漏结构&quot;将最昂贵的 3×3 卷积放在低维空间执行：</p>
 <div class="table colwidths-auto docutils container">
 <table class="docutils align-default">
@@ -328,20 +350,22 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>直接 3×3</p></td>
-<td><p>256×3×3×256</p></td>
+<td><p>256×3×3×256 = 589,824</p></td>
 <td><p>高维空间计算</p></td>
 </tr>
 <tr class="row-odd"><td><p>Bottleneck</p></td>
-<td><p>256×1×1×64 + 64×3×3×64 + 64×1×1×256</p></td>
-<td><p>3×3 在低维执行</p></td>
+<td><p>256×1×1×64 + 64×3×3×64 + 64×1×1×256 = 69,632</p></td>
+<td><p>3×3 在低维（64）执行</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p><strong>为什么 Bottleneck 有效</strong>：1×1 卷积发现，256 个通道中的有效信息可以用更少的维度（64 维）表示——信息的<strong>低维结构</strong>保证了压缩不会丢失太多信息。</p>
-<section id="bottleneck-pre-activation-vs-post-activation">
-<h3>Bottleneck 的变体：Pre-activation vs Post-activation<a class="headerlink" href="#bottleneck-pre-activation-vs-post-activation" title="Link to this heading">#</a></h3>
-<p>原始的 ResNet Bottleneck 使用 <strong>Post-activation</strong>（卷积后激活）：</p>
+<p><strong>减少 88.2%</strong> 参数，而 3×3 卷积的执行维度从 256 降到 64。</p>
+<p><strong>为什么 Bottleneck 有效</strong>：1×1 卷积发现，256 个通道中的有效信息可以用更少的维度（64 维）表示——信息的<strong>低维结构</strong>保证了压缩不会丢失太多信息。用 <a class="reference internal" href="part1-intro.html#mutual-information"><span class="std std-ref">互信息</span></a> 的语言说：<span class="math notranslate nohighlight">\(I(X; Z) \approx I(X; Y)\)</span>，压缩后的特征 <span class="math notranslate nohighlight">\(Z\)</span> 保留了原始特征 <span class="math notranslate nohighlight">\(Y\)</span> 的几乎所有信息。</p>
+</section>
+<section id="pre-activation-vs-post-activation">
+<h3>Pre-activation vs Post-activation<a class="headerlink" href="#pre-activation-vs-post-activation" title="Link to this heading">#</a></h3>
+<p>Bottleneck 的激活函数位置影响信息传递质量。原始的 ResNet Bottleneck 使用 <strong>Post-activation</strong>（卷积后激活）：</p>
 <object data="../_images/mermaid-1375ab15417a3e1779c291dfb4d7382376047309.svg" type="image/svg+xml">
             <p class="warning">flowchart LR
     Input[输入] --&gt; C1[Conv 1×1]
@@ -356,7 +380,7 @@
     Input -.-&gt;|跳跃连接| Add
     Add --&gt; ReLU3[ReLU]
     ReLU3 --&gt; Output[输出]</p></object>
-<p>改进的 <strong>Pre-activation</strong>（激活在卷积前）<span id="id6">[<a class="reference internal" href="#id51" title="Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Identity mappings in deep residual networks. In European Conference on Computer Vision, 630–645. Springer, 2016.">HZRS16</a>]</span>：</p>
+<p>改进的 <strong>Pre-activation</strong>（激活在卷积前）<span id="id5">[<a class="reference internal" href="#id68" title="Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Identity mappings in deep residual networks. In European Conference on Computer Vision, 630–645. Springer, 2016.">HZRS16</a>]</span>：</p>
 <object data="../_images/mermaid-969d4ad88f8016b62a186e3c6afc3a472692ef52.svg" type="image/svg+xml">
             <p class="warning">flowchart LR
     Input[输入] --&gt; BN1[BN]
@@ -379,10 +403,98 @@
 </ol>
 <p><strong>实际效果</strong>：在极深网络（1000+层）上，Pre-activation 优势明显；普通深度（50-200层）两者差距不大。</p>
 </section>
-<section id="mobilenetv2-inverted-residual">
-<h3>MobileNetV2 的倒残差结构（Inverted Residual）<a class="headerlink" href="#mobilenetv2-inverted-residual" title="Link to this heading">#</a></h3>
-<p>MobileNetV2 结合了 DW 卷积和 Bottleneck，创造了<strong>倒残差结构</strong>：</p>
-<div class="figure" id="id119" style="text-align: center"><p><img  src="../_images/tikz-e06e1a5ecb6a3f4ba24bf2aab246af1aa0b54475.svg" alt="Figure made with TikZ" /></p>
+<section id="id6">
+<h3>参数量优化小结<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>策略</p></th>
+<th class="head"><p>原理</p></th>
+<th class="head"><p>减少幅度</p></th>
+<th class="head"><p>适用场景</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Bottleneck</p></td>
+<td><p>通道降维（256→64→256）</p></td>
+<td><p>~3-4×</p></td>
+<td><p>深层，<span class="math notranslate nohighlight">\(C \geq 128\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>Pre-activation</p></td>
+<td><p>让跳跃连接更&quot;纯净&quot;</p></td>
+<td><p>间接（提升收敛，非直接减参）</p></td>
+<td><p>极深网络（1000+层）</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>（除了 Bottleneck，还有其他减少参数量的方法如<strong>分组卷积</strong>（Group Convolution）——将通道分成若干组，每组独立卷积。它是 DW 卷积的&quot;中间态&quot;，本节将在维度二中一并讨论。）</p>
+</section>
+</section>
+<section id="efficiency-computation">
+<span id="id7"></span><h2>维度二：计算量——让每一次乘法都有价值<a class="headerlink" href="#efficiency-computation" title="Link to this heading">#</a></h2>
+<p><strong>直觉</strong>：参数量小不等于计算量小。一个 <span class="math notranslate nohighlight">\(1 \times 1\)</span> 卷积参数很少，但如果特征图很大（<span class="math notranslate nohighlight">\(1024 \times 1024\)</span>），FLOPs 依然很高。计算量的公式是：</p>
+<div class="math notranslate nohighlight">
+\[\text{FLOPs} = K_h \cdot K_w \cdot C_{in} \cdot C_{out} \cdot H_{out} \cdot W_{out}\]</div>
+<p><strong>关键观察</strong>：空间和通道混在一起计算。能不能分拆？</p>
+<section id="id8">
+<h3>深度可分离卷积：空间与通道分离<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<p>深度可分离卷积（Depthwise Separable Convolution，MobileNet 核心<span id="id9">[<a class="reference internal" href="the-end.html#id97" title="Andrew G Howard, Menglong Zhu, Bo Chen, Dmitry Kalenichenko, Weijun Wang, Tobias Weyand, Marco Andreetto, and Hartwig Adam. Mobilenets: efficient convolutional neural networks for mobile vision applications. arXiv preprint arXiv:1704.04861, 2017.">HZC+17</a>]</span>）的洞察：<strong>把空间和通道分开处理</strong>。</p>
+<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-dbdc8e085a0edbb59d9dff75773a522c09dd1689.svg" alt="Figure made with TikZ" /></p>
+</div><p><strong>两步拆分</strong>：</p>
+<ol class="arabic simple">
+<li><p><strong>Depthwise</strong>：<span class="math notranslate nohighlight">\(K \times K\)</span> 卷积，但每个通道独立处理（不跨通道）——计算量 <span class="math notranslate nohighlight">\(K^2 \cdot C_{in} \cdot H \cdot W\)</span></p></li>
+<li><p><strong>Pointwise</strong>：<span class="math notranslate nohighlight">\(1 \times 1\)</span> 卷积，只在通道间融合——计算量 <span class="math notranslate nohighlight">\(C_{in} \cdot C_{out} \cdot H \cdot W\)</span></p></li>
+</ol>
+<p>普通卷积计算量：<span class="math notranslate nohighlight">\(K^2 \cdot C_{in} \cdot C_{out} \cdot H \cdot W\)</span>
+分离卷积计算量：<span class="math notranslate nohighlight">\((K^2 \cdot C_{in} + C_{in} \cdot C_{out}) \cdot H \cdot W\)</span></p>
+<p><strong>计算量减少倍数</strong> <span class="math notranslate nohighlight">\(= \dfrac{K^2 \cdot C_{out}}{K^2 + C_{out}}\)</span></p>
+<p>当 <span class="math notranslate nohighlight">\(C_{out} = 256\)</span>, <span class="math notranslate nohighlight">\(K=3\)</span> 时，<span class="math notranslate nohighlight">\(\dfrac{9 \times 256}{9 + 256} \approx 8.7\)</span>，约减少 <strong>8.7 倍</strong>计算量（参数量也减少相同倍数）。</p>
+</section>
+<section id="id10">
+<h3>分组卷积：分离度的调节旋钮<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<p>DW 卷积实质上是<strong>分组卷积</strong>的极端情况——当 <code class="docutils literal notranslate"><span class="pre">groups</span> <span class="pre">=</span> <span class="pre">C_in</span> <span class="pre">=</span> <span class="pre">C_out</span></code> 时，分组卷积退化为 DW 卷积。分组卷积可以看作一个&quot;分离度旋钮&quot;：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>分组数</p></th>
+<th class="head"><p>行为</p></th>
+<th class="head"><p>相当于</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">groups=1</span></code></p></td>
+<td><p>标准卷积</p></td>
+<td><p>空间和通道完全耦合</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">groups=g</span></code>（<span class="math notranslate nohighlight">\(1 &lt; g &lt; C\)</span>）</p></td>
+<td><p>部分分离</p></td>
+<td><p>空间和通道部分解耦</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">groups=C</span></code></p></td>
+<td><p>DW 卷积</p></td>
+<td><p>空间和通道完全分离</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 分组卷积：调节 groups 参数</span>
+<span class="c1"># groups=1：标准卷积</span>
+<span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>   <span class="c1"># 空间和通道完全耦合</span>
+
+<span class="c1"># groups=4：分成 4 组，每组 64 通道</span>
+<span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>   <span class="c1"># 部分解耦</span>
+
+<span class="c1"># groups=256：DW 卷积（极端情况）</span>
+<span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="mi">256</span><span class="p">)</span> <span class="c1"># 空间和通道完全分离</span>
+</pre></div>
+</div>
+<p>分组卷积是&quot;标准卷积&quot;与&quot;DW 卷积&quot;之间的连续谱——group 越大，分离度越高，计算量越低，但信息融合越弱。</p>
+</section>
+<section id="mobilenetv2">
+<h3>MobileNetV2 的倒残差结构<a class="headerlink" href="#mobilenetv2" title="Link to this heading">#</a></h3>
+<p>MobileNetV2 结合了 DW 卷积和 Bottleneck，创造了<strong>倒残差结构</strong>（Inverted Residual）：</p>
+<div class="figure" id="id137" style="text-align: center"><p><img  src="../_images/tikz-e06e1a5ecb6a3f4ba24bf2aab246af1aa0b54475.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">MobileNetV2 倒残差结构对比</span></p>
 </div><p><strong>关键区别</strong>：</p>
 <div class="table colwidths-auto docutils container">
@@ -419,69 +531,412 @@
 </div>
 <p><strong>为什么倒残差更高效？</strong></p>
 <ol class="arabic simple">
-<li><p><strong>DW卷积在高维执行更高效</strong>：DW卷积的计算量与通道数成正比，但标准卷积与通道数的平方成正比</p>
-<ul class="simple">
-<li><p>在高维空间（192通道）执行 DW 卷积：<span class="math notranslate nohighlight">\(3 \times 3 \times 192 = 1,728\)</span> 次乘法</p></li>
-<li><p>如果用标准卷积：<span class="math notranslate nohighlight">\(3 \times 3 \times 32 \times 192 = 55,296\)</span> 次乘法</p></li>
-<li><p>DW 节省 <strong>32×</strong>！</p></li>
-</ul>
-</li>
-<li><p><strong>低维跳跃连接节省内存</strong>：跳跃连接不需要存储高维特征图</p></li>
-<li><p><strong>Linear Bottleneck（线性瓶颈）</strong>：最后的 1×1 降维后<strong>不接 ReLU</strong></p>
-<ul class="simple">
-<li><p>原因：ReLU 在低维空间会破坏信息（一旦变负就永远为0）</p></li>
-<li><p>保持线性，保留更多信息</p></li>
-</ul>
-</li>
+<li><p><strong>DW卷积在高维执行更高效</strong>：DW卷积计算量与通道数成正比，而标准卷积与通道数的平方成正比。在高维空间（192通道）执行 DW 卷积，比在低维空间（32通道）执行标准卷积更省——DW 节省 <strong>32×</strong>！</p></li>
+<li><p><strong>低维跳跃连接节省内存</strong>：跳跃连接不需要存储高维特征图，减少显存占用。</p></li>
+<li><p><strong>Linear Bottleneck（线性瓶颈）</strong>：最后的 1×1 降维后<strong>不接 ReLU</strong>——ReLU 在低维空间会破坏信息（一旦变负就永远为0）。</p></li>
 </ol>
-<p><strong>设计心法</strong>：倒残差是&quot; DW 卷积的 Bottleneck 版本&quot;——先升维创造&quot;计算空间&quot;，用 DW 卷积高效处理，再降维回到紧凑表示。</p>
+<p><strong>设计心法</strong>：倒残差是&quot;DW 卷积的 Bottleneck 版本&quot;——先升维创造&quot;计算空间&quot;，用 DW 卷积高效处理，再降维回到紧凑表示。</p>
 <div class="important admonition">
-<p class="admonition-title">设计心法</p>
-<p>Bottleneck、DW 卷积、倒残差本质上是一回事——<strong>利用信息冗余来降本</strong>，只是实现方式不同：</p>
+<p class="admonition-title">维度一+二的统一心法</p>
+<p>Bottleneck、DW 卷积、倒残差本质上是一回事——<strong>利用信息冗余来降本</strong>，只是切入角度不同：</p>
 <ul class="simple">
-<li><p><strong>Bottleneck</strong>：利用通道间的冗余（256→64→256）</p></li>
-<li><p><strong>DW 卷积</strong>：利用空间和通道的可分离性（先空间再通道）</p></li>
-<li><p><strong>倒残差</strong>：结合两者，在高维空间用 DW 卷积，两端保持低维</p></li>
+<li><p><strong>Bottleneck</strong>：利用通道间的冗余（256→64→256），主要降低<strong>参数量</strong></p></li>
+<li><p><strong>DW 卷积</strong>：利用空间和通道的可分离性（先空间再通道），主要降低<strong>计算量</strong></p></li>
+<li><p><strong>倒残差</strong>：结合两者（低维→高维→低维 + DW），同时降低参数和计算</p></li>
 </ul>
 <p>理解了这个本质，你就能灵活组合这些策略，设计出适合你自己任务的模块。</p>
 </div>
 </section>
-</section>
-<section id="id7">
-<h2>两种策略的对比与选择<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<section id="id11">
+<h3>计算量优化小结<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
 <div class="table colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>策略</p></th>
+<th class="head"><p>原理</p></th>
 <th class="head"><p>减少幅度</p></th>
 <th class="head"><p>适用场景</p></th>
-<th class="head"><p>代价</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>深度可分离</p></td>
-<td><p>~5-10×</p></td>
-<td><p>需要极度轻量</p></td>
-<td><p>可能损失少量精度</p></td>
+<tr class="row-even"><td><p>DW 卷积</p></td>
+<td><p>空间通道分离计算</p></td>
+<td><p>~8-10×</p></td>
+<td><p>通道数 <span class="math notranslate nohighlight">\(\geq 32\)</span>，移动端</p></td>
 </tr>
-<tr class="row-odd"><td><p>Bottleneck</p></td>
-<td><p>~3-4×</p></td>
-<td><p>平衡效果与效率</p></td>
-<td><p>需要合适通道设计</p></td>
+<tr class="row-odd"><td><p>分组卷积</p></td>
+<td><p>部分分离（调节 group 数）</p></td>
+<td><p>~2-4×</p></td>
+<td><p>需要平衡效果和效率</p></td>
 </tr>
-<tr class="row-even"><td><p>两者结合（MobileNetV2）</p></td>
+<tr class="row-even"><td><p>倒残差（DW+Bottleneck）</p></td>
+<td><p>低维跳连 + DW 在高维执行</p></td>
 <td><p>~8-15×</p></td>
-<td><p>移动端部署</p></td>
-<td><p>结构略复杂</p></td>
+<td><p>移动端，极致效率</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 </section>
-<section id="id8">
-<h2>失败案例：效率优化的陷阱<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
-<section id="id9">
-<h3>案例一：Bottleneck 压缩率过大<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+</section>
+<section id="efficiency-control-flow">
+<span id="id12"></span><h2>维度三：控制流——让计算不再&quot;排队等待&quot;<a class="headerlink" href="#efficiency-control-flow" title="Link to this heading">#</a></h2>
+<p><strong>直觉</strong>：前两个维度关心&quot;算多少&quot;。但还有一个隐藏的杀手：<strong>计算能不能并行</strong>？如果 forward 函数里有 Python 的 <code class="docutils literal notranslate"><span class="pre">for</span></code> 循环和 <code class="docutils literal notranslate"><span class="pre">if/else</span></code> 分支，那么即使每个操作很快，整体速度也会被串行依赖拖垮。</p>
+<p><strong>关键问题</strong>：两个模型 FLOPs 完全相同，一个用 Python <code class="docutils literal notranslate"><span class="pre">for</span></code> 循环逐时间步计算，一个用全张量运算——前者可能慢 100 倍。为什么？</p>
+<section id="python">
+<h3>问题：Python 控制流的三重代价<a class="headerlink" href="#python" title="Link to this heading">#</a></h3>
+<p>在 forward 里写 Python <code class="docutils literal notranslate"><span class="pre">for</span></code> 循环或 <code class="docutils literal notranslate"><span class="pre">if/else</span></code> 分支，看似方便，实则付出三重代价：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># <span class="bz-emoji">❌</span> 看似正常，实则低效</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SlowRNN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="c1"># x: (batch, seq_len, hidden)</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">1</span><span class="p">)):</span>          <span class="c1"># ① 串行依赖：第 t 步必须等 t-1 步</span>
+            <span class="n">xt</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="n">t</span><span class="p">,</span> <span class="p">:]</span>                  <span class="c1"># ② 每次取一个切片，无法融合</span>
+            <span class="k">if</span> <span class="n">h</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>                  <span class="c1"># ③ 动态分支，阻止图优化</span>
+                <span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w_ih</span><span class="p">(</span><span class="n">xt</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_hh</span><span class="p">(</span><span class="n">h</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w_ih</span><span class="p">(</span><span class="n">xt</span><span class="p">))</span>
+            <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>   <span class="c1"># stack 操作又引入一次内存搬运</span>
+</pre></div>
+</div>
+<p>三重代价分别是：</p>
+<p><strong>代价一：串行依赖（Sequential Dependency）</strong>。循环体内的每一轮必须等上一轮结束。GPU 有上千个核心，但 <code class="docutils literal notranslate"><span class="pre">for</span> <span class="pre">t</span> <span class="pre">in</span> <span class="pre">range(seq_len)</span></code> 强行让这些核心排队——<code class="docutils literal notranslate"><span class="pre">t=0</span></code> 算完才能算 <code class="docutils literal notranslate"><span class="pre">t=1</span></code>。当 <span class="math notranslate nohighlight">\(seq\_len=1000\)</span> 时，意味着 999 个时间步在空转等待。</p>
+<p><strong>代价二：阻止计算图编译（No Graph Optimization）</strong>。PyTorch 是动态图框架，每一步的 Python 控制流都会创建一个新的计算图节点。<code class="docutils literal notranslate"><span class="pre">torch.compile</span></code> 和 <code class="docutils literal notranslate"><span class="pre">torch.jit.script</span></code> 尝试将 Python 代码编译为优化的静态图，但 <code class="docutils literal notranslate"><span class="pre">if</span></code> 和 <code class="docutils literal notranslate"><span class="pre">for</span></code> 让编译器&quot;看不懂&quot;完整的计算模式，无法做算子融合和内存规划。</p>
+<p><strong>代价三：内核启动开销（Kernel Launch Overhead）</strong>。每个 PyTorch 操作（如 <code class="docutils literal notranslate"><span class="pre">self.w_ih(xt)</span></code>）都涉及一次 GPU 内核（kernel）启动。当循环体里有 3 个操作、循环 1000 次时，就是 3000 次内核启动。每次启动的延迟约为 5-10μs——仅仅启动开销就累计了 15-30ms，而实际计算可能只需 5ms。</p>
+</section>
+<section id="id13">
+<h3>策略一：向量化——用张量运算代替循环<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<p>最直接的解法：<strong>把&quot;逐个处理&quot;变成&quot;整批处理&quot;</strong>。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># <span class="bz-emoji">✅</span> 向量化：一次处理整个序列</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FastRNN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="c1"># x: (batch, seq_len, hidden)</span>
+        <span class="n">batch</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">,</span> <span class="n">hidden</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">hidden</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">seq_len</span><span class="p">):</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="n">t</span><span class="p">,</span> <span class="p">:]</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_ih</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">h</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_hh</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+            <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>但 RNN 的串行本质无法完全消除——只能缓解。真正从架构层面解决这个问题的是 Transformer。</p>
+</section>
+<section id="transformer-rnn">
+<h3>策略二：从架构层面消除串行——Transformer 为何比 RNN 快<a class="headerlink" href="#transformer-rnn" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="../sequence-modeling/transformer.html"><span class="doc">Transformer：注意力的极致</span></a> 中介绍的 Transformer<span id="id14">[<a class="reference internal" href="../sequence-modeling/transformer.html#id111" title="Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In Advances in Neural Information Processing Systems (NeurIPS), volume 30. 2017.">VSP+17</a>]</span>，其核心突破不只是&quot;注意力机制&quot;——更本质的是<strong>将串行处理变为并行处理</strong>：</p>
+<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-e181a6e8435554bfc5b28977d1530d1495ac4cf0.svg" alt="Figure made with TikZ" /></p>
+</div><div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>维度</p></th>
+<th class="head"><p>RNN</p></th>
+<th class="head"><p>Transformer</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>处理方式</p></td>
+<td><p>逐个时间步串行</p></td>
+<td><p>所有位置同时处理</p></td>
+</tr>
+<tr class="row-odd"><td><p>信息路径</p></td>
+<td><p><span class="math notranslate nohighlight">\(O(n)\)</span>（第 n 步才能看到第 1 步）</p></td>
+<td><p><span class="math notranslate nohighlight">\(O(1)\)</span>（任意两位置直接相连）</p></td>
+</tr>
+<tr class="row-even"><td><p>GPU 利用率</p></td>
+<td><p>低（串行等待+内核启动开销）</p></td>
+<td><p>高（大规模矩阵乘法，GPU 最擅长）</p></td>
+</tr>
+<tr class="row-odd"><td><p>训练速度</p></td>
+<td><p>序列越长越慢</p></td>
+<td><p>序列长度影响较小（<span class="math notranslate nohighlight">\(O(n^2)\)</span> 注意力量化）</p></td>
+</tr>
+<tr class="row-even"><td><p>长程依赖</p></td>
+<td><p>梯度消失/爆炸，难以学习</p></td>
+<td><p>直接路径，容易学习</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Transformer 的效率秘诀</strong>：注意力矩阵乘法 <span class="math notranslate nohighlight">\(QK^T\)</span> 的维度是 <span class="math notranslate nohighlight">\((n, d) \times (d, n) \rightarrow (n, n)\)</span>。这是 GPU 最喜欢的操作——<strong>大矩阵乘法</strong>，充分利用了 GPU 的并行计算能力。相比之下，RNN 的 step-by-step 计算用的是<strong>小矩阵乘法</strong>（<span class="math notranslate nohighlight">\((1, d) \times (d, d)\)</span> 重复 <span class="math notranslate nohighlight">\(n\)</span> 次），GPU 每个核心都在&quot;摸鱼&quot;。</p>
+</section>
+<section id="torch-compile">
+<h3>策略三：编译优化——torch.compile 与静态图<a class="headerlink" href="#torch-compile" title="Link to this heading">#</a></h3>
+<p>即使架构层面无法完全消除串行，编译技术也能大幅减少开销。PyTorch 2.0 引入的 <code class="docutils literal notranslate"><span class="pre">torch.compile</span></code> 通过以下优化提升效率：</p>
+<ul class="simple">
+<li><p><strong>算子融合（Operator Fusion）</strong>：将 <code class="docutils literal notranslate"><span class="pre">Conv</span> <span class="pre">→</span> <span class="pre">BN</span> <span class="pre">→</span> <span class="pre">ReLU</span></code> 融合为一个内核调用，消除中间结果的内存读写</p></li>
+<li><p><strong>内存规划（Memory Planning）</strong>：预分配计算所需内存，避免运行时频繁分配/释放</p></li>
+<li><p><strong>自动混合精度</strong>：自动识别哪些操作可以用更低精度执行</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># PyTorch 2.0+：一行代码获得 10-50% 加速</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reduce-overhead&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>对于包含 Python 控制流的模型，<code class="docutils literal notranslate"><span class="pre">mode=&quot;reduce-overhead&quot;</span></code> 尤其有效——它会缓存编译后的图，避免每次 forward 都重新编译。</p>
+<div class="note admonition">
+<p class="admonition-title">torch.compile 的本质</p>
+<p><code class="docutils literal notranslate"><span class="pre">torch.compile</span></code> 做的事情可以概括为：<strong>把动态的 Python 逻辑&quot;拍扁&quot;成静态的计算图</strong>。一旦控制流被&quot;拍扁&quot;，编译器就能看到全局计算模式，做全局优化。</p>
+<p>但它不能完全&quot;拍扁&quot;动态分支——如果一个 <code class="docutils literal notranslate"><span class="pre">if</span></code> 的分支取决于输入数据（如 <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">x.sum()</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>），编译器无法预知走哪条路。这是静态图天生的局限，也是为什么 PyTorch 选择动态图作为默认：<strong>灵活性有代价</strong>。</p>
+</div>
+</section>
+<section id="id15">
+<h3>控制流优化小结<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>策略</p></th>
+<th class="head"><p>原理</p></th>
+<th class="head"><p>加速幅度</p></th>
+<th class="head"><p>适用场景</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>向量化</p></td>
+<td><p>用张量操作代替 Python 循环</p></td>
+<td><p>~10-100×</p></td>
+<td><p>任何有显式循环的 forward</p></td>
+</tr>
+<tr class="row-odd"><td><p>架构级并行</p></td>
+<td><p>用 Transformer/CNN 代替 RNN</p></td>
+<td><p>~10-50×（训练）</p></td>
+<td><p>序列建模、长程依赖</p></td>
+</tr>
+<tr class="row-even"><td><p>torch.compile</p></td>
+<td><p>动态图 → 静态图编译</p></td>
+<td><p>~10-50%</p></td>
+<td><p>PyTorch 2.0+，任何模型</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="efficiency-hardware">
+<span id="id16"></span><h2>维度四：硬件利用——让芯片&quot;吃饱&quot;<a class="headerlink" href="#efficiency-hardware" title="Link to this heading">#</a></h2>
+<p><strong>直觉</strong>：FLOPs 低 ≠ 速度快。有人把深度学习比作&quot;搬砖&quot;——计算（乘法）是你搬砖的速度，而数据搬运（内存读写）是你往返工地和仓库的时间。如果每次只搬一块砖，那 90% 的时间都花在路上。</p>
+<p>这就是<strong>内存带宽瓶颈（Memory-Bandwidth Bound）</strong>：芯片的计算能力绰绰有余，但数据喂不进来，算力闲置。</p>
+<section id="id17">
+<h3>问题：为什么&quot;算得少&quot;反而可能更&quot;慢&quot;<a class="headerlink" href="#id17" title="Link to this heading">#</a></h3>
+<p>考虑两个极端操作：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>操作</p></th>
+<th class="head"><p>FLOPs</p></th>
+<th class="head"><p>内存访问量（Bytes）</p></th>
+<th class="head"><p>算术强度（FLOPs/Byte）</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>矩阵乘法 <span class="math notranslate nohighlight">\(4096 \times 4096\)</span></p></td>
+<td><p>68.7 GFLOPs</p></td>
+<td><p>0.10 GB</p></td>
+<td><p><strong>687</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>逐元素加法 <span class="math notranslate nohighlight">\(4096 \times 4096\)</span></p></td>
+<td><p>0.016 GFLOPs</p></td>
+<td><p>0.10 GB</p></td>
+<td><p><strong>0.16</strong></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>矩阵乘法的算术强度是 687——计算量远大于数据搬运量，受限于<strong>计算能力</strong>（Compute-Bound）。
+逐元素加法的算术强度只有 0.16——数据搬运量远大于计算量，受限于<strong>内存带宽</strong>（Memory-Bound）。</p>
+<p><strong>DW 卷积的尴尬</strong>：DW 卷积虽然 FLOPs 低，但算术强度也低——<span class="math notranslate nohighlight">\(3 \times 3\)</span> 的卷积核只做 9 次乘法，却要读取 9 个输入值和 1 个输出值。加上每个通道独立，无法组成大矩阵乘法。这就是为什么 DW 卷积&quot;理论快 8 倍，实际可能只快 2-3 倍&quot;。</p>
+</section>
+<section id="id18">
+<h3>策略一：算子融合——减少&quot;往返搬运&quot;<a class="headerlink" href="#id18" title="Link to this heading">#</a></h3>
+<p>深度学习中最常见的算子序列是 <code class="docutils literal notranslate"><span class="pre">Conv</span> <span class="pre">→</span> <span class="pre">BN</span> <span class="pre">→</span> <span class="pre">ReLU</span></code>。朴素实现需要三次内核启动和三次内存读写：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># <span class="bz-emoji">❌</span> 三次内核启动，两次中间结果的内存读写</span>
+<span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>    <span class="c1"># 写中间结果到内存</span>
+<span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>      <span class="c1"># 读中间结果，写中间结果</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>       <span class="c1"># 读中间结果，写最终结果</span>
+</pre></div>
+</div>
+<p>算子融合将这三个操作合并为一次内核调用：</p>
+<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-ae881fa9c66957e311fdceccd8379ff41c51c732.svg" alt="Figure made with TikZ" /></p>
+</div><p>融合后，中间结果不再写回内存——在 GPU 寄存器或共享内存中直接传递。这正是 <code class="docutils literal notranslate"><span class="pre">torch.compile</span></code> 和推理框架（TensorRT、ONNX Runtime）的核心优化之一。</p>
+</section>
+<section id="id19">
+<h3>策略二：内存布局——数据怎么&quot;排列&quot;影响访问效率<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
+<p>内存布局决定了数据在显存中的物理排列顺序。PyTorch 默认使用 <strong>NCHW</strong>（batch, channel, height, width），而某些 GPU 操作对 <strong>NHWC</strong>（batch, height, width, channel）更友好：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>布局</p></th>
+<th class="head"><p>含义</p></th>
+<th class="head"><p>优势</p></th>
+<th class="head"><p>劣势</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>NCHW</p></td>
+<td><p>通道维度连续</p></td>
+<td><p>逐通道操作（BN）更高效</p></td>
+<td><p>逐像素操作效率低</p></td>
+</tr>
+<tr class="row-odd"><td><p>NHWC</p></td>
+<td><p>像素维度连续</p></td>
+<td><p>逐像素操作 + Tensor Core 效率高</p></td>
+<td><p>逐通道操作稍慢</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 转换为 channels_last（NHWC）内存布局</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">memory_format</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">channels_last</span><span class="p">)</span>
+
+<span class="c1"># 后续卷积自动使用优化后的 NHWC 内核</span>
+<span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># cuDNN 自动选择最优实现</span>
+</pre></div>
+</div>
+<p>对于使用 <code class="docutils literal notranslate"><span class="pre">nn.Conv2d</span></code> 等标准算子的模型，切换为 <code class="docutils literal notranslate"><span class="pre">channels_last</span></code> 通常能带来 10-30% 的加速，且代码改动仅为一行。</p>
+</section>
+<section id="id20">
+<h3>策略三：混合精度——精度够用就好，不必 32 位<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
+<p>FP32（32 位浮点）提供了极高的数值精度，但多数深度学习操作并不需要——FP16（16 位）或 BF16（Brain Float 16）的精度已足够。</p>
+<div class="table docutils container" id="id138">
+<table class="docutils align-default" id="id138">
+<caption><span class="caption-text">精度方案对比</span><a class="headerlink" href="#id138" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>精度</p></th>
+<th class="head"><p>位数</p></th>
+<th class="head"><p>速度</p></th>
+<th class="head"><p>显存占用</p></th>
+<th class="head"><p>适用 GPU</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>FP32</p></td>
+<td><p>32</p></td>
+<td><p>1×（基准）</p></td>
+<td><p>100%</p></td>
+<td><p>所有</p></td>
+</tr>
+<tr class="row-odd"><td><p>FP16 + FP32 混合</p></td>
+<td><p>16/32</p></td>
+<td><p>2-3×</p></td>
+<td><p>~60%</p></td>
+<td><p>V100+（Tensor Core）</p></td>
+</tr>
+<tr class="row-even"><td><p>BF16 + FP32 混合</p></td>
+<td><p>16/32</p></td>
+<td><p>2-3×</p></td>
+<td><p>~60%</p></td>
+<td><p>A100+（Ampere+）</p></td>
+</tr>
+<tr class="row-odd"><td><p>INT8 量化</p></td>
+<td><p>8</p></td>
+<td><p>3-4×（推理）</p></td>
+<td><p>~25%</p></td>
+<td><p>T4+（TensorRT）</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>混合精度的核心做法：<strong>前向和反向传播用 FP16/BF16 计算（快），权重更新用 FP32 累积（稳）</strong>。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># PyTorch 混合精度训练的标准写法</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.cuda.amp</span><span class="w"> </span><span class="kn">import</span> <span class="n">autocast</span><span class="p">,</span> <span class="n">GradScaler</span>
+
+<span class="n">scaler</span> <span class="o">=</span> <span class="n">GradScaler</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">data</span><span class="p">,</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">dataloader</span><span class="p">:</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+    
+    <span class="k">with</span> <span class="n">autocast</span><span class="p">():</span>                    <span class="c1"># 前向：自动用 FP16 计算</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+    
+    <span class="n">scaler</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>       <span class="c1"># 反向：scale 防止梯度下溢</span>
+    <span class="n">scaler</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">optimizer</span><span class="p">)</span>             <span class="c1"># 更新：FP32 精度累加</span>
+    <span class="n">scaler</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">GradScaler</span></code> 的作用：FP16 的数值范围远小于 FP32（<span class="math notranslate nohighlight">\(6 \times 10^{-8} \sim 65,504\)</span> vs <span class="math notranslate nohighlight">\(1.4 \times 10^{-45} \sim 3.4 \times 10^{38}\)</span>）。微小梯度在 FP16 下可能变成 0（下溢）。scaler 将 loss 放大若干倍，让梯度也放大，反向传播后再缩小回来——避免下溢的同时保持精度。</p>
+<p><a class="reference internal" href="../pytorch-practice/best-practices.html"><span class="doc">工程最佳实践</span></a> 中有更详细的混合精度实战指南。</p>
+</section>
+<section id="id21">
+<h3>硬件利用优化小结<a class="headerlink" href="#id21" title="Link to this heading">#</a></h3>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>策略</p></th>
+<th class="head"><p>原理</p></th>
+<th class="head"><p>加速幅度</p></th>
+<th class="head"><p>代码改动</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>算子融合</p></td>
+<td><p>Conv+BN+ReLU 合并为一次内核调用</p></td>
+<td><p>~20-40%</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">torch.compile</span></code>，零改动</p></td>
+</tr>
+<tr class="row-odd"><td><p>channels_last</p></td>
+<td><p>NHWC 布局适配 Tensor Core</p></td>
+<td><p>~10-30%</p></td>
+<td><p>1 行：<code class="docutils literal notranslate"><span class="pre">x.to(memory_format=...)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>混合精度</p></td>
+<td><p>FP16/BF16 计算 + FP32 更新</p></td>
+<td><p>2-3×（训练）</p></td>
+<td><p>~5 行包装 <code class="docutils literal notranslate"><span class="pre">autocast</span></code>+<code class="docutils literal notranslate"><span class="pre">GradScaler</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="id22">
+<h2>四个维度的策略全景<a class="headerlink" href="#id22" title="Link to this heading">#</a></h2>
+<div class="table docutils container" id="id139">
+<span id="efficiency-summary"></span><span id="efficiency-summary"></span><table class="docutils align-default" id="id139">
+<caption><span class="caption-text">效率优化策略全景</span><a class="headerlink" href="#id139" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>维度</p></th>
+<th class="head"><p>最有效策略</p></th>
+<th class="head"><p>减少幅度</p></th>
+<th class="head"><p>主要代价</p></th>
+<th class="head"><p>典型应用</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="#efficiency-parameters"><span class="std std-ref">维度一：参数量——让模型&quot;瘦身&quot;</span></a></p></td>
+<td><p>Bottleneck（先压缩再膨胀）</p></td>
+<td><p>~3-4×</p></td>
+<td><p>需要合适 Bottleneck 维度</p></td>
+<td><p>ResNet-50/101/152</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#efficiency-computation"><span class="std std-ref">维度二：计算量——让每一次乘法都有价值</span></a></p></td>
+<td><p>DW 卷积 + 倒残差</p></td>
+<td><p>~8-15×</p></td>
+<td><p>可能损失少量精度（&lt;1%）</p></td>
+<td><p>MobileNetV2/V3, EfficientNet</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#efficiency-control-flow"><span class="std std-ref">维度三：控制流——让计算不再&quot;排队等待&quot;</span></a></p></td>
+<td><p>向量化 + torch.compile</p></td>
+<td><p>~10-100×（循环场景）</p></td>
+<td><p>架构可能需重新设计（RNN→Transformer）</p></td>
+<td><p>序列建模，长程依赖</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#efficiency-hardware"><span class="std std-ref">维度四：硬件利用——让芯片&quot;吃饱&quot;</span></a></p></td>
+<td><p>混合精度 + 算子融合</p></td>
+<td><p>2-3×</p></td>
+<td><p>需要硬件支持（V100+）</p></td>
+<td><p>几乎所有模型</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id23">
+<h2>失败案例：效率优化的陷阱<a class="headerlink" href="#id23" title="Link to this heading">#</a></h2>
+<section id="id24">
+<h3>案例一：Bottleneck 压缩率过大<a class="headerlink" href="#id24" title="Link to this heading">#</a></h3>
 <p><strong>场景</strong>：设计图像分类网络，你将 Bottleneck 的压缩比设为 256→8→256（32 倍压缩）。</p>
 <p><strong>结果</strong>：</p>
 <ul class="simple">
@@ -513,8 +968,8 @@
 </ul>
 <p><strong>教训</strong>：<strong>DW 卷积只适用于通道数 <span class="math notranslate nohighlight">\(\geq 32\)</span> 的情况</strong>。浅层（通道数少）用标准卷积更高效。</p>
 </section>
-<section id="id10">
-<h3>案例三：盲目追求轻量导致无法收敛<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<section id="id25">
+<h3>案例三：盲目追求轻量导致无法收敛<a class="headerlink" href="#id25" title="Link to this heading">#</a></h3>
 <p><strong>场景</strong>：为了部署到嵌入式设备，你将 MobileNetV2 的宽度乘子（width multiplier）设为 0.1（所有通道数变为原来的 10%）。</p>
 <p><strong>结果</strong>：</p>
 <ul class="simple">
@@ -529,8 +984,8 @@
 </ul>
 <p><strong>教训</strong>：<strong>效率优化有极限</strong>。宽度乘子通常不应小于 0.25，否则模型会&quot;饿死&quot;。</p>
 </section>
-<section id="id11">
-<h3>案例四：倒残差用错激活函数位置<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<section id="id26">
+<h3>案例四：倒残差用错激活函数位置<a class="headerlink" href="#id26" title="Link to this heading">#</a></h3>
 <p><strong>场景</strong>：实现倒残差块时，你在最后的 1×1 降维后加了 ReLU 激活。</p>
 <p><strong>结果</strong>：</p>
 <ul class="simple">
@@ -545,65 +1000,133 @@
 </ul>
 <p><strong>教训</strong>：<strong>倒残差的最后必须是线性激活</strong>。这是 MobileNetV2 的关键设计，不能省略。</p>
 </section>
-<section id="id12">
-<h3>决策树：效率优化策略选择<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
-<object data="../_images/mermaid-05130550d07a59485a2e0d6012123b62c9be139c.svg" type="image/svg+xml">
+<section id="id27">
+<h3>案例五：Python 循环里的张量拼接<a class="headerlink" href="#id27" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：为了处理变长序列，你用 Python 循环逐个样本做 padding 和拼接：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># <span class="bz-emoji">❌</span> Python 循环 + 逐个 cat</span>
+<span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">:</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>                <span class="c1"># 每个样本单独 forward</span>
+    <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span>     <span class="c1"># 最后拼接</span>
+</pre></div>
+</div>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>训练速度只有预期的 5-10%</p></li>
+<li><p>GPU 利用率徘徊在 20-30%</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>每个样本单独 forward 意味着 <span class="math notranslate nohighlight">\(batch\_size\)</span> 次内核启动（而不是 1 次）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">torch.cat</span></code> 又触发一次内存重分配和拷贝</p></li>
+<li><p>GPU 被&quot;碎片化&quot;的小任务填满，无法发挥并行优势</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>尽量在 batch 维度上统一处理</strong>。用 <code class="docutils literal notranslate"><span class="pre">pad_sequence</span></code> + <code class="docutils literal notranslate"><span class="pre">pack_padded_sequence</span></code>（或 attention mask）在单次 forward 中处理整个 batch。</p>
+</section>
+<section id="id28">
+<h3>案例六：DW 卷积搭配小特征图<a class="headerlink" href="#id28" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：你在 MobileNetV2 的深层（特征图只有 <span class="math notranslate nohighlight">\(7 \times 7\)</span>）大量使用 DW 卷积。</p>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>实际速度只有理论速度的 30%</p></li>
+<li><p>换成标准卷积后反而更快</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>DW 卷积的算术强度极低（见<a class="reference internal" href="#efficiency-hardware"><span class="std std-ref">维度四：硬件利用——让芯片&quot;吃饱&quot;</span></a>）</p></li>
+<li><p>当特征图很小时，DW 卷积受限于内核启动开销和内存带宽，GPU 的并行能力完全浪费</p></li>
+<li><p>标准卷积虽然 FLOPs 更高，但能组成大矩阵乘法，硬件利用率高</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>深层小特征图考虑换回标准卷积</strong>。DW 卷积在特征图 <span class="math notranslate nohighlight">\(\geq 14 \times 14\)</span> 时才最有效。</p>
+</section>
+<section id="id29">
+<h3>决策树：效率优化策略选择<a class="headerlink" href="#id29" title="Link to this heading">#</a></h3>
+<object data="../_images/mermaid-7f42d18040a309d2ce0158cbc555cbbf63867bf3.svg" type="image/svg+xml">
             <p class="warning">flowchart TD
-    START[目标平台?] --&gt; SERVER{服务器/桌面 GPU}
-    SERVER --&gt;|计算充裕| STD[标准 ResNet&lt;br/&gt;追求最佳效果]
+    START[我的模型太慢，从哪入手？] --&gt; PROFILE{是否跑过&lt;br/&gt;性能分析？}
     
-    SERVER --&gt;|否| EDGE{边缘设备&lt;br/&gt;Jetson/树莓派}
-    EDGE --&gt;|精度要求高| BOT[Bottleneck + 标准卷积]
-    EDGE --&gt;|极度受限| MBV2[MobileNetV2&lt;br/&gt;DW + 倒残差]
+    PROFILE --&gt;|否| RUN[先跑一次 profile&lt;br/&gt;确定瓶颈]
+    PROFILE --&gt;|是| WHICH{最慢的操作是？}
     
-    EDGE --&gt;|否| MOBILE{移动端 APP}
-    MOBILE --&gt;|有 NPU| EFF[MobileNetV2&lt;br/&gt;或 EfficientNet]
-    MOBILE --&gt;|纯 CPU| SMALL[宽度乘子 0.5-0.75&lt;br/&gt;的 MobileNet]</p></object>
+    WHICH --&gt;|大卷积层| COMPUTE[计算量瓶颈]
+    WHICH --&gt;|Python 循环/索引| CTRL[控制流瓶颈]
+    WHICH --&gt;|许多小操作&lt;br/&gt;GPU利用率低| HW[硬件利用瓶颈]
+    WHICH --&gt;|显存不足| MEM[内存瓶颈]
+    
+    COMPUTE --&gt; COMP_Q{通道数 ≥ 32？}
+    COMP_Q --&gt;|是| DW[DW 卷积&lt;br/&gt;或倒残差]
+    COMP_Q --&gt;|否| STANDARD[标准卷积&lt;br/&gt;或 Bottleneck]
+    
+    CTRL --&gt; CTRL_Q{能否消除循环？}
+    CTRL_Q --&gt;|是| VEC[向量化 + torch.compile]
+    CTRL_Q --&gt;|否（RNN）| ARCH{能否换架构？}
+    ARCH --&gt;|可以| TRANS[Transformer&lt;br/&gt;或 CNN]
+    ARCH --&gt;|不行| COMPILE[torch.compile&lt;br/&gt;mode=reduce-overhead]
+    
+    HW --&gt; HW_Q{主要操作？}
+    HW_Q --&gt;|Conv+BN+ReLU| FUSE[torch.compile&lt;br/&gt;算子融合]
+    HW_Q --&gt;|DW 卷积| LAYOUT[channels_last&lt;br/&gt;+ 评估是否换回标准卷积]
+    HW_Q --&gt;|训练慢| AMP[混合精度训练]
+    HW_Q --&gt;|注意力机制| FLASH[Flash Attention]
+    
+    MEM --&gt; MEM_Q{什么占显存？}
+    MEM_Q --&gt;|特征图| BOTTLENECK[Bottleneck 降维]
+    MEM_Q --&gt;|梯度+优化器| AMP[混合精度训练]
+    MEM_Q --&gt;|模型权重| PRUNE[宽度乘子&lt;br/&gt;或模型剪枝]</p></object>
 <p><strong>核心原则</strong>：</p>
 <ul class="simple">
-<li><p>效率优化是<strong>权衡</strong>，不是&quot;免费午餐&quot;</p></li>
+<li><p>效率优化是<strong>权衡</strong>，不是&quot;免费午餐&quot;——每个维度都有代价</p></li>
+<li><p><strong>先 profile，再优化</strong>——不要猜瓶颈在哪，用数据说话</p></li>
 <li><p>先确定 baseline 能正常工作，再逐步优化</p></li>
-<li><p>每次优化后都要验证准确率，别只盯着模型大小</p></li>
+<li><p>每次优化后都要验证准确率，别只盯着模型大小和速度</p></li>
+<li><p>四个维度可以叠加使用，但每次只加一个，测量效果后再加下一个</p></li>
 </ul>
 </section>
 </section>
-<section id="id13">
-<h2>信息论视角：效率优化为什么可能<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
-<p>效率优化能成功的根本原因来自信息论：<strong>自然图像的特征具有稀疏性和低维结构</strong>。</p>
+<section id="id30">
+<h2>信息论视角：效率优化为什么可能<a class="headerlink" href="#id30" title="Link to this heading">#</a></h2>
+<p>效率优化能成功的根本原因来自信息论：<strong>自然数据（图像、文本、语音）的特征具有稀疏性和低维结构</strong>。</p>
 <p>通道之间不是独立的——256 个通道中，很多通道捕捉的是高度相关的信息。1×1 卷积能发现这种相关性，将 256 维压缩到 64 维，保留的信息量基本相同。</p>
 <p>同样，空间和通道的<strong>可分离性</strong>意味着：空间模式（边缘、纹理）和通道模式（哪种特征）的交互不是任意组合的——把它们分开处理，信息损失很小。</p>
 <p>用<a class="reference internal" href="part1-intro.html#mutual-information"><span class="std std-ref">互信息</span></a>的语言说：</p>
 <ul class="simple">
 <li><p>Bottleneck 做了 <span class="math notranslate nohighlight">\(I(X;Z) \approx I(X;Y)\)</span> 的信息压缩——压缩后信息几乎不变</p></li>
 <li><p>DW 卷积利用了 <span class="math notranslate nohighlight">\(I_{\text{space}, \text{channel}} \approx I_{\text{space}} + I_{\text{channel}}\)</span> 的近似分离性</p></li>
+<li><p>混合精度利用了&quot;位数的冗余&quot;——大多数梯度值和权重值不需要 32 位精度来表达</p></li>
+<li><p>算子融合利用了&quot;计算的局部性&quot;——相邻操作之间的数据不需要写回全局内存</p></li>
 </ul>
-<p>这就是为什么我们能&quot;白嫖&quot;计算量——压缩掉的是冗余，保留的是信息。</p>
+<p>这就是为什么我们能&quot;白嫖&quot;效率——压缩掉的是冗余，保留的是信息。而控制流优化和硬件感知算法更进一步：它们压缩的是<strong>时间维度</strong>的冗余（消除不必要的等待）和<strong>空间局部性</strong>的浪费（数据尽量留在高速缓存中）。</p>
 </section>
-<section id="id14">
-<h2>下一步<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
-<p>四个维度全部讲完。现在你有了完整的改造武器库。但知道武器和会用武器是两码事——下一节<a class="reference internal" href="part6-diagnosis.html"><span class="doc">诊断与心法：当模型表现不佳时</span></a>我们将学习<strong>如何诊断具体问题并选择合适的武器</strong>。</p>
+<section id="id31">
+<h2>下一步<a class="headerlink" href="#id31" title="Link to this heading">#</a></h2>
+<p>四个维度全部讲完。现在你有了完整的改造武器库——不只是&quot;减少参数&quot;和&quot;降低计算量&quot;，还包括&quot;消除串行等待&quot;和&quot;让硬件吃饱&quot;。但知道武器和会用武器是两码事——下一节<a class="reference internal" href="part6-diagnosis.html"><span class="doc">诊断与心法：当模型表现不佳时</span></a>我们将学习<strong>如何诊断具体问题并选择合适的武器</strong>。</p>
 <div class="tip admonition">
 <p class="admonition-title">效率优化的更多方向</p>
-<p>本章聚焦于<strong>架构级</strong>的改造（改变层的设计）。除此之外，效率优化还有两大方向值得了解：</p>
+<p>本章聚焦于<strong>架构级</strong>的改造（改变层的设计）和<strong>编译/硬件级</strong>的优化（代码写法、编译策略、精度选择）。除此之外，效率优化还有两个后训练方向值得了解：</p>
 <ol class="arabic simple">
 <li><p><strong>剪枝（Pruning）</strong>：训练后删除不重要的连接或通道——已有足够信息，不需要全部保留</p></li>
 <li><p><strong>量化（Quantization）</strong>：用更低精度（如 FP32 → INT8）存储和计算——信息精度有冗余</p></li>
 </ol>
-<p>这两个方向与架构设计是互补的：先用 DW 卷积/Bottleneck 设计高效架构，再通过剪枝和量化进一步压缩。感兴趣可参阅 <code class="docutils literal notranslate"><span class="pre">torch.quantization</span></code> 和剪枝相关文献。</p>
+<p>这两个方向与架构设计是互补的：先用 DW 卷积/Bottleneck 设计高效架构，用 torch.compile 和混合精度优化训练，再通过剪枝和量化进一步压缩。感兴趣可参阅 <code class="docutils literal notranslate"><span class="pre">torch.quantization</span></code> 和剪枝相关文献。</p>
 </div>
 </section>
 <hr class="docutils" />
-<section id="id15">
-<h2>参考文献<a class="headerlink" href="#id15" title="Link to this heading">#</a></h2>
-<div class="docutils container" id="id16">
+<section id="id32">
+<h2>参考文献<a class="headerlink" href="#id32" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id33">
 <div role="list" class="citation-list">
-<div class="citation" id="id51" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">HZRS16</a><span class="fn-bracket">]</span></span>
+<div class="citation" id="id68" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">HZRS16</a><span class="fn-bracket">]</span></span>
 <p>Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Identity mappings in deep residual networks. In <em>European Conference on Computer Vision</em>, 630–645. Springer, 2016.</p>
 </div>
-<div class="citation" id="id96" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">HZC+17</a><span class="fn-bracket">]</span></span>
+<div class="citation" id="id113" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id9">HZC+17</a><span class="fn-bracket">]</span></span>
 <p>Andrew G Howard, Menglong Zhu, Bo Chen, Dmitry Kalenichenko, Weijun Wang, Tobias Weyand, Marco Andreetto, and Hartwig Adam. Mobilenets: efficient convolutional neural networks for mobile vision applications. <em>arXiv preprint arXiv:1704.04861</em>, 2017.</p>
+</div>
+<div class="citation" id="id131" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id14">VSP+17</a><span class="fn-bracket">]</span></span>
+<p>Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In <em>Advances in Neural Information Processing Systems (NeurIPS)</em>, volume 30. 2017.</p>
 </div>
 </div>
 </div>
@@ -614,7 +1137,7 @@
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (3 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (4 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -622,6 +1145,11 @@
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f1c39fd</code>
+                2026-05-11 - <strong>Heyan Zhu</strong>: docs: deduplicate index & introduction; fix the latex export problem on index content structures
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f159d56</code>
                 2026-05-08 - <strong>Heyan Zhu</strong>: fix: address complaints from the linter
@@ -701,25 +1229,50 @@
     <nav class="bz-sidebar-toc" aria-label="Table of contents">
   <p>On this page</p><ul>
 <li><a class="reference internal" href="#id2">帕累托边界：效果的物理上限</a></li>
-<li><a class="reference internal" href="#id3">效率问题从哪来</a></li>
-<li><a class="reference internal" href="#id4">策略一：深度可分离卷积</a></li>
-<li><a class="reference internal" href="#bottleneck">策略二：Bottleneck</a><ul>
-<li><a class="reference internal" href="#bottleneck-pre-activation-vs-post-activation">Bottleneck 的变体：Pre-activation vs Post-activation</a></li>
-<li><a class="reference internal" href="#mobilenetv2-inverted-residual">MobileNetV2 的倒残差结构（Inverted Residual）</a></li>
+<li><a class="reference internal" href="#efficiency-four-dimensions">效率问题的四个源头</a></li>
+<li><a class="reference internal" href="#efficiency-parameters">维度一：参数量——让模型"瘦身"</a><ul>
+<li><a class="reference internal" href="#bottleneck">Bottleneck：先压缩，再膨胀</a></li>
+<li><a class="reference internal" href="#pre-activation-vs-post-activation">Pre-activation vs Post-activation</a></li>
+<li><a class="reference internal" href="#id6">参数量优化小结</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id7">两种策略的对比与选择</a></li>
-<li><a class="reference internal" href="#id8">失败案例：效率优化的陷阱</a><ul>
-<li><a class="reference internal" href="#id9">案例一：Bottleneck 压缩率过大</a></li>
+<li><a class="reference internal" href="#efficiency-computation">维度二：计算量——让每一次乘法都有价值</a><ul>
+<li><a class="reference internal" href="#id8">深度可分离卷积：空间与通道分离</a></li>
+<li><a class="reference internal" href="#id10">分组卷积：分离度的调节旋钮</a></li>
+<li><a class="reference internal" href="#mobilenetv2">MobileNetV2 的倒残差结构</a></li>
+<li><a class="reference internal" href="#id11">计算量优化小结</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#efficiency-control-flow">维度三：控制流——让计算不再"排队等待"</a><ul>
+<li><a class="reference internal" href="#python">问题：Python 控制流的三重代价</a></li>
+<li><a class="reference internal" href="#id13">策略一：向量化——用张量运算代替循环</a></li>
+<li><a class="reference internal" href="#transformer-rnn">策略二：从架构层面消除串行——Transformer 为何比 RNN 快</a></li>
+<li><a class="reference internal" href="#torch-compile">策略三：编译优化——torch​.compile 与静态图</a></li>
+<li><a class="reference internal" href="#id15">控制流优化小结</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#efficiency-hardware">维度四：硬件利用——让芯片"吃饱"</a><ul>
+<li><a class="reference internal" href="#id17">问题：为什么"算得少"反而可能更"慢"</a></li>
+<li><a class="reference internal" href="#id18">策略一：算子融合——减少"往返搬运"</a></li>
+<li><a class="reference internal" href="#id19">策略二：内存布局——数据怎么"排列"影响访问效率</a></li>
+<li><a class="reference internal" href="#id20">策略三：混合精度——精度够用就好，不必 32 位</a></li>
+<li><a class="reference internal" href="#id21">硬件利用优化小结</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id22">四个维度的策略全景</a></li>
+<li><a class="reference internal" href="#id23">失败案例：效率优化的陷阱</a><ul>
+<li><a class="reference internal" href="#id24">案例一：Bottleneck 压缩率过大</a></li>
 <li><a class="reference internal" href="#dw">案例二：DW 卷积用于通道数少的层</a></li>
-<li><a class="reference internal" href="#id10">案例三：盲目追求轻量导致无法收敛</a></li>
-<li><a class="reference internal" href="#id11">案例四：倒残差用错激活函数位置</a></li>
-<li><a class="reference internal" href="#id12">决策树：效率优化策略选择</a></li>
+<li><a class="reference internal" href="#id25">案例三：盲目追求轻量导致无法收敛</a></li>
+<li><a class="reference internal" href="#id26">案例四：倒残差用错激活函数位置</a></li>
+<li><a class="reference internal" href="#id27">案例五：Python 循环里的张量拼接</a></li>
+<li><a class="reference internal" href="#id28">案例六：DW 卷积搭配小特征图</a></li>
+<li><a class="reference internal" href="#id29">决策树：效率优化策略选择</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id13">信息论视角：效率优化为什么可能</a></li>
-<li><a class="reference internal" href="#id14">下一步</a></li>
-<li><a class="reference internal" href="#id15">参考文献</a></li>
+<li><a class="reference internal" href="#id30">信息论视角：效率优化为什么可能</a></li>
+<li><a class="reference internal" href="#id31">下一步</a></li>
+<li><a class="reference internal" href="#id32">参考文献</a></li>
 </ul></nav>
   
 

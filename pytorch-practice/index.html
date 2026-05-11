@@ -6,12 +6,12 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="pytorch-practice/index.html" />
 <meta property="og:site_name" content="Deep Learning Club Handouts" />
-<meta property="og:description" content="摘要: 还记得 计算图、反向传播与梯度下降：深度学习核心数学基础 中那些抽象的公式吗？ 计算图 描述了数据如何流动, 反向传播 把误差分摊给每个参数, 梯度下降 在损失曲面上寻找最优解. 还记得 神经网络基础：从理论到架构 中那些架构分析吗？ 全连接网络有 20万参数, CNN 用权值共享减少到 6万, LeNet-5 是如何端到端训练的. 但你可能还有一个疑问：这些理论怎么变成可运行的代码..." />
+<meta property="og:description" content="还记得 计算图、反向传播与梯度下降：深度学习核心数学基础 的理论和 神经网络基础：从理论到架构 的架构吗？ 这些理论怎么变成可运行的代码？ 本章用 PyTorch 全部实现出来——从张量操作到完整训练流程，真正从知道到做到。 本章概览,,, 章节, 内容, 与前面章节的联系,,, 引言：从理论到代码, PyTorch 的设计哲学与学习路径, 为什么要用框架？,, 从 NumPy 到 PyTo..." />
 <meta property="og:image:width" content="1146" />
 <meta property="og:image:height" content="600" />
-<meta property="og:image" content="_images/social_previews/summary_pytorch-practice_index_30c03082.png" />
-<meta property="og:image:alt" content="摘要: 还记得 计算图、反向传播与梯度下降：深度学习核心数学基础 中那些抽象的公式吗？ 计算图 描述了数据如何流动, 反向传播 把误差分摊给每个参数, 梯度下降 在损失曲面上寻找最优解. 还记得 神经网络基础：从理论到架构 中那些架构分析吗？ 全连接网络有 20万参数, CNN 用权值共享减少到 6万, LeNet-5 是如何端到端训练的. 但你可能还有一个疑问：这些理论怎么变成可运行的代码..." />
-<meta name="description" content="摘要: 还记得 计算图、反向传播与梯度下降：深度学习核心数学基础 中那些抽象的公式吗？ 计算图 描述了数据如何流动, 反向传播 把误差分摊给每个参数, 梯度下降 在损失曲面上寻找最优解. 还记得 神经网络基础：从理论到架构 中那些架构分析吗？ 全连接网络有 20万参数, CNN 用权值共享减少到 6万, LeNet-5 是如何端到端训练的. 但你可能还有一个疑问：这些理论怎么变成可运行的代码..." />
+<meta property="og:image" content="_images/social_previews/summary_pytorch-practice_index_ca6398b1.png" />
+<meta property="og:image:alt" content="还记得 计算图、反向传播与梯度下降：深度学习核心数学基础 的理论和 神经网络基础：从理论到架构 的架构吗？ 这些理论怎么变成可运行的代码？ 本章用 PyTorch 全部实现出来——从张量操作到完整训练流程，真正从知道到做到。 本章概览,,, 章节, 内容, 与前面章节的联系,,, 引言：从理论到代码, PyTorch 的设计哲学与学习路径, 为什么要用框架？,, 从 NumPy 到 PyTo..." />
+<meta name="description" content="还记得 计算图、反向传播与梯度下降：深度学习核心数学基础 的理论和 神经网络基础：从理论到架构 的架构吗？ 这些理论怎么变成可运行的代码？ 本章用 PyTorch 全部实现出来——从张量操作到完整训练流程，真正从知道到做到。 本章概览,,, 章节, 内容, 与前面章节的联系,,, 引言：从理论到代码, PyTorch 的设计哲学与学习路径, 为什么要用框架？,, 从 NumPy 到 PyTo..." />
 <meta name="twitter:card" content="summary_large_image" />
 <title>PyTorch 实践：把理论变成代码 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="引言：从理论到代码" href="introduction.html"><link rel="prev" title="总结与展望" href="../neural-network-basics/the-end.html"><script data-cfasync="false">(function(){
     const m = localStorage.getItem("breeze-mode") || "auto";
@@ -185,7 +185,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：效果、速度与硬件的三角权衡</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
 </ul></details></li>
@@ -200,6 +200,7 @@
 </ul></details></li>
 <li class="toctree-l1"><a class="reference internal" href="../sequence-modeling/index.html">序列建模：从 RNN 到 Transformer 到 Mamba</a>
 <details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/introduction.html">引言：从空间到时间</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
@@ -265,39 +266,8 @@
   </svg>
 </label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="pytorch">
 <span id="pytorch-practice"></span><h1>PyTorch 实践：把理论变成代码<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h1>
-<div class="toctree-wrapper compound">
-</div>
-<section id="id1">
-<h2>摘要<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
-<p>还记得 <a class="reference internal" href="../math-fundamentals/index.html"><span class="doc">计算图、反向传播与梯度下降：深度学习核心数学基础</span></a> 中那些抽象的公式吗？</p>
-<ul class="simple">
-<li><p><strong>计算图</strong>描述了数据如何流动</p></li>
-<li><p><strong>反向传播</strong>把误差分摊给每个参数</p></li>
-<li><p><strong>梯度下降</strong>在损失曲面上寻找最优解</p></li>
-</ul>
-<p>还记得 <a class="reference internal" href="../neural-network-basics/index.html"><span class="doc">神经网络基础：从理论到架构</span></a> 中那些架构分析吗？</p>
-<ul class="simple">
-<li><p>全连接网络有 <strong>20万参数</strong></p></li>
-<li><p>CNN 用权值共享减少到 <strong>6万</strong></p></li>
-<li><p>LeNet-5 是如何端到端训练的</p></li>
-</ul>
-<p><strong>但你可能还有一个疑问：这些理论怎么变成可运行的代码？</strong></p>
-<p>本章就是答案。我们将用 PyTorch 把前面的理论全部实现出来——从张量操作到完整训练流程，让你真正<strong>从知道到做到</strong>。</p>
-<div class="important admonition">
-<p class="admonition-title">学习目标</p>
-<p>完成本章后，你将能够：</p>
-<ol class="arabic simple">
-<li><p>用 PyTorch 实现 <a class="reference internal" href="../math-fundamentals/index.html"><span class="doc">计算图、反向传播与梯度下降：深度学习核心数学基础</span></a> 中的计算图和反向传播</p></li>
-<li><p>搭建 <a class="reference internal" href="../neural-network-basics/index.html"><span class="doc">神经网络基础：从理论到架构</span></a> 中的全连接网络和 CNN</p></li>
-<li><p>理解 PyTorch API 与理论概念的对应关系</p></li>
-<li><p>训练并调试一个完整的 MNIST 分类器</p></li>
-<li><p>掌握深度学习开发的工程实践技巧</p></li>
-<li><p>使用社团的训练框架进行高效的实验管理</p></li>
-</ol>
-</div>
-</section>
-<section id="id2">
-<h2>本章概览<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>还记得 <a class="reference internal" href="../math-fundamentals/index.html"><span class="doc">计算图、反向传播与梯度下降：深度学习核心数学基础</span></a> 的理论和 <a class="reference internal" href="../neural-network-basics/index.html"><span class="doc">神经网络基础：从理论到架构</span></a> 的架构吗？<strong>这些理论怎么变成可运行的代码？</strong> 本章用 PyTorch 全部实现出来——从张量操作到完整训练流程，真正从知道到做到。</p>
+<h2 class="rubric">本章概览</h2>
 <div class="table colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -350,9 +320,7 @@
 </tbody>
 </table>
 </div>
-</section>
-<section id="id3">
-<h2>学习路径<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<h2 class="rubric">学习路径</h2>
 <p>本章是前两章的<strong>实践延伸</strong>：</p>
 <object data="../_images/mermaid-b496b34786a37029fd092cd995eb1e7a81e89e40.svg" type="image/svg+xml">
             <p class="warning">graph LR
@@ -360,56 +328,35 @@
     C[神经网络&lt;br/&gt;知道建什么] --&gt; B
     B --&gt; D[你能独立搭建&lt;br/&gt;和训练神经网络]</p></object>
 <p><strong>核心认知</strong>：PyTorch 不是新技术，而是前两章理论的<strong>代码表达</strong>——每个 API 都有对应的数学概念。</p>
-</section>
-<section id="id4">
-<h2>前置要求<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
-<div class="caution admonition">
-<p class="admonition-title">学习本章前，请确保你已经掌握</p>
-<ol class="arabic simple">
+<h2 class="rubric">前置知识</h2>
+<ul class="simple">
 <li><p><strong>数学基础</strong>：<a class="reference internal" href="../math-fundamentals/index.html"><span class="doc">计算图、反向传播与梯度下降：深度学习核心数学基础</span></a> 中的计算图、反向传播、梯度下降</p></li>
 <li><p><strong>神经网络概念</strong>：<a class="reference internal" href="../neural-network-basics/index.html"><span class="doc">神经网络基础：从理论到架构</span></a> 中的全连接、CNN、训练流程</p></li>
 <li><p><strong>Python 基础</strong>：熟悉 NumPy 数组操作</p></li>
-</ol>
-</div>
-<div class="tip admonition">
-<p class="admonition-title">还没掌握？</p>
-<p>如果前两章的内容已经有些模糊，建议先快速回顾：</p>
-<ul class="simple">
-<li><p><a class="reference internal" href="../math-fundamentals/computational-graph.html#computational-graph"><span class="std std-ref">计算图</span></a>：数据流动的直觉</p></li>
-<li><p><a class="reference internal" href="../math-fundamentals/back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>：梯度如何回传</p></li>
-<li><p><a class="reference internal" href="../neural-network-basics/le-net.html"><span class="doc">LeNet-5架构详解</span></a>：一个完整网络长什么样</p></li>
 </ul>
-</div>
-</section>
-<section id="id5">
-<h2>环境配置<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
-<div class="tip admonition">
-<p class="admonition-title">安装指南</p>
-<p><strong>最低配置</strong>（CPU 即可学习）：</p>
+<h2 class="rubric">环境配置</h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>torch<span class="w"> </span>torchvision
 </pre></div>
 </div>
-<p><strong>推荐配置</strong>（如果有 GPU）：</p>
+<p>如有 GPU：</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>torch<span class="w"> </span>torchvision<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu118
 </pre></div>
 </div>
-<p><strong>验证安装</strong>：</p>
+<p>验证：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">())</span>  <span class="c1"># 有 GPU 会显示 True</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">())</span>
 </pre></div>
 </div>
+<div class="toctree-wrapper compound">
 </div>
-<hr class="docutils" />
-<p><strong>开始之前的一句话</strong>：PyTorch 看起来很复杂，但核心就三样东西——<strong>张量</strong>（存数据）、<strong>自动微分</strong>（算梯度）、<strong>优化器</strong>（更新参数）。掌握了这三样，你就掌握了深度学习开发的全部工具。</p>
-</section>
 </section>
 
     <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (7 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (8 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -417,6 +364,11 @@
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f1c39fd</code>
+                2026-05-11 - <strong>Heyan Zhu</strong>: docs: deduplicate index & introduction; fix the latex export problem on index content structures
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">2dc78ed</code>
                 2026-05-09 - <strong>Heyan Zhu</strong>: fix: address latex errors when building pdf
@@ -513,14 +465,7 @@
   </a>
 </div>
   
-    <nav class="bz-sidebar-toc" aria-label="Table of contents">
-  <p>On this page</p><ul>
-<li><a class="reference internal" href="#id1">摘要</a></li>
-<li><a class="reference internal" href="#id2">本章概览</a></li>
-<li><a class="reference internal" href="#id3">学习路径</a></li>
-<li><a class="reference internal" href="#id4">前置要求</a></li>
-<li><a class="reference internal" href="#id5">环境配置</a></li>
-</ul></nav>
+    
   
 
 </aside></main>

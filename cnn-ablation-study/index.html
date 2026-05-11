@@ -6,12 +6,12 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="cnn-ablation-study/index.html" />
 <meta property="og:site_name" content="Deep Learning Club Handouts" />
-<meta property="og:description" content="摘要: 还记得 卷积神经网络 中学习的卷积、池化、激活函数吗？还记得 LeNet-5架构详解 中完整的 LeNet-5 架构吗？ 我们已经知道每个组件&quot;是什么&quot;和&quot;怎么做&quot;，但还有一个更深层的问题： 每个组件对最终效果的真正贡献是多少？ 如果去掉某个组件，模型还能工作吗？如果把 ReLU 换成 Sigmoid，准确率会下降多少？ 这就是**消融研究（A..." />
+<meta property="og:description" content="每个组件&quot;是什么&quot;我们都知道，但 每个组件对最终效果的真正贡献是多少？ 移除卷积层、换掉激活函数——本章通过控制变量法，用实验数据回答这些问题。 本章概览,,, 章节, 内容, 与前面章节的联系,,, 引言：消融研究的科学方法论, 什么是消融研究？为什么要做？, 科学方法论：控制变量法,, 实验设计, 基线模型、实验方案、结果分析, 使用训练框架 的实验管理,, PyTo..." />
 <meta property="og:image:width" content="1146" />
 <meta property="og:image:height" content="600" />
-<meta property="og:image" content="_images/social_previews/summary_cnn-ablation-study_index_759bcec8.png" />
-<meta property="og:image:alt" content="摘要: 还记得 卷积神经网络 中学习的卷积、池化、激活函数吗？还记得 LeNet-5架构详解 中完整的 LeNet-5 架构吗？ 我们已经知道每个组件&quot;是什么&quot;和&quot;怎么做&quot;，但还有一个更深层的问题： 每个组件对最终效果的真正贡献是多少？ 如果去掉某个组件，模型还能工作吗？如果把 ReLU 换成 Sigmoid，准确率会下降多少？ 这就是**消融研究（A..." />
-<meta name="description" content="摘要: 还记得 卷积神经网络 中学习的卷积、池化、激活函数吗？还记得 LeNet-5架构详解 中完整的 LeNet-5 架构吗？ 我们已经知道每个组件&quot;是什么&quot;和&quot;怎么做&quot;，但还有一个更深层的问题： 每个组件对最终效果的真正贡献是多少？ 如果去掉某个组件，模型还能工作吗？如果把 ReLU 换成 Sigmoid，准确率会下降多少？ 这就是**消融研究（A..." />
+<meta property="og:image" content="_images/social_previews/summary_cnn-ablation-study_index_100995e9.png" />
+<meta property="og:image:alt" content="每个组件&quot;是什么&quot;我们都知道，但 每个组件对最终效果的真正贡献是多少？ 移除卷积层、换掉激活函数——本章通过控制变量法，用实验数据回答这些问题。 本章概览,,, 章节, 内容, 与前面章节的联系,,, 引言：消融研究的科学方法论, 什么是消融研究？为什么要做？, 科学方法论：控制变量法,, 实验设计, 基线模型、实验方案、结果分析, 使用训练框架 的实验管理,, PyTo..." />
+<meta name="description" content="每个组件&quot;是什么&quot;我们都知道，但 每个组件对最终效果的真正贡献是多少？ 移除卷积层、换掉激活函数——本章通过控制变量法，用实验数据回答这些问题。 本章概览,,, 章节, 内容, 与前面章节的联系,,, 引言：消融研究的科学方法论, 什么是消融研究？为什么要做？, 科学方法论：控制变量法,, 实验设计, 基线模型、实验方案、结果分析, 使用训练框架 的实验管理,, PyTo..." />
 <meta name="twitter:card" content="summary_large_image" />
 <title>CNN 消融研究：理解卷积神经网络各组件的作用 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="引言：消融研究的科学方法论" href="introduction.html"><link rel="prev" title="结语：从入门到实践" href="../pytorch-practice/the-end.html"><script data-cfasync="false">(function(){
     const m = localStorage.getItem("breeze-mode") || "auto";
@@ -185,7 +185,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：如何在效果与速度间权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：效果、速度与硬件的三角权衡</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
 </ul></details></li>
@@ -200,6 +200,7 @@
 </ul></details></li>
 <li class="toctree-l1"><a class="reference internal" href="../sequence-modeling/index.html">序列建模：从 RNN 到 Transformer 到 Mamba</a>
 <details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/introduction.html">引言：从空间到时间</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
@@ -265,28 +266,8 @@
   </svg>
 </label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="cnn">
 <span id="cnn-ablation-study"></span><h1>CNN 消融研究：理解卷积神经网络各组件的作用<a class="headerlink" href="#cnn" title="Link to this heading">#</a></h1>
-<div class="toctree-wrapper compound">
-</div>
-<section id="id1">
-<h2>摘要<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
-<p>还记得 <a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a> 中学习的卷积、池化、激活函数吗？还记得 <a class="reference internal" href="../neural-network-basics/le-net.html"><span class="doc">LeNet-5架构详解</span></a> 中完整的 LeNet-5 架构吗？</p>
-<p>我们已经知道每个组件&quot;是什么&quot;和&quot;怎么做&quot;，但还有一个更深层的问题：<strong>每个组件对最终效果的真正贡献是多少？</strong> 如果去掉某个组件，模型还能工作吗？如果把 ReLU 换成 Sigmoid，准确率会下降多少？</p>
-<p>这就是**消融研究（Ablation Study）**要回答的问题——通过系统地移除或修改组件，用实验数据说话，理解每个部分的真正价值。</p>
-<p>本章将带你进入<strong>科学实验阶段</strong>，通过控制变量法，掌握&quot;提出假设→设计实验→收集数据→分析结论&quot;的完整方法论。</p>
-<div class="important admonition">
-<p class="admonition-title">学习目标</p>
-<p>完成本章后，你将能够：</p>
-<ol class="arabic simple">
-<li><p><strong>理解消融研究的思想</strong>：解释什么是控制变量法，为什么一次只能改一个组件</p></li>
-<li><p><strong>掌握实验设计</strong>：独立设计消融实验，包括基线模型、消融方案、评估指标</p></li>
-<li><p><strong>量化组件贡献</strong>：通过实验数据判断哪些组件是&quot;必需&quot;，哪些是&quot;可选&quot;</p></li>
-<li><p><strong>应用设计原则</strong>：根据消融结果优化神经网络架构，避免盲目堆叠组件</p></li>
-<li><p><strong>培养科学思维</strong>：将&quot;提出假设→设计实验→收集数据→分析结论&quot;的方法应用到其他领域</p></li>
-</ol>
-</div>
-</section>
-<section id="id2">
-<h2>本章概览<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>每个组件&quot;是什么&quot;我们都知道，但<strong>每个组件对最终效果的真正贡献是多少？</strong> 移除卷积层、换掉激活函数——本章通过控制变量法，用实验数据回答这些问题。</p>
+<h2 class="rubric">本章概览</h2>
 <div class="table colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -315,9 +296,7 @@
 </tbody>
 </table>
 </div>
-</section>
-<section id="id3">
-<h2>学习路径<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<h2 class="rubric">学习路径</h2>
 <p>本章是从&quot;知道怎么做&quot;到&quot;知道为什么这样做&quot;的<strong>思维跃迁</strong>：</p>
 <object data="../_images/mermaid-3cfced2cbdd85b3f080fa4fdce7c160d2cd45449.svg" type="image/svg+xml">
             <p class="warning">graph LR
@@ -329,18 +308,8 @@
     F --&gt; G[设计原则&lt;br/&gt;优化新架构]</p></object>
 <p><strong>核心认知</strong>：消融研究不是&quot;破坏&quot;，而是&quot;理解&quot;——通过系统地做减法，看清每个组件的真实贡献。</p>
 <p><strong>关键原则</strong>：每次只改一个变量，确保结果可归因。</p>
-</section>
-<section id="id4">
-<h2>本章定位<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
-<p>前面章节我们学习了 CNN 的各个组件（卷积、池化、激活函数等）以及迁移学习的实践应用。本章我们进入<strong>科学实验阶段</strong>——通过控制变量法，理解每个组件的真正价值。</p>
-<p>本章涉及的关键问题：</p>
-<ul class="simple">
-<li><p>卷积层真的必要吗？去掉会怎样？</p></li>
-<li><p>激活函数选 ReLU 还是 Sigmoid？为什么？</p></li>
-<li><p>Dropout 能提升多少泛化能力？</p></li>
-<li><p>批归一化对训练速度的影响有多大？</p></li>
-</ul>
-<p><strong>学习路径</strong>：理解思想 → 设计实验 → 动手实现 → 分析结论</p>
+<h2 class="rubric">前置知识</h2>
+<p>本章假设你已掌握完整训练流程和 CNN 各组件原理，建议完成 <a class="reference internal" href="../pytorch-practice/using-framework.html"><span class="doc">使用训练框架</span></a> 和 <a class="reference internal" href="../transfer-learning/index.html"><span class="doc">迁移学习与微调：站在巨人的肩膀上</span></a> 后再学习。</p>
 <div class="table colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -370,26 +339,16 @@
 </tbody>
 </table>
 </div>
-</section>
-<section id="id5">
-<h2>前置要求<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
-<div class="caution admonition">
-<p class="admonition-title">学习本章前，请确保你已经掌握</p>
-<p>本章假设你已掌握 <a class="reference internal" href="../pytorch-practice/train-workflow.html"><span class="doc">完整训练流程</span></a> 中的完整训练流程，以及 <a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a> 中 CNN 各组件的原理。建议在完成 <a class="reference internal" href="../pytorch-practice/using-framework.html"><span class="doc">使用训练框架</span></a>（掌握社团框架的基本使用）和 <a class="reference internal" href="../transfer-learning/index.html"><span class="doc">迁移学习与微调：站在巨人的肩膀上</span></a> 后再进行学习。</p>
 <p><strong>预计耗时</strong>：2-4 周（需要训练多个模型进行对比实验）</p>
+<div class="toctree-wrapper compound">
 </div>
-<div class="note admonition">
-<p class="admonition-title">提示</p>
-<p>本章的所有实验数据都是示例，你的实际结果可能不同——这正是科学研究的魅力所在！</p>
-</div>
-</section>
 </section>
 
     <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (6 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (7 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -397,6 +356,11 @@
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f1c39fd</code>
+                2026-05-11 - <strong>Heyan Zhu</strong>: docs: deduplicate index & introduction; fix the latex export problem on index content structures
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">2dc78ed</code>
                 2026-05-09 - <strong>Heyan Zhu</strong>: fix: address latex errors when building pdf
@@ -488,14 +452,7 @@
   </a>
 </div>
   
-    <nav class="bz-sidebar-toc" aria-label="Table of contents">
-  <p>On this page</p><ul>
-<li><a class="reference internal" href="#id1">摘要</a></li>
-<li><a class="reference internal" href="#id2">本章概览</a></li>
-<li><a class="reference internal" href="#id3">学习路径</a></li>
-<li><a class="reference internal" href="#id4">本章定位</a></li>
-<li><a class="reference internal" href="#id5">前置要求</a></li>
-</ul></nav>
+    
   
 
 </aside></main>

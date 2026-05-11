@@ -7,6 +7,18 @@
 
 本章将回答这些问题。我们会用 PyTorch 把 {doc}`../neural-network-basics/index` 中的理论全部实现出来，让你真正理解**从数学公式到可运行代码**的转化过程。
 
+~~~{admonition} 学习目标
+:class: important
+
+完成本章后，你将能够：
+1. 用 PyTorch 实现 {doc}`../math-fundamentals/index` 中的计算图和反向传播
+2. 搭建 {doc}`../neural-network-basics/index` 中的全连接网络和 CNN
+3. 理解 PyTorch API 与理论概念的对应关系
+4. 训练并调试一个完整的 MNIST 分类器
+5. 掌握深度学习开发的工程实践技巧
+6. 使用社团的训练框架进行高效的实验管理
+~~~
+
 ## 为什么要用框架？
 
 ### 想象你要手写一个 LeNet

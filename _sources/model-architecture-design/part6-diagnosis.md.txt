@@ -13,7 +13,7 @@
 | 训练 loss 不降或降得很慢，测试 loss 也不降 | 容量不够（欠拟合） | 感受野 / 深度与连接 | 加深度、加宽度、检查训练配置 |
 | 深层网络训不动，浅层梯度接近零 | 信息传不过去（梯度消失） | 深度与连接 | 加跳跃连接、密集连接 |
 | 大物体差小物体好，或相反 | 感受野策略不对 | 感受野 | 多尺度 / 空洞卷积 / FPN |
-| 训练/推理时间不可接受，显存不足 | 计算冗余 | 计算效率 | DW 卷积、Bottleneck |
+| 训练/推理时间不可接受，显存不足 | 效率瓶颈（{doc}`part5-efficiency`） | 计算效率 | 视瓶颈而定：DW卷积、Bottleneck、向量化、混合精度 |
 
 ### 如何量化判断：诊断工具箱
 
@@ -79,8 +79,6 @@ def analyze_gradients(model):
     else:
         print(f"梯度流动正常（比率: {deep_mean/shallow_mean:.3f}）")
 ```
-
-**可视化方法**：
 
 ```{tikz} 梯度分布可视化示意
 \begin{tikzpicture}[
@@ -296,7 +294,7 @@ graph LR
 | 深层训不动、浅层梯度接近零 | 深度与连接（{doc}`part3-depth-connection`） | 跳跃连接、密集连接 |
 | 大物体差小物体好，或相反 | 感受野（{doc}`part2-receptive-field`） | 多尺度并行、空洞卷积、FPN |
 | 背景干扰大 | 注意力（{doc}`part4-attention`） | 通道注意力（SE-Net）、空间注意力（CBAM） |
-| 推理速度太慢 | 计算效率（{doc}`part5-efficiency`） | DW 卷积、Bottleneck |
+| 推理速度太慢 | 计算效率（{doc}`part5-efficiency`） | 视瓶颈而定：DW卷积、Bottleneck、向量化、混合精度 |
 | 远距离关联失效 | 注意力（{doc}`part4-attention`） | Self-Attention、Non-local |
 | 所有指标都还行但不理想 | 可能已达到瓶颈 | 更多数据、{doc}`../transfer-learning/index` |
 
