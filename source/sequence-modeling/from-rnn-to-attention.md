@@ -80,55 +80,52 @@ $$
 (qkv-separation)=
 ### 步骤四：分离"查询"和"被查询"——引入可学习的投影
 
-步骤三的公式已经能工作，但有一个微妙的局限。注意 $\mathbf{h}_t$ 在公式中出现了两次，扮演了两个不同的角色：
+步骤三的公式已经能工作，但有一个微妙的局限。在整个序列的计算中，**同一个隐状态向量 $\mathbf{h}$** 会被迫扮演三个不同的角色：
 
-- 作为 **"查询方"**：$\mathbf{h}_t \cdot \mathbf{h}_i$ 中的 $\mathbf{h}_t$ ——"我现在关心什么？"
-- 作为 **"被查询方"**：$\mathbf{h}_t \cdot \mathbf{h}_i$ 中的 $\mathbf{h}_i$ ——"我之前是什么？"
+- 当它是当前时刻的查询出发点时（$\mathbf{h}_t$），它需要表达"**我在找什么？**"（Query）
+- 当它是被查询的历史记录时（$\mathbf{h}_i$），它需要表达"**我有什么特征可以被匹配？**"（Key）
+- 当它被选中并参与聚合时（$\mathbf{h}_i$），它还需要表达"**我能提供什么具体信息？**"（Value）
 
-同一个向量被迫同时回答"我在找什么"和"我是什么"——这两个问题的答案可能完全不同。
+在步骤三的公式 $\mathbf{c}_t = \sum_{i=1}^{t-1} \text{softmax}(\mathbf{h}_t \cdot \mathbf{h}_i) \cdot \mathbf{h}_i$ 中，这种冲突直接体现在了 **$\mathbf{h}_i$ 出现了两次**：一次在点积中充当 Key，一次在加权求和中充当 Value。同一个向量必须同时回答"我是什么"和"我能提供什么"——这两个目标可能完全不同。
 
 ```{note}
-**一个具体的例子**：假设 $\mathbf{h}_5$ 是一个动词"跑"的表示，而 $\mathbf{h}_2$ 是一个名词"猫"。在计算 $\mathbf{h}_5$ 应该分配多少注意力给 $\mathbf{h}_2$ 时：
-- $\mathbf{h}_5$ 作为 **查询方**：最关心的是"谁在做动作"——它想找主语
-- $\mathbf{h}_2$ 作为 **被查询方**：需要暴露自己是"名词、生物、可以做主语"的信息
+**一个具体的例子**：假设 $\mathbf{h}_2$ 是名词"猫"的表示。当未来的动词"跑"（$\mathbf{h}_5$）来查询它时：
+- 作为 **Key**：$\mathbf{h}_2$ 需要暴露"我是名词、生物、可以做主语"的索引特征，以便和 $\mathbf{h}_5$ 的查询向量匹配
+- 作为 **Value**：$\mathbf{h}_2$ 需要提供"猫"的完整语义信息，以便聚合到上下文中
 
-如果 $\mathbf{h}_2$ 必须同时"体现自己的完整语义"（作为 $\mathbf{h}_{t}$ 传给下一步）和"把自己的主语属性暴露出来供查询"（作为 Key），这两个目标会互相拉扯——表达力受限。
+如果 $\mathbf{h}_2$ 必须用同一套数值同时满足"做索引标签"和"做内容载体"两个目标，表达力会严重受限——它无法针对不同职能做专门的优化。
 ```
 
 解决方案很自然：**给每个向量三个可学习的投影**，让它能根据"当前扮演什么角色"来调整自己的表达 {cite}`vaswani2017attention`：
 
-- **Query $\mathbf{q}_t = \mathbf{W}_q \mathbf{h}_t$**（查询）："作为查询方，我在找什么？"——从当前时刻出发的检索需求
-- **Key $\mathbf{k}_i = \mathbf{W}_k \mathbf{h}_i$**（键）："作为被查询方，我是什么？"——暴露自己供别人检索的特征
-- **Value $\mathbf{v}_i = \mathbf{W}_v \mathbf{h}_i$**（值）："不管谁来查，我有什么信息可以提供？"——实际被聚合的内容
-
-```{note}
-**$\mathbf{W}_q, \mathbf{W}_k, \mathbf{W}_v$ 是可学习的参数矩阵**（就像 {doc}`../neural-network-basics/fc-layer-basics` 中的全连接层权重），形状均为 $d \times d$。网络通过训练自主学会：什么样的投影适合做 Query？什么样的投影适合做 Key？什么样的投影适合做 Value？
-```
+- **Query $\mathbf{q}_t = \mathbf{W}_q \mathbf{h}_t$**（查询）：从当前时刻出发的检索需求
+- **Key $\mathbf{k}_i = \mathbf{W}_k \mathbf{h}_i$**（键）：暴露自己供别人检索的特征
+- **Value $\mathbf{v}_i = \mathbf{W}_v \mathbf{h}_i$**（值）：实际被聚合的内容
 
 对比步骤三的原始公式和推广后的公式：
 
-**原始**（$\mathbf{h}_t$ 身兼两职）：
+**原始**（$\mathbf{h}_i$ 身兼 Key/Value 两职）：
 
 $$
 \mathbf{c}_t = \sum_{i=1}^{t-1} \text{softmax}(\mathbf{h}_t \cdot \mathbf{h}_i) \cdot \mathbf{h}_i
 $$
 
-**推广后**（Q/K/V 三个角色）：
+**推广后**（Q/K/V 三个角色分离）：
 
 $$
-\mathbf{c}_t = \sum_{i=1}^{t-1} \text{softmax}\!\left(\frac{(\mathbf{W}_q \mathbf{h}_t) \cdot (\mathbf{W}_k \mathbf{h}_i)}{\sqrt{d_k}}\right) \cdot (\mathbf{W}_v \mathbf{h}_i)
+\mathbf{c}_t = \sum_{i=1}^{t-1} \text{softmax}\!\left((\mathbf{W}_q \mathbf{h}_t) \cdot (\mathbf{W}_k \mathbf{h}_i)\right) \cdot (\mathbf{W}_v \mathbf{h}_i) = \sum_{i=1}^{t-1} \text{softmax}\!\left(\mathbf{q}_t \cdot \mathbf{k}_i\right) \cdot \mathbf{v}_i
 $$
 
-即：
+可以看到：如果 $\mathbf{W}_q = \mathbf{W}_k = \mathbf{W}_v = \mathbf{I}$（单位矩阵），两式完全等价——步骤三的简单版本是步骤四的一个**特例**。
+
+除以 $\sqrt{d_k}$，即：
 
 $$
 \text{Attention}(\mathbf{q}_t, \mathbf{K}, \mathbf{V}) = \sum_{i=1}^{t-1} \text{softmax}\!\left(\frac{\mathbf{q}_t \cdot \mathbf{k}_i}{\sqrt{d_k}}\right) \cdot \mathbf{v}_i
 $$
 
-可以看到：如果 $\mathbf{W}_q = \mathbf{W}_k = \mathbf{W}_v = \mathbf{I}$（单位矩阵），三式完全等价——步骤三的简单版本是步骤四的一个**特例**。
-
-```{note}
-**为什么除以 $\sqrt{d_k}$？**
+```{admonition} 为什么除以 $\sqrt{d_k}$?
+:class: note
 
 当 Key 的维度 $d_k$ 很大时，点积 $\mathbf{q} \cdot \mathbf{k}$ 的方差约为 $d_k$。大点积值会让 Softmax 进入饱和区——大部分 $\alpha$ 趋近于 0 或 1，梯度几乎为 0。除以 $\sqrt{d_k}$ 将方差缩放到 1，保持 Softmax 输出平滑、梯度健康。这被称为**缩放点积注意力（Scaled Dot-Product Attention）**。
 ```

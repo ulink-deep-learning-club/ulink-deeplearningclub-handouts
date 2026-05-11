@@ -131,8 +131,8 @@ latex_elements = {
 % Emoji Fallback 设置
 \directlua{
   luaotfload.add_fallback("emojifallback", {
-    "NotoEmoji-Regular:mode=harf;",        
-    "NotoSansCJKsc-Regular:mode=harf;"     
+    "NotoEmoji-Regular:mode=harf;",
+    "NotoSansCJKsc-Regular:mode=harf;"
   })
 }
 
@@ -147,12 +147,9 @@ latex_elements = {
 \setCJKmonofont{Noto Sans Mono CJK SC}[AutoFakeSlant=true]
 ''',
     'preamble': r'''
-\addtolength{\topmargin}{-1pt}
 \renewcommand{\familydefault}{\rmdefault}
-
-% 顺便解决你刚才提到的 \times 书签警告问题
 \pdfstringdefDisableCommands{%
-  \def\times{×}% 
+  \def\times{×}%
 }
 ''',
 }
@@ -202,7 +199,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.cache']
 tikz_proc_suite = 'pdf2svg'
 tikz_resolution = 92
 tikz_latex_preamble = r'''
-\usepackage[UTF8]{ctex}
+\usepackage[UTF8, fontset=none]{ctex}
 \usepackage{fontspec}
 \usetikzlibrary{shapes,arrows,arrows.meta,positioning,shapes.geometric,calc,decorations.pathreplacing,trees,backgrounds,fit}
 \usepackage{amsmath}

@@ -254,7 +254,7 @@ for stage, layers in enumerate(layer_groups):
 **为什么从顶层开始解冻？**
 
 ~~~{mermaid}
-flowchart TB
+flowchart LR
     subgraph 浅层 [浅层: 边缘/颜色/纹理]
         L1[Layer1]
         L2[Layer2]
