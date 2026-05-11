@@ -1,6 +1,6 @@
 (appendix-env)=
 
-# 环境配置番外篇
+# 环境配置
 
 ```{toctree}
 :hidden:

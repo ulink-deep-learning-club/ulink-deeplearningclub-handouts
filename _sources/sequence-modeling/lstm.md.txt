@@ -392,8 +392,13 @@ print(f"LSTM  W_ih grad norm: {lstm.weight_ih_l0.grad.norm():.10f}")
 
 ---
 
-## 参考文献
+```{only} not pdf
 
-```{bibliography}
+~~~{rubric} 参考文献
+:heading-level: 2
+~~~
+
+~~~{bibliography}
 :filter: docname in docnames
+~~~
 ```

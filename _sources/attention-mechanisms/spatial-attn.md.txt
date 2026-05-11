@@ -84,8 +84,13 @@ M_s = \sigma(f^{7\times7}([\text{AvgPool}^c(F); \text{MaxPool}^c(F)]))
 
 ---
 
-## 参考文献
+```{only} not pdf
 
-```{bibliography}
+~~~{rubric} 参考文献
+:heading-level: 2
+~~~
+
+~~~{bibliography}
 :filter: docname in docnames
+~~~
 ```

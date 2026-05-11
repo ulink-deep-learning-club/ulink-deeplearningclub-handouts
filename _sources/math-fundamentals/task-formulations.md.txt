@@ -304,8 +304,13 @@ $$p(y_t | y_1, ..., y_{t-1}, \underbrace{y_{t+1}, ...}_{\text{不能用}})$$
 
 ---
 
-## 参考文献
+```{only} not pdf
 
-```{bibliography}
+~~~{rubric} 参考文献
+:heading-level: 2
+~~~
+
+~~~{bibliography}
 :filter: docname in docnames
+~~~
 ```

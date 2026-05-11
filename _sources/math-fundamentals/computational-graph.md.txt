@@ -168,8 +168,13 @@ PyTorch的 `backward()` 自动完成了这些计算。
 
 ---
 
-## 参考文献
+```{only} not pdf
 
-```{bibliography}
+~~~{rubric} 参考文献
+:heading-level: 2
+~~~
+
+~~~{bibliography}
 :filter: docname in docnames
+~~~
 ```

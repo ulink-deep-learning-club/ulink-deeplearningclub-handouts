@@ -1,7 +1,6 @@
 # Deep Learning Club 学习教程
 
 ~~~{toctree}
-:maxdepth: 2
 :hidden:
 
 preface
@@ -15,8 +14,7 @@ model-architecture-design/index
 unet-image-segmentation/index
 sequence-modeling/index
 model-serving/index
-appendix/environment-setup/index
-appendix/sphinx-guide/index
+appendix/index
 postscript
 ~~~
 

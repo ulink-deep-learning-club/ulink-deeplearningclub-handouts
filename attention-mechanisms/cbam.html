@@ -216,15 +216,18 @@
 <li class="toctree-l2"><a class="reference internal" href="../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-serving/the-end.html">结语：完整的学习链路</a></li>
 </ul></details></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置番外篇</a>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">附录</a>
 <details><summary aria-label="Toggle submenu"></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
 </ul></details></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/sphinx-guide/index.html">Sphinx Markdown 写作指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/sphinx-guide/index.html">Sphinx Markdown 语法参考</a></li>
+</ul></details></li>
 <li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
 </ul>
 </nav>
@@ -269,7 +272,7 @@
 </label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="cbam">
 <span id="id1"></span><h1>通道+空间注意力：CBAM<a class="headerlink" href="#cbam" title="Link to this heading">#</a></h1>
 <p><a class="reference internal" href="se-net.html#se-net"><span class="std std-ref">通道注意力：SE-Net</span></a> 解决了&quot;什么特征重要&quot;（通道维度），<a class="reference internal" href="spatial-attn.html"><span class="doc">空间注意力</span></a> 解决了&quot;哪里重要&quot;（空间维度）。那么问题来了：<strong>能不能两个都要？</strong></p>
-<p>CBAM（Convolutional Block Attention Module）<span id="id2">[<a class="reference internal" href="spatial-attn.html#id92" title="Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In Proceedings of the European Conference on Computer Vision (ECCV), 3–19. 2018.">WPLK18</a>]</span> 就是答案——它把通道注意力和空间注意力串联起来，形成一个更强大的注意力模块。</p>
+<p>CBAM（Convolutional Block Attention Module）<span id="id2">[<a class="reference internal" href="spatial-attn.html#id91" title="Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In Proceedings of the European Conference on Computer Vision (ECCV), 3–19. 2018.">WPLK18</a>]</span> 就是答案——它把通道注意力和空间注意力串联起来，形成一个更强大的注意力模块。</p>
 <section id="id3">
 <h2>核心思想：先&quot;选频道&quot;再&quot;调区域&quot;<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
 <p>CBAM 的工作流程很直观：先判断哪些通道重要（通道注意力），再判断这些重要通道中的哪些空间位置最关键（空间注意力）。</p>
@@ -305,8 +308,8 @@
 <p>CBAM 的通道注意力与 SE-Net 类似，但增加了一个改进：<strong>同时使用平均池化和最大池化</strong>：</p>
 <div class="math notranslate nohighlight">
 \[M_c(F) = \sigma(\text{MLP}(\text{AvgPool}(F)) + \text{MLP}(\text{MaxPool}(F)))\]</div>
-<div class="literal-block-wrapper docutils container" id="id114">
-<div class="code-block-caption"><span class="caption-text">CBAM通道注意力模块实现</span><a class="headerlink" href="#id114" title="Link to this code">#</a></div>
+<div class="literal-block-wrapper docutils container" id="id113">
+<div class="code-block-caption"><span class="caption-text">CBAM通道注意力模块实现</span><a class="headerlink" href="#id113" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="linenos"> 3</span>
@@ -360,8 +363,8 @@
 <section id="id6">
 <h3>空间注意力部分<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
 <p>与 <a class="reference internal" href="spatial-attn.html"><span class="doc">空间注意力</span></a> 中描述的一致，使用通道池化 + <span class="math notranslate nohighlight">\(7 \times 7\)</span> 卷积生成空间注意力图。</p>
-<div class="literal-block-wrapper docutils container" id="id115">
-<div class="code-block-caption"><span class="caption-text">CBAM空间注意力模块实现</span><a class="headerlink" href="#id115" title="Link to this code">#</a></div>
+<div class="literal-block-wrapper docutils container" id="id114">
+<div class="code-block-caption"><span class="caption-text">CBAM空间注意力模块实现</span><a class="headerlink" href="#id114" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="linenos"> 3</span>
@@ -415,8 +418,8 @@
 </section>
 <section id="id7">
 <h3>完整CBAM模块<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
-<div class="literal-block-wrapper docutils container" id="id116">
-<div class="code-block-caption"><span class="caption-text">完整CBAM模块实现</span><a class="headerlink" href="#id116" title="Link to this code">#</a></div>
+<div class="literal-block-wrapper docutils container" id="id115">
+<div class="code-block-caption"><span class="caption-text">完整CBAM模块实现</span><a class="headerlink" href="#id115" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="linenos"> 3</span><span class="kn">from</span><span class="w"> </span><span class="nn">.channel_attention</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChannelAttention</span>
@@ -461,8 +464,8 @@
 </pre></div>
 </div>
 </div>
-<div class="literal-block-wrapper docutils container" id="id117">
-<div class="code-block-caption"><span class="caption-text">CBAM-ResNet基础块实现</span><a class="headerlink" href="#id117" title="Link to this code">#</a></div>
+<div class="literal-block-wrapper docutils container" id="id116">
+<div class="code-block-caption"><span class="caption-text">CBAM-ResNet基础块实现</span><a class="headerlink" href="#id116" title="Link to this code">#</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="linenos"> 3</span><span class="kn">from</span><span class="w"> </span><span class="nn">.cbam</span><span class="w"> </span><span class="kn">import</span> <span class="n">CBAM</span>
@@ -568,7 +571,7 @@
 </tbody>
 </table>
 </div>
-<p>CBAM 的实验表明 <span id="id8">[<a class="reference internal" href="spatial-attn.html#id92" title="Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In Proceedings of the European Conference on Computer Vision (ECCV), 3–19. 2018.">WPLK18</a>]</span>：在 ImageNet 上，CBAM-ResNet-50 达到 <strong>78.49%</strong> Top-1 准确率，比基线 ResNet-50（76.15%）提升 <strong>+2.34%</strong>，比 SE-ResNet-50（77.62%）额外提升 <strong>+0.87%</strong>。</p>
+<p>CBAM 的实验表明 <span id="id8">[<a class="reference internal" href="spatial-attn.html#id91" title="Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In Proceedings of the European Conference on Computer Vision (ECCV), 3–19. 2018.">WPLK18</a>]</span>：在 ImageNet 上，CBAM-ResNet-50 达到 <strong>78.49%</strong> Top-1 准确率，比基线 ResNet-50（76.15%）提升 <strong>+2.34%</strong>，比 SE-ResNet-50（77.62%）额外提升 <strong>+0.87%</strong>。</p>
 <div class="note admonition">
 <p class="admonition-title">为什么要先通道再空间？</p>
 <p>CBAM 的作者实验发现<strong>先通道再空间</strong>的效果优于先空间再通道或并行。直觉上：先通过通道注意力突出重要的语义特征，再通过空间注意力定位这些特征在图像中的具体位置——这个顺序更符合人的认知习惯：“先知道看什么，再知道看哪里”。</p>
@@ -576,14 +579,11 @@
 <section id="id9">
 <h3>下一步<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
 <p>理解了 SE-Net、空间注意力和 CBAM 后，你可能想知道：<strong>实际项目中应该选哪个？</strong> <a class="reference internal" href="comparison.html"><span class="doc">注意力机制的选择与应用</span></a> 将通过实验数据帮你做出选择。</p>
-</section>
-</section>
 <hr class="docutils" />
-<section id="id10">
-<h2>参考文献<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
-<div class="docutils container" id="id11">
+<h2 class="rubric">参考文献</h2>
+<div class="docutils container" id="id10">
 <div role="list" class="citation-list">
-<div class="citation" id="id94" role="doc-biblioentry">
+<div class="citation" id="id93" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>WPLK18<span class="fn-bracket">]</span></span>
 <span class="backrefs">(<a role="doc-backlink" href="#id2">1</a>,<a role="doc-backlink" href="#id8">2</a>)</span>
 <p>Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. Cbam: convolutional block attention module. In <em>Proceedings of the European Conference on Computer Vision (ECCV)</em>, 3–19. 2018.</p>
@@ -592,12 +592,13 @@
 </div>
 </section>
 </section>
+</section>
 
     <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (3 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (4 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -605,6 +606,11 @@
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">a954ca5</code>
+                2026-05-11 - <strong>Heyan Zhu</strong>: docs: revise and restructure documentation, fix formatting, and move env setup and sphinx guide to a separate appendix section
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f159d56</code>
                 2026-05-08 - <strong>Heyan Zhu</strong>: fix: address complaints from the linter
@@ -694,7 +700,6 @@
 <li><a class="reference internal" href="#id9">下一步</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id10">参考文献</a></li>
 </ul></nav>
   
 

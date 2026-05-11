@@ -216,15 +216,18 @@
 <li class="toctree-l2"><a class="reference internal" href="../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-serving/the-end.html">结语：完整的学习链路</a></li>
 </ul></details></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置番外篇</a>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">附录</a>
 <details><summary aria-label="Toggle submenu"></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
 </ul></details></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/sphinx-guide/index.html">Sphinx Markdown 写作指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/sphinx-guide/index.html">Sphinx Markdown 语法参考</a></li>
+</ul></details></li>
 <li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
 </ul>
 </nav>
@@ -269,10 +272,10 @@
 </label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="transformer">
 <span id="id1"></span><h1>Transformer：注意力的极致<a class="headerlink" href="#transformer" title="Link to this heading">#</a></h1>
 <p><a class="reference internal" href="from-rnn-to-attention.html"><span class="doc">从RNN到注意力：一个思想的跳跃</span></a> 中，因果注意力已经可以把每个位置与所有前序位置直接关联。但你可能会问：<strong>既然注意力这么好，为什么还要保留 RNN 的循环结构？</strong></p>
-<p>Transformer 的回答是：<strong>不要了</strong>。把 RNN 全部扔掉，整个架构只靠注意力来传递信息。这就是 “Attention Is All You Need” <span id="id2">[<a class="reference internal" href="#id111" title="Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In Advances in Neural Information Processing Systems (NeurIPS), volume 30. 2017.">VSP+17</a>]</span> 的核心主张。</p>
+<p>Transformer 的回答是：<strong>不要了</strong>。把 RNN 全部扔掉，整个架构只靠注意力来传递信息。这就是 “Attention Is All You Need” <span id="id2">[<a class="reference internal" href="#id110" title="Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In Advances in Neural Information Processing Systems (NeurIPS), volume 30. 2017.">VSP+17</a>]</span> 的核心主张。</p>
 <section id="id3">
 <h2>历史背景<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
-<p>2014年，Bahdanau 等人提出了注意力机制 <span id="id4">[<a class="reference internal" href="#id110" title="Dzmitry Bahdanau, Kyunghyun Cho, and Yoshua Bengio. Neural machine translation by jointly learning to align and translate. In International Conference on Learning Representations (ICLR). 2015.">BCB15</a>]</span>，让解码器在生成每个词时能&quot;回顾&quot;编码器的所有隐状态——我们已在 <a class="reference internal" href="from-rnn-to-attention.html"><span class="doc">从RNN到注意力：一个思想的跳跃</span></a> 中推导了这一思想的起源。但 Bahdanau 的架构仍以 RNN 为骨架，注意力只是&quot;外挂&quot;。</p>
+<p>2014年，Bahdanau 等人提出了注意力机制 <span id="id4">[<a class="reference internal" href="#id109" title="Dzmitry Bahdanau, Kyunghyun Cho, and Yoshua Bengio. Neural machine translation by jointly learning to align and translate. In International Conference on Learning Representations (ICLR). 2015.">BCB15</a>]</span>，让解码器在生成每个词时能&quot;回顾&quot;编码器的所有隐状态——我们已在 <a class="reference internal" href="from-rnn-to-attention.html"><span class="doc">从RNN到注意力：一个思想的跳跃</span></a> 中推导了这一思想的起源。但 Bahdanau 的架构仍以 RNN 为骨架，注意力只是&quot;外挂&quot;。</p>
 <p>2017年，Vaswani 等人在 “Attention Is All You Need” 中做了一个大胆的决定：<strong>完全抛弃 RNN</strong>。他们证明，纯注意力架构不仅在翻译质量上超越了当时最好的 RNN 模型，而且训练更快（因为可以并行）。</p>
 <div class="admonition note">
 <p class="admonition-title">备注</p>
@@ -318,7 +321,7 @@
 <p>如果你已经学过 <a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a>，这里有一个重要的联系：<strong>自注意力在表达能力上是卷积的严格超集</strong>。</p>
 <p><strong>卷积</strong>（<a class="reference internal" href="../neural-network-basics/cnn-basics.html#receptive-field"><span class="std std-ref">感受野</span></a>）：一个 <span class="math notranslate nohighlight">\(3 \times 3\)</span> 卷积核只看相邻 9 个像素。它对所有输入位置使用<strong>同一套权重</strong>（权值共享），且<strong>感受野范围是固定的</strong>——无论输入是什么，每个神经元看到的区域大小不变。</p>
 <p><strong>自注意力</strong>：通过注意力分数矩阵 <span class="math notranslate nohighlight">\(\text{softmax}(QK^T/\sqrt{d_k})\)</span>，每个位置可以关注<strong>任意其他位置</strong>。权值是<strong>输入依赖的</strong>——不同输入产生不同的注意力分布。感受野是<strong>动态的</strong>——遇到相关的内容就多关注，不相关的就忽略。</p>
-<p>卷积是自注意力的一个特例：如果把注意力限制为只在局部邻域内计算，且固定注意力权重（不依赖输入），就退化成了卷积。<span id="id7">[<a class="reference internal" href="#id113" title="Jean-Baptiste Cordonnier, Andreas Loukas, and Martin Jaggi. On the relationship between self-attention and convolutional layers. In International Conference on Learning Representations (ICLR). 2020.">CLJ20</a>]</span></p>
+<p>卷积是自注意力的一个特例：如果把注意力限制为只在局部邻域内计算，且固定注意力权重（不依赖输入），就退化成了卷积。<span id="id7">[<a class="reference internal" href="#id112" title="Jean-Baptiste Cordonnier, Andreas Loukas, and Martin Jaggi. On the relationship between self-attention and convolutional layers. In International Conference on Learning Representations (ICLR). 2020.">CLJ20</a>]</span></p>
 <div class="admonition note">
 <p class="admonition-title">备注</p>
 <p><strong>ViT 为什么能成功？</strong> <a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a> 告诉我们，CNN 成功的核心是 <a class="reference internal" href="../neural-network-basics/introduction.html#inductive-bias"><span class="std std-ref">归纳偏置（Inductive Bias）</span></a>——局部感受野和权值共享。自注意力放弃了这些硬编码的先验，换来了更大的灵活性。在数据量充足时，灵活性胜出（ViT 超越 CNN）；在数据量不足时，CNN 的先验仍然宝贵（CNN 在小数据集上更好）。</p>
@@ -371,9 +374,9 @@
 <section id="transformer-block">
 <h3>升级四：完整的Transformer Block<a class="headerlink" href="#transformer-block" title="Link to this heading">#</a></h3>
 <p>除了注意力，Transformer 还引入了另外两个关键组件：</p>
-<div class="figure" id="id116" style="text-align: center"><p><img  src="../_images/tikz-57b79d6fee27002673d39b624a19ff8b85010db2.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id115" style="text-align: center"><p><img  src="../_images/tikz-57b79d6fee27002673d39b624a19ff8b85010db2.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Transformer Block 结构</span></p>
-</div><p><strong>残差连接 + LayerNorm</strong>：与 <a class="reference internal" href="../neural-network-basics/res-net.html#res-net"><span class="std std-ref">ResNet：深层网络的突破</span></a> 的设计思想一致——为梯度创建&quot;捷径&quot;，让深层网络更易训练。区别在于 Transformer 用 LayerNorm（沿特征维度归一化），ResNet 多用 BatchNorm（沿批次维度归一化）<span id="id10">[<a class="reference internal" href="#id54" title="Jimmy Lei Ba, Jamie Ryan Kiros, and Geoffrey E Hinton. Layer normalization. In International Conference on Machine Learning, 1247–1256. PMLR, 2016.">BKH16</a>]</span>。</p>
+</div><p><strong>残差连接 + LayerNorm</strong>：与 <a class="reference internal" href="../neural-network-basics/res-net.html#res-net"><span class="std std-ref">ResNet：深层网络的突破</span></a> 的设计思想一致——为梯度创建&quot;捷径&quot;，让深层网络更易训练。区别在于 Transformer 用 LayerNorm（沿特征维度归一化），ResNet 多用 BatchNorm（沿批次维度归一化）<span id="id10">[<a class="reference internal" href="#id53" title="Jimmy Lei Ba, Jamie Ryan Kiros, and Geoffrey E Hinton. Layer normalization. In International Conference on Machine Learning, 1247–1256. PMLR, 2016.">BKH16</a>]</span>。</p>
 </section>
 <section id="ffn">
 <span id="transformer-ffn"></span><h3>前馈网络（FFN）：被低估的&quot;知识存储器&quot;<a class="headerlink" href="#ffn" title="Link to this heading">#</a></h3>
@@ -436,7 +439,7 @@
 </tbody>
 </table>
 </div>
-<p><strong>FFN 的参数量是注意力的约 2 倍！</strong> 在 GPT-3（175B 参数）中，FFN 层占总参数的大多数。这暗示了一个重要事实：Transformer 的知识主要存储在 FFN 的权重中——注意力负责&quot;查什么&quot;，FFN 负责&quot;知道什么&quot; <span id="id11">[<a class="reference internal" href="#id115" title="Mor Geva, Roei Schuster, Jonathan Berant, and Omer Levy. Transformer feed-forward layers are key-value memories. In Proceedings of the Conference on Empirical Methods in Natural Language Processing (EMNLP), 5484–5495. 2021.">GSBL21</a>]</span>。</p>
+<p><strong>FFN 的参数量是注意力的约 2 倍！</strong> 在 GPT-3（175B 参数）中，FFN 层占总参数的大多数。这暗示了一个重要事实：Transformer 的知识主要存储在 FFN 的权重中——注意力负责&quot;查什么&quot;，FFN 负责&quot;知道什么&quot; <span id="id11">[<a class="reference internal" href="#id114" title="Mor Geva, Roei Schuster, Jonathan Berant, and Omer Levy. Transformer feed-forward layers are key-value memories. In Proceedings of the Conference on Empirical Methods in Natural Language Processing (EMNLP), 5484–5495. 2021.">GSBL21</a>]</span>。</p>
 <div class="admonition note">
 <p class="admonition-title">备注</p>
 <p><strong>FFN 可以看作一种键值存储器</strong>：</p>
@@ -598,29 +601,27 @@
 </ul>
 </div>
 <p>Transformer 成功了——它几乎统治了 NLP、CV 乃至更多领域的序列建模。但 <span class="math notranslate nohighlight">\(O(n^2)\)</span> 这个&quot;原罪&quot;始终存在。下一节 <a class="reference internal" href="mamba-intro.html"><span class="doc">Mamba 简述：对RNN思想的回归</span></a> 中，我们将看到一个有趣的思想回归：<strong>能不能既拥有 RNN 的 O(n) 效率，又解决长程依赖问题？</strong></p>
-</section>
 <hr class="docutils" />
-<section id="id12">
-<h2>参考文献<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
-<div class="docutils container" id="id13">
+<h2 class="rubric">参考文献</h2>
+<div class="docutils container" id="id12">
 <div role="list" class="citation-list">
-<div class="citation" id="id54" role="doc-biblioentry">
+<div class="citation" id="id53" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id10">BKH16</a><span class="fn-bracket">]</span></span>
 <p>Jimmy Lei Ba, Jamie Ryan Kiros, and Geoffrey E Hinton. Layer normalization. In <em>International Conference on Machine Learning</em>, 1247–1256. PMLR, 2016.</p>
 </div>
-<div class="citation" id="id110" role="doc-biblioentry">
+<div class="citation" id="id109" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">BCB15</a><span class="fn-bracket">]</span></span>
 <p>Dzmitry Bahdanau, Kyunghyun Cho, and Yoshua Bengio. Neural machine translation by jointly learning to align and translate. In <em>International Conference on Learning Representations (ICLR)</em>. 2015.</p>
 </div>
-<div class="citation" id="id113" role="doc-biblioentry">
+<div class="citation" id="id112" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">CLJ20</a><span class="fn-bracket">]</span></span>
 <p>Jean-Baptiste Cordonnier, Andreas Loukas, and Martin Jaggi. On the relationship between self-attention and convolutional layers. In <em>International Conference on Learning Representations (ICLR)</em>. 2020.</p>
 </div>
-<div class="citation" id="id115" role="doc-biblioentry">
+<div class="citation" id="id114" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id11">GSBL21</a><span class="fn-bracket">]</span></span>
 <p>Mor Geva, Roei Schuster, Jonathan Berant, and Omer Levy. Transformer feed-forward layers are key-value memories. In <em>Proceedings of the Conference on Empirical Methods in Natural Language Processing (EMNLP)</em>, 5484–5495. 2021.</p>
 </div>
-<div class="citation" id="id111" role="doc-biblioentry">
+<div class="citation" id="id110" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">VSP+17</a><span class="fn-bracket">]</span></span>
 <p>Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In <em>Advances in Neural Information Processing Systems (NeurIPS)</em>, volume 30. 2017.</p>
 </div>
@@ -633,7 +634,7 @@
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -641,6 +642,11 @@
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">a954ca5</code>
+                2026-05-11 - <strong>Heyan Zhu</strong>: docs: revise and restructure documentation, fix formatting, and move env setup and sphinx guide to a separate appendix section
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">8eb3275</code>
                 2026-05-09 - <strong>Heyan Zhu</strong>: feat(sequence-modeling): add new chapter on sequence modeling from RNN to Mamba
@@ -720,7 +726,6 @@
 </li>
 <li><a class="reference internal" href="#transformer-o-n2">Transformer的代价：O(n²)复杂度</a></li>
 <li><a class="reference internal" href="#transformer-encoder">代码实践：简化的Transformer Encoder</a></li>
-<li><a class="reference internal" href="#id12">参考文献</a></li>
 </ul></nav>
   
 

@@ -397,8 +397,13 @@ model = get_peft_model(base_model, config)
 
 ---
 
-## 参考文献
+```{only} not pdf
 
-```{bibliography}
+~~~{rubric} 参考文献
+:heading-level: 2
+~~~
+
+~~~{bibliography}
 :filter: docname in docnames
+~~~
 ```

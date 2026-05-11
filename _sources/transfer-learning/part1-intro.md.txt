@@ -209,8 +209,13 @@ $$\text{Performance}_{\text{迁移}} < \text{Performance}_{\text{从头训练}}$
 
 ---
 
-## 参考文献
+```{only} not pdf
 
-```{bibliography}
+~~~{rubric} 参考文献
+:heading-level: 2
+~~~
+
+~~~{bibliography}
 :filter: docname in docnames
+~~~
 ```

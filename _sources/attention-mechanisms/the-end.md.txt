@@ -50,7 +50,7 @@
 
 ## 延伸：自注意力与多头注意力
 
-SE-Net 和 CBAM 是 CNN 中专用的注意力形式。更通用的**自注意力（Self-Attention）**和**多头注意力（Multi-Head Attention）**是 Transformer 架构的核心（详见 {ref}`transformer`）：
+SE-Net 和 CBAM 是 CNN 中专用的注意力形式。更通用的 **自注意力（Self-Attention）** 和 **多头注意力（Multi-Head Attention）** 是 Transformer 架构的核心（详见 {ref}`transformer`）：
 
 - **自注意力**：让序列中每个位置都能关注所有其他位置
 - **多头注意力**：同时从多个角度计算注意力
@@ -103,10 +103,15 @@ SE-Net 和 CBAM 是 CNN 中专用的注意力形式。更通用的**自注意力
 
 ---
 
-## 参考文献
+```{only} not pdf
 
-```{bibliography}
+~~~{rubric} 参考文献
+:heading-level: 2
+~~~
+
+~~~{bibliography}
 :filter: docname in docnames
+~~~
 ```
 
 **本章完。**

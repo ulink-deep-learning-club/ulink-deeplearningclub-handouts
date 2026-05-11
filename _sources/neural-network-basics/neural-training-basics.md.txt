@@ -229,7 +229,7 @@ class Net(nn.Module):
         return self.fc2(x)
 ```
 
-**测试时为什么关闭Dropout？** 训练时的随机丢弃相当于训练了多个"子网络"（2^N种可能的组合）。测试时我们使用完整网络，相当于**集成（ensemble）**了所有这些子网络的预测，取平均——这通常比任何单个子网络更稳定。
+**测试时为什么关闭Dropout？** 训练时的随机丢弃相当于训练了多个"子网络"（2^N种可能的组合）。测试时我们使用完整网络，相当于 **集成（ensemble）** 了所有这些子网络的预测，取平均——这通常比任何单个子网络更稳定。
 
 ---
 
@@ -452,8 +452,13 @@ for epoch in range(num_epochs):
 
 ---
 
-## 参考文献
+```{only} not pdf
 
-```{bibliography}
+~~~{rubric} 参考文献
+:heading-level: 2
+~~~
+
+~~~{bibliography}
 :filter: docname in docnames
+~~~
 ```

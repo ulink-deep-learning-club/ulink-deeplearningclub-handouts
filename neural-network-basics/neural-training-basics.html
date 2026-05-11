@@ -216,15 +216,18 @@
 <li class="toctree-l2"><a class="reference internal" href="../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../model-serving/the-end.html">结语：完整的学习链路</a></li>
 </ul></details></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置番外篇</a>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">附录</a>
 <details><summary aria-label="Toggle submenu"></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
 </ul></details></li>
-<li class="toctree-l1"><a class="reference internal" href="../appendix/sphinx-guide/index.html">Sphinx Markdown 写作指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/sphinx-guide/index.html">Sphinx Markdown 语法参考</a></li>
+</ul></details></li>
 <li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
 </ul>
 </nav>
@@ -362,7 +365,7 @@
 <li><p><strong>原因</strong>：模型记住了训练数据的噪声，而非学习通用规律</p></li>
 <li><p><strong>解决</strong>：使用正则化、早停、数据增强、降低模型复杂度</p></li>
 </ul>
-<div class="figure" id="id129" style="text-align: center"><p><img  src="../_images/tikz-67b89bbfd840701fc983520ba081eef2335a15be.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id128" style="text-align: center"><p><img  src="../_images/tikz-67b89bbfd840701fc983520ba081eef2335a15be.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">模型复杂度与泛化性能</span></p>
 </div><p>图中的&quot;最佳点&quot;是我们追求的目标：足够复杂的模型捕捉规律，但不至于过拟合。找到这个点需要<strong>验证集</strong>——用训练集学习，用验证集调参，最后用测试集评估。</p>
 </section>
@@ -450,7 +453,7 @@
 <hr class="docutils" />
 <section id="dropout">
 <h3>2. Dropout：随机&quot;罢工&quot;迫使协作<a class="headerlink" href="#dropout" title="Link to this heading">#</a></h3>
-<p>Dropout 由 Srivastava 等人在 2014 年提出 <span id="id11">[<a class="reference internal" href="#id69" title="Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan Salakhutdinov. Dropout: a simple way to prevent neural networks from overfitting. The journal of machine learning research, 15(1):1929–1958, 2014.">SHK+14</a>]</span>，是防止神经网络过拟合的有效方法。</p>
+<p>Dropout 由 Srivastava 等人在 2014 年提出 <span id="id11">[<a class="reference internal" href="#id68" title="Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan Salakhutdinov. Dropout: a simple way to prevent neural networks from overfitting. The journal of machine learning research, 15(1):1929–1958, 2014.">SHK+14</a>]</span>，是防止神经网络过拟合的有效方法。</p>
 <div class="tip admonition">
 <p class="admonition-title">核心洞察：随机&quot;点名&quot;防止依赖&quot;学霸&quot;</p>
 <p>想象一个班级有50人，老师提问时总是叫同一个&quot;学霸&quot;回答：</p>
@@ -487,7 +490,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>测试时为什么关闭Dropout？</strong> 训练时的随机丢弃相当于训练了多个&quot;子网络&quot;（2^N种可能的组合）。测试时我们使用完整网络，相当于**集成（ensemble）**了所有这些子网络的预测，取平均——这通常比任何单个子网络更稳定。</p>
+<p><strong>测试时为什么关闭Dropout？</strong> 训练时的随机丢弃相当于训练了多个&quot;子网络&quot;（2^N种可能的组合）。测试时我们使用完整网络，相当于 <strong>集成（ensemble）</strong> 了所有这些子网络的预测，取平均——这通常比任何单个子网络更稳定。</p>
 <hr class="docutils" />
 </section>
 </section>
@@ -500,7 +503,7 @@
 <p><strong>中期</strong>：你接近谷底，步伐变小，损失下降变慢——但仍朝着正确的方向微调。</p>
 <p><strong>后期</strong>：如果你继续走，可能会<strong>越过谷底</strong>，走上另一侧山坡——训练损失还在下降（因为你更贴合训练数据），但验证损失开始上升（因为你开始&quot;钻牛角尖&quot;，拟合了训练集的噪声）。</p>
 </div>
-<div class="figure" id="id130" style="text-align: center"><p><img  src="../_images/tikz-d3e00549d6cac1c1d1fef388e2ddc7d7eb86b1db.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id129" style="text-align: center"><p><img  src="../_images/tikz-d3e00549d6cac1c1d1fef388e2ddc7d7eb86b1db.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">早停法：在谷底停止，不要越过</span></p>
 </div><section id="id14">
 <h4>为什么验证损失上升意味着过拟合？<a class="headerlink" href="#id14" title="Link to this heading">#</a></h4>
@@ -732,7 +735,7 @@
 <td><p><a class="reference internal" href="../math-fundamentals/loss-functions.html#loss-functions"><span class="std std-ref">损失函数</span></a></p></td>
 </tr>
 <tr class="row-even"><td><p>优化器</p></td>
-<td><p>Adam <span id="id23">[<a class="reference internal" href="../unet-image-segmentation/practice.html#id64" title="Diederik P Kingma and Jimmy Ba. Adam: a method for stochastic optimization. In International Conference on Learning Representations. 2015.">KB15</a>]</span> 是默认首选，学习率0.001</p></td>
+<td><p>Adam <span id="id23">[<a class="reference internal" href="../unet-image-segmentation/practice.html#id63" title="Diederik P Kingma and Jimmy Ba. Adam: a method for stochastic optimization. In International Conference on Learning Representations. 2015.">KB15</a>]</span> 是默认首选，学习率0.001</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">--optimizer</span> <span class="pre">adamw</span></code></p></td>
 <td><p><a class="reference internal" href="../math-fundamentals/gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a></p></td>
 </tr>
@@ -767,17 +770,15 @@
 <li><p>如何通过控制变量法做出科学的设计决策？</p></li>
 </ul>
 <p>从&quot;知道怎么训练&quot;进化到&quot;知道怎么科学地验证训练方案&quot;！</p>
-</section>
 <hr class="docutils" />
-<section id="id25">
-<h2>参考文献<a class="headerlink" href="#id25" title="Link to this heading">#</a></h2>
-<div class="docutils container" id="id26">
+<h2 class="rubric">参考文献</h2>
+<div class="docutils container" id="id25">
 <div role="list" class="citation-list">
-<div class="citation" id="id70" role="doc-biblioentry">
+<div class="citation" id="id69" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id23">KB15</a><span class="fn-bracket">]</span></span>
 <p>Diederik P Kingma and Jimmy Ba. Adam: a method for stochastic optimization. In <em>International Conference on Learning Representations</em>. 2015.</p>
 </div>
-<div class="citation" id="id69" role="doc-biblioentry">
+<div class="citation" id="id68" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id11">SHK+14</a><span class="fn-bracket">]</span></span>
 <p>Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan Salakhutdinov. Dropout: a simple way to prevent neural networks from overfitting. <em>The journal of machine learning research</em>, 15(1):1929–1958, 2014.</p>
 </div>
@@ -790,7 +791,7 @@
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (7 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (8 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -798,6 +799,11 @@
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">a954ca5</code>
+                2026-05-11 - <strong>Heyan Zhu</strong>: docs: revise and restructure documentation, fix formatting, and move env setup and sphinx guide to a separate appendix section
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f159d56</code>
                 2026-05-08 - <strong>Heyan Zhu</strong>: fix: address complaints from the linter
@@ -933,7 +939,6 @@
 <li><a class="reference internal" href="#id21">训练监控指标</a></li>
 <li><a class="reference internal" href="#id22">总结：训练检查清单</a></li>
 <li><a class="reference internal" href="#id24">下一步</a></li>
-<li><a class="reference internal" href="#id25">参考文献</a></li>
 </ul></nav>
   
 
