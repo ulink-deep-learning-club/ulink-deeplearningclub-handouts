@@ -397,7 +397,7 @@ model = get_peft_model(base_model, config)
 
 ---
 
-```{only} not pdf
+```{only} not latex
 
 ~~~{rubric} 参考文献
 :heading-level: 2

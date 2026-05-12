@@ -321,7 +321,7 @@ loss.backward()  # 计算梯度
 
 ---
 
-```{only} not pdf
+```{only} not latex
 
 ~~~{rubric} 参考文献
 :heading-level: 2

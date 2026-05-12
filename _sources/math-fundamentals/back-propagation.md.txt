@@ -352,7 +352,7 @@ $$2 \times 2 \times ... \times 2 \quad (100次) = 2^{100} \approx 10^{30}$$
 
 ---
 
-```{only} not pdf
+```{only} not latex
 
 ~~~{rubric} 参考文献
 :heading-level: 2

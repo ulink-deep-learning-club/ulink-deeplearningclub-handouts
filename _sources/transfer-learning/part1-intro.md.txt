@@ -209,7 +209,7 @@ $$\text{Performance}_{\text{迁移}} < \text{Performance}_{\text{从头训练}}$
 
 ---
 
-```{only} not pdf
+```{only} not latex
 
 ~~~{rubric} 参考文献
 :heading-level: 2

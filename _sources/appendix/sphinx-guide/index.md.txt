@@ -254,7 +254,7 @@ le-net
 或者
 
 ``````markdown
-```{only} not pdf
+```{only} not latex
 只在非 PDF 输出中渲染的内容。
 ```
 ``````

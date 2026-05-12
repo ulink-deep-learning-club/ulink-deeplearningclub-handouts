@@ -168,7 +168,7 @@ PyTorch的 `backward()` 自动完成了这些计算。
 
 ---
 
-```{only} not pdf
+```{only} not latex
 
 ~~~{rubric} 参考文献
 :heading-level: 2

@@ -103,7 +103,7 @@ SE-Net 和 CBAM 是 CNN 中专用的注意力形式。更通用的 **自注意�
 
 ---
 
-```{only} not pdf
+```{only} not latex
 
 ~~~{rubric} 参考文献
 :heading-level: 2

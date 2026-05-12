@@ -341,7 +341,7 @@ class OutConv(nn.Module):
 
 ---
 
-```{only} not pdf
+```{only} not latex
 
 ~~~{rubric} 参考文献
 :heading-level: 2

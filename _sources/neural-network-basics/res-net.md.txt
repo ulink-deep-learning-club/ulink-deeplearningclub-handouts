@@ -472,7 +472,7 @@ ResNet 通过**残差连接**解决了深层网络的训练难题，其核心思
 
 ---
 
-```{only} not pdf
+```{only} not latex
 
 ~~~{rubric} 参考文献
 :heading-level: 2

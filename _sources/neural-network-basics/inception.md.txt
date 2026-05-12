@@ -278,7 +278,7 @@ Inception 的价值在于**提出了问题**：感受野应该多大？答案是
 
 ---
 
-```{only} not pdf
+```{only} not latex
 
 ~~~{rubric} 参考文献
 :heading-level: 2

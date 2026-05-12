@@ -128,7 +128,7 @@ SE 模块通常插入到残差块中、残差连接之前：
 
 ---
 
-```{only} not pdf
+```{only} not latex
 
 ~~~{rubric} 参考文献
 :heading-level: 2
