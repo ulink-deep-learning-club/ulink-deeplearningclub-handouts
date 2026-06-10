@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-content_root="../">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="操控注意力与长程依赖：信息该走哪条路" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="model-architecture-design/part4-attention.html" />
+<meta property="og:site_name" content="Deep Learning Club Handouts" />
+<meta property="og:description" content="CNN 中的注意力机制 详细介绍了 SE-Net 和 CBAM 的具体实现。现在我们从 设计心法 的角度来理解——注意力不是一种&quot;技巧&quot;，而是神经网络中 信息路由 的通用机制。 重新理解注意力：从&quot;模块&quot;到&quot;路由&quot;: 卷积神经网络 告诉我们卷积有 归纳偏置（Inductive Bias） ——平移等变性、局部感受野。这些归纳偏置让 ..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_model-architecture-design_part4-attention_2cff09c4.png" />
+<meta property="og:image:alt" content="CNN 中的注意力机制 详细介绍了 SE-Net 和 CBAM 的具体实现。现在我们从 设计心法 的角度来理解——注意力不是一种&quot;技巧&quot;，而是神经网络中 信息路由 的通用机制。 重新理解注意力：从&quot;模块&quot;到&quot;路由&quot;: 卷积神经网络 告诉我们卷积有 归纳偏置（Inductive Bias） ——平移等变性、局部感受野。这些归纳偏置让 ..." />
+<meta name="description" content="CNN 中的注意力机制 详细介绍了 SE-Net 和 CBAM 的具体实现。现在我们从 设计心法 的角度来理解——注意力不是一种&quot;技巧&quot;，而是神经网络中 信息路由 的通用机制。 重新理解注意力：从&quot;模块&quot;到&quot;路由&quot;: 卷积神经网络 告诉我们卷积有 归纳偏置（Inductive Bias） ——平移等变性、局部感受野。这些归纳偏置让 ..." />
+<meta name="twitter:card" content="summary_large_image" />
+<title>操控注意力与长程依赖：信息该走哪条路 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="操控效率：效果、速度与硬件的三角权衡" href="part5-efficiency.html"><link rel="prev" title="操控深度与连接：信息如何在网络中流动" href="part3-depth-connection.html"><script data-cfasync="false">(function(){
+    const m = localStorage.getItem("breeze-mode") || "auto";
+    const d = document.documentElement.dataset;
+    d.mode = m;
+    d.theme = m === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : m;
+  })();
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=9c6fee98" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+<body>
+  
+  
+  <div class="bz-skip-to-content"><a href="#bz-main-content">Skip to main content</a></div><header class="bz-header-main">
+  <div class="bz-header-start"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><a class="bz-header-brand" href="../index.html">
+  
+  
+  <span>Deep Learning Club Handouts</span>
+</a>
+  </div>
+  <div class="bz-header-end"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><div id="docsearch" class="bz-search-button">
+  <a
+    href="../search.html#q"
+    aria-label="Search the docs"
+    data-tooltip="Search the docs"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 -1 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
+    <span>搜索</span>
+    <kbd>Ctrl+K</kbd>
+  </a>
+</div><div class="bz-theme-switcher">
+  <button aria-label="Switch theme" data-tooltip="Switch theme">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
+      <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-dark" fill="currentColor">
+      <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+    </svg>
+  </button>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.766 11.695C4.703 11.437 3.25 9.904 3.25 7.92c0-.806.281-1.677.75-2.258-.203-.532-.172-1.662.062-2.129.626-.081 1.469.258 1.969.726.594-.194 1.219-.291 1.985-.291.765 0 1.39.097 1.953.274.484-.451 1.343-.79 1.969-.709.218.435.25 1.564.046 2.113.5.613.766 1.436.766 2.274 0 1.984-1.453 3.485-3.547 3.759.531.355.891 1.129.891 2.016v1.678c0 .484.39.758.859.564C13.781 14.824 16 11.905 16 8.291 16 3.726 12.406 0 7.984 0 3.562 0 0 3.726 0 8.291c0 3.581 2.203 6.55 5.172 7.663A.595.595 0 0 0 6 15.389v-1.291c-.219.097-.5.162-.75.162-1.031 0-1.641-.581-2.078-1.662-.172-.435-.36-.693-.719-.742-.187-.016-.25-.097-.25-.193 0-.194.313-.339.625-.339.453 0 .844.29 1.25.887.313.468.641.678 1.031.678.391 0 .641-.146 1-.516.266-.275.469-.517.657-.678Z"></path></svg>
+    
+    </a>
+  </div>
+  </div>
+</header><hr class="bz-header-hr">
+  <div class="bz-content"><aside class="bz-sidebar-primary" data-drawer="bz-sidebar-primary">
+  
+  
+    <nav class="bz-sidebar-nav" aria-label="Section Navigation"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../math-fundamentals/index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础：从理论到架构</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN 消融研究：理解卷积神经网络各组件的作用</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：消融研究的科学方法论</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/the-end.html">结语：从黑盒到白盒</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../attention-mechanisms/index.html">CNN 中的注意力机制</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/introduction.html">为什么CNN需要注意力机制？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/se-net.html">通道注意力：SE-Net</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/spatial-attn.html">空间注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/cbam.html">通道+空间注意力：CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/comparison.html">注意力机制的选择与应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/practice.html">实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">CNN 架构改造：设计卷积网络的心法</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="part1-intro.html">改造的本质：从"会用 CNN"到"会设计 CNN"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part5-efficiency.html">操控效率：效果、速度与硬件的三角权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../sequence-modeling/index.html">序列建模：从 RNN 到 Transformer 到 Mamba</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/introduction.html">引言：从空间到时间</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/transformer.html">Transformer：注意力的极致</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/mamba-intro.html">Mamba 简述：对RNN思想的回归</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../model-serving/index.html">模型部署与服务：从训练到生产</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">附录</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/sphinx-guide/index.html">Sphinx Markdown 语法参考</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/build-docs.html">编译文档</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+</nav>
+  
+
+</aside><main id="bz-main-content"><header class="bz-article-header">
+  
+  
+    <nav class="bz-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li class="bz-breadcrumbs-home">
+      <a href="../index.html" aria-label="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8.543 2.232a.75.75 0 0 0-1.085 0l-5.25 5.5A.75.75 0 0 0 2.75 9H4v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V9h1.25a.75.75 0 0 0 .543-1.268l-5.25-5.5Z" />
+        </svg>
+      </a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="index.html">CNN 架构改造：设计卷积网络的心法</a>
+    </li><li class="bz-breadcrumbs-current">
+      <span>操控注意力与长程依赖：信息该走哪条路</span>
+    </li>
+  </ol>
+</nav>
+  
+<label
+  class="bz-sidebar-secondary-toggle"
+  for="bz-sidebar-secondary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle table of contents"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75H20.25 M11.25 12H20.25 M7.75 17.25H20.25"
+    />
+  </svg>
+</label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="arch-attention">
+<span id="id1"></span><h1>操控注意力与长程依赖：信息该走哪条路<a class="headerlink" href="#arch-attention" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="../attention-mechanisms/index.html"><span class="doc">CNN 中的注意力机制</span></a> 详细介绍了 SE-Net 和 CBAM 的具体实现。现在我们从<strong>设计心法</strong>的角度来理解——注意力不是一种&quot;技巧&quot;，而是神经网络中<strong>信息路由</strong>的通用机制。</p>
+<section id="id2">
+<h2>重新理解注意力：从&quot;模块&quot;到&quot;路由&quot;<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="../neural-network-basics/cnn-basics.html"><span class="doc">卷积神经网络</span></a> 告诉我们卷积有 <a class="reference internal" href="../neural-network-basics/introduction.html#inductive-bias"><span class="std std-ref">归纳偏置（Inductive Bias）</span></a>——平移等变性、局部感受野。这些归纳偏置让 CNN 很高效，但也带来了一个代价：<strong>所有输入位置被同等对待</strong>。</p>
+<p>池化后，所有特征不管来自背景还是关键目标，都一视同仁地进入下一层。这就像高速公路所有车道的通行权一样——效率高，但不合理。</p>
+<p>注意力的作用是：<strong>在信息通路上设置红绿灯，动态控制每个通道、每个位置的通行权</strong>。</p>
+<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-85957243630bb594ae3a8d435acf2b71f794378d.svg" alt="Figure made with TikZ" /></p>
+</div></section>
+<section id="id3">
+<h2>三种注意力，三种路由策略<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>从路由的角度，注意力分为三个层次：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>层次</p></th>
+<th class="head"><p>路由问题</p></th>
+<th class="head"><p>典型实现</p></th>
+<th class="head"><p>信息论解释</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>通道注意力</strong></p></td>
+<td><p>哪个特征重要？</p></td>
+<td><p>SE-Net、ECA-Net</p></td>
+<td><p>在通道间分配信息权重</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>空间注意力</strong></p></td>
+<td><p>哪里重要？</p></td>
+<td><p>CBAM 空间分支</p></td>
+<td><p>在空间位置间分配信息权重</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>长程依赖</strong></p></td>
+<td><p>远处和近处能关联上吗？</p></td>
+<td><p>Self-Attention、Non-local</p></td>
+<td><p>全局信息路由，破除距离限制</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="id4">
+<h3>通道注意力——分配&quot;什么&quot;<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p>通道注意力回答：<strong>这 256 个特征通道中，哪些对当前任务更重要？</strong></p>
+<p><a class="reference internal" href="../attention-mechanisms/se-net.html"><span class="doc">通道注意力：SE-Net</span></a> 详细介绍了 SE-Net 的三步机制（压缩→激励→缩放）。从架构设计角度，通道注意力的核心价值在于：<strong>用极小的额外代价（&lt;3% 参数），实现全局上下文对局部特征的动态调控</strong>。</p>
+<section id="id5">
+<h4>架构层面的关键决策<a class="headerlink" href="#id5" title="Link to this heading">#</a></h4>
+<p>在将 SE-Net 集成到你的网络时，需要考虑：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>决策点</p></th>
+<th class="head"><p>选项</p></th>
+<th class="head"><p>影响</p></th>
+<th class="head"><p>建议</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>降维比例 <span class="math notranslate nohighlight">\(r\)</span></strong></p></td>
+<td><p>4/8/16/32</p></td>
+<td><p>参数量 vs 表达能力</p></td>
+<td><p>通常 16 是 sweet spot，轻量网络可用 32</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>插入位置</strong></p></td>
+<td><p>每个卷积后 / 仅深层</p></td>
+<td><p>计算代价 vs 效果</p></td>
+<td><p>只在深层（分辨率低）插入，节省计算</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>与残差连接的关系</strong></p></td>
+<td><p>残差内 / 残差外</p></td>
+<td><p>梯度流动</p></td>
+<td><p>建议放残差内（如 SE-ResNet），与跳跃连接协同</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id6">
+<h4>设计心法<a class="headerlink" href="#id6" title="Link to this heading">#</a></h4>
+<p>通道注意力的本质是一个<strong>轻量化的信息路由决策器</strong>：</p>
+<ul class="simple">
+<li><p><strong>输入</strong>：所有通道的全局统计信息（通过 Squeeze 获得）</p></li>
+<li><p><strong>决策</strong>：学习通道间的重要性关系（通过 Excitation 实现）</p></li>
+<li><p><strong>输出</strong>：动态调节各通道的信息流（通过 Reweight 执行）</p></li>
+</ul>
+<p>这种&quot;全局指导局部&quot;的机制，让网络学会了根据输入内容<strong>自适应地重新分配计算资源</strong>——重要的特征被放大，无关的特征被抑制。</p>
+</section>
+</section>
+<section id="id7">
+<h3>空间注意力——分配&quot;哪里&quot;<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<p>空间注意力回答：<strong>图像中哪些位置更重要？看背景还是看目标？</strong></p>
+<p><a class="reference internal" href="../attention-mechanisms/cbam.html"><span class="doc">通道+空间注意力：CBAM</span></a> 展示了如何用通道压缩和 7×7 卷积生成空间注意力图。</p>
+</section>
+<section id="id8">
+<h3>长程依赖——破除距离的限制<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<p>这是传统 CNN 最微妙却最根本的一个局限。</p>
+<p><strong>问题</strong>：图像中两个相距较远的区域需要关联——比如篮球运动员的手和篮筐。卷积能看到吗？</p>
+<p>答案：<strong>理论上能，但代价很大</strong>。</p>
+<p>CNN 的感受野随深度线性增长。要让两个相距 100 像素的区域产生关联，需要堆很多层。而在层层传递中，远距离的关联信息很容易丢失。</p>
+<div class="figure" style="text-align: center"><p><img  src="../_images/tikz-2cd07a79e211f3efb85ac5a95735ab846533e920.svg" alt="Figure made with TikZ" /></p>
+</div><p><strong>Self-Attention 的方案</strong>：不管位置多远，直接计算关联。这彻底绕过了卷积的层层传递。</p>
+<section id="id9">
+<h4>架构层面的权衡<a class="headerlink" href="#id9" title="Link to this heading">#</a></h4>
+<p>Self-Attention 的核心机制是 <strong>Query-Key-Value 计算</strong>（详见 <a class="reference internal" href="../sequence-modeling/from-rnn-to-attention.html#qkv-separation"><span class="std std-ref">步骤四：分离&quot;查询&quot;和&quot;被查询&quot;——引入可学习的投影</span></a>）：每个位置通过可学习的投影生成 Q/K/V，通过 <span class="math notranslate nohighlight">\(QK^T\)</span> 计算相似度，再对 V 加权求和。从架构设计角度，关键是理解它的<strong>能力-代价权衡</strong>：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>维度</p></th>
+<th class="head"><p>卷积</p></th>
+<th class="head"><p>Self-Attention</p></th>
+<th class="head"><p>影响</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>感受野</strong></p></td>
+<td><p>局部（随深度增长）</p></td>
+<td><p>全局（一步到达）</p></td>
+<td><p>远距离依赖建模能力</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>计算复杂度</strong></p></td>
+<td><p><span class="math notranslate nohighlight">\(O(N \cdot C \cdot k^2)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(O(N^2 \cdot d_k)\)</span></p></td>
+<td><p>图像尺寸平方增长 vs 线性增长</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>归纳偏置</strong></p></td>
+<td><p>强（平移等变性）</p></td>
+<td><p>弱（需从头学习位置关系）</p></td>
+<td><p>数据效率 vs 灵活性</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>并行性</strong></p></td>
+<td><p>高</p></td>
+<td><p>极高（矩阵运算）</p></td>
+<td><p>硬件友好度</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>关键洞察</strong>：对于 <span class="math notranslate nohighlight">\(H \times W\)</span> 的特征图，Self-Attention 的 <span class="math notranslate nohighlight">\(N^2 = (H \times W)^2\)</span> 复杂度意味着：</p>
+<ul class="simple">
+<li><p>224×224 输入：<span class="math notranslate nohighlight">\(N^2 \approx 2.5 \times 10^9\)</span> —— <strong>不可行</strong></p></li>
+<li><p>14×14 特征图：<span class="math notranslate nohighlight">\(N^2 = 38,416\)</span> —— <strong>可行</strong></p></li>
+</ul>
+<p>因此 Self-Attention 在 CNN 中通常只用于<strong>深层低分辨率特征</strong>。</p>
+</section>
+<section id="self-attention">
+<h4>设计心法：何时使用 Self-Attention<a class="headerlink" href="#self-attention" title="Link to this heading">#</a></h4>
+<p><strong>推荐使用场景</strong>：</p>
+<ul class="simple">
+<li><p>需要捕捉长距离依赖（如视频中的跨帧关联）</p></li>
+<li><p>空间分辨率已经较低（如 14×14 的特征图）</p></li>
+<li><p>计算资源充足，追求最佳性能</p></li>
+</ul>
+<p><strong>不推荐场景</strong>：</p>
+<ul class="simple">
+<li><p>高分辨率输入（如 224×224 原始图像）</p></li>
+<li><p>实时应用（如移动端实时检测）</p></li>
+<li><p>简单任务（如 MNIST 分类）</p></li>
+</ul>
+<p><strong>缓解高复杂度的策略</strong>：</p>
+<ol class="arabic simple">
+<li><p><strong>限制感受野</strong>：局部窗口注意力（如 7×7 邻域）</p></li>
+<li><p><strong>下采样后再计算</strong>：只在低分辨率特征图上使用</p></li>
+<li><p><strong>稀疏注意力</strong>：只计算特定模式（如轴向注意力）</p></li>
+</ol>
+</section>
+</section>
+</section>
+<section id="id10">
+<h2>什么时候需要长程依赖<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>场景</p></th>
+<th class="head"><p>是否需要长程依赖</p></th>
+<th class="head"><p>原因</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>分类猫 vs 狗</p></td>
+<td><p>不太需要</p></td>
+<td><p>局部特征（耳朵、鼻子）已足够</p></td>
+</tr>
+<tr class="row-odd"><td><p>场景理解</p></td>
+<td><p>中等需要</p></td>
+<td><p>需要关联天空（上）和草地（下）</p></td>
+</tr>
+<tr class="row-even"><td><p>目标检测</p></td>
+<td><p>需要</p></td>
+<td><p>关联物体的不同部分</p></td>
+</tr>
+<tr class="row-odd"><td><p>语义分割</p></td>
+<td><p>非常需要</p></td>
+<td><p>像素级一致性需要全局上下文</p></td>
+</tr>
+<tr class="row-even"><td><p>视频理解</p></td>
+<td><p>必须</p></td>
+<td><p>跨帧关联</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="important admonition">
+<p class="admonition-title">设计心法</p>
+<p><strong>判断是否需要长程依赖的方法</strong>：问自己——“这张图里，一个像素的类别是否依赖于远处的像素？”</p>
+<ul class="simple">
+<li><p>如果每一小块都能独立判断 → 不需要</p></li>
+<li><p>如果需要全局结构推理 → 需要</p></li>
+</ul>
+</div>
+</section>
+<section id="id11">
+<h2>注意力的代价<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
+<p>注意力不是免费午餐：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>注意力类型</p></th>
+<th class="head"><p>计算复杂度</p></th>
+<th class="head"><p>显存</p></th>
+<th class="head"><p>何时用</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>通道注意力</p></td>
+<td><p><span class="math notranslate nohighlight">\(O(C^2)\)</span>——很小</p></td>
+<td><p>几乎不增加</p></td>
+<td><p>默认推荐，几乎所有模型</p></td>
+</tr>
+<tr class="row-odd"><td><p>空间注意力</p></td>
+<td><p><span class="math notranslate nohighlight">\(O(k^2 \cdot H \cdot W)\)</span>——中等</p></td>
+<td><p>略增加</p></td>
+<td><p>目标检测、分割</p></td>
+</tr>
+<tr class="row-even"><td><p>自注意力/Non-local</p></td>
+<td><p><span class="math notranslate nohighlight">\(O(C \cdot H^2 \cdot W^2)\)</span>——极大</p></td>
+<td><p>显著增加</p></td>
+<td><p>长程依赖必不可少时</p></td>
+</tr>
+<tr class="row-odd"><td><p>全局池化 attention</p></td>
+<td><p><span class="math notranslate nohighlight">\(O(C)\)</span>——极小</p></td>
+<td><p>忽略不计</p></td>
+<td><p>轻量级通道注意力</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id12">
+<h2>失败案例：注意力的误用<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
+<section id="mnist-se">
+<h3>案例一：MNIST 上加 SE 模块<a class="headerlink" href="#mnist-se" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：MNIST 分类网络（3 层 CNN），你在每层后加了 SE 通道注意力模块。</p>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>参数量从 50K 增加到 65K（+30%）</p></li>
+<li><p>准确率从 99.1% 提升到 99.15%（几乎无提升）</p></li>
+<li><p>训练时间增加 20%</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>MNIST 是灰度图，只有 1 个输入通道，特征通道本身也很少（8-16 通道）</p></li>
+<li><p>SE 模块学习&quot;哪个通道重要&quot;，但通道数太少，选择空间有限</p></li>
+<li><p>任务太简单，没有复杂特征需要筛选</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>注意力解决的是&quot;选择困难&quot;，不是&quot;能力不够&quot;</strong>。如果 baseline 本身就能很好地完成任务，注意力只是徒增计算。</p>
+</section>
+<section id="id13">
+<h3>案例二：高分辨率特征图用 Self-Attention<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：目标检测网络中，你在 <span class="math notranslate nohighlight">\(56\times56\)</span> 分辨率的特征图上用了标准的 Non-local Self-Attention。</p>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>训练 batch size 从 8 降到 2（显存不足）</p></li>
+<li><p>推理一张图从 50ms 变成 500ms</p></li>
+<li><p>mAP 提升 0.3%（几乎不可感知）</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>Self-Attention 复杂度是 <span class="math notranslate nohighlight">\(O(H^2 \times W^2 \times C)\)</span>，对于 <span class="math notranslate nohighlight">\(56\times56\)</span> 就是 <span class="math notranslate nohighlight">\(56^4 \approx 1000\)</span> 万的计算量</p></li>
+<li><p>高分辨率时空间像素太多，全局关联的计算成本爆炸</p></li>
+<li><p>大多数关联是局部的，全局计算是浪费</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>Self-Attention 只适用于低分辨率特征图（<span class="math notranslate nohighlight">\(\leq 14\times14\)</span>）</strong>。高分辨率请用局部窗口注意力或直接不用。</p>
+</section>
+<section id="id14">
+<h3>案例三：所有层都加注意力<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：你在 ResNet-50 的每一层（包括浅层的 <span class="math notranslate nohighlight">\(56\times56\)</span> 和 <span class="math notranslate nohighlight">\(28\times28\)</span>）都加了 CBAM（通道+空间注意力）。</p>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>训练不稳定，loss 震荡</p></li>
+<li><p>最终准确率比不加注意力还低 1%</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>浅层特征（边缘、纹理）本身就很基础，不需要复杂的注意力筛选</p></li>
+<li><p>过早的注意力会抑制低级特征的提取</p></li>
+<li><p>深层才需要注意力来筛选高级语义</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>注意力应该加在深层，不是每一层</strong>。通常只在最后 1-2 个 stage（分辨率最低的部分）添加。</p>
+</section>
+<section id="id15">
+<h3>案例四：注意力权重全部趋于相同<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：你训练了一个带 SE 模块的网络，但发现所有样本的 attention weight 都差不多（接近均匀分布）。</p>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>SE 模块没有起到筛选作用</p></li>
+<li><p>相当于加了一层无用的全连接</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>可能是学习率太小，注意力没有被充分训练</p></li>
+<li><p>可能是任务本身不需要通道筛选（如单通道输入的任务）</p></li>
+<li><p>可能是 squeeze 操作的池化方式不对（全局平均池化丢失了重要信息）</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>注意力需要被&quot;训练出来&quot;</strong>。如果权重趋于均匀，说明要么超参不对，要么任务本身不适合。</p>
+</section>
+<section id="id16">
+<h3>决策树：注意力使用指南<a class="headerlink" href="#id16" title="Link to this heading">#</a></h3>
+<object data="../_images/mermaid-2432a011906b1114b586988dcc06096b81435f03.svg" type="image/svg+xml">
+            <p class="warning">flowchart TD
+    START[网络深度?] --&gt; SHALLOW{浅层&lt;br/&gt;分辨率 ≥ 56×56}
+    SHALLOW --&gt;|是| NOATT[不加注意力&lt;br/&gt;提取基础特征]
+    
+    SHALLOW --&gt;|否| DEEP{深层&lt;br/&gt;分辨率 ≤ 14×14}
+    DEEP --&gt;|是| CHANNEL{需要通道筛选?}
+    CHANNEL --&gt;|是| SE[SE-Net / ECA]
+    CHANNEL --&gt;|否| SPATIAL{需要空间定位?}
+    SPATIAL --&gt;|是| CBAM[CBAM 空间分支]
+    SPATIAL --&gt;|否| LONG{需要长程依赖?}
+    LONG --&gt;|是| SELF[Self-Attention&lt;br/&gt;注意计算量]
+    LONG --&gt;|否| RESOURCE{资源紧张?}
+    RESOURCE --&gt;|是| POOL[全局平均池化注意力]
+    RESOURCE --&gt;|否| NOATT2[不加注意力]</p></object>
+<p><strong>核心原则</strong>：</p>
+<ul class="simple">
+<li><p>注意力是<strong>高级认知功能</strong>，浅层不需要</p></li>
+<li><p>通道注意力几乎是&quot;免费&quot;的，可以默认加上</p></li>
+<li><p>空间注意力和自注意力有显著代价，只在必要时使用</p></li>
+</ul>
+</section>
+</section>
+<section id="mutual-information">
+<h2>信息论视角：注意力 = 最大化任务相关<a class="reference internal" href="part1-intro.html#mutual-information"><span class="std std-ref">互信息</span></a><a class="headerlink" href="#mutual-information" title="Link to this heading">#</a></h2>
+<p>从信息论来看，注意力解决的是 <a class="reference internal" href="part1-intro.html#arch-intro"><span class="std std-ref">改造的本质：从&quot;会用 CNN&quot;到&quot;会设计 CNN&quot;</span></a> 中讨论的<strong>容量vs信息流</strong>之外的第三个维度：<strong>相关性</strong>。</p>
+<p>网络既要有足够容量（感受野）、信息要能流动（连接），还要懂得<strong>区分有用信息和噪声</strong>。</p>
+<p>通道注意力在通道维度做信息选择，空间注意力在空间维度做信息选择，而长程依赖确保<strong>信息不因距离而丢失</strong>。</p>
+<p>三种注意力协同工作，最大化的是<strong>任务相关的</strong><a class="reference internal" href="part1-intro.html#mutual-information"><span class="std std-ref">互信息</span></a> <span class="math notranslate nohighlight">\(I(X;Y_{\text{task}})\)</span>——不是保留所有信息，而是保留任务需要的信息。</p>
+</section>
+<section id="id17">
+<h2>下一步<a class="headerlink" href="#id17" title="Link to this heading">#</a></h2>
+<p>注意力是效果优化的最后一个维度。但有时候你的瓶颈不是效果，而是速度——模型训练太慢、推理太慢、参数量爆炸。</p>
+<p>这时候需要操纵的是效率，而不是注意力。下一节<a class="reference internal" href="part5-efficiency.html"><span class="doc">操控效率：效果、速度与硬件的三角权衡</span></a>我们将学习如何在不显著牺牲效果的前提下，让模型更快。</p>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (4 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">8eb3275</code>
+                2026-05-09 - <strong>Heyan Zhu</strong>: feat(sequence-modeling): add new chapter on sequence modeling from RNN to Mamba
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f159d56</code>
+                2026-05-08 - <strong>Heyan Zhu</strong>: fix: address complaints from the linter
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">4a1cae8</code>
+                2026-05-03 - <strong>Heyan Zhu</strong>: docs(model-architecture): convert decision trees to mermaid diagrams
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">15d1b15</code>
+                2026-05-03 - <strong>Heyan Zhu</strong>: docs(model-architecture-design): add new chapter on CNN architecture design methodology
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+</article><footer class="bz-article-footer">
+  
+  
+    <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="part3-depth-connection.html" rel="prev">
+    <span>Previous</span><span class="bz-related-pages-title">操控深度与连接：信息如何在网络中流动</span></a><a class="bz-related-pages-next" href="part5-efficiency.html" rel="next">
+    <span>Next</span>
+    <span class="bz-related-pages-title">操控效率：效果、速度与硬件的三角权衡</span>
+  </a></nav>
+  
+
+</footer><aside class="bz-sidebar-secondary" data-drawer="bz-sidebar-secondary">
+  
+  
+    
+  
+  
+  
+  
+
+
+
+<div class="bz-repo-stats">
+  <a
+    data-provider="github"
+    data-user="ulink-deep-learning-club"
+    data-repo="ulink-deeplearningclub-handouts"
+    href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    aria-label="ulink-deep-learning-club/ulink-deeplearningclub-handouts repository"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    <span
+      style="--bz-repo-stats-name-length: 56"
+      title="ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    >
+      ulink-deep-learning-club/ulink-deeplearningclub-handouts
+    </span>
+    <div class="bz-repo-stats-row">
+      <span class="bz-repo-stats-item" aria-label="Repository stars">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path></svg>
+        <span data-stat="stars">-</span>
+      </span>
+      <span class="bz-repo-stats-item" aria-label="Repository forks">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
+        <span data-stat="forks">-</span>
+      </span>
+    </div>
+  </a>
+</div>
+
+  
+    <div class="bz-edit-this-page">
+  <a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/source/model-architecture-design/part4-attention.md" rel="edit">
+    Edit this page
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"></path></svg>
+  </a>
+</div>
+  
+    <nav class="bz-sidebar-toc" aria-label="Table of contents">
+  <p>On this page</p><ul>
+<li><a class="reference internal" href="#id2">重新理解注意力：从"模块"到"路由"</a></li>
+<li><a class="reference internal" href="#id3">三种注意力，三种路由策略</a><ul>
+<li><a class="reference internal" href="#id4">通道注意力——分配"什么"</a><ul>
+<li><a class="reference internal" href="#id5">架构层面的关键决策</a></li>
+<li><a class="reference internal" href="#id6">设计心法</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id7">空间注意力——分配"哪里"</a></li>
+<li><a class="reference internal" href="#id8">长程依赖——破除距离的限制</a><ul>
+<li><a class="reference internal" href="#id9">架构层面的权衡</a></li>
+<li><a class="reference internal" href="#self-attention">设计心法：何时使用 Self-Attention</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id10">什么时候需要长程依赖</a></li>
+<li><a class="reference internal" href="#id11">注意力的代价</a></li>
+<li><a class="reference internal" href="#id12">失败案例：注意力的误用</a><ul>
+<li><a class="reference internal" href="#mnist-se">案例一：MNIST 上加 SE 模块</a></li>
+<li><a class="reference internal" href="#id13">案例二：高分辨率特征图用 Self-Attention</a></li>
+<li><a class="reference internal" href="#id14">案例三：所有层都加注意力</a></li>
+<li><a class="reference internal" href="#id15">案例四：注意力权重全部趋于相同</a></li>
+<li><a class="reference internal" href="#id16">决策树：注意力使用指南</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mutual-information">信息论视角：注意力 = 最大化任务相关<span class="xref std std-ref">mutual-information</span></a></li>
+<li><a class="reference internal" href="#id17">下一步</a></li>
+</ul></nav>
+  
+
+</aside></main>
+  </div>
+<footer class="bz-footer">
+  <div class="bz-footer-copyright"><p class="bz-copyright">© Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0</p><p>
+    
+    
+    
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a href="https://github.com/aksiome/breeze">Breeze theme</a>.
+    
+  </p>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    
+    </a>
+  </div>
+</footer><a href="#" class="bz-back-to-top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+    </svg>
+    <span>Back to top</span>
+  </a>
+  <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
+  <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
+  <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../_static/documentation_options.js?v=5a0213dc"></script><script src="../_static/doctools.js?v=9bcbadda"></script><script src="../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../_static/translations.js?v=beaddf03"></script><script src="../_static/design-tabs.js?v=f930bc37"></script><script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script><script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script><script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script></body>
+</html>

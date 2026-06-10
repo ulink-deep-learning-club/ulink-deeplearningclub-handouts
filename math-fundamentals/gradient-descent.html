@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-content_root="../">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="梯度下降与优化算法" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="math-fundamentals/gradient-descent.html" />
+<meta property="og:site_name" content="Deep Learning Club Handouts" />
+<meta property="og:description" content="沿着最陡方向下山: 想象你在山上迷路了，想要下到山谷： 当前位置 ：参数当前值\theta_t, 最陡下降方向 ：负梯度方向（你脚下最陡的下坡方向）, 步长 ：学习率\eta （你每一步迈多大）, 目标 ：到达山谷最低点（损失 L 最小）. 神经网络训练转化为优化问题后，我们需要找到损失函数的 最小值点 。梯度下降（Gradient Descent）就是解决这个问题的迭代算法。 核心思想 ：..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_math-fundamentals_gradient-descent_e293ae4b.png" />
+<meta property="og:image:alt" content="沿着最陡方向下山: 想象你在山上迷路了，想要下到山谷： 当前位置 ：参数当前值\theta_t, 最陡下降方向 ：负梯度方向（你脚下最陡的下坡方向）, 步长 ：学习率\eta （你每一步迈多大）, 目标 ：到达山谷最低点（损失 L 最小）. 神经网络训练转化为优化问题后，我们需要找到损失函数的 最小值点 。梯度下降（Gradient Descent）就是解决这个问题的迭代算法。 核心思想 ：..." />
+<meta name="description" content="沿着最陡方向下山: 想象你在山上迷路了，想要下到山谷： 当前位置 ：参数当前值\theta_t, 最陡下降方向 ：负梯度方向（你脚下最陡的下坡方向）, 步长 ：学习率\eta （你每一步迈多大）, 目标 ：到达山谷最低点（损失 L 最小）. 神经网络训练转化为优化问题后，我们需要找到损失函数的 最小值点 。梯度下降（Gradient Descent）就是解决这个问题的迭代算法。 核心思想 ：..." />
+<meta name="twitter:card" content="summary_large_image" />
+<title>梯度下降与优化算法 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="总结与展望" href="the-end.html"><link rel="prev" title="反向传播算法" href="back-propagation.html"><script data-cfasync="false">(function(){
+    const m = localStorage.getItem("breeze-mode") || "auto";
+    const d = document.documentElement.dataset;
+    d.mode = m;
+    d.theme = m === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : m;
+  })();
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=9c6fee98" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+<body>
+  
+  
+  <div class="bz-skip-to-content"><a href="#bz-main-content">Skip to main content</a></div><header class="bz-header-main">
+  <div class="bz-header-start"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><a class="bz-header-brand" href="../index.html">
+  
+  
+  <span>Deep Learning Club Handouts</span>
+</a>
+  </div>
+  <div class="bz-header-end"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><div id="docsearch" class="bz-search-button">
+  <a
+    href="../search.html#q"
+    aria-label="Search the docs"
+    data-tooltip="Search the docs"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 -1 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
+    <span>搜索</span>
+    <kbd>Ctrl+K</kbd>
+  </a>
+</div><div class="bz-theme-switcher">
+  <button aria-label="Switch theme" data-tooltip="Switch theme">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
+      <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-dark" fill="currentColor">
+      <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+    </svg>
+  </button>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.766 11.695C4.703 11.437 3.25 9.904 3.25 7.92c0-.806.281-1.677.75-2.258-.203-.532-.172-1.662.062-2.129.626-.081 1.469.258 1.969.726.594-.194 1.219-.291 1.985-.291.765 0 1.39.097 1.953.274.484-.451 1.343-.79 1.969-.709.218.435.25 1.564.046 2.113.5.613.766 1.436.766 2.274 0 1.984-1.453 3.485-3.547 3.759.531.355.891 1.129.891 2.016v1.678c0 .484.39.758.859.564C13.781 14.824 16 11.905 16 8.291 16 3.726 12.406 0 7.984 0 3.562 0 0 3.726 0 8.291c0 3.581 2.203 6.55 5.172 7.663A.595.595 0 0 0 6 15.389v-1.291c-.219.097-.5.162-.75.162-1.031 0-1.641-.581-2.078-1.662-.172-.435-.36-.693-.719-.742-.187-.016-.25-.097-.25-.193 0-.194.313-.339.625-.339.453 0 .844.29 1.25.887.313.468.641.678 1.031.678.391 0 .641-.146 1-.516.266-.275.469-.517.657-.678Z"></path></svg>
+    
+    </a>
+  </div>
+  </div>
+</header><hr class="bz-header-hr">
+  <div class="bz-content"><aside class="bz-sidebar-primary" data-drawer="bz-sidebar-primary">
+  
+  
+    <nav class="bz-sidebar-nav" aria-label="Section Navigation"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础：从理论到架构</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN 消融研究：理解卷积神经网络各组件的作用</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：消融研究的科学方法论</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/the-end.html">结语：从黑盒到白盒</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../attention-mechanisms/index.html">CNN 中的注意力机制</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/introduction.html">为什么CNN需要注意力机制？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/se-net.html">通道注意力：SE-Net</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/spatial-attn.html">空间注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/cbam.html">通道+空间注意力：CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/comparison.html">注意力机制的选择与应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/practice.html">实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../model-architecture-design/index.html">CNN 架构改造：设计卷积网络的心法</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part1-intro.html">改造的本质：从"会用 CNN"到"会设计 CNN"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：效果、速度与硬件的三角权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../sequence-modeling/index.html">序列建模：从 RNN 到 Transformer 到 Mamba</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/introduction.html">引言：从空间到时间</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/transformer.html">Transformer：注意力的极致</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/mamba-intro.html">Mamba 简述：对RNN思想的回归</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../model-serving/index.html">模型部署与服务：从训练到生产</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">附录</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/sphinx-guide/index.html">Sphinx Markdown 语法参考</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/build-docs.html">编译文档</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+</nav>
+  
+
+</aside><main id="bz-main-content"><header class="bz-article-header">
+  
+  
+    <nav class="bz-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li class="bz-breadcrumbs-home">
+      <a href="../index.html" aria-label="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8.543 2.232a.75.75 0 0 0-1.085 0l-5.25 5.5A.75.75 0 0 0 2.75 9H4v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V9h1.25a.75.75 0 0 0 .543-1.268l-5.25-5.5Z" />
+        </svg>
+      </a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a>
+    </li><li class="bz-breadcrumbs-current">
+      <span>梯度下降与优化算法</span>
+    </li>
+  </ol>
+</nav>
+  
+<label
+  class="bz-sidebar-secondary-toggle"
+  for="bz-sidebar-secondary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle table of contents"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75H20.25 M11.25 12H20.25 M7.75 17.25H20.25"
+    />
+  </svg>
+</label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="gradient-descent">
+<span id="id1"></span><h1>梯度下降与优化算法<a class="headerlink" href="#gradient-descent" title="Link to this heading">#</a></h1>
+<section id="id2">
+<h2>沿着最陡方向下山<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>想象你在山上迷路了，想要下到山谷：</p>
+<ul class="simple">
+<li><p><strong>当前位置</strong>：参数当前值 <span class="math notranslate nohighlight">\(\theta_t\)</span></p></li>
+<li><p><strong>最陡下降方向</strong>：负梯度方向（你脚下最陡的下坡方向）</p></li>
+<li><p><strong>步长</strong>：学习率 <span class="math notranslate nohighlight">\(\eta\)</span>（你每一步迈多大）</p></li>
+<li><p><strong>目标</strong>：到达山谷最低点（损失 <span class="math notranslate nohighlight">\(L\)</span> 最小）</p></li>
+</ul>
+<p>神经网络训练转化为优化问题后，我们需要找到损失函数的<strong>最小值点</strong>。梯度下降（Gradient Descent）就是解决这个问题的迭代算法。</p>
+<p><strong>核心思想</strong>：在当前位置，沿着<strong>梯度下降方向</strong>（损失减小最快的方向）迈出一小步。</p>
+<div class="math notranslate nohighlight">
+\[
+\theta_{t+1} = \theta_t - \eta \cdot \nabla_\theta J(\theta)
+\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\eta\)</span> 是<strong>学习率</strong>（步长），<span class="math notranslate nohighlight">\(\nabla_\theta J(\theta)\)</span> 是损失函数对参数的梯度。</p>
+<div class="figure" id="id117" style="text-align: center"><p><img  src="../_images/tikz-1fcb6e31998d6ac9bb181d5315ffa43589084ee7.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">梯度下降：从初始点逐步逼近最小值</span></p>
+</div><section id="id3">
+<h3>学习率的重要性<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<p>学习率的选择至关重要：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>学习率</p></th>
+<th class="head"><p>效果</p></th>
+<th class="head"><p>类比</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>太小</p></td>
+<td><p>收敛极慢</p></td>
+<td><p>婴儿学步</p></td>
+</tr>
+<tr class="row-odd"><td><p>合适</p></td>
+<td><p>快速收敛</p></td>
+<td><p>正常行走</p></td>
+</tr>
+<tr class="row-even"><td><p>太大</p></td>
+<td><p>震荡/发散</p></td>
+<td><p>大跳，可能跳过山谷</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="figure" id="id118" style="text-align: center"><p><img  src="../_images/tikz-6d8d98f01221194e32bd78fa9e9ce2022e7bf6b5.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">学习率过大导致震荡</span></p>
+</div></section>
+</section>
+<hr class="docutils" />
+<section id="id4">
+<h2>梯度下降的变体<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p>在<a class="reference internal" href="#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>中，我们根据<a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>计算的梯度更新参数。根据使用多少数据计算梯度，有三种变体：</p>
+<section id="batch-gd">
+<h3>批量梯度下降（Batch GD）<a class="headerlink" href="#batch-gd" title="Link to this heading">#</a></h3>
+<p>使用<strong>全部数据</strong>计算梯度：</p>
+<div class="math notranslate nohighlight">
+\[
+\theta_{t+1} = \theta_t - \eta \cdot \frac{1}{N} \sum_{i=1}^N \nabla_\theta J(\theta; x_i, y_i)
+\]</div>
+<p><strong>特点</strong>：</p>
+<ul class="simple">
+<li><p>梯度估计准确，收敛稳定</p></li>
+<li><p>每次迭代计算量大，不适合大数据集</p></li>
+</ul>
+</section>
+<section id="sgd">
+<h3>随机梯度下降（SGD）<a class="headerlink" href="#sgd" title="Link to this heading">#</a></h3>
+<p>每次使用<strong>一个样本</strong>计算梯度：</p>
+<div class="math notranslate nohighlight">
+\[
+\theta_{t+1} = \theta_t - \eta \cdot \nabla_\theta J(\theta; x_i, y_i)
+\]</div>
+<p><strong>特点</strong>：</p>
+<ul class="simple">
+<li><p>计算快，适合在线学习</p></li>
+<li><p>梯度有噪声，收敛不稳定</p></li>
+<li><p><strong>噪声可能帮助跳出局部最优</strong></p></li>
+</ul>
+</section>
+<section id="mini-batch-gd">
+<h3>小批量梯度下降（Mini-batch GD）<a class="headerlink" href="#mini-batch-gd" title="Link to this heading">#</a></h3>
+<p>使用<strong>一小批样本</strong>（通常32-256个）计算梯度：</p>
+<div class="math notranslate nohighlight">
+\[
+\theta_{t+1} = \theta_t - \eta \cdot \frac{1}{m} \sum_{i=1}^m \nabla_\theta J(\theta; x_i, y_i)
+\]</div>
+<p><strong>特点</strong>：</p>
+<ul class="simple">
+<li><p><strong>平衡计算效率和稳定性</strong></p></li>
+<li><p>可以利用GPU并行计算</p></li>
+<li><p><strong>深度学习中最常用</strong></p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id5">
+<h2>高级优化算法<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<section id="loss-landscape-loss-functions">
+<h3>Loss Landscape：<a class="reference internal" href="loss-functions.html#loss-functions"><span class="std std-ref">损失函数</span></a>塑造的优化地形<a class="headerlink" href="#loss-landscape-loss-functions" title="Link to this heading">#</a></h3>
+<p><strong>Loss Landscape</strong>（损失景观）描述了<a class="reference internal" href="loss-functions.html#loss-functions"><span class="std std-ref">损失函数</span></a>在参数空间中的形状。想象一个高维的山地地形：山谷代表损失低的区域，山峰代表损失高的区域。</p>
+<p>在深度学习中，这个景观通常是<strong>非凸</strong>的，包含：</p>
+<ul class="simple">
+<li><p><strong>局部最优</strong>：局部山谷（浅坑）</p></li>
+<li><p><strong>全局最优</strong>：最深的山谷（最优解）</p></li>
+<li><p><strong>鞍点</strong>：马鞍形状的点（高维空间中非常常见）</p></li>
+</ul>
+<div class="figure" id="id119" style="text-align: center"><p><img  src="../_images/tikz-3132097730a3f1ceea03f8f371df6dc9546db3ce.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Loss Landscape：局部最优 vs 全局最优</span></p>
+</div><p><strong>关键观察</strong>：</p>
+<ul class="simple">
+<li><p>全局最优比局部最优<strong>明显更深</strong>（红色点远低于橙色点）</p></li>
+<li><p>两个最优之间由<strong>鞍点</strong>（紫色）分隔</p></li>
+<li><p>优化算法需要&quot;翻过&quot;鞍点才能从局部最优到达全局最优</p></li>
+</ul>
+<p><strong>鞍点的详细展示</strong>：</p>
+<p>鞍点像一个马鞍——沿一个方向是极小值，沿另一个方向是极大值：</p>
+<div class="figure" id="id120" style="text-align: center"><p><img  src="../_images/tikz-f471d78432b2b2b3a89d15137b679e701956fe2b.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">鞍点：马鞍形状</span></p>
+</div><p><strong>深度学习的特殊情况</strong>：</p>
+<ul class="simple">
+<li><p>高维空间中，<strong>鞍点比局部最优更常见</strong></p></li>
+<li><p>随机梯度下降的噪声有助于跳出局部最优和鞍点</p></li>
+<li><p>现代网络通常能找到足够好的解，即使不是全局最优</p></li>
+</ul>
+</section>
+<section id="id6">
+<h3>动量法：积累速度翻越障碍<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p><strong>直觉</strong>：想象滚雪球下山，球会积累动量，越滚越快，同时可以滚过小的坑洼。在 loss landscape 中，动量帮助我们冲过鞍点和平坦区域。</p>
+<p><strong>原理</strong>：引入速度变量，累积历史梯度：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+v_{t+1} &amp;= \gamma v_t + \nabla_\theta J(\theta_t) \\
+\theta_{t+1} &amp;= \theta_t - \eta \cdot v_{t+1}
+\end{aligned}
+\end{split}\]</div>
+<p><strong>逐步理解动量法</strong>：</p>
+<p><strong>第一步：理解速度变量 <span class="math notranslate nohighlight">\(v_t\)</span></strong></p>
+<p>在基础 SGD 中，我们直接用梯度更新参数：
+$<span class="math notranslate nohighlight">\(\theta_{t+1} = \theta_t - \eta \cdot \nabla_\theta J(\theta_t)\)</span>$</p>
+<p>这相当于每走一步都<strong>完全重新决定方向</strong>，没有记忆之前走过的路径。</p>
+<p>动量法引入速度变量 <span class="math notranslate nohighlight">\(v_t\)</span>，相当于给优化过程添加了&quot;记忆&quot;——记住之前累积的运动趋势。</p>
+<p><strong>第二步：解读速度更新公式</strong></p>
+<div class="math notranslate nohighlight">
+\[v_{t+1} = \gamma v_t + \nabla_\theta J(\theta_t)\]</div>
+<p>这行公式的含义是：<strong>新速度 = 保留的旧速度 + 当前梯度</strong></p>
+<p><strong>公式详解</strong>：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>符号</p></th>
+<th class="head"><p>含义</p></th>
+<th class="head"><p>维度</p></th>
+<th class="head"><p>直觉理解</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(v_{t+1}\)</span></p></td>
+<td><p>第 <span class="math notranslate nohighlight">\(t+1\)</span> 步的速度</p></td>
+<td><p>与参数相同</p></td>
+<td><p>下一步要迈的&quot;步伐向量&quot;</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\gamma\)</span></p></td>
+<td><p>动量系数</p></td>
+<td><p>标量 (0~1)</p></td>
+<td><p>惯性大小，通常 0.9（保留 90% 旧速度）</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(v_t\)</span></p></td>
+<td><p>第 <span class="math notranslate nohighlight">\(t\)</span> 步的速度</p></td>
+<td><p>与参数相同</p></td>
+<td><p>之前累积的运动趋势</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\nabla_\theta J(\theta_t)\)</span></p></td>
+<td><p>当前梯度</p></td>
+<td><p>与参数相同</p></td>
+<td><p>当前位置最陡的下降方向</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>核心洞察</strong>：</p>
+<ul class="simple">
+<li><p><strong><span class="math notranslate nohighlight">\(\gamma = 0\)</span></strong>（无动量）：<span class="math notranslate nohighlight">\(v_{t+1} = \nabla_\theta J\)</span>，退化成基础 SGD</p></li>
+<li><p><strong><span class="math notranslate nohighlight">\(\gamma = 0.9\)</span></strong>（有动量）：新速度 = 90% 旧速度 + 10% 新梯度</p></li>
+</ul>
+<p><strong>第三步：解读参数更新公式</strong></p>
+<div class="math notranslate nohighlight">
+\[\theta_{t+1} = \theta_t - \eta \cdot v_{t+1}\]</div>
+<p>与 SGD 的区别：</p>
+<ul class="simple">
+<li><p><strong>SGD</strong>：<span class="math notranslate nohighlight">\(\theta_{t+1} = \theta_t - \eta \cdot \nabla_\theta J\)</span>（只用当前梯度）</p></li>
+<li><p><strong>Momentum</strong>：<span class="math notranslate nohighlight">\(\theta_{t+1} = \theta_t - \eta \cdot v_{t+1}\)</span>（用累积的速度）</p></li>
+</ul>
+<p><strong>为什么这样能减少震荡？</strong></p>
+<p>想象你在峡谷中行走：</p>
+<ul class="simple">
+<li><p><strong>SGD</strong>：每次只看脚下，向左跨一步，发现右边更低，又向右跨一步，在峡谷两侧来回震荡</p></li>
+<li><p><strong>Momentum</strong>：你有了惯性，向左走时积累了向左的速度，即使右边略低，惯性也会带你继续向左，直到左边明显比右边高，才会慢慢转向</p></li>
+</ul>
+<p><strong>展开公式看本质</strong>：</p>
+<p>如果我们展开 <span class="math notranslate nohighlight">\(v_t\)</span> 的递归定义：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+v_t &amp;= \gamma v_{t-1} + g_t \\
+    &amp;= \gamma (\gamma v_{t-2} + g_{t-1}) + g_t \\
+    &amp;= \gamma^2 v_{t-2} + \gamma g_{t-1} + g_t \\
+    &amp;= \ldots \\
+    &amp;= \sum_{i=0}^{t} \gamma^{t-i} g_i
+\end{aligned}
+\end{split}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(g_i = \nabla_\theta J(\theta_i)\)</span> 是第 <span class="math notranslate nohighlight">\(i\)</span> 步的梯度。</p>
+<p><strong>关键发现</strong>：当前速度是<strong>历史梯度的加权平均</strong>，越早的梯度权重越小（按 <span class="math notranslate nohighlight">\(\gamma^k\)</span> 指数衰减）。</p>
+<p><strong>类比</strong>：</p>
+<ul class="simple">
+<li><p>基础 SGD：每走一步都重新决定方向，容易在峡谷两侧来回震荡</p></li>
+<li><p>Momentum：像滚下山坡的球，有惯性，同方向会加速，反方向会减速，自然减少震荡</p></li>
+</ul>
+<p><strong>效果</strong>：</p>
+<ul class="simple">
+<li><p>加速收敛（尤其在梯度方向一致时）</p></li>
+<li><p>减少震荡（梯度方向变化时动量抵消）</p></li>
+<li><p>帮助跳出局部最优</p></li>
+</ul>
+</section>
+<section id="adam">
+<h3>Adam（自适应矩估计）<a class="headerlink" href="#adam" title="Link to this heading">#</a></h3>
+<p>Adam <span id="id7">[<a class="reference internal" href="../unet-image-segmentation/practice.html#id63" title="Diederik P Kingma and Jimmy Ba. Adam: a method for stochastic optimization. In International Conference on Learning Representations. 2015.">KB15</a>]</span> 是目前最常用的优化算法之一，结合了 Momentum 和 RMSprop 的优点。</p>
+<p><strong>直觉</strong>：为每个参数单独调整学习率。频繁更新的参数用较小学习率，稀疏更新的用较大学习率。</p>
+<p><strong>原理</strong>：结合一阶矩估计（动量）和二阶矩估计（自适应学习率）：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+m_t &amp;= \beta_1 m_{t-1} + (1-\beta_1) g_t \\
+v_t &amp;= \beta_2 v_{t-1} + (1-\beta_2) g_t^2 \\
+\hat{m}_t &amp;= \frac{m_t}{1-\beta_1^t}, \quad \hat{v}_t = \frac{v_t}{1-\beta_2^t} \\
+\theta_{t+1} &amp;= \theta_t - \eta \cdot \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}
+\end{aligned}
+\end{split}\]</div>
+<p><strong>逐步理解 Adam</strong>：</p>
+<p><strong>第一步：一阶矩估计（ momentum 部分）</strong></p>
+<div class="math notranslate nohighlight">
+\[m_t = \beta_1 m_{t-1} + (1-\beta_1) g_t\]</div>
+<p>这与动量法类似，计算梯度的指数移动平均：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>符号</p></th>
+<th class="head"><p>含义</p></th>
+<th class="head"><p>维度</p></th>
+<th class="head"><p>直觉理解</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(m_t\)</span></p></td>
+<td><p>第 <span class="math notranslate nohighlight">\(t\)</span> 步的一阶矩（均值）</p></td>
+<td><p>与参数相同</p></td>
+<td><p>梯度的&quot;平均趋势&quot;，平滑后的梯度方向</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\beta_1\)</span></p></td>
+<td><p>一阶矩衰减率</p></td>
+<td><p>标量 (0~1)</p></td>
+<td><p>通常是 0.9，保留 90% 历史信息</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(m_{t-1}\)</span></p></td>
+<td><p>上一步的一阶矩</p></td>
+<td><p>与参数相同</p></td>
+<td><p>之前累积的梯度趋势</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(g_t\)</span></p></td>
+<td><p>当前梯度</p></td>
+<td><p>与参数相同</p></td>
+<td><p>当前计算出的梯度值</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\((1-\beta_1)\)</span></p></td>
+<td><p>新梯度权重</p></td>
+<td><p>标量</p></td>
+<td><p>新梯度占 10% 的权重</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>与动量法的区别</strong>：</p>
+<ul class="simple">
+<li><p><strong>动量法</strong>：<span class="math notranslate nohighlight">\(v_{t+1} = \gamma v_t + \nabla_\theta J\)</span>（新梯度权重为 1）</p></li>
+<li><p><strong>Adam</strong>：<span class="math notranslate nohighlight">\(m_t = \beta_1 m_{t-1} + (1-\beta_1) g_t\)</span>（新梯度权重为 <span class="math notranslate nohighlight">\(1-\beta_1\)</span>）</p></li>
+</ul>
+<p>Adam 的形式使 <span class="math notranslate nohighlight">\(m_t\)</span> 更接近真正的<strong>梯度均值</strong>（数学期望）。</p>
+<p><strong>展开看本质</strong>：</p>
+<div class="math notranslate nohighlight">
+\[m_t = (1-\beta_1) \sum_{i=1}^{t} \beta_1^{t-i} g_i\]</div>
+<p>这是历史梯度的<strong>指数加权平均</strong>，越近的梯度权重越大。</p>
+<p><strong>第二步：二阶矩估计（自适应学习率部分）</strong></p>
+<div class="math notranslate nohighlight">
+\[v_t = \beta_2 v_{t-1} + (1-\beta_2) g_t^2\]</div>
+<p>注意这里的 <span class="math notranslate nohighlight">\(g_t^2\)</span> 是<strong>逐元素平方</strong>（element-wise square）：</p>
+<div class="math notranslate nohighlight">
+\[g_t^2 = (g_t^{(1)})^2, (g_t^{(2)})^2, \ldots, (g_t^{(d)})^2\]</div>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>符号</p></th>
+<th class="head"><p>含义</p></th>
+<th class="head"><p>维度</p></th>
+<th class="head"><p>直觉理解</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(v_t\)</span></p></td>
+<td><p>第 <span class="math notranslate nohighlight">\(t\)</span> 步的二阶矩（未中心化的方差）</p></td>
+<td><p>与参数相同</p></td>
+<td><p>梯度&quot;变化幅度&quot;的历史平均</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\beta_2\)</span></p></td>
+<td><p>二阶矩衰减率</p></td>
+<td><p>标量 (0~1)</p></td>
+<td><p>通常是 0.999，比 <span class="math notranslate nohighlight">\(\beta_1\)</span> 更大</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(g_t^2\)</span></p></td>
+<td><p>梯度逐元素平方</p></td>
+<td><p>与参数相同</p></td>
+<td><p>梯度的幅度信息</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>核心洞察</strong>：<span class="math notranslate nohighlight">\(v_t\)</span> 记录了每个参数梯度的&quot;活跃程度&quot;：</p>
+<ul class="simple">
+<li><p>梯度经常很大 → <span class="math notranslate nohighlight">\(v_t\)</span> 很大</p></li>
+<li><p>梯度经常很小 → <span class="math notranslate nohighlight">\(v_t\)</span> 很小</p></li>
+</ul>
+<p><strong>为什么用平方？</strong></p>
+<p>平方消除了符号（正负），只保留幅度信息。我们想知道的是梯度&quot;有多大&quot;，而不是&quot;朝哪个方向&quot;。</p>
+<p><strong>第三步：偏差修正（Bias Correction）</strong></p>
+<div class="math notranslate nohighlight">
+\[
+\hat{m}_t = \frac{m_t}{1-\beta_1^t}, \quad \hat{v}_t = \frac{v_t}{1-\beta_2^t}
+\]</div>
+<p><strong>为什么需要修正？</strong></p>
+<p><strong>问题</strong>：初始时 <span class="math notranslate nohighlight">\(m_0 = 0, v_0 = 0\)</span></p>
+<p><strong>前几步的偏差</strong>：</p>
+<ul class="simple">
+<li><p>第 1 步：<span class="math notranslate nohighlight">\(m_1 = (1-\beta_1) g_1\)</span>，比真实均值小了约 <span class="math notranslate nohighlight">\((1-\beta_1)\)</span> 倍</p></li>
+<li><p>第 2 步：<span class="math notranslate nohighlight">\(m_2 = \beta_1(1-\beta_1)g_1 + (1-\beta_1)g_2\)</span>，仍有偏差</p></li>
+</ul>
+<p><strong>修正原理</strong>：</p>
+<ul class="simple">
+<li><p>如果 <span class="math notranslate nohighlight">\(m_t\)</span> 估计的是 <span class="math notranslate nohighlight">\(E[g]\)</span>，那 <span class="math notranslate nohighlight">\(E[m_t] = (1-\beta_1^t) E[g]\)</span></p></li>
+<li><p>除以 <span class="math notranslate nohighlight">\((1-\beta_1^t)\)</span> 就得到了无偏估计</p></li>
+</ul>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>符号</p></th>
+<th class="head"><p>含义</p></th>
+<th class="head"><p>计算方式</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\hat{m}_t\)</span></p></td>
+<td><p>修正后的一阶矩</p></td>
+<td><p><span class="math notranslate nohighlight">\(m_t / (1-\beta_1^t)\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\hat{v}_t\)</span></p></td>
+<td><p>修正后的二阶矩</p></td>
+<td><p><span class="math notranslate nohighlight">\(v_t / (1-\beta_2^t)\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(t\)</span></p></td>
+<td><p>当前步数</p></td>
+<td><p>训练迭代次数</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>修正效果</strong>：</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(t\)</span> 很小（初期）：<span class="math notranslate nohighlight">\(1-\beta_1^t\)</span> 很小，除数很小，放大效果明显</p></li>
+<li><p><span class="math notranslate nohighlight">\(t\)</span> 很大（后期）：<span class="math notranslate nohighlight">\(\beta_1^t \approx 0\)</span>，<span class="math notranslate nohighlight">\(1-\beta_1^t \approx 1\)</span>，几乎不修正</p></li>
+</ul>
+<p><strong>举例</strong>（<span class="math notranslate nohighlight">\(\beta_1 = 0.9\)</span>）：</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(t=1\)</span>：修正系数 <span class="math notranslate nohighlight">\(1/(1-0.9) = 10\)</span>，放大 10 倍</p></li>
+<li><p><span class="math notranslate nohighlight">\(t=10\)</span>：修正系数 <span class="math notranslate nohighlight">\(1/(1-0.9^{10}) \approx 1.5\)</span>，放大 1.5 倍</p></li>
+<li><p><span class="math notranslate nohighlight">\(t=100\)</span>：修正系数 <span class="math notranslate nohighlight">\(\approx 1.0\)</span>，几乎不修正</p></li>
+</ul>
+<p><strong>第四步：参数更新（自适应学习率的精髓）</strong></p>
+<div class="math notranslate nohighlight">
+\[\theta_{t+1} = \theta_t - \eta \cdot \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}\]</div>
+<p><strong>逐元素解读</strong>：</p>
+<p>对于第 <span class="math notranslate nohighlight">\(i\)</span> 个参数 <span class="math notranslate nohighlight">\(\theta^{(i)}\)</span>：</p>
+<div class="math notranslate nohighlight">
+\[\theta_{t+1}^{(i)} = \theta_t^{(i)} - \eta \cdot \frac{\hat{m}_t^{(i)}}{\sqrt{\hat{v}_t^{(i)}} + \epsilon}\]</div>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>符号</p></th>
+<th class="head"><p>含义</p></th>
+<th class="head"><p>作用</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\hat{m}_t^{(i)}\)</span></p></td>
+<td><p>第 <span class="math notranslate nohighlight">\(i\)</span> 个参数的平滑梯度</p></td>
+<td><p>决定<strong>更新方向</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\sqrt{\hat{v}_t^{(i)}}\)</span></p></td>
+<td><p>第 <span class="math notranslate nohighlight">\(i\)</span> 个参数的梯度 RMS</p></td>
+<td><p>决定<strong>步长缩放</strong></p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\epsilon\)</span></p></td>
+<td><p>数值稳定性常数</p></td>
+<td><p>防止除以 0，通常 <span class="math notranslate nohighlight">\(10^{-8}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\eta\)</span></p></td>
+<td><p>全局学习率</p></td>
+<td><p>整体步长控制</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>核心洞察 - 自适应学习率机制</strong>：</p>
+<p>假设有两个参数：</p>
+<p><strong>参数 A</strong>（梯度波动大）：</p>
+<ul class="simple">
+<li><p>历史梯度：[10, -8, 12, -10, 9]（大起大落）</p></li>
+<li><p><span class="math notranslate nohighlight">\(\hat{m}_t \approx 2.6\)</span>（平均梯度）</p></li>
+<li><p><span class="math notranslate nohighlight">\(\hat{v}_t \approx 100\)</span>（平均平方梯度）</p></li>
+<li><p><span class="math notranslate nohighlight">\(\sqrt{\hat{v}_t} \approx 10\)</span></p></li>
+<li><p>更新步长：<span class="math notranslate nohighlight">\(\eta \cdot 2.6 / 10 = 0.26\eta\)</span>（步长被缩小）</p></li>
+</ul>
+<p><strong>参数 B</strong>（梯度波动小）：</p>
+<ul class="simple">
+<li><p>历史梯度：[0.01, -0.02, 0.015, -0.01, 0.012]（小幅波动）</p></li>
+<li><p><span class="math notranslate nohighlight">\(\hat{m}_t \approx 0.009\)</span>（平均梯度）</p></li>
+<li><p><span class="math notranslate nohighlight">\(\hat{v}_t \approx 0.0002\)</span>（平均平方梯度）</p></li>
+<li><p><span class="math notranslate nohighlight">\(\sqrt{\hat{v}_t} \approx 0.014\)</span></p></li>
+<li><p>更新步长：<span class="math notranslate nohighlight">\(\eta \cdot 0.009 / 0.014 = 0.64\eta\)</span>（步长相对较大）</p></li>
+</ul>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>梯度波动大的参数 → 步长自动变小（谨慎更新）</p></li>
+<li><p>梯度波动小的参数 → 步长相对较大（大胆更新）</p></li>
+</ul>
+<p><strong>为什么用 <span class="math notranslate nohighlight">\(\sqrt{\hat{v}_t}\)</span> 而不是 <span class="math notranslate nohighlight">\(\hat{v}_t\)</span>？</strong></p>
+<ul class="simple">
+<li><p>梯度平方 <span class="math notranslate nohighlight">\(g_t^2\)</span> 的量纲是原梯度的平方</p></li>
+<li><p>除以 <span class="math notranslate nohighlight">\(\sqrt{\hat{v}_t}\)</span>（RMS，均方根）可以抵消量纲，使更新步长与原梯度同量纲</p></li>
+<li><p>类比：标准差 <span class="math notranslate nohighlight">\(\sigma = \sqrt{\text{方差}}\)</span>，与原始数据同量纲</p></li>
+</ul>
+<p><strong>超参数总结</strong>：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>参数</p></th>
+<th class="head"><p>推荐值</p></th>
+<th class="head"><p>作用</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\beta_1\)</span></p></td>
+<td><p>0.9</p></td>
+<td><p>一阶矩衰减率，控制 momentum 强度</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\beta_2\)</span></p></td>
+<td><p>0.999</p></td>
+<td><p>二阶矩衰减率，控制自适应灵敏度</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\epsilon\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(10^{-8}\)</span></p></td>
+<td><p>数值稳定性</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\eta\)</span></p></td>
+<td><p>0.001（默认）</p></td>
+<td><p>全局学习率</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>特点</strong>：</p>
+<ul class="simple">
+<li><p>结合动量和自适应学习率</p></li>
+<li><p>对超参数不敏感，<strong>默认首选</strong></p></li>
+<li><p>适合大多数深度学习任务</p></li>
+</ul>
+<div class="table colwidths-given docutils container" id="id121">
+<table class="docutils align-default" id="id121">
+<caption><span class="caption-text">优化算法选择建议</span><a class="headerlink" href="#id121" title="Link to this table">#</a></caption>
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 35.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>算法</strong></p></th>
+<th class="head"><p><strong>适用场景</strong></p></th>
+<th class="head"><p><strong>特点</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>SGD + Momentum</p></td>
+<td><p>图像分类、大模型</p></td>
+<td><p>泛化性能好，需调学习率</p></td>
+</tr>
+<tr class="row-odd"><td><p>Adam</p></td>
+<td><p>默认首选、NLP、推荐系统</p></td>
+<td><p>自适应、收敛快、易用</p></td>
+</tr>
+<tr class="row-even"><td><p>AdamW</p></td>
+<td><p>Transformer、大模型</p></td>
+<td><p>改进权重衰减，效果更好</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr class="docutils" />
+</section>
+</section>
+<section id="learning-rate-scheduling">
+<span id="id8"></span><h2>学习率调度：为什么需要调整学习率？<a class="headerlink" href="#learning-rate-scheduling" title="Link to this heading">#</a></h2>
+<section id="id9">
+<h3>核心问题<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<p>训练初期，参数远离最优，需要<strong>大学习率</strong>快速接近目标。
+训练后期，参数接近最优，需要<strong>小学习率</strong>精细调整，避免在最优点附近震荡。</p>
+<div class="figure" id="id122" style="text-align: center"><p><img  src="../_images/tikz-917c71b5dd181b58ccdf1c66024dd5599a9a8936.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">固定学习率 vs 学习率调度</span></p>
+</div></section>
+<section id="id10">
+<h3>常见学习率调度策略<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<div class="figure" id="id123" style="text-align: center"><p><img  src="../_images/tikz-29d8fbf95122945632fa8a291052b78d67c7bc71.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">学习率调度策略对比</span></p>
+</div><section id="step-decay">
+<h4>1. 步长衰减（Step Decay）<a class="headerlink" href="#step-decay" title="Link to this heading">#</a></h4>
+<p><strong>策略</strong>：每N个epoch，学习率乘以衰减系数（如0.1）</p>
+<p><strong>适用场景</strong>：</p>
+<ul class="simple">
+<li><p>传统图像分类任务（ImageNet训练标配）</p></li>
+<li><p>当验证集损失不再下降时手动降低学习率</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 每30个epoch，学习率乘以0.1</span>
+<span class="n">scheduler</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">StepLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">step_size</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>特点</strong>：阶梯式下降，简单有效，但需要预设衰减时机。</p>
+</section>
+<section id="exponential-decay">
+<h4>2. 指数衰减（Exponential Decay）<a class="headerlink" href="#exponential-decay" title="Link to this heading">#</a></h4>
+<p><strong>策略</strong>：每个epoch学习率按指数衰减</p>
+<div class="math notranslate nohighlight">
+\[\eta_t = \eta_0 \cdot \gamma^t\]</div>
+<p><strong>适用场景</strong>：</p>
+<ul class="simple">
+<li><p>需要平滑连续衰减</p></li>
+<li><p>训练轮数较多时</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 每个epoch学习率乘以0.95</span>
+<span class="n">scheduler</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">ExponentialLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="cosine-annealing">
+<h4>3. 余弦退火（Cosine Annealing）<a class="headerlink" href="#cosine-annealing" title="Link to this heading">#</a></h4>
+<p><strong>策略</strong>：学习率按余弦函数从初始值降到接近0</p>
+<div class="math notranslate nohighlight">
+\[\eta_t = \eta_{min} + \frac{1}{2}(\eta_{max} - \eta_{min})(1 + \cos(\frac{t}{T_{max}}\pi))\]</div>
+<p><strong>适用场景</strong>：</p>
+<ul class="simple">
+<li><p>现代Transformer模型（BERT、GPT等）</p></li>
+<li><p>配合Warmup使用效果更佳</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">scheduler</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">CosineAnnealingLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">T_max</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="warmup">
+<h3>4. 预热（Warmup）<a class="headerlink" href="#warmup" title="Link to this heading">#</a></h3>
+<p><strong>问题</strong>：训练初期参数随机初始化，梯度可能很大且不稳定，大学习率会导致震荡。</p>
+<p><strong>策略</strong>：从很小的学习率开始，线性增加到目标学习率。</p>
+<div class="figure" id="id124" style="text-align: center"><p><img  src="../_images/tikz-7eea247496776676952d82efa46cf0cf22fad6d9.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Warmup + Cosine Annealing</span></p>
+</div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 组合使用：Warmup + Cosine Annealing</span>
+<span class="n">scheduler1</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">LinearLR</span><span class="p">(</span>
+    <span class="n">optimizer</span><span class="p">,</span> 
+    <span class="n">start_factor</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>      <span class="c1"># 从1%的目标学习率开始</span>
+    <span class="n">end_factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">total_iters</span><span class="o">=</span><span class="mi">5</span>           <span class="c1"># 前5个epoch预热</span>
+<span class="p">)</span>
+<span class="n">scheduler2</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">CosineAnnealingLR</span><span class="p">(</span>
+    <span class="n">optimizer</span><span class="p">,</span> 
+    <span class="n">T_max</span><span class="o">=</span><span class="mi">95</span>                <span class="c1"># 剩余95个epoch余弦退火</span>
+<span class="p">)</span>
+<span class="n">scheduler</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">SequentialLR</span><span class="p">(</span>
+    <span class="n">optimizer</span><span class="p">,</span> 
+    <span class="n">schedulers</span><span class="o">=</span><span class="p">[</span><span class="n">scheduler1</span><span class="p">,</span> <span class="n">scheduler2</span><span class="p">],</span> 
+    <span class="n">milestones</span><span class="o">=</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id11">
+<h3>选择建议<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>策略</p></th>
+<th class="head"><p>推荐场景</p></th>
+<th class="head"><p>优点</p></th>
+<th class="head"><p>缺点</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Step Decay</p></td>
+<td><p>图像分类、CNN</p></td>
+<td><p>简单有效</p></td>
+<td><p>需预设衰减时机</p></td>
+</tr>
+<tr class="row-odd"><td><p>Exponential</p></td>
+<td><p>长周期训练</p></td>
+<td><p>平滑连续</p></td>
+<td><p>衰减过快</p></td>
+</tr>
+<tr class="row-even"><td><p>Cosine</p></td>
+<td><p>Transformer、NLP</p></td>
+<td><p>效果通常最好</p></td>
+<td><p>相对复杂</p></td>
+</tr>
+<tr class="row-odd"><td><p>Warmup + Cosine</p></td>
+<td><p>大模型训练</p></td>
+<td><p>稳定+效果好</p></td>
+<td><p>需调两个参数</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="pytorch">
+<h2>PyTorch实践<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h2>
+<ul>
+<li><p><strong>基本训练循环</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.optim</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">optim</span>
+
+<span class="c1"># 定义模型、损失函数、优化器</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">()</span>
+<span class="n">criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+
+<span class="c1"># 训练循环</span>
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_epochs</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">data</span><span class="p">,</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">dataloader</span><span class="p">:</span>
+        <span class="c1"># 前向传播</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+        
+        <span class="c1"># 反向传播</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>  <span class="c1"># 清空梯度</span>
+        <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>        <span class="c1"># 计算梯度</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>       <span class="c1"># 更新参数</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>学习率调度</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 组合调度：预热 + 余弦退火</span>
+<span class="n">scheduler1</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">LinearLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">start_factor</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">total_iters</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">scheduler2</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">CosineAnnealingLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">T_max</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+<span class="n">scheduler</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">SequentialLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="p">[</span><span class="n">scheduler1</span><span class="p">,</span> <span class="n">scheduler2</span><span class="p">],</span> <span class="n">milestones</span><span class="o">=</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span>
+
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_epochs</span><span class="p">):</span>
+    <span class="n">train</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">scheduler</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>  <span class="c1"># 更新学习率</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="id12">
+<h2>训练技巧<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
+<ol class="arabic">
+<li><p><strong>梯度裁剪</strong></p>
+<p>防止梯度爆炸：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">clip_grad_norm_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">max_norm</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>批归一化（BatchNorm）</strong></p>
+<p>稳定训练、加速收敛：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">bn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm1d</span><span class="p">(</span><span class="n">num_features</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>早停（Early Stopping）</strong></p>
+<p>验证集损失不再下降时停止训练，防止过拟合。</p>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="id13">
+<h2>总结<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<p>梯度下降是深度学习训练的基石：</p>
+<ol class="arabic simple">
+<li><p><strong>基本原理</strong>：沿<a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>计算的负梯度方向迭代更新参数</p></li>
+<li><p><strong>学习率</strong>：最关键的超参数，过大震荡，过小收敛慢</p></li>
+<li><p><strong>Mini-batch</strong>：平衡效率和稳定性，深度学习标配</p></li>
+<li><p><strong>Adam</strong>：默认首选优化器，自适应、易用</p></li>
+<li><p><strong>学习率调度</strong>：训练过程中调整学习率能提升效果</p></li>
+</ol>
+<p>理解<a class="reference internal" href="loss-functions.html#loss-functions"><span class="std std-ref">损失函数</span></a>和优化算法后，你就掌握了深度学习训练的全流程。接下来我们将通过<a class="reference internal" href="the-end.html"><span class="doc">总结与展望</span></a>回顾本章内容，然后进入实践章节。</p>
+<hr class="docutils" />
+<h2 class="rubric">参考文献</h2>
+<div class="docutils container" id="id14">
+<div role="list" class="citation-list">
+<div class="citation" id="id58" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">KB15</a><span class="fn-bracket">]</span></span>
+<p>Diederik P Kingma and Jimmy Ba. Adam: a method for stochastic optimization. In <em>International Conference on Learning Representations</em>. 2015.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (7 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">d7c9da7</code>
+                2026-05-12 - <strong>Heyan Zhu</strong>: docs: update sphinx only filter from not pdf to not latex
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">a954ca5</code>
+                2026-05-11 - <strong>Heyan Zhu</strong>: docs: revise and restructure documentation, fix formatting, and move env setup and sphinx guide to a separate appendix section
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f159d56</code>
+                2026-05-08 - <strong>Heyan Zhu</strong>: fix: address complaints from the linter
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b20ef3e</code>
+                2026-04-28 - <strong>Heyan Zhu</strong>: docs: update pytorch practice section with detailed explanations and code examples
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">59126f4</code>
+                2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and add citations
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">ae2053f</code>
+                2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): add task-formulations and update related content
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">756a793</code>
+                2026-04-25 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and improve explanations
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+</article><footer class="bz-article-footer">
+  
+  
+    <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="back-propagation.html" rel="prev">
+    <span>Previous</span><span class="bz-related-pages-title">反向传播算法</span></a><a class="bz-related-pages-next" href="the-end.html" rel="next">
+    <span>Next</span>
+    <span class="bz-related-pages-title">总结与展望</span>
+  </a></nav>
+  
+
+</footer><aside class="bz-sidebar-secondary" data-drawer="bz-sidebar-secondary">
+  
+  
+    
+  
+  
+  
+  
+
+
+
+<div class="bz-repo-stats">
+  <a
+    data-provider="github"
+    data-user="ulink-deep-learning-club"
+    data-repo="ulink-deeplearningclub-handouts"
+    href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    aria-label="ulink-deep-learning-club/ulink-deeplearningclub-handouts repository"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    <span
+      style="--bz-repo-stats-name-length: 56"
+      title="ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    >
+      ulink-deep-learning-club/ulink-deeplearningclub-handouts
+    </span>
+    <div class="bz-repo-stats-row">
+      <span class="bz-repo-stats-item" aria-label="Repository stars">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path></svg>
+        <span data-stat="stars">-</span>
+      </span>
+      <span class="bz-repo-stats-item" aria-label="Repository forks">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
+        <span data-stat="forks">-</span>
+      </span>
+    </div>
+  </a>
+</div>
+
+  
+    <div class="bz-edit-this-page">
+  <a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/source/math-fundamentals/gradient-descent.md" rel="edit">
+    Edit this page
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"></path></svg>
+  </a>
+</div>
+  
+    <nav class="bz-sidebar-toc" aria-label="Table of contents">
+  <p>On this page</p><ul>
+<li><a class="reference internal" href="#id2">沿着最陡方向下山</a><ul>
+<li><a class="reference internal" href="#id3">学习率的重要性</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id4">梯度下降的变体</a><ul>
+<li><a class="reference internal" href="#batch-gd">批量梯度下降（Batch GD）</a></li>
+<li><a class="reference internal" href="#sgd">随机梯度下降（SGD）</a></li>
+<li><a class="reference internal" href="#mini-batch-gd">小批量梯度下降（Mini-batch GD）</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id5">高级优化算法</a><ul>
+<li><a class="reference internal" href="#loss-landscape-loss-functions">Loss Landscape：<span class="xref std std-ref">loss-functions</span>塑造的优化地形</a></li>
+<li><a class="reference internal" href="#id6">动量法：积累速度翻越障碍</a></li>
+<li><a class="reference internal" href="#adam">Adam（自适应矩估计）</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#learning-rate-scheduling">学习率调度：为什么需要调整学习率？</a><ul>
+<li><a class="reference internal" href="#id9">核心问题</a></li>
+<li><a class="reference internal" href="#id10">常见学习率调度策略</a><ul>
+<li><a class="reference internal" href="#step-decay">1​. 步长衰减（Step Decay）</a></li>
+<li><a class="reference internal" href="#exponential-decay">2​. 指数衰减（Exponential Decay）</a></li>
+<li><a class="reference internal" href="#cosine-annealing">3​. 余弦退火（Cosine Annealing）</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#warmup">4​. 预热（Warmup）</a></li>
+<li><a class="reference internal" href="#id11">选择建议</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pytorch">PyTorch实践</a></li>
+<li><a class="reference internal" href="#id12">训练技巧</a></li>
+<li><a class="reference internal" href="#id13">总结</a></li>
+</ul></nav>
+  
+
+</aside></main>
+  </div>
+<footer class="bz-footer">
+  <div class="bz-footer-copyright"><p class="bz-copyright">© Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0</p><p>
+    
+    
+    
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a href="https://github.com/aksiome/breeze">Breeze theme</a>.
+    
+  </p>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    
+    </a>
+  </div>
+</footer><a href="#" class="bz-back-to-top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+    </svg>
+    <span>Back to top</span>
+  </a>
+  <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
+  <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
+  <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../_static/documentation_options.js?v=5a0213dc"></script><script src="../_static/doctools.js?v=9bcbadda"></script><script src="../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../_static/translations.js?v=beaddf03"></script><script src="../_static/design-tabs.js?v=f930bc37"></script><script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script></body>
+</html>

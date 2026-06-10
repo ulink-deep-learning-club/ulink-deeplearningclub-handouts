@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-content_root="../../">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="NVIDIA驱动与CUDA：让GPU真正工作" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="appendix/environment-setup/nvidia-setup.html" />
+<meta property="og:site_name" content="Deep Learning Club Handouts" />
+<meta property="og:description" content="系统装好了，SSH能连上了，然后呢？ python -c &quot;import torch; print(torch.cuda.is_available())&quot; 返回 False ——你的GPU还没&quot;醒&quot;过来。 让NVIDIA GPU在Linux上正常工作需要三层软件： 驱动 → CUDA Toolkit → 深度学习框架 。每一层都有版本兼容问题，配错了就..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_appendix_environment-setup_nvidia-setup_a23c3fd5.png" />
+<meta property="og:image:alt" content="系统装好了，SSH能连上了，然后呢？ python -c &quot;import torch; print(torch.cuda.is_available())&quot; 返回 False ——你的GPU还没&quot;醒&quot;过来。 让NVIDIA GPU在Linux上正常工作需要三层软件： 驱动 → CUDA Toolkit → 深度学习框架 。每一层都有版本兼容问题，配错了就..." />
+<meta name="description" content="系统装好了，SSH能连上了，然后呢？ python -c &quot;import torch; print(torch.cuda.is_available())&quot; 返回 False ——你的GPU还没&quot;醒&quot;过来。 让NVIDIA GPU在Linux上正常工作需要三层软件： 驱动 → CUDA Toolkit → 深度学习框架 。每一层都有版本兼容问题，配错了就..." />
+<meta name="twitter:card" content="summary_large_image" />
+<title>NVIDIA驱动与CUDA：让GPU真正工作 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../../genindex.html"><link rel="search" title="搜索" href="../../search.html"><link rel="next" title="远程访问：从任何地方连上你的GPU服务器" href="remote-access.html"><link rel="prev" title="Linux基础：为什么炼丹用Linux" href="linux-basics.html"><script data-cfasync="false">(function(){
+    const m = localStorage.getItem("breeze-mode") || "auto";
+    const d = document.documentElement.dataset;
+    d.mode = m;
+    d.theme = m === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : m;
+  })();
+  </script><link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../../_static/style-fixes.css?v=9c6fee98" /><link rel="stylesheet" type="text/css" href="../../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+<body>
+  
+  
+  <div class="bz-skip-to-content"><a href="#bz-main-content">Skip to main content</a></div><header class="bz-header-main">
+  <div class="bz-header-start"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><a class="bz-header-brand" href="../../index.html">
+  
+  
+  <span>Deep Learning Club Handouts</span>
+</a>
+  </div>
+  <div class="bz-header-end"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><div id="docsearch" class="bz-search-button">
+  <a
+    href="../../search.html#q"
+    aria-label="Search the docs"
+    data-tooltip="Search the docs"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 -1 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
+    <span>搜索</span>
+    <kbd>Ctrl+K</kbd>
+  </a>
+</div><div class="bz-theme-switcher">
+  <button aria-label="Switch theme" data-tooltip="Switch theme">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
+      <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-dark" fill="currentColor">
+      <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+    </svg>
+  </button>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.766 11.695C4.703 11.437 3.25 9.904 3.25 7.92c0-.806.281-1.677.75-2.258-.203-.532-.172-1.662.062-2.129.626-.081 1.469.258 1.969.726.594-.194 1.219-.291 1.985-.291.765 0 1.39.097 1.953.274.484-.451 1.343-.79 1.969-.709.218.435.25 1.564.046 2.113.5.613.766 1.436.766 2.274 0 1.984-1.453 3.485-3.547 3.759.531.355.891 1.129.891 2.016v1.678c0 .484.39.758.859.564C13.781 14.824 16 11.905 16 8.291 16 3.726 12.406 0 7.984 0 3.562 0 0 3.726 0 8.291c0 3.581 2.203 6.55 5.172 7.663A.595.595 0 0 0 6 15.389v-1.291c-.219.097-.5.162-.75.162-1.031 0-1.641-.581-2.078-1.662-.172-.435-.36-.693-.719-.742-.187-.016-.25-.097-.25-.193 0-.194.313-.339.625-.339.453 0 .844.29 1.25.887.313.468.641.678 1.031.678.391 0 .641-.146 1-.516.266-.275.469-.517.657-.678Z"></path></svg>
+    
+    </a>
+  </div>
+  </div>
+</header><hr class="bz-header-hr">
+  <div class="bz-content"><aside class="bz-sidebar-primary" data-drawer="bz-sidebar-primary">
+  
+  
+    <nav class="bz-sidebar-nav" aria-label="Section Navigation"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../math-fundamentals/index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../neural-network-basics/index.html">神经网络基础：从理论到架构</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../neural-network-basics/scaling-law.html">缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../neural-network-basics/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cnn-ablation-study/index.html">CNN 消融研究：理解卷积神经网络各组件的作用</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../cnn-ablation-study/introduction.html">引言：消融研究的科学方法论</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cnn-ablation-study/the-end.html">结语：从黑盒到白盒</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../attention-mechanisms/index.html">CNN 中的注意力机制</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../attention-mechanisms/introduction.html">为什么CNN需要注意力机制？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../attention-mechanisms/se-net.html">通道注意力：SE-Net</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../attention-mechanisms/spatial-attn.html">空间注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../attention-mechanisms/cbam.html">通道+空间注意力：CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../attention-mechanisms/comparison.html">注意力机制的选择与应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../attention-mechanisms/practice.html">实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../attention-mechanisms/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../model-architecture-design/index.html">CNN 架构改造：设计卷积网络的心法</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../model-architecture-design/part1-intro.html">改造的本质：从"会用 CNN"到"会设计 CNN"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-architecture-design/part5-efficiency.html">操控效率：效果、速度与硬件的三角权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-architecture-design/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../unet-image-segmentation/index.html">U-Net：图像分割的革命</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sequence-modeling/index.html">序列建模：从 RNN 到 Transformer 到 Mamba</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/introduction.html">引言：从空间到时间</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/transformer.html">Transformer：注意力的极致</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/mamba-intro.html">Mamba 简述：对RNN思想的回归</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../model-serving/index.html">模型部署与服务：从训练到生产</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul></details></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">附录</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">环境配置</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l3"><a class="reference internal" href="remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l3"><a class="reference internal" href="the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../sphinx-guide/index.html">Sphinx Markdown 语法参考</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../build-docs.html">编译文档</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../postscript.html">写在后面</a></li>
+</ul>
+</nav>
+  
+
+</aside><main id="bz-main-content"><header class="bz-article-header">
+  
+  
+    <nav class="bz-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li class="bz-breadcrumbs-home">
+      <a href="../../index.html" aria-label="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8.543 2.232a.75.75 0 0 0-1.085 0l-5.25 5.5A.75.75 0 0 0 2.75 9H4v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V9h1.25a.75.75 0 0 0 .543-1.268l-5.25-5.5Z" />
+        </svg>
+      </a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="../index.html">附录</a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="index.html">环境配置</a>
+    </li><li class="bz-breadcrumbs-current">
+      <span>NVIDIA驱动与CUDA：让GPU真正工作</span>
+    </li>
+  </ol>
+</nav>
+  
+<label
+  class="bz-sidebar-secondary-toggle"
+  for="bz-sidebar-secondary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle table of contents"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75H20.25 M11.25 12H20.25 M7.75 17.25H20.25"
+    />
+  </svg>
+</label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="nvidiacuda-gpu">
+<span id="nvidia-setup"></span><h1>NVIDIA驱动与CUDA：让GPU真正工作<a class="headerlink" href="#nvidiacuda-gpu" title="Link to this heading">#</a></h1>
+<p>系统装好了，SSH能连上了，然后呢？<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-c</span> <span class="pre">&quot;import</span> <span class="pre">torch;</span> <span class="pre">print(torch.cuda.is_available())&quot;</span></code> 返回 <code class="docutils literal notranslate"><span class="pre">False</span></code>——你的GPU还没&quot;醒&quot;过来。</p>
+<p>让NVIDIA GPU在Linux上正常工作需要三层软件：<strong>驱动</strong> → <strong>CUDA Toolkit</strong> → <strong>深度学习框架</strong>。每一层都有版本兼容问题，配错了就报错。</p>
+<blockquote>
+<div><p><strong>文档更新</strong>：2026年4月。NVIDIA驱动版本迭代很快，本文信息以当时最新的R595/R580分支为准。建议在<a class="reference external" href="https://www.nvidia.com/en-us/drivers/">NVIDIA官方驱动下载页</a>确认最新版本。</p>
+</div></blockquote>
+<section id="nvidia-arch">
+<span id="id1"></span><h2>显卡架构简史<a class="headerlink" href="#nvidia-arch" title="Link to this heading">#</a></h2>
+<p>每张NVIDIA显卡都基于一个架构代号，不同架构支持的驱动版本、计算特性、深度学习能力都有差异。了解架构是选卡和排错的第一步。</p>
+<div class="table docutils container" id="id11">
+<table class="docutils align-default" id="id11">
+<caption><span class="caption-text">NVIDIA GPU架构一览（2014–2026）</span><a class="headerlink" href="#id11" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>架构</strong></p></th>
+<th class="head"><p><strong>发布年份</strong></p></th>
+<th class="head"><p><strong>代表产品</strong></p></th>
+<th class="head"><p><strong>Tensor Core</strong></p></th>
+<th class="head"><p><strong>RT Core</strong></p></th>
+<th class="head"><p><strong>驱动支持状态</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Maxwell</p></td>
+<td><p>2014</p></td>
+<td><p>GTX 750/900系列</p></td>
+<td><p>无</p></td>
+<td><p>无</p></td>
+<td><p>R580最后支持，2025终止</p></td>
+</tr>
+<tr class="row-odd"><td><p>Pascal</p></td>
+<td><p>2016</p></td>
+<td><p>GTX 10系列、Tesla P100</p></td>
+<td><p>无</p></td>
+<td><p>无</p></td>
+<td><p>R580最后支持，2025终止</p></td>
+</tr>
+<tr class="row-even"><td><p>Volta</p></td>
+<td><p>2017</p></td>
+<td><p>Tesla V100、Titan V</p></td>
+<td><p>第1代（FP16）</p></td>
+<td><p>无</p></td>
+<td><p>R580最后支持，2025终止</p></td>
+</tr>
+<tr class="row-odd"><td><p>Turing</p></td>
+<td><p>2018</p></td>
+<td><p>RTX 20系列、GTX 16系列、T4</p></td>
+<td><p>第2代</p></td>
+<td><p>第1代</p></td>
+<td><p>R590+</p></td>
+</tr>
+<tr class="row-even"><td><p>Ampere</p></td>
+<td><p>2020</p></td>
+<td><p>RTX 30系列、A100、A40</p></td>
+<td><p>第3代（TF32+BFP+稀疏）</p></td>
+<td><p>第2代</p></td>
+<td><p>R590+</p></td>
+</tr>
+<tr class="row-odd"><td><p>Ada Lovelace</p></td>
+<td><p>2022</p></td>
+<td><p>RTX 40系列、L40S</p></td>
+<td><p>第4代</p></td>
+<td><p>第3代</p></td>
+<td><p>R590+</p></td>
+</tr>
+<tr class="row-even"><td><p>Hopper</p></td>
+<td><p>2022</p></td>
+<td><p>H100、H200</p></td>
+<td><p>第4代（FP8+Transformer）</p></td>
+<td><p>无</p></td>
+<td><p>R590+</p></td>
+</tr>
+<tr class="row-odd"><td><p>Blackwell</p></td>
+<td><p>2024</p></td>
+<td><p>RTX 50系列、B200</p></td>
+<td><p>第5代（FP4）</p></td>
+<td><p>第4代（神经渲染）</p></td>
+<td><p>当前</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>各代架构的关键技术跳跃：</p>
+<ul class="simple">
+<li><p><strong>Pascal → Volta</strong>：Tensor Core诞生，深度学习训练速度提升10倍</p></li>
+<li><p><strong>Volta → Turing</strong>：RT Core加入，Tensor Core首次进入消费级显卡</p></li>
+<li><p><strong>Turing → Ampere</strong>：TF32精度、BF16支持、稀疏加速，算力翻倍</p></li>
+<li><p><strong>Ampere → Hopper</strong>：Transformer Engine、FP8，专为大语言模型优化</p></li>
+<li><p><strong>Hopper → Blackwell</strong>：FP4推理、所有核心支持FP32+INT32并发、神经渲染</p></li>
+</ul>
+</section>
+<section id="id2">
+<h2>驱动版本与架构支持<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>NVIDIA的驱动按Release Branch组织，每季度更新。不同分支支持的GPU架构不同：</p>
+<div class="table docutils container" id="id12">
+<table class="docutils align-default" id="id12">
+<caption><span class="caption-text">驱动分支与架构支持（2026年4月）</span><a class="headerlink" href="#id12" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>驱动分支</strong></p></th>
+<th class="head"><p><strong>最新版本</strong></p></th>
+<th class="head"><p><strong>发布日期</strong></p></th>
+<th class="head"><p><strong>支持的架构</strong></p></th>
+<th class="head"><p><strong>状态</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>R595</p></td>
+<td><p>596.36</p></td>
+<td><p>2026-04-28</p></td>
+<td><p>Turing ~ Blackwell</p></td>
+<td><p>当前Game Ready</p></td>
+</tr>
+<tr class="row-odd"><td><p>R580</p></td>
+<td><p>582.53</p></td>
+<td><p>2026-04-28</p></td>
+<td><p>Maxwell ~ Blackwell</p></td>
+<td><p>当前Enterprise LTSB</p></td>
+</tr>
+<tr class="row-even"><td><p>R570</p></td>
+<td><p>573.96</p></td>
+<td><p>2026-01</p></td>
+<td><p>Maxwell ~ Blackwell</p></td>
+<td><p>2026年2月EOL</p></td>
+</tr>
+<tr class="row-odd"><td><p>R535</p></td>
+<td><p>539.72</p></td>
+<td><p>2026-04</p></td>
+<td><p>Kepler ~ Blackwell</p></td>
+<td><p>维护模式</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>关键事件时间线</strong>：</p>
+<ul class="simple">
+<li><p><strong>2021年</strong>：R470最后支持Kepler架构（GTX 600/700系列）</p></li>
+<li><p><strong>2025年10月</strong>：R580发布，最后一次Game Ready驱动更新支持Maxwell、Pascal、Volta</p></li>
+<li><p><strong>2025年Q4起</strong>：上述架构转为季度安全更新（至2028年10月）</p></li>
+<li><p><strong>2026年2月</strong>：R570分支正式EOL</p></li>
+<li><p><strong>2026年4月</strong>：R595（游戏）/ R580（企业）为当前活跃分支</p></li>
+</ul>
+<div class="tip admonition">
+<p class="admonition-title">如何选择驱动分支</p>
+<ul class="simple">
+<li><p><strong>游戏/开发机</strong>：选R595 Game Ready，有最新功能优化</p></li>
+<li><p><strong>生产服务器</strong>：选R580 Enterprise LTSB，稳定优先，支持到2028年</p></li>
+<li><p><strong>旧卡用户</strong>：如果持有GTX 900/10系列或Titan V，最多只能用到R580系列的最后版本</p></li>
+</ul>
+</div>
+</section>
+<section id="id3">
+<h2>一键安装：三行命令搞定<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>Debian/Ubuntu上装NVIDIA驱动最可靠的方式是通过官方APT源：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. 检测你的显卡型号和推荐驱动</span>
+nvidia-detect<span class="w">  </span><span class="c1"># 输出类似 &quot;nvidia-driver-570&quot;</span>
+
+<span class="c1"># 2. 添加NVIDIA官方APT源（Ubuntu LTS用户）</span>
+sudo<span class="w"> </span>add-apt-repository<span class="w"> </span>ppa:graphics-drivers/ppa
+sudo<span class="w"> </span>apt<span class="w"> </span>update
+
+<span class="c1"># 3. 安装推荐驱动（将570替换为detect输出的版本）</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>nvidia-driver-570
+
+<span class="c1"># 4. 重启</span>
+sudo<span class="w"> </span>reboot
+</pre></div>
+</div>
+<p>重启后验证：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 基本验证</span>
+nvidia-smi
+
+<span class="c1"># 输出应该是类似这样的：</span>
+<span class="c1"># +-----------------------------------------------------------------------------+</span>
+<span class="c1"># | NVIDIA-SMI 570.86.15    Driver Version: 570.86.15    CUDA Version: 12.8     |</span>
+<span class="c1"># |-------------------------------+----------------------+----------------------+</span>
+<span class="c1"># | GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |</span>
+<span class="c1"># | Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |</span>
+<span class="c1"># |===============================+======================+======================|</span>
+<span class="c1"># |   0  Tesla T4            Off  | 00000000:00:1E.0 Off |                    0 |</span>
+<span class="c1"># | N/A   48C    P0    28W /  70W |      0MiB / 15360MiB |      0%      Default |</span>
+<span class="c1"># +-------------------------------+----------------------+----------------------+</span>
+</pre></div>
+</div>
+<div class="warning admonition">
+<p class="admonition-title">Secure Boot警告</p>
+<p>如果系统启用了Secure Boot（很多预装Ubuntu/Debian的机器默认开启），安装NVIDIA专有驱动后需要注册MOK（Machine Owner Key）：重启时会进入蓝色MOK管理界面，选择&quot;Enroll MOK&quot;→&quot;Continue&quot;→输入密码→重启。如果不做这一步，驱动不会加载，<code class="docutils literal notranslate"><span class="pre">nvidia-smi</span></code>会报错。</p>
+</div>
+<section id="id4">
+<h3>驱动装不上？常见原因<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>症状</p></th>
+<th class="head"><p>原因</p></th>
+<th class="head"><p>解决</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">nvidia-smi:</span> <span class="pre">command</span> <span class="pre">not</span> <span class="pre">found</span></code></p></td>
+<td><p>驱动没装</p></td>
+<td><p>先 <code class="docutils literal notranslate"><span class="pre">nvidia-detect</span></code> 确认，然后 <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">apt</span> <span class="pre">install</span> <span class="pre">nvidia-driver-XXX</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Failed</span> <span class="pre">to</span> <span class="pre">initialize</span> <span class="pre">NVML:</span> <span class="pre">Driver/library</span> <span class="pre">version</span> <span class="pre">mismatch</span></code></p></td>
+<td><p>驱动更新后内核模块没重载</p></td>
+<td><p>重启，或 <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">rmmod</span> <span class="pre">nvidia_uvm</span> <span class="pre">nvidia_drm</span> <span class="pre">nvidia_modeset</span> <span class="pre">nvidia</span> <span class="pre">&amp;&amp;</span> <span class="pre">sudo</span> <span class="pre">modprobe</span> <span class="pre">nvidia</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ERROR:</span> <span class="pre">You</span> <span class="pre">appear</span> <span class="pre">to</span> <span class="pre">be</span> <span class="pre">running</span> <span class="pre">an</span> <span class="pre">X</span> <span class="pre">server</span></code></p></td>
+<td><p>有图形界面在运行</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">service</span> <span class="pre">lightdm</span> <span class="pre">stop</span></code> 后重试安装</p></td>
+</tr>
+<tr class="row-odd"><td><p>装完重启黑屏</p></td>
+<td><p>驱动与显卡不匹配 或 Secure Boot 阻止</p></td>
+<td><p>进恢复模式卸载驱动，换版本重试，或禁用 Secure Boot</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="nvidia-smi">
+<h2>nvidia-smi 深入解读<a class="headerlink" href="#nvidia-smi" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">nvidia-smi</span></code> 是你的GPU仪表盘。不只是看一眼温度和显存——它告诉你的信息远比表面多：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 基本（一秒钟刷新一次）</span>
+watch<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span>nvidia-smi
+
+<span class="c1"># 只看关键指标（适合监控训练）</span>
+nvidia-smi<span class="w"> </span>--query-gpu<span class="o">=</span>index,name,temperature.gpu,utilization.gpu,memory.used,memory.total<span class="w"> </span>--format<span class="o">=</span>csv
+
+<span class="c1"># 输出示例：</span>
+<span class="c1"># index, name, temperature.gpu, utilization.gpu, memory.used, memory.total</span>
+<span class="c1"># 0, Tesla T4, 48, 0 %, 0 MiB, 15360 MiB</span>
+</pre></div>
+</div>
+<div class="table docutils container" id="id13">
+<table class="docutils align-default" id="id13">
+<caption><span class="caption-text">nvidia-smi 输出关键字段</span><a class="headerlink" href="#id13" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>字段</strong></p></th>
+<th class="head"><p><strong>含义</strong></p></th>
+<th class="head"><p><strong>关注点</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Temp</p></td>
+<td><p>GPU核心温度（°C）</p></td>
+<td><p>超过85°C说明散热不足，会降频</p></td>
+</tr>
+<tr class="row-odd"><td><p>Perf</p></td>
+<td><p>性能状态（P0-P12）</p></td>
+<td><p>P0=最高性能，P8+表示降频了</p></td>
+</tr>
+<tr class="row-even"><td><p>Pwr:Usage/Cap</p></td>
+<td><p>当前功耗/最大功耗</p></td>
+<td><p>远低于Cap可能没在满负荷跑</p></td>
+</tr>
+<tr class="row-odd"><td><p>Memory-Usage</p></td>
+<td><p>显存使用量</p></td>
+<td><p>接近上限说明模型太大，需降batch或换卡</p></td>
+</tr>
+<tr class="row-even"><td><p>GPU-Util</p></td>
+<td><p>计算单元利用率</p></td>
+<td><p>持续＜80%说明CPU/IO瓶颈</p></td>
+</tr>
+<tr class="row-odd"><td><p>Volatile GPU-Util</p></td>
+<td><p>实际SM占用率（更准）</p></td>
+<td><p>和GPU-Util一起看</p></td>
+</tr>
+<tr class="row-even"><td><p>Compute M.</p></td>
+<td><p>计算模式</p></td>
+<td><p>Default / Exclusive_Process / PROHIBITED</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="note admonition">
+<p class="admonition-title">GPU-Util 低不代表有问题</p>
+<p>深度学习训练中GPU-Util低可能有多种原因：数据加载太慢（IO瓶颈）、CPU预处理跟不上、batch size过小、或者模型结构本身计算密度低（如小CNN）。可以尝试用 <code class="docutils literal notranslate"><span class="pre">nvidia-smi</span> <span class="pre">dmon</span></code> 查看更细粒度的指标。</p>
+</div>
+<section id="ecc">
+<h3>ECC与显存类型<a class="headerlink" href="#ecc" title="Link to this heading">#</a></h3>
+<p>企业级GPU（如A100、H100、V100）使用HBM/HBM2/HBM3显存，<strong>默认开启ECC</strong>。ECC纠错码会占用约6-12%的显存容量，但保证了计算正确性。可以用以下命令查询：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nvidia-smi<span class="w"> </span>-q<span class="w"> </span>-d<span class="w"> </span>ECC
+nvidia-smi<span class="w"> </span>--query-gpu<span class="o">=</span>ecc.mode.current<span class="w"> </span>--format<span class="o">=</span>csv
+</pre></div>
+</div>
+<p>消费级GPU（RTX系列）使用GDDR显存（GDDR6/GDDR6X/GDDR7），<strong>没有ECC</strong>。对大多数深度学习训练来说，GDDR的可靠性足够，但长时间大规模训练（数周级别的HPC任务）中，HBM+ECC是标配。</p>
+<div class="table docutils container" id="id14">
+<table class="docutils align-default" id="id14">
+<caption><span class="caption-text">显存类型对比</span><a class="headerlink" href="#id14" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>类型</strong></p></th>
+<th class="head"><p><strong>显卡示例</strong></p></th>
+<th class="head"><p><strong>带宽</strong></p></th>
+<th class="head"><p><strong>ECC</strong></p></th>
+<th class="head"><p><strong>适用场景</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>GDDR6</p></td>
+<td><p>RTX 3060~4060</p></td>
+<td><p>192~480 GB/s</p></td>
+<td><p>无</p></td>
+<td><p>训练/推理入门</p></td>
+</tr>
+<tr class="row-odd"><td><p>GDDR6X</p></td>
+<td><p>RTX 3090/4090</p></td>
+<td><p>700~1000 GB/s</p></td>
+<td><p>无</p></td>
+<td><p>消费级高性能</p></td>
+</tr>
+<tr class="row-even"><td><p>GDDR7</p></td>
+<td><p>RTX 5090</p></td>
+<td><p>1792 GB/s</p></td>
+<td><p>无</p></td>
+<td><p>消费级旗舰</p></td>
+</tr>
+<tr class="row-odd"><td><p>HBM2</p></td>
+<td><p>V100/P100</p></td>
+<td><p>732~900 GB/s</p></td>
+<td><p>有（6-12%开销）</p></td>
+<td><p>遗留企业级</p></td>
+</tr>
+<tr class="row-even"><td><p>HBM2e</p></td>
+<td><p>A100</p></td>
+<td><p>1935~2039 GB/s</p></td>
+<td><p>有</p></td>
+<td><p>上一代数据中心</p></td>
+</tr>
+<tr class="row-odd"><td><p>HBM3</p></td>
+<td><p>H100</p></td>
+<td><p>3350 GB/s</p></td>
+<td><p>有</p></td>
+<td><p>当前数据中心</p></td>
+</tr>
+<tr class="row-even"><td><p>HBM3e</p></td>
+<td><p>H200/B200</p></td>
+<td><p>4800~8000 GB/s</p></td>
+<td><p>有</p></td>
+<td><p>最新数据中心</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="cuda">
+<span id="cuda-compat"></span><h2>CUDA版本管理<a class="headerlink" href="#cuda" title="Link to this heading">#</a></h2>
+<div class="warning admonition">
+<p class="admonition-title">CUDA Toolkit版本 ≠ nvidia-smi显示的CUDA Version</p>
+<p><code class="docutils literal notranslate"><span class="pre">nvidia-smi</span></code> 输出的&quot;CUDA Version&quot;是<strong>驱动支持的CUDA最大版本</strong>（Driver API版本），不是实际安装的CUDA Toolkit版本。你可以装CUDA 11.8 Toolkit在CUDA 12.8的驱动上跑（向下兼容），但不能反过来。</p>
+</div>
+<p>快速确认你的深度学习框架在用哪个CUDA版本：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># PyTorch</span>
+python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import torch; print(torch.version.cuda)&quot;</span>
+
+<span class="c1"># TensorFlow</span>
+python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import tensorflow as tf; print(tf.sysconfig.get_build_info()[&#39;cuda_version&#39;])&quot;</span>
+
+<span class="c1"># 查看系统CUDA Toolkit版本</span>
+/usr/local/cuda/bin/nvcc<span class="w"> </span>--version
+</pre></div>
+</div>
+<div class="table docutils container" id="id15">
+<table class="docutils align-default" id="id15">
+<caption><span class="caption-text">NVIDIA驱动与CUDA Toolkit的兼容关系</span><a class="headerlink" href="#id15" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>驱动分支</strong></p></th>
+<th class="head"><p><strong>最大CUDA版本</strong></p></th>
+<th class="head"><p><strong>最低CUDA版本</strong></p></th>
+<th class="head"><p><strong>建议配对</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>R595/R590</p></td>
+<td><p>CUDA 13.x</p></td>
+<td><p>CUDA 12.0</p></td>
+<td><p>最新项目用CUDA 12.8+</p></td>
+</tr>
+<tr class="row-odd"><td><p>R580</p></td>
+<td><p>CUDA 12.8</p></td>
+<td><p>CUDA 12.0</p></td>
+<td><p>生产环境配CUDA 12.4~12.8</p></td>
+</tr>
+<tr class="row-even"><td><p>R570</p></td>
+<td><p>CUDA 12.8</p></td>
+<td><p>CUDA 11.8</p></td>
+<td><p>遗留项目</p></td>
+</tr>
+<tr class="row-odd"><td><p>R535</p></td>
+<td><p>CUDA 12.2</p></td>
+<td><p>CUDA 11.0</p></td>
+<td><p>旧卡兼容</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>建议的CUDA安装方式（不用NVIDIA官网的runfile，而是用包管理器）：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 先确认驱动版本够用</span>
+nvidia-smi<span class="w">  </span><span class="c1"># 看顶部CUDA Version</span>
+
+<span class="c1"># 用pip安装cuda-toolkit（推荐，不污染系统）</span>
+pip<span class="w"> </span>install<span class="w"> </span>nvidia-cuda-toolkit
+
+<span class="c1"># 或直接用框架自带的CUDA（PyTorch自带）</span>
+pip<span class="w"> </span>install<span class="w"> </span>torch<span class="w"> </span>torchvision<span class="w"> </span>torchaudio<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu124
+</pre></div>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">什么时候需要手动装CUDA Toolkit？</p>
+<p>大多数情况下你<strong>不需要</strong>手动安装CUDA Toolkit。PyTorch/TensorFlow的预编译包已经带了它们需要的CUDA运行时库。只有在你需要自己编译CUDA扩展（如<code class="docutils literal notranslate"><span class="pre">flash-attn</span></code>）或者使用NVIDIA的底层库（如<code class="docutils literal notranslate"><span class="pre">cuBLAS</span></code>、<code class="docutils literal notranslate"><span class="pre">cuDNN</span></code>）的开发API时，才需要装完整的CUDA Toolkit。</p>
+</div>
+</section>
+<section id="pytorch">
+<span id="pytorch-gpu"></span><h2>PyTorch的显卡支持淘汰节奏<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h2>
+<p>驱动和CUDA Toolkit的版本只是第一层兼容。PyTorch有自己的<strong>编译时支持的架构列表</strong>——即使你的驱动和CUDA Toolkit够新，如果PyTorch二进制没编译你家显卡的架构代码，照样跑不了。</p>
+<p>验证方法：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">get_arch_list</span><span class="p">())</span>
+<span class="c1"># 输出类似: [&#39;sm_70&#39;, &#39;sm_75&#39;, &#39;sm_80&#39;, &#39;sm_86&#39;, &#39;sm_90&#39;, &#39;sm_100&#39;, &#39;sm_120&#39;]</span>
+<span class="c1"># sm_70=Volta，sm_75=Turing，sm_80=Ampere，sm_90=Hopper，sm_100=Ada，sm_120=Blackwell</span>
+</pre></div>
+</div>
+<p>PyTorch的显卡支持随版本演进不断抬升最低门槛：</p>
+<div class="table docutils container" id="id16">
+<table class="docutils align-default" id="id16">
+<caption><span class="caption-text">PyTorch版本与CUDA架构支持</span><a class="headerlink" href="#id16" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>PyTorch版本</strong></p></th>
+<th class="head"><p><strong>CUDA构建</strong></p></th>
+<th class="head"><p><strong>支持的最小架构</strong></p></th>
+<th class="head"><p><strong>不支持的显卡</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>2.6.0</strong></p></td>
+<td><p>12.4</p></td>
+<td><p>Maxwell (sm_50)</p></td>
+<td><p>无</p></td>
+</tr>
+<tr class="row-odd"><td><p>2.7~2.10</p></td>
+<td><p>12.6</p></td>
+<td><p>Maxwell (sm_50)</p></td>
+<td><p>无</p></td>
+</tr>
+<tr class="row-even"><td><p>2.8~2.10</p></td>
+<td><p>12.8</p></td>
+<td><p>Volta (sm_70)</p></td>
+<td><p>GTX 900/10系列</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>2.11+</strong></p></td>
+<td><p><strong>12.8</strong></p></td>
+<td><p><strong>Turing (sm_75)</strong></p></td>
+<td><p><strong>V100、Titan V、GTX 900/10系列</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>2.12+</p></td>
+<td><p>13.0</p></td>
+<td><p>Turing (sm_75)</p></td>
+<td><p>同上</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="important admonition">
+<p class="admonition-title">如果你的显卡被PyTorch最新版抛弃了怎么办？</p>
+<p>你有三条路可选：</p>
+<ol class="arabic">
+<li><p><strong>用旧版PyTorch</strong>：V100、GTX 1080 Ti等Volta/Pascal显卡。值得考虑的版本是：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">torch</span><span class="o">==</span><span class="m">2</span>.6.0<span class="w"> </span><span class="nv">torchvision</span><span class="o">==</span><span class="m">0</span>.21.0<span class="w"> </span><span class="nv">torchaudio</span><span class="o">==</span><span class="m">2</span>.6.0<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu124
+</pre></div>
+</div>
+</li>
+<li><p><strong>自行编译</strong>：从源码编译PyTorch时指定 <code class="docutils literal notranslate"><span class="pre">TORCH_CUDA_ARCH_LIST=&quot;7.0&quot;</span></code> 来包含你的架构。</p></li>
+<li><p><strong>换卡</strong>：一张二手RTX 3060 12GB（~1000~1500 RMB）支持sm_86，未来几年都不会被抛弃。</p></li>
+</ol>
+<p>简单规则：<strong>什么时候该考虑升级显卡？</strong> 当PyTorch最新版不再编译你的架构（<code class="docutils literal notranslate"><span class="pre">get_arch_list()</span></code>里找不到你的sm版本），且你想用的新模型依赖新版PyTorch的新特性时。</p>
+</div>
+<p>当前（2026年4月）PyTorch最新版使用的CUDA 12.8构建已移除Volta（sm_70，即V100/Titan V）支持。V100曾经是<a class="reference internal" href="../../pytorch-practice/index.html"><span class="doc">PyTorch 实践：把理论变成代码</span></a>中最常用的GPU之一，现在也进入了&quot;遗留硬件&quot;行列。</p>
+</section>
+<section id="compute-capability">
+<h2>Compute Capability 速查<a class="headerlink" href="#compute-capability" title="Link to this heading">#</a></h2>
+<p>PyTorch用sm版本号（如sm_75）标识显卡架构。想知道你的卡对应哪个sm：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import torch; print(torch.cuda.get_device_capability())&quot;</span>
+<span class="c1"># 输出示例: (8, 6) 表示 sm_86</span>
+</pre></div>
+</div>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>sm版本</p></th>
+<th class="head"><p>架构</p></th>
+<th class="head"><p>代表显卡</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>sm_50</p></td>
+<td><p>Maxwell</p></td>
+<td><p>GTX 750 Ti、GTX 960、GTX 980</p></td>
+</tr>
+<tr class="row-odd"><td><p>sm_52</p></td>
+<td><p>Maxwell</p></td>
+<td><p>GTX 980 Ti、Titan X (Maxwell)</p></td>
+</tr>
+<tr class="row-even"><td><p>sm_60</p></td>
+<td><p>Pascal</p></td>
+<td><p>GTX 1080、GTX 1070、GTX 1060</p></td>
+</tr>
+<tr class="row-odd"><td><p>sm_61</p></td>
+<td><p>Pascal</p></td>
+<td><p>GTX 1080 Ti、Titan Xp</p></td>
+</tr>
+<tr class="row-even"><td><p>sm_70</p></td>
+<td><p>Volta</p></td>
+<td><p>Titan V、Tesla V100</p></td>
+</tr>
+<tr class="row-odd"><td><p>sm_75</p></td>
+<td><p>Turing</p></td>
+<td><p>RTX 2080 Ti、RTX 2080、RTX 2070、GTX 1660、T4</p></td>
+</tr>
+<tr class="row-even"><td><p>sm_80</p></td>
+<td><p>Ampere</p></td>
+<td><p>A100</p></td>
+</tr>
+<tr class="row-odd"><td><p>sm_86</p></td>
+<td><p>Ampere</p></td>
+<td><p>RTX 3090、RTX 3080、RTX 3070、RTX 3060、A10、A40</p></td>
+</tr>
+<tr class="row-even"><td><p>sm_89</p></td>
+<td><p>Ada</p></td>
+<td><p>RTX 4090、RTX 4080、RTX 4070、RTX 4060、L40S</p></td>
+</tr>
+<tr class="row-odd"><td><p>sm_90</p></td>
+<td><p>Hopper</p></td>
+<td><p>H100、H200</p></td>
+</tr>
+<tr class="row-even"><td><p>sm_120</p></td>
+<td><p>Blackwell</p></td>
+<td><p>RTX 5090、RTX 5080、B200</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="note admonition">
+<p class="admonition-title">sm版本有什么用？</p>
+<ul class="simple">
+<li><p>确认你的卡是否被当前PyTorch支持：<code class="docutils literal notranslate"><span class="pre">torch.cuda.get_arch_list()</span></code> 里有没有你的sm</p></li>
+<li><p>自行编译CUDA扩展时，<code class="docutils literal notranslate"><span class="pre">TORCH_CUDA_ARCH_LIST</span></code> 需要填对</p></li>
+<li><p>买卡前查sm版本就能预判这张卡未来几年的PyTorch支持窗口</p></li>
+</ul>
+</div>
+</section>
+<section id="docker-gpu">
+<span id="id5"></span><h2>Docker GPU 支持：一劳永逸的环境隔离<a class="headerlink" href="#docker-gpu" title="Link to this heading">#</a></h2>
+<p>驱动和CUDA Toolkit的版本兼容问题是深度学习环境配置中最容易出错的环节。<strong>Docker + nvidia-container-toolkit</strong> 可以一步解决这个问题：宿主机只需要装驱动，PyTorch、CUDA Toolkit、cuDNN这些都放在容器里，互不干扰。</p>
+<p>安装配置：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. 确保宿主机驱动已装好（nvidia-smi 能正常输出）</span>
+nvidia-smi
+
+<span class="c1"># 2. 安装 nvidia-container-toolkit</span>
+curl<span class="w"> </span>-fsSL<span class="w"> </span>https://nvidia.github.io/libnvidia-container/gpgkey<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>gpg<span class="w"> </span>--dearmor<span class="w"> </span>-o<span class="w"> </span>/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+<span class="nv">distribution</span><span class="o">=</span><span class="k">$(</span>.<span class="w"> </span>/etc/os-release<span class="p">;</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$ID$VERSION_ID</span><span class="k">)</span>
+curl<span class="w"> </span>-s<span class="w"> </span>-L<span class="w"> </span>https://nvidia.github.io/libnvidia-container/stable/deb/<span class="nv">$distribution</span>/libnvidia-container.list<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>sed<span class="w"> </span><span class="s1">&#39;s#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/nvidia-container-toolkit.list
+sudo<span class="w"> </span>apt<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>nvidia-container-toolkit
+
+<span class="c1"># 3. 配置 Docker</span>
+sudo<span class="w"> </span>nvidia-ctk<span class="w"> </span>runtime<span class="w"> </span>configure<span class="w"> </span>--runtime<span class="o">=</span>docker
+sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>docker
+
+<span class="c1"># 4. 测试</span>
+docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>--gpus<span class="w"> </span>all<span class="w"> </span>nvidia/cuda:12.6.0-base-ubuntu22.04<span class="w"> </span>nvidia-smi
+</pre></div>
+</div>
+<p>之后跑任何深度学习代码只需要拉一个带CUDA的PyTorch镜像：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 使用PyTorch官方镜像（自带CUDA 12.4 + cuDNN）</span>
+docker<span class="w"> </span>run<span class="w"> </span>--gpus<span class="w"> </span>all<span class="w"> </span>-it<span class="w"> </span>--rm<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/workspace<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>pytorch/pytorch:2.6.0-cuda12.4-cudnn9-devel<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>python<span class="w"> </span>train.py
+
+<span class="c1"># 或使用NVIDIA的PyTorch容器（已预装所有优化）</span>
+docker<span class="w"> </span>run<span class="w"> </span>--gpus<span class="w"> </span>all<span class="w"> </span>-it<span class="w"> </span>--rm<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/workspace<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>nvcr.io/nvidia/pytorch:24.12-py3<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>python<span class="w"> </span>train.py
+</pre></div>
+</div>
+<div class="table docutils container" id="id17">
+<table class="docutils align-default" id="id17">
+<caption><span class="caption-text">裸机 vs Docker 的环境管理对比</span><a class="headerlink" href="#id17" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>维度</strong></p></th>
+<th class="head"><p><strong>裸机直接装</strong></p></th>
+<th class="head"><p><strong>Docker容器</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>环境隔离</p></td>
+<td><p>冲突时难以清理</p></td>
+<td><p>每个项目独立容器</p></td>
+</tr>
+<tr class="row-odd"><td><p>版本切换</p></td>
+<td><p>需要卸载重装CUDA Toolkit</p></td>
+<td><p>换一个镜像标签即可</p></td>
+</tr>
+<tr class="row-even"><td><p>团队协作</p></td>
+<td><p>每个人装的不一样</p></td>
+<td><p>共享Dockerfile保证一致</p></td>
+</tr>
+<tr class="row-odd"><td><p>复现</p></td>
+<td><p>依赖系统包的版本</p></td>
+<td><p>镜像锁定所有依赖</p></td>
+</tr>
+<tr class="row-even"><td><p>磁盘占用</p></td>
+<td><p>一套环境</p></td>
+<td><p>每个镜像几GB</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">什么时候不用Docker？</p>
+<ul class="simple">
+<li><p>单用户、单项目的开发机，Docker的隔离优势不明显</p></li>
+<li><p>多个Docker镜像同时挂载大训练集可能浪费磁盘空间</p></li>
+<li><p>需要访问宿主机特定硬件（USB设备、HCA网卡）时配置复杂</p></li>
+</ul>
+<p>权衡：Docker最适合<strong>多人共用服务器</strong>或<strong>生产环境部署</strong>。个人开发机装裸机更直接，但要小心不要污染系统Python环境（<a class="reference internal" href="linux-basics.html"><span class="doc">Linux基础：为什么炼丹用Linux</span></a>的uv小节已经讲了解决方案）。</p>
+</div>
+</section>
+<section id="gpu">
+<span id="gpu-selection"></span><h2>GPU选型指南<a class="headerlink" href="#gpu" title="Link to this heading">#</a></h2>
+<section id="id6">
+<h3>产品线定位<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<div class="table docutils container" id="id18">
+<table class="docutils align-default" id="id18">
+<caption><span class="caption-text">NVIDIA产品线</span><a class="headerlink" href="#id18" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>产品线</strong></p></th>
+<th class="head"><p><strong>定位</strong></p></th>
+<th class="head"><p><strong>显存</strong></p></th>
+<th class="head"><p><strong>互连</strong></p></th>
+<th class="head"><p><strong>典型价格</strong></p></th>
+<th class="head"><p><strong>适合</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>GTX</p></td>
+<td><p>入门消费</p></td>
+<td><p>4~12 GB GDDR</p></td>
+<td><p>无</p></td>
+<td><p>&lt;¥2,000</p></td>
+<td><p>学习、小模型</p></td>
+</tr>
+<tr class="row-odd"><td><p>RTX x050/60</p></td>
+<td><p>主流消费</p></td>
+<td><p>8~16 GB GDDR</p></td>
+<td><p>无</p></td>
+<td><p>¥1,800~¥4,000</p></td>
+<td><p>微调、推理</p></td>
+</tr>
+<tr class="row-even"><td><p>RTX x070/80</p></td>
+<td><p>高端消费</p></td>
+<td><p>12~32 GB GDDR7</p></td>
+<td><p>无</p></td>
+<td><p>¥4,000~¥14,000</p></td>
+<td><p>训练中型模型</p></td>
+</tr>
+<tr class="row-odd"><td><p>RTX Pro</p></td>
+<td><p>工作站</p></td>
+<td><p>24~48 GB GDDR6/7</p></td>
+<td><p>无</p></td>
+<td><p>¥22,000~¥72,000</p></td>
+<td><p>专业可视化+AI</p></td>
+</tr>
+<tr class="row-even"><td><p>Tesla/Data Center</p></td>
+<td><p>数据中心</p></td>
+<td><p>40~192 GB HBM</p></td>
+<td><p>NVLink</p></td>
+<td><p>¥72,000~¥216,000+</p></td>
+<td><p>大规模训练/生产</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="vs">
+<h3>消费级 vs 企业级：核心差异<a class="headerlink" href="#vs" title="Link to this heading">#</a></h3>
+<p>消费级显卡（RTX）和企业级（A/H/B系列）在深度学习场景下的差异可能出乎你的意料：</p>
+<ol class="arabic simple">
+<li><p><strong>显存瓶颈</strong>：RTX 5090有32 GB GDDR7，而P100（2016）有16 GB HBM2。十年过去，消费级旗舰的显存才翻了2倍，而模型大小翻了1000倍。<strong>显存通常是第一瓶颈</strong>。</p></li>
+<li><p><strong>单精度算力倒挂</strong>：RTX 5050（2025最低端）的FP32算力（约11 TFLOPS）和十年前的P100（10.6 TFLOPS）相当，但<strong>5050有5代Tensor Core而P100一个都没有</strong>——用FP16/INT8推理时5050甩P100几条街。</p></li>
+<li><p><strong>FP64基本没变</strong>：消费级显卡的FP64算力始终被锁定在FP32的1/64~1/32。如果你需要做高精度科学计算，必须上企业级（A100的FP64是RTX 5090的12倍）。</p></li>
+<li><p><strong>多卡互联</strong>：消费级没有NVLink，多卡通信只能走PCIe。数据中心卡通过NVLink可以达到600~1800 GB/s的卡间带宽，这是训练大模型的关键。</p></li>
+<li><p><strong>显存带宽差距</strong>：这是最容易被忽视的差异。HBM显存（企业级标配）的带宽远超同代GDDR，直接影响训练吞吐：</p></li>
+</ol>
+<div class="table docutils container" id="id19">
+<table class="docutils align-default" id="id19">
+<caption><span class="caption-text">显存带宽对比</span><a class="headerlink" href="#id19" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>显卡</strong></p></th>
+<th class="head"><p><strong>显存类型</strong></p></th>
+<th class="head"><p><strong>显存容量</strong></p></th>
+<th class="head"><p><strong>带宽</strong></p></th>
+<th class="head"><p><strong>总线位宽</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Tesla P100</p></td>
+<td><p>HBM2</p></td>
+<td><p>16 GB</p></td>
+<td><p>732 GB/s</p></td>
+<td><p>4096-bit</p></td>
+</tr>
+<tr class="row-odd"><td><p>Tesla V100</p></td>
+<td><p>HBM2</p></td>
+<td><p>16/32 GB</p></td>
+<td><p>900 GB/s</p></td>
+<td><p>4096-bit</p></td>
+</tr>
+<tr class="row-even"><td><p>Tesla A100</p></td>
+<td><p>HBM2e</p></td>
+<td><p>40/80 GB</p></td>
+<td><p>2039 GB/s</p></td>
+<td><p>5120-bit</p></td>
+</tr>
+<tr class="row-odd"><td><p>RTX 3090</p></td>
+<td><p>GDDR6X</p></td>
+<td><p>24 GB</p></td>
+<td><p>936 GB/s</p></td>
+<td><p>384-bit</p></td>
+</tr>
+<tr class="row-even"><td><p>RTX 4090</p></td>
+<td><p>GDDR6X</p></td>
+<td><p>24 GB</p></td>
+<td><p>1008 GB/s</p></td>
+<td><p>384-bit</p></td>
+</tr>
+<tr class="row-odd"><td><p>RTX 5090</p></td>
+<td><p>GDDR7</p></td>
+<td><p>32 GB</p></td>
+<td><p>1792 GB/s</p></td>
+<td><p>512-bit</p></td>
+</tr>
+<tr class="row-even"><td><p>H100</p></td>
+<td><p>HBM3</p></td>
+<td><p>80 GB</p></td>
+<td><p>3350 GB/s</p></td>
+<td><p>5120-bit</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>注意一个关键对比：<strong>P100（2016）的732 GB/s HBM2带宽比RTX 4060（2024）的272 GB/s GDDR6快近3倍</strong>。企业级显卡的HBM显存通过超宽总线（4096-bit起）实现高带宽，消费级GDDR则靠高频率和窄总线（128~512-bit）。这就是为什么二手P100/V100即使算力落后，在训练吞吐上依然能和一些入门消费卡抗衡——带宽够大。不过也别忘了<a class="reference internal" href="#pytorch-gpu"><span class="std std-ref">PyTorch的显卡支持淘汰节奏</span></a>中提到的框架兼容性问题——算力再高跑不了新版PyTorch也不行。</p>
+</section>
+<section id="id7">
+<h3>怎么选：两个核心场景<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<p>买卡之前先看清楚自己属于哪种情况：</p>
+<section id="id8">
+<h4>场景一：手里没有GPU，想低成本入门<a class="headerlink" href="#id8" title="Link to this heading">#</a></h4>
+<p>淘汰的数据中心卡是性价比极高的选择。它们退役后被大批量抛售到二手市场，算力和显存在今天依然能打：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>显卡</p></th>
+<th class="head"><p>显存</p></th>
+<th class="head"><p>二手参考价（闲鱼）</p></th>
+<th class="head"><p>Tensor Core</p></th>
+<th class="head"><p>FP32</p></th>
+<th class="head"><p>入手价值</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Tesla P100 16GB</p></td>
+<td><p>16 GB HBM2</p></td>
+<td><p>300~600 RMB</p></td>
+<td><p>无</p></td>
+<td><p>10.6 TFLOPS</p></td>
+<td><p>极致低价入门，适合跑传统CNN</p></td>
+</tr>
+<tr class="row-odd"><td><p>Tesla V100 16GB</p></td>
+<td><p>16 GB HBM2</p></td>
+<td><p>~1000 RMB</p></td>
+<td><p>第1代（FP16）</p></td>
+<td><p>15.7 TFLOPS</p></td>
+<td><p>Tensor Core入门，跑小Transformer</p></td>
+</tr>
+<tr class="row-even"><td><p>Tesla V100 32GB</p></td>
+<td><p>32 GB HBM2</p></td>
+<td><p>~3000 RMB</p></td>
+<td><p>第1代（FP16）</p></td>
+<td><p>15.7 TFLOPS</p></td>
+<td><p>大显存低成本方案</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="warning admonition">
+<p class="admonition-title">买淘汰企业级显卡的注意事项</p>
+<ul class="simple">
+<li><p>这些卡<strong>没有主动散热风扇</strong>（被动散热），需要服务器风道或自己加装风扇</p></li>
+<li><p>通常需要<strong>专用电源线</strong>（EPS 8-pin，不是PCIE 8-pin）</p></li>
+<li><p>P100/V100基于Pascal/Volta架构，<strong>PyTorch新版CUDA 12.8构建已放弃支持</strong>——需要用PyTorch 2.10的CUDA 12.6构建，或自行编译</p></li>
+<li><p>V100的Tensor Core只支持FP16，不支持TF32/BF16/INT8等后续精度</p></li>
+<li><p>驱动方面R580是最后支持分支，可用至2028年安全更新</p></li>
+</ul>
+</div>
+</section>
+<section id="id9">
+<h4>场景二：手上有卡想升级，或者预算充足<a class="headerlink" href="#id9" title="Link to this heading">#</a></h4>
+<p>RTX 20系及以上都值得考虑。深度学习场景下，<strong>显存大小比算力重要得多</strong>——一张老卡只要显存够大，跑大模型的能力就比新卡更强：</p>
+<div class="table docutils container" id="id20">
+<table class="docutils align-default" id="id20">
+<caption><span class="caption-text">消费级升级路径（先看显存，再看架构）</span><a class="headerlink" href="#id20" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>推荐优先级</strong></p></th>
+<th class="head"><p><strong>显卡</strong></p></th>
+<th class="head"><p><strong>显存</strong></p></th>
+<th class="head"><p><strong>架构</strong></p></th>
+<th class="head"><p><strong>二手参考价</strong></p></th>
+<th class="head"><p><strong>适合做什么</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span></p></td>
+<td><p>RTX 3090</p></td>
+<td><p>24 GB GDDR6X</p></td>
+<td><p>Ampere</p></td>
+<td><p>~3000~5000 RMB</p></td>
+<td><p><strong>性价比之王</strong>，24GB能微调7B模型</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span></p></td>
+<td><p>RTX 4090</p></td>
+<td><p>24 GB GDDR6X</p></td>
+<td><p>Ada</p></td>
+<td><p>~12000~15000 RMB</p></td>
+<td><p>消费级天花板，显存+算力都够</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span></p></td>
+<td><p>RTX 5090</p></td>
+<td><p>32 GB GDDR7</p></td>
+<td><p>Blackwell</p></td>
+<td><p>~14000+ RMB</p></td>
+<td><p>最大显存消费卡</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span></p></td>
+<td><p>RTX 3080 20GB</p></td>
+<td><p>20 GB GDDR6X</p></td>
+<td><p>Ampere</p></td>
+<td><p>~2000~3000 RMB</p></td>
+<td><p>20GB显存，实惠之选</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span></p></td>
+<td><p>RTX 2080 Ti 22GB</p></td>
+<td><p>22 GB GDDR6</p></td>
+<td><p>Turing</p></td>
+<td><p>~1500~2500 RMB</p></td>
+<td><p>改版22GB显存，魔改卡有风险</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span></p></td>
+<td><p>RTX 4060 Ti 16GB</p></td>
+<td><p>16 GB GDDR6</p></td>
+<td><p>Ada</p></td>
+<td><p>~2500~3000 RMB</p></td>
+<td><p>新卡省心，16GB够跑多数模型</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span></p></td>
+<td><p>RTX 3060 12GB</p></td>
+<td><p>12 GB GDDR6</p></td>
+<td><p>Ampere</p></td>
+<td><p>~1000~1500 RMB</p></td>
+<td><p>入门首选，12GB够跑小型LLM</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="important admonition">
+<p class="admonition-title">显存决定你能跑什么</p>
+<p>这是最常被忽略的选卡标准。一个粗略参考：</p>
+<ul class="simple">
+<li><p><strong>6~8 GB</strong>：可以跑BERT、ResNet、小CNN，LLM最多跑1~3B参数（量化后）</p></li>
+<li><p><strong>12~16 GB</strong>：可以跑7B模型（4-bit量化QLoRA微调）</p></li>
+<li><p><strong>24 GB</strong>：可以跑7B模型全参数微调，或13B模型QLoRA</p></li>
+<li><p><strong>32~48 GB</strong>：可以跑13B全参数微调，或70B模型QLoRA</p></li>
+<li><p><strong>80 GB+</strong>：可以跑70B模型全参数微调</p></li>
+</ul>
+<p><strong>显存不够用 <span class="math notranslate nohighlight">\(\neq\)</span> 完全不能做</strong>。梯度累积、混合精度、LoRA/QLoRA、模型分片（model parallelism）都是小显存跑大模型的手段。但门槛是存在的——一张3090无论如何跑不了70B的全参数微调。</p>
+</div>
+<p>如果你在做购买决策，记住一个简单的公式：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>二手企业级（P100/V100）</strong>  ≈ 极致性价比入门方案，有显存有算力但缺生态</p></li>
+<li><p><strong>二手RTX 3090</strong>              ≈ 个人用户的甜点卡，24GB显存+Ampere架构覆盖90%场景</p></li>
+<li><p><strong>新的RTX 40/50系</strong>           ≈ 省心省电，享受最新特性，代价是贵</p></li>
+<li><p><strong>数据中心卡（A100/H100）</strong>   ≈ 团队/生产环境的选择，个人用户租云实例更划算</p></li>
+</ul>
+</div></blockquote>
+</section>
+</section>
+<section id="id10">
+<h3>一张显卡的&quot;黄金年代&quot;<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<p>从驱动支持和框架兼容性两个角度看，架构的生命周期大致分三个阶段：</p>
+<ul class="simple">
+<li><p><strong>淘汰期</strong>（Maxwell/Pascal/Volta）：R580是最后支持的驱动分支，新版PyTorch也不再编译这些架构。还能用，但新特性与新卡无缘</p></li>
+<li><p><strong>成熟期</strong>（Turing/Ampere）：驱动、框架、容器生态支持最完整，是当前最稳妥的选择</p></li>
+<li><p><strong>主力期</strong>（Ada/Hopper/Blackwell）：享受所有新特性，但部分框架适配可能滞后，价格也最高</p></li>
+</ul>
+<hr class="docutils" />
+<p>驱动装好了，CUDA配好了，接下来你需要知道怎么远程访问这台服务器。下一节<a class="reference internal" href="remote-access.html"><span class="doc">远程访问：从任何地方连上你的GPU服务器</span></a>。</p>
+</section>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (4 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f159d56</code>
+                2026-05-08 - <strong>Heyan Zhu</strong>: fix: address complaints from the linter
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b55c384</code>
+                2026-05-01 - <strong>Heyan Zhu</strong>: docs: fix document cross-references and add anchor tags
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">a2e19cd</code>
+                2026-04-29 - <strong>Heyan Zhu</strong>: docs: update nvidia setup documentation for pytorch versions
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">c71cb87</code>
+                2026-04-29 - <strong>Heyan Zhu</strong>: docs(appendix): add environment setup guide for GPU servers
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+</article><footer class="bz-article-footer">
+  
+  
+    <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="linux-basics.html" rel="prev">
+    <span>Previous</span><span class="bz-related-pages-title">Linux基础：为什么炼丹用Linux</span></a><a class="bz-related-pages-next" href="remote-access.html" rel="next">
+    <span>Next</span>
+    <span class="bz-related-pages-title">远程访问：从任何地方连上你的GPU服务器</span>
+  </a></nav>
+  
+
+</footer><aside class="bz-sidebar-secondary" data-drawer="bz-sidebar-secondary">
+  
+  
+    
+  
+  
+  
+  
+
+
+
+<div class="bz-repo-stats">
+  <a
+    data-provider="github"
+    data-user="ulink-deep-learning-club"
+    data-repo="ulink-deeplearningclub-handouts"
+    href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    aria-label="ulink-deep-learning-club/ulink-deeplearningclub-handouts repository"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    <span
+      style="--bz-repo-stats-name-length: 56"
+      title="ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    >
+      ulink-deep-learning-club/ulink-deeplearningclub-handouts
+    </span>
+    <div class="bz-repo-stats-row">
+      <span class="bz-repo-stats-item" aria-label="Repository stars">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path></svg>
+        <span data-stat="stars">-</span>
+      </span>
+      <span class="bz-repo-stats-item" aria-label="Repository forks">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
+        <span data-stat="forks">-</span>
+      </span>
+    </div>
+  </a>
+</div>
+
+  
+    <div class="bz-edit-this-page">
+  <a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/source/appendix/environment-setup/nvidia-setup.md" rel="edit">
+    Edit this page
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"></path></svg>
+  </a>
+</div>
+  
+    <nav class="bz-sidebar-toc" aria-label="Table of contents">
+  <p>On this page</p><ul>
+<li><a class="reference internal" href="#nvidia-arch">显卡架构简史</a></li>
+<li><a class="reference internal" href="#id2">驱动版本与架构支持</a></li>
+<li><a class="reference internal" href="#id3">一键安装：三行命令搞定</a><ul>
+<li><a class="reference internal" href="#id4">驱动装不上？常见原因</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#nvidia-smi">nvidia-smi 深入解读</a><ul>
+<li><a class="reference internal" href="#ecc">ECC与显存类型</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#cuda">CUDA版本管理</a></li>
+<li><a class="reference internal" href="#pytorch">PyTorch的显卡支持淘汰节奏</a></li>
+<li><a class="reference internal" href="#compute-capability">Compute Capability 速查</a></li>
+<li><a class="reference internal" href="#docker-gpu">Docker GPU 支持：一劳永逸的环境隔离</a></li>
+<li><a class="reference internal" href="#gpu">GPU选型指南</a><ul>
+<li><a class="reference internal" href="#id6">产品线定位</a></li>
+<li><a class="reference internal" href="#vs">消费级 vs 企业级：核心差异</a></li>
+<li><a class="reference internal" href="#id7">怎么选：两个核心场景</a><ul>
+<li><a class="reference internal" href="#id8">场景一：手里没有GPU，想低成本入门</a></li>
+<li><a class="reference internal" href="#id9">场景二：手上有卡想升级，或者预算充足</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id10">一张显卡的"黄金年代"</a></li>
+</ul>
+</li>
+</ul></nav>
+  
+
+</aside></main>
+  </div>
+<footer class="bz-footer">
+  <div class="bz-footer-copyright"><p class="bz-copyright">© Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0</p><p>
+    
+    
+    
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a href="https://github.com/aksiome/breeze">Breeze theme</a>.
+    
+  </p>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    
+    </a>
+  </div>
+</footer><a href="#" class="bz-back-to-top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+    </svg>
+    <span>Back to top</span>
+  </a>
+  <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
+  <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
+  <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../../_static/documentation_options.js?v=5a0213dc"></script><script src="../../_static/doctools.js?v=9bcbadda"></script><script src="../../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../../_static/translations.js?v=beaddf03"></script><script src="../../_static/design-tabs.js?v=f930bc37"></script><script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script></body>
+</html>

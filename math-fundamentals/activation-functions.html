@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-content_root="../">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="激活函数" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="math-fundamentals/activation-functions.html" />
+<meta property="og:site_name" content="Deep Learning Club Handouts" />
+<meta property="og:description" content="激活函数的本质：划分特征空间: 从线性回归到逻辑回归: 你可能熟悉 线性回归 ： y = wx + b ，它用一条直线拟合数据，输出连续值。但很多时候我们需要做 分类 ——不是预测数值，而是判断&quot;这是A类还是B类&quot;。 问题 ：如果用线性回归做二分类会怎样？ 假设我们想区分&quot;垃圾邮件&quot;和&quot;正常邮件&quot;。如果用线性回归输出 y = wx ..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_math-fundamentals_activation-functions_7a15389c.png" />
+<meta property="og:image:alt" content="激活函数的本质：划分特征空间: 从线性回归到逻辑回归: 你可能熟悉 线性回归 ： y = wx + b ，它用一条直线拟合数据，输出连续值。但很多时候我们需要做 分类 ——不是预测数值，而是判断&quot;这是A类还是B类&quot;。 问题 ：如果用线性回归做二分类会怎样？ 假设我们想区分&quot;垃圾邮件&quot;和&quot;正常邮件&quot;。如果用线性回归输出 y = wx ..." />
+<meta name="description" content="激活函数的本质：划分特征空间: 从线性回归到逻辑回归: 你可能熟悉 线性回归 ： y = wx + b ，它用一条直线拟合数据，输出连续值。但很多时候我们需要做 分类 ——不是预测数值，而是判断&quot;这是A类还是B类&quot;。 问题 ：如果用线性回归做二分类会怎样？ 假设我们想区分&quot;垃圾邮件&quot;和&quot;正常邮件&quot;。如果用线性回归输出 y = wx ..." />
+<meta name="twitter:card" content="summary_large_image" />
+<title>激活函数 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="损失函数" href="loss-functions.html"><link rel="prev" title="学习任务的形式" href="task-formulations.html"><script data-cfasync="false">(function(){
+    const m = localStorage.getItem("breeze-mode") || "auto";
+    const d = document.documentElement.dataset;
+    d.mode = m;
+    d.theme = m === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : m;
+  })();
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=9c6fee98" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+<body>
+  
+  
+  <div class="bz-skip-to-content"><a href="#bz-main-content">Skip to main content</a></div><header class="bz-header-main">
+  <div class="bz-header-start"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><a class="bz-header-brand" href="../index.html">
+  
+  
+  <span>Deep Learning Club Handouts</span>
+</a>
+  </div>
+  <div class="bz-header-end"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><div id="docsearch" class="bz-search-button">
+  <a
+    href="../search.html#q"
+    aria-label="Search the docs"
+    data-tooltip="Search the docs"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 -1 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
+    <span>搜索</span>
+    <kbd>Ctrl+K</kbd>
+  </a>
+</div><div class="bz-theme-switcher">
+  <button aria-label="Switch theme" data-tooltip="Switch theme">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
+      <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-dark" fill="currentColor">
+      <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+    </svg>
+  </button>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.766 11.695C4.703 11.437 3.25 9.904 3.25 7.92c0-.806.281-1.677.75-2.258-.203-.532-.172-1.662.062-2.129.626-.081 1.469.258 1.969.726.594-.194 1.219-.291 1.985-.291.765 0 1.39.097 1.953.274.484-.451 1.343-.79 1.969-.709.218.435.25 1.564.046 2.113.5.613.766 1.436.766 2.274 0 1.984-1.453 3.485-3.547 3.759.531.355.891 1.129.891 2.016v1.678c0 .484.39.758.859.564C13.781 14.824 16 11.905 16 8.291 16 3.726 12.406 0 7.984 0 3.562 0 0 3.726 0 8.291c0 3.581 2.203 6.55 5.172 7.663A.595.595 0 0 0 6 15.389v-1.291c-.219.097-.5.162-.75.162-1.031 0-1.641-.581-2.078-1.662-.172-.435-.36-.693-.719-.742-.187-.016-.25-.097-.25-.193 0-.194.313-.339.625-.339.453 0 .844.29 1.25.887.313.468.641.678 1.031.678.391 0 .641-.146 1-.516.266-.275.469-.517.657-.678Z"></path></svg>
+    
+    </a>
+  </div>
+  </div>
+</header><hr class="bz-header-hr">
+  <div class="bz-content"><aside class="bz-sidebar-primary" data-drawer="bz-sidebar-primary">
+  
+  
+    <nav class="bz-sidebar-nav" aria-label="Section Navigation"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../neural-network-basics/index.html">神经网络基础：从理论到架构</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/neural-training-basics.html">神经网络训练基础</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/exp-cmp.html">实验对比：全连接 vs CNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/scaling-law.html">缩放定律</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../cnn-ablation-study/index.html">CNN 消融研究：理解卷积神经网络各组件的作用</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/introduction.html">引言：消融研究的科学方法论</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-ablation-study/the-end.html">结语：从黑盒到白盒</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../attention-mechanisms/index.html">CNN 中的注意力机制</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/introduction.html">为什么CNN需要注意力机制？</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/se-net.html">通道注意力：SE-Net</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/spatial-attn.html">空间注意力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/cbam.html">通道+空间注意力：CBAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/comparison.html">注意力机制的选择与应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/practice.html">实践指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../attention-mechanisms/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../model-architecture-design/index.html">CNN 架构改造：设计卷积网络的心法</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part1-intro.html">改造的本质：从"会用 CNN"到"会设计 CNN"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：效果、速度与硬件的三角权衡</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../sequence-modeling/index.html">序列建模：从 RNN 到 Transformer 到 Mamba</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/introduction.html">引言：从空间到时间</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/transformer.html">Transformer：注意力的极致</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/mamba-intro.html">Mamba 简述：对RNN思想的回归</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../model-serving/index.html">模型部署与服务：从训练到生产</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">附录</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/sphinx-guide/index.html">Sphinx Markdown 语法参考</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/build-docs.html">编译文档</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+</nav>
+  
+
+</aside><main id="bz-main-content"><header class="bz-article-header">
+  
+  
+    <nav class="bz-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li class="bz-breadcrumbs-home">
+      <a href="../index.html" aria-label="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8.543 2.232a.75.75 0 0 0-1.085 0l-5.25 5.5A.75.75 0 0 0 2.75 9H4v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V9h1.25a.75.75 0 0 0 .543-1.268l-5.25-5.5Z" />
+        </svg>
+      </a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="index.html">计算图、反向传播与梯度下降：深度学习核心数学基础</a>
+    </li><li class="bz-breadcrumbs-current">
+      <span>激活函数</span>
+    </li>
+  </ol>
+</nav>
+  
+<label
+  class="bz-sidebar-secondary-toggle"
+  for="bz-sidebar-secondary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle table of contents"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75H20.25 M11.25 12H20.25 M7.75 17.25H20.25"
+    />
+  </svg>
+</label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="activation-functions">
+<span id="id1"></span><h1>激活函数<a class="headerlink" href="#activation-functions" title="Link to this heading">#</a></h1>
+<section id="id2">
+<h2>激活函数的本质：划分特征空间<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<section id="id3">
+<h3>从线性回归到逻辑回归<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<p>你可能熟悉<strong>线性回归</strong>：<span class="math notranslate nohighlight">\(y = wx + b\)</span>，它用一条直线拟合数据，输出连续值。但很多时候我们需要做<strong>分类</strong>——不是预测数值，而是判断&quot;这是A类还是B类&quot;。</p>
+<p><strong>问题</strong>：如果用线性回归做二分类会怎样？</p>
+<p>假设我们想区分&quot;垃圾邮件&quot;和&quot;正常邮件&quot;。如果用线性回归输出 <span class="math notranslate nohighlight">\(y = wx + b\)</span>，我们得到一个实数值。但分类需要的是一个概率——“这封邮件是垃圾邮件的可能性有多大”。</p>
+<p><strong>逻辑回归</strong>解决了这个问题。它在线性回归的输出上叠加一个 <strong>Sigmoid</strong> 函数：</p>
+<div class="math notranslate nohighlight">
+\[\hat{y} = \sigma(wx + b) = \frac{1}{1 + e^{-(wx + b)}}\]</div>
+<p>Sigmoid 将任意实数压缩到 <span class="math notranslate nohighlight">\((0, 1)\)</span> 区间，恰好可以解释为概率。</p>
+<p><strong>逻辑回归的决策规则</strong>：</p>
+<ul class="simple">
+<li><p>如果 <span class="math notranslate nohighlight">\(\sigma(wx + b) \geq 0.5\)</span>，预测为类别1</p></li>
+<li><p>如果 <span class="math notranslate nohighlight">\(\sigma(wx + b) &lt; 0.5\)</span>，预测为类别0</p></li>
+</ul>
+<p>这等价于判断 <span class="math notranslate nohighlight">\(wx + b \geq 0\)</span> 还是 <span class="math notranslate nohighlight">\(wx + b &lt; 0\)</span>——在特征空间中，就是用一条<strong>直线</strong>（或超平面）划分两个区域。逻辑回归只能学习<strong>线性决策边界</strong>。</p>
+</section>
+<section id="id4">
+<h3>为什么需要激活函数<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p>逻辑回归解决了二分类问题，但它有一个根本限制：<strong>只能学习线性边界</strong>。现实中很多分类问题的决策边界是复杂的非线性形状——比如异或（XOR）问题，逻辑回归就无法解决。</p>
+<p><strong>多层感知机（MLP）</strong> 突破了这个限制：</p>
+<ul class="simple">
+<li><p>第一层：多个神经元并行，各自学习不同的线性边界</p></li>
+<li><p><strong>激活函数</strong>：引入非线性，将空间&quot;折叠&quot;</p></li>
+<li><p>后续层：组合这些折叠后的特征，学习复杂边界</p></li>
+</ul>
+</section>
+<section id="id5">
+<h3>什么是&quot;空间&quot;？<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<p>在深度学习中，<strong>空间</strong>指的是输入数据的特征空间：</p>
+<ul class="simple">
+<li><p>一个样本对应空间中的一个<strong>点</strong></p></li>
+<li><p>每个特征对应一个<strong>坐标轴</strong></p></li>
+<li><p>MNIST 图像（784维）就是784维空间中的点</p></li>
+</ul>
+<p>神经网络的每一层都在<strong>变换这个空间</strong>：</p>
+<ul class="simple">
+<li><p>线性变换（<span class="math notranslate nohighlight">\(Wx + b\)</span>）：旋转、缩放、平移</p></li>
+<li><p><strong>非线性激活</strong>：将空间&quot;折叠&quot;，使线性不可分的数据变得可分</p></li>
+</ul>
+</section>
+<section id="decision-boundary">
+<span id="id6"></span><h3>决策边界的形成<a class="headerlink" href="#decision-boundary" title="Link to this heading">#</a></h3>
+<p>没有激活函数，无论堆叠多少层，网络只能学习线性变换——因为多个线性变换的组合仍然是线性的：<span class="math notranslate nohighlight">\(f(W_2(W_1x)) = W_2W_1x = W'x\)</span>。激活函数引入非线性，使网络能够在空间中划分<strong>复杂的决策边界</strong>。</p>
+<figure class="align-center" id="id114">
+<a class="with-border reference internal image-reference" href="../_images/simple-nn-demo.png"><img alt="../_images/simple-nn-demo.png" class="with-border" src="../_images/simple-nn-demo.png" style="width: 300px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">3神经元网络形成的复杂决策边界</span><a class="headerlink" href="#id114" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<p><strong>网络结构解析</strong>：</p>
+<p>这个网络只有 3 个隐藏层神经元，却能形成如此复杂的决策边界。让我们逐层解析：</p>
+<object data="../_images/mermaid-cd8f8a89a291a46c182e623f853612f902a8f51a.svg" type="image/svg+xml">
+            <p class="warning">graph TD
+    A[&quot;输入: (x, y)&quot;] --&gt; B[&quot;n₁ = Swish(2x - 1)&quot;]
+    A --&gt; C[&quot;n₂ = Swish(3x + 1)&quot;]
+    A --&gt; D[&quot;n₃ = Swish(y - 2)&quot;]
+    B --&gt; E[&quot;n₁ + n₃&quot;]
+    D --&gt; E
+    E --&gt; F[&quot;隐藏层输出 = n₂ × (n₁ + n₃)&quot;]
+    C --&gt; F
+    F --&gt; G[&quot;Sigmoid(...) &gt; 0.5&quot;]
+    G --&gt; H[&quot;分类结果&quot;]</p></object>
+<p><strong>数学表达式</strong>：</p>
+<p>基础激活函数：</p>
+<ul class="simple">
+<li><p><strong>Swish</strong>: 平滑的 ReLU 变体</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[r(x) = \frac{x}{1 + e^{-x}}\]</div>
+<ul class="simple">
+<li><p><strong>Sigmoid</strong>: 将值压缩到 0-1</p></li>
+</ul>
+<div class="math notranslate nohighlight">
+\[s(x) = \frac{1}{1 + e^{-x}}\]</div>
+<p>隐藏层神经元（3 个独立的线性变换 + Swish）：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+n_1 &amp;= r(2x - 1) \quad \text{[对x敏感的神经元]} \\
+n_2 &amp;= r(3x + 1) \quad \text{[另一个x方向的神经元]} \\
+n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
+\end{aligned}
+\end{split}\]</div>
+<p>输出决策边界：</p>
+<div class="math notranslate nohighlight">
+\[
+\text{决策} = s\big(\underbrace{n_2}_{\text{门控}} \times \underbrace{(n_1 + n_3)}_{\text{特征组合}}\big) &gt; 0.5
+\]</div>
+<p><strong>为什么能形成复杂形状？</strong></p>
+<ol class="arabic simple">
+<li><p><strong>每个Swish神经元定义一个&quot;软&quot;半平面</strong>：</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(n_1 = r(2x-1)\)</span>：当 <span class="math notranslate nohighlight">\(2x-1 &gt; 0\)</span>（即 <span class="math notranslate nohighlight">\(x &gt; 0.5\)</span>）时显著激活</p></li>
+<li><p><span class="math notranslate nohighlight">\(n_3 = r(y-2)\)</span>：当 <span class="math notranslate nohighlight">\(y &gt; 2\)</span> 时显著激活</p></li>
+<li><p>注意 Swish 不是简单的 0/1 开关，而是平滑过渡</p></li>
+</ul>
+</li>
+<li><p><strong>特征组合 <span class="math notranslate nohighlight">\(n_1 + n_3\)</span></strong>：</p>
+<ul class="simple">
+<li><p>将两个方向的激活&quot;叠加&quot;</p></li>
+<li><p>在 <span class="math notranslate nohighlight">\(x &gt; 0.5\)</span> 且 <span class="math notranslate nohighlight">\(y &gt; 2\)</span> 的区域最强</p></li>
+</ul>
+</li>
+<li><p><strong>门控机制 <span class="math notranslate nohighlight">\(n_2 \times (\dots)\)</span></strong>：</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(n_2\)</span> 充当&quot;开关&quot;，控制哪些区域可以输出</p></li>
+<li><p>当 <span class="math notranslate nohighlight">\(n_2\)</span> 很小时，无论 <span class="math notranslate nohighlight">\((n_1+n_3)\)</span> 多大，输出都接近0</p></li>
+</ul>
+</li>
+<li><p><strong>Sigmoid最终决策</strong>：</p>
+<ul class="simple">
+<li><p>将连续值转换为概率式判断</p></li>
+<li><p><span class="math notranslate nohighlight">\(&gt;0.5\)</span> 判定为类别A（紫色区域）</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>直观理解</strong>：这个网络像是在空间中&quot;雕刻&quot;——先用 <span class="math notranslate nohighlight">\(n_1, n_3\)</span> 定义一个粗略的区域，再用 <span class="math notranslate nohighlight">\(n_2\)</span> 进行精细修剪，最终得到不规则的形状。</p>
+<p><em>交互式探索：<a class="reference external" href="https://www.desmos.com/calculator/gnixzk1jaz">Desmos</a>（可以拖动滑块调整参数，观察形状变化）</em></p>
+<p><strong>核心洞察</strong>：</p>
+<p>从这个3神经元的例子，我们可以看到神经网络划分决策边界的关键机制：</p>
+<ol class="arabic simple">
+<li><p><strong>每个神经元定义一个&quot;软&quot;边界</strong>：</p>
+<ul class="simple">
+<li><p>Swish 激活将线性边界 <span class="math notranslate nohighlight">\(wx + b = 0\)</span> 变成平滑的过渡区域</p></li>
+<li><p>不同于 ReLU 的硬开关，Swish 提供渐变的激活强度</p></li>
+<li><p>这允许网络学习更平滑、更复杂的边界</p></li>
+</ul>
+</li>
+<li><p><strong>非线性组合创造复杂性</strong>：</p>
+<ul class="simple">
+<li><p>乘法操作 <span class="math notranslate nohighlight">\(n_2 \times (n_1 + n_3)\)</span> 是关键</p></li>
+<li><p>没有激活函数的非线性，这样的组合无法实现</p></li>
+<li><p>这展示了<strong>非线性激活的本质作用</strong>：让简单线性边界的组合产生复杂形状</p></li>
+</ul>
+</li>
+<li><p><strong>&quot;门控&quot;与&quot;特征&quot;的配合</strong>：</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(n_1, n_3\)</span> 提供基础特征（对x和y的响应）</p></li>
+<li><p><span class="math notranslate nohighlight">\(n_2\)</span> 充当门控，决定哪些区域可以&quot;通过&quot;</p></li>
+<li><p>这种配合模式在深层网络中反复出现</p></li>
+</ul>
+</li>
+<li><p><strong>少量神经元就能实现复杂分类</strong>：</p>
+<ul class="simple">
+<li><p>仅需3个神经元就能形成非凸、非线性的决策区域</p></li>
+<li><p>这说明神经网络的表达能力来自<strong>非线性组合</strong>，而非单纯增加神经元数量</p></li>
+<li><p>深度（多层非线性组合）比宽度（单层神经元数量）更重要</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>关键结论</strong>：非线性激活函数让神经网络能够将简单的线性决策边界<strong>组合、变换、叠加</strong>成任意复杂的形状。没有非线性激活，无论多少层都只能学习线性分类器：<span class="math notranslate nohighlight">\(f(W_2(W_1x)) = W_2W_1x = W'x\)</span>。</p>
+<hr class="docutils" />
+</section>
+</section>
+<section id="sigmoid">
+<span id="sigmoid-gradient-vanish"></span><h2>Sigmoid 函数<a class="headerlink" href="#sigmoid" title="Link to this heading">#</a></h2>
+<p>Sigmoid 将任意实数映射到<span class="math notranslate nohighlight">\((0,1)\)</span>，提供平滑的非线性变换：</p>
+<div class="math notranslate nohighlight">
+\[\sigma(x) = \frac{1}{1 + e^{-x}}\]</div>
+<p><strong>导数</strong>：<span class="math notranslate nohighlight">\(\sigma'(x) = \sigma(x)(1 - \sigma(x))\)</span>，在<span class="math notranslate nohighlight">\(x=0\)</span>处最大值为<span class="math notranslate nohighlight">\(0.25\)</span>。这个导数形式在<a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>中非常重要。</p>
+<p><strong>优点</strong>：</p>
+<ul class="simple">
+<li><p>输出可解释为概率</p></li>
+<li><p>平滑可导</p></li>
+</ul>
+<p><strong>局限性</strong>：</p>
+<ul class="simple">
+<li><p><strong>梯度消失</strong>：<span class="math notranslate nohighlight">\(|x|\)</span>较大时梯度接近0，这会导致<a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>时梯度衰减</p></li>
+<li><p><strong>非零中心</strong>：输出始终为正</p></li>
+</ul>
+<div class="figure" id="id115" style="text-align: center"><p><img  src="../_images/tikz-edd0f92cd625512bf02e7fffafc9d34929517109.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Sigmoid 函数</span></p>
+</div></section>
+<hr class="docutils" />
+<section id="tanh">
+<h2>Tanh函数（双曲正切）<a class="headerlink" href="#tanh" title="Link to this heading">#</a></h2>
+<p>Tanh 是 Sigmoid 的&quot;零中心&quot;版本：</p>
+<div class="math notranslate nohighlight">
+\[\tanh(x) = \frac{e^x - e^{-x}}{e^x + e^{-x}} = 2\sigma(2x) - 1\]</div>
+<p><strong>导数</strong>：<span class="math notranslate nohighlight">\(\tanh'(x) = 1 - \tanh^2(x)\)</span>，在<span class="math notranslate nohighlight">\(x=0\)</span>处最大值为<span class="math notranslate nohighlight">\(1\)</span></p>
+<p><strong>相比 Sigmoid 的优势</strong>：</p>
+<ul class="simple">
+<li><p>零中心输出（-1到1）</p></li>
+<li><p>更强梯度信号（最大梯度是 Sigmoid 的4倍）</p></li>
+</ul>
+<p><strong>局限</strong>：仍然存在梯度消失问题</p>
+<div class="figure" id="id116" style="text-align: center"><p><img  src="../_images/tikz-1658b8c837140dcc26171e59642e4bcb2ffe10a3.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Tanh函数</span></p>
+</div></section>
+<hr class="docutils" />
+<section id="relu-rectified-linear-unit">
+<h2>ReLU 函数（Rectified Linear Unit）<a class="headerlink" href="#relu-rectified-linear-unit" title="Link to this heading">#</a></h2>
+<p>ReLU <span id="id7">[<a class="reference internal" href="#id78" title="Vinod Nair and Geoffrey E Hinton. Rectified linear units improve restricted boltzmann machines. In Proceedings of the 27th International Conference on Machine Learning, 807–814. 2010.">NH10</a>]</span> 于2012年 AlexNet 的成功后成为主流：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\text{ReLU}(x) = \max(0, x) = \begin{cases} x &amp; x &gt; 0 \\ 0 &amp; x \leq 0 \end{cases}\end{split}\]</div>
+<p><strong>导数</strong>：<span class="math notranslate nohighlight">\(\text{ReLU}'(x) = \begin{cases} 1 &amp; x &gt; 0 \\ 0 &amp; x &lt; 0 \end{cases}\)</span></p>
+<p><strong>核心优势</strong>：</p>
+<ul class="simple">
+<li><p><strong>解决梯度消失</strong>：正区间梯度恒为 1</p></li>
+<li><p><strong>计算高效</strong>：仅需比较操作</p></li>
+<li><p><strong>稀疏激活</strong>：约 50% 神经元输出为 0</p></li>
+</ul>
+<p><strong>问题</strong>：<strong>“死亡神经元”</strong>——若输入始终为负，梯度永远为 0，神经元永久失活</p>
+<div class="figure" id="id117" style="text-align: center"><p><img  src="../_images/tikz-0c40b387d3934f504c6b57d11908b31e0af05bd2.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">ReLU 函数</span></p>
+</div></section>
+<hr class="docutils" />
+<section id="leaky-relu">
+<h2>Leaky ReLU 与变体<a class="headerlink" href="#leaky-relu" title="Link to this heading">#</a></h2>
+<p>为解决死亡神经元问题，Leaky ReLU 给负区间一个小斜率：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\text{LeakyReLU}(x) = \begin{cases} x &amp; x &gt; 0 \\ \alpha x &amp; x \leq 0 \end{cases}\end{split}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\alpha\)</span> 通常取 0.01。</p>
+<p><strong>优势</strong>：</p>
+<ul class="simple">
+<li><p>负区间有非零梯度，防止神经元死亡</p></li>
+<li><p>保持 ReLU 的计算效率</p></li>
+</ul>
+<p><strong>进阶变体</strong>：</p>
+<ul class="simple">
+<li><p><strong>PReLU</strong>：<span class="math notranslate nohighlight">\(\alpha\)</span> 作为可学习参数</p></li>
+<li><p><strong>ELU</strong>：负区间使用指数函数，更平滑</p></li>
+</ul>
+<div class="figure" id="id118" style="text-align: center"><p><img  src="../_images/tikz-ab7aba33e1318d8f084dc4a0d1e4acb89b7a0562.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Leaky ReLU函数</span></p>
+</div></section>
+<hr class="docutils" />
+<section id="swish">
+<h2>Swish 函数<a class="headerlink" href="#swish" title="Link to this heading">#</a></h2>
+<p>由 Google Brain 团队的 Prajit Ramachandran 等人于 2017 年通过神经架构搜索发现 <span id="id8">[<a class="reference internal" href="#id80" title="Prajit Ramachandran, Barret Zoph, and Quoc V Le. Swish: a self-gated activation function. arXiv preprint arXiv:1710.05941, 2017.">RZL17</a>]</span>。其设计动机体现了深度学习研究的新趋势：<strong>通过自动化方法发现新的激活函数</strong></p>
+<div class="math notranslate nohighlight">
+\[ \text{Swish}(x) = x \cdot \sigma(\beta x) = \frac{x}{1 + e^{-\beta x}} \]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\beta\)</span> 是可选的可学习参数（通常取 1.0）。</p>
+<p><strong>性质</strong>：</p>
+<ol class="arabic simple">
+<li><p><strong>自门控机制</strong>：Swish 将输入 <span class="math notranslate nohighlight">\(x\)</span> 作为&quot;门&quot;，将 <span class="math notranslate nohighlight">\(\sigma(\beta x)\)</span> 作为&quot;门控信号&quot;，实现 <span class="math notranslate nohighlight">\(x\)</span> 与 <span class="math notranslate nohighlight">\(\sigma(\beta x)\)</span> 的逐元素相乘</p></li>
+<li><p><strong>平滑非单调</strong>：与 ReLU 不同，Swish 是非单调的，在负区间有小的负值</p></li>
+<li><p><strong>可学习参数</strong>：<span class="math notranslate nohighlight">\(\beta\)</span> 可以设置为可学习的参数，让网络自动调整门控强度</p></li>
+<li><p><strong>实验验证</strong>：通过大规模实验验证，Swish 在多个任务上优于 ReLU</p></li>
+</ol>
+<p><strong>与ReLU的关系</strong></p>
+<p>当 <span class="math notranslate nohighlight">\(\beta \to \infty\)</span> 时，<span class="math notranslate nohighlight">\(\sigma(\beta x) \to \text{step}(x)\)</span>，Swish 趋近于 ReLU：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split} \lim_{\beta \to \infty} \frac{x}{1 + e^{-\beta x}} = \begin{cases} x &amp; \text{if } x &gt; 0 \\ 0 &amp; \text{otherwise} \end{cases} \end{split}\]</div>
+<div class="figure" id="id119" style="text-align: center"><p><img  src="../_images/tikz-c6683a00a81d024028fda3ad88d31c08274713f1.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Swish 函数</span></p>
+</div></section>
+<hr class="docutils" />
+<section id="softmax">
+<h2>Softmax 函数<a class="headerlink" href="#softmax" title="Link to this heading">#</a></h2>
+<p>Softmax 是多分类问题的标准输出层激活函数，将 logits 转换为概率分布：</p>
+<div class="math notranslate nohighlight">
+\[\text{softmax}(x_i) = \frac{e^{x_i}}{\sum_{j=1}^C e^{x_j}}\]</div>
+<p><strong>关键性质</strong>：</p>
+<ul class="simple">
+<li><p>输出和为 1，可解释为概率</p></li>
+<li><p>指数放大差异：高分更高，低分更低</p></li>
+<li><p>类别之间应该是&quot;竞争&quot;的，一个类别的概率增加意味着其他类别概率降低</p></li>
+</ul>
+<p><strong>与交叉熵损失配合</strong>：</p>
+<ul class="simple">
+<li><p>梯度形式简洁：<span class="math notranslate nohighlight">\(\frac{\partial L}{\partial x_i} = \text{softmax}(x_i) - y_i\)</span></p></li>
+</ul>
+<div class="figure" id="id120" style="text-align: center"><p><img  src="../_images/tikz-488a73b31177d9e08e9d2da70aa3dd8b3027d817.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Softmax 变换示意</span></p>
+</div></section>
+<hr class="docutils" />
+<section id="id9">
+<h2>激活函数选择指南<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
+<div class="table colwidths-given docutils container" id="id121">
+<table class="docutils align-default" id="id121">
+<caption><span class="caption-text">激活函数选择参考</span><a class="headerlink" href="#id121" title="Link to this table">#</a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 30.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>场景</strong></p></th>
+<th class="head"><p><strong>推荐选择</strong></p></th>
+<th class="head"><p><strong>理由</strong></p></th>
+<th class="head"><p><strong>注意事项</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>隐藏层（默认）</p></td>
+<td><p>ReLU</p></td>
+<td><p>计算快、梯度好</p></td>
+<td><p>注意学习率，避免死亡神经元</p></td>
+</tr>
+<tr class="row-odd"><td><p>隐藏层（深度网络）</p></td>
+<td><p>Leaky ReLU / ELU / Swish</p></td>
+<td><p>避免梯度消失和死亡神经元</p></td>
+<td><p>ELU 和 Swish 计算稍慢</p></td>
+</tr>
+<tr class="row-even"><td><p>二分类输出</p></td>
+<td><p>Sigmoid</p></td>
+<td><p>输出为概率</p></td>
+<td><p>不适用于隐藏层</p></td>
+</tr>
+<tr class="row-odd"><td><p>多分类输出</p></td>
+<td><p>Softmax</p></td>
+<td><p>输出概率分布</p></td>
+<td><p>配合交叉熵损失</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<hr class="docutils" />
+<section id="id10">
+<h2>总结<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
+<p>激活函数是神经网络<strong>非线性表达能力</strong>的来源：</p>
+<ol class="arabic simple">
+<li><p><strong>几何视角</strong>：每个激活函数定义了输入空间的划分方式</p></li>
+<li><p><strong>梯度视角</strong>：激活函数的导数决定了反向传播时的梯度流动</p></li>
+<li><p><strong>实践视角</strong>：</p>
+<ul class="simple">
+<li><p>ReLU是隐藏层的默认选择</p></li>
+<li><p>Softmax是多分类输出的标准选择</p></li>
+<li><p>梯度消失问题推动了ReLU及其变体的发展</p></li>
+</ul>
+</li>
+</ol>
+<p>理解<a class="reference internal" href="#activation-functions"><span class="std std-ref">激活函数</span></a>如何引入非线性后，我们将探讨<a class="reference internal" href="loss-functions.html#loss-functions"><span class="std std-ref">损失函数</span></a>——如何量化模型预测的好坏，将训练转化为可通过<a class="reference internal" href="gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>求解的优化问题。</p>
+<hr class="docutils" />
+<h2 class="rubric">参考文献</h2>
+<div class="docutils container" id="id11">
+<div role="list" class="citation-list">
+<div class="citation" id="id78" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">NH10</a><span class="fn-bracket">]</span></span>
+<p>Vinod Nair and Geoffrey E Hinton. Rectified linear units improve restricted boltzmann machines. In <em>Proceedings of the 27th International Conference on Machine Learning</em>, 807–814. 2010.</p>
+</div>
+<div class="citation" id="id80" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id8">RZL17</a><span class="fn-bracket">]</span></span>
+<p>Prajit Ramachandran, Barret Zoph, and Quoc V Le. Swish: a self-gated activation function. <em>arXiv preprint arXiv:1710.05941</em>, 2017.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (11 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">d7c9da7</code>
+                2026-05-12 - <strong>Heyan Zhu</strong>: docs: update sphinx only filter from not pdf to not latex
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">a954ca5</code>
+                2026-05-11 - <strong>Heyan Zhu</strong>: docs: revise and restructure documentation, fix formatting, and move env setup and sphinx guide to a separate appendix section
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f159d56</code>
+                2026-05-08 - <strong>Heyan Zhu</strong>: fix: address complaints from the linter
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">42a2ebc</code>
+                2026-05-02 - <strong>Heyan Zhu</strong>: feat(docs): add inception and resnet modules with related content
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b55c384</code>
+                2026-05-01 - <strong>Heyan Zhu</strong>: docs: fix document cross-references and add anchor tags
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">4f5009f</code>
+                2026-04-28 - <strong>Heyan Zhu</strong>: docs: add detailed explanations for neural network concepts
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">59126f4</code>
+                2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and add citations
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">ae2053f</code>
+                2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): add task-formulations and update related content
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">756a793</code>
+                2026-04-25 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and improve explanations
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">dcecce4</code>
+                2026-01-26 - <strong>Heyan Zhu</strong>: docs: enrich math fundamentals documentation with code captions and TikZ visualizations
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+</article><footer class="bz-article-footer">
+  
+  
+    <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="task-formulations.html" rel="prev">
+    <span>Previous</span><span class="bz-related-pages-title">学习任务的形式</span></a><a class="bz-related-pages-next" href="loss-functions.html" rel="next">
+    <span>Next</span>
+    <span class="bz-related-pages-title">损失函数</span>
+  </a></nav>
+  
+
+</footer><aside class="bz-sidebar-secondary" data-drawer="bz-sidebar-secondary">
+  
+  
+    
+  
+  
+  
+  
+
+
+
+<div class="bz-repo-stats">
+  <a
+    data-provider="github"
+    data-user="ulink-deep-learning-club"
+    data-repo="ulink-deeplearningclub-handouts"
+    href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    aria-label="ulink-deep-learning-club/ulink-deeplearningclub-handouts repository"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    <span
+      style="--bz-repo-stats-name-length: 56"
+      title="ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    >
+      ulink-deep-learning-club/ulink-deeplearningclub-handouts
+    </span>
+    <div class="bz-repo-stats-row">
+      <span class="bz-repo-stats-item" aria-label="Repository stars">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path></svg>
+        <span data-stat="stars">-</span>
+      </span>
+      <span class="bz-repo-stats-item" aria-label="Repository forks">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
+        <span data-stat="forks">-</span>
+      </span>
+    </div>
+  </a>
+</div>
+
+  
+    <div class="bz-edit-this-page">
+  <a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/source/math-fundamentals/activation-functions.md" rel="edit">
+    Edit this page
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"></path></svg>
+  </a>
+</div>
+  
+    <nav class="bz-sidebar-toc" aria-label="Table of contents">
+  <p>On this page</p><ul>
+<li><a class="reference internal" href="#id2">激活函数的本质：划分特征空间</a><ul>
+<li><a class="reference internal" href="#id3">从线性回归到逻辑回归</a></li>
+<li><a class="reference internal" href="#id4">为什么需要激活函数</a></li>
+<li><a class="reference internal" href="#id5">什么是"空间"？</a></li>
+<li><a class="reference internal" href="#decision-boundary">决策边界的形成</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#sigmoid">Sigmoid 函数</a></li>
+<li><a class="reference internal" href="#tanh">Tanh函数（双曲正切）</a></li>
+<li><a class="reference internal" href="#relu-rectified-linear-unit">ReLU 函数（Rectified Linear Unit）</a></li>
+<li><a class="reference internal" href="#leaky-relu">Leaky ReLU 与变体</a></li>
+<li><a class="reference internal" href="#swish">Swish 函数</a></li>
+<li><a class="reference internal" href="#softmax">Softmax 函数</a></li>
+<li><a class="reference internal" href="#id9">激活函数选择指南</a></li>
+<li><a class="reference internal" href="#id10">总结</a></li>
+</ul></nav>
+  
+
+</aside></main>
+  </div>
+<footer class="bz-footer">
+  <div class="bz-footer-copyright"><p class="bz-copyright">© Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0</p><p>
+    
+    
+    
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a href="https://github.com/aksiome/breeze">Breeze theme</a>.
+    
+  </p>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    
+    </a>
+  </div>
+</footer><a href="#" class="bz-back-to-top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+    </svg>
+    <span>Back to top</span>
+  </a>
+  <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
+  <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
+  <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../_static/documentation_options.js?v=5a0213dc"></script><script src="../_static/doctools.js?v=9bcbadda"></script><script src="../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../_static/translations.js?v=beaddf03"></script><script src="../_static/design-tabs.js?v=f930bc37"></script><script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script><script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script><script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script></body>
+</html>
