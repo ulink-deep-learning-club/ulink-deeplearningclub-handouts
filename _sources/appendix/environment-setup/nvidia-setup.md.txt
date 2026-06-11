@@ -111,13 +111,18 @@ NVIDIA的驱动按Release Branch组织，每季度更新。不同分支支持的
 * - R535
   - 539.72
   - 2026-04
-  - Kepler ~ Blackwell
+  - Maxwell ~ Blackwell
   - 维护模式
+* - R470
+  - 475.14
+  - 2024-07
+  - Kepler ~ Ampere
+  - Legacy（最后支持Kepler的分支，最高支持Ampere）
 ```
 
 **关键事件时间线**：
 
-- **2021年**：R470最后支持Kepler架构（GTX 600/700系列）
+- **2021年**：R470成为Kepler架构的最后支持分支（GTX 600/700系列）
 - **2025年10月**：R580发布，最后一次Game Ready驱动更新支持Maxwell、Pascal、Volta
 - **2025年Q4起**：上述架构转为季度安全更新（至2028年10月）
 - **2026年2月**：R570分支正式EOL
@@ -166,12 +171,83 @@ nvidia-smi
 # |   0  Tesla T4            Off  | 00000000:00:1E.0 Off |                    0 |
 # | N/A   48C    P0    28W /  70W |      0MiB / 15360MiB |      0%      Default |
 # +-------------------------------+----------------------+----------------------+
+
+# 桌面环境额外验证：KMS 是否启用
+# 输出 Y 表示正常（官方APT源安装的驱动通常已自动配置）
+cat /sys/module/nvidia_drm/parameters/modeset
+
+# 驱动 545+ 还可检查 fbdev（替代 simpledrm 的 framebuffer 支持）
+cat /sys/module/nvidia_drm/parameters/fbdev
 ```
 
 ```{admonition} Secure Boot警告
 :class: warning
 
 如果系统启用了Secure Boot（很多预装Ubuntu/Debian的机器默认开启），安装NVIDIA专有驱动后需要注册MOK（Machine Owner Key）：重启时会进入蓝色MOK管理界面，选择"Enroll MOK"→"Continue"→输入密码→重启。如果不做这一步，驱动不会加载，`nvidia-smi`会报错。
+```
+
+```{admonition} 桌面环境安装提示
+:class: tip
+
+如果你是在带桌面环境的机器上安装（比如Ubuntu Desktop），安装过程中 nouveau 开源驱动可能与NVIDIA专有驱动冲突，导致重启后黑屏。建议在安装前临时修改GRUB启动参数：
+
+1. 重启时按 `Shift` 进入GRUB菜单，按 `e` 编辑启动项
+2. 在 `linux` 那一行末尾添加 `nomodeset`
+3. 按 `Ctrl+X` 或 `F10` 启动
+4. 安装完成并重启后，如果一切正常，可以去掉 `nomodeset`
+
+```
+
+```{admonition} 混合显卡（核显+独显）PRIME offload 踩坑
+:class: warning
+
+如果你的机器同时有 Intel/AMD 核显和 NVIDIA 独显，并且想让 NVIDIA 卡通过 `prime-run` 处理浏览器、游戏等图形任务，**必须确保核显的 Xorg 配置启用了 DRI3**。
+
+踩坑现象：
+- `prime-run firefox` 或 `prime-run glxinfo` 仍然使用核显（Mesa/Intel）渲染
+- `__NV_PRIME_RENDER_OFFLOAD=1` 环境变量不生效
+- 浏览器 `about:support` 或 `chrome://gpu` 显示使用 iGPU 而非 NVIDIA
+- `vkcube` 无法用 iGPU 渲染，只能走 NVIDIA 路径，但高分辨率下出现类似老式 CRT 逐行扫描的割裂画面
+
+原因：PRIME render offload 依赖 DRI3，而 Intel 驱动的默认配置可能未启用 DRI3。
+
+解决步骤：
+
+1. **确认核显的 PCI 地址**：
+
+   ~~~bash
+   lspci | grep -i vga
+   ~~~
+
+   输出类似 `00:02.0 VGA compatible controller: Intel Corporation ...`，记下前面的地址（如 `00:02.0`），稍后在 Xorg 配置中写为 `PCI:0:2:0`（冒号分隔，去掉前导零）。
+
+2. **创建 Xorg 配置文件**：
+
+   新建文件 `/etc/X11/xorg.conf.d/20-intel-dri3.conf`，内容如下：
+
+   ~~~
+   Section "Device"
+       Identifier "Intel"
+       Driver "modesetting"
+       BusID "PCI:0:2:0"
+       Option "DRI" "3"
+   EndSection
+   ~~~
+
+   > 将 `BusID` 中的 `PCI:0:2:0` 替换为你在第 1 步中确认的实际核显地址。
+
+3. **重启系统**，让 Xorg 加载新配置。
+
+4. **验证 offload 是否生效**：
+
+   ~~~bash
+   # 应该显示 NVIDIA 渲染器
+   __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia glxinfo | grep "OpenGL renderer"
+
+   # 应该列出两个 provider（含 NVIDIA-G0）
+   xrandr --listproviders
+   ~~~
+
 ```
 
 ### 驱动装不上？常见原因
@@ -182,6 +258,8 @@ nvidia-smi
 | `Failed to initialize NVML: Driver/library version mismatch` | 驱动更新后内核模块没重载 | 重启，或 `sudo rmmod nvidia_uvm nvidia_drm nvidia_modeset nvidia && sudo modprobe nvidia` |
 | `ERROR: You appear to be running an X server` | 有图形界面在运行 | `sudo service lightdm stop` 后重试安装 |
 | 装完重启黑屏 | 驱动与显卡不匹配 或 Secure Boot 阻止 | 进恢复模式卸载驱动，换版本重试，或禁用 Secure Boot |
+| 内核更新后 `nvidia-smi` 失效 | 内核升级后DKMS模块未自动编译 | `sudo dkms autoinstall` 然后重启 |
+| 桌面环境启动黑屏 / Wayland 无法进入 | NVIDIA DRM KMS 未启用 | 检查 `cat /sys/module/nvidia_drm/parameters/modeset`，若为 N，在 GRUB 内核参数中添加 `nvidia-drm.modeset=1`；驱动 545+ 还可尝试补充 `nvidia_drm.fbdev=1` |
 
 ## nvidia-smi 深入解读
 

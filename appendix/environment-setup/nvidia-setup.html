@@ -399,15 +399,21 @@
 <tr class="row-odd"><td><p>R535</p></td>
 <td><p>539.72</p></td>
 <td><p>2026-04</p></td>
-<td><p>Kepler ~ Blackwell</p></td>
+<td><p>Maxwell ~ Blackwell</p></td>
 <td><p>维护模式</p></td>
+</tr>
+<tr class="row-even"><td><p>R470</p></td>
+<td><p>475.14</p></td>
+<td><p>2024-07</p></td>
+<td><p>Kepler ~ Ampere</p></td>
+<td><p>Legacy（最后支持Kepler的分支，最高支持Ampere）</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 <p><strong>关键事件时间线</strong>：</p>
 <ul class="simple">
-<li><p><strong>2021年</strong>：R470最后支持Kepler架构（GTX 600/700系列）</p></li>
+<li><p><strong>2021年</strong>：R470成为Kepler架构的最后支持分支（GTX 600/700系列）</p></li>
 <li><p><strong>2025年10月</strong>：R580发布，最后一次Game Ready驱动更新支持Maxwell、Pascal、Volta</p></li>
 <li><p><strong>2025年Q4起</strong>：上述架构转为季度安全更新（至2028年10月）</p></li>
 <li><p><strong>2026年2月</strong>：R570分支正式EOL</p></li>
@@ -453,11 +459,73 @@ nvidia-smi
 <span class="c1"># |   0  Tesla T4            Off  | 00000000:00:1E.0 Off |                    0 |</span>
 <span class="c1"># | N/A   48C    P0    28W /  70W |      0MiB / 15360MiB |      0%      Default |</span>
 <span class="c1"># +-------------------------------+----------------------+----------------------+</span>
+
+<span class="c1"># 桌面环境额外验证：KMS 是否启用</span>
+<span class="c1"># 输出 Y 表示正常（官方APT源安装的驱动通常已自动配置）</span>
+cat<span class="w"> </span>/sys/module/nvidia_drm/parameters/modeset
+
+<span class="c1"># 驱动 545+ 还可检查 fbdev（替代 simpledrm 的 framebuffer 支持）</span>
+cat<span class="w"> </span>/sys/module/nvidia_drm/parameters/fbdev
 </pre></div>
 </div>
 <div class="warning admonition">
 <p class="admonition-title">Secure Boot警告</p>
 <p>如果系统启用了Secure Boot（很多预装Ubuntu/Debian的机器默认开启），安装NVIDIA专有驱动后需要注册MOK（Machine Owner Key）：重启时会进入蓝色MOK管理界面，选择&quot;Enroll MOK&quot;→&quot;Continue&quot;→输入密码→重启。如果不做这一步，驱动不会加载，<code class="docutils literal notranslate"><span class="pre">nvidia-smi</span></code>会报错。</p>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">桌面环境安装提示</p>
+<p>如果你是在带桌面环境的机器上安装（比如Ubuntu Desktop），安装过程中 nouveau 开源驱动可能与NVIDIA专有驱动冲突，导致重启后黑屏。建议在安装前临时修改GRUB启动参数：</p>
+<ol class="arabic simple">
+<li><p>重启时按 <code class="docutils literal notranslate"><span class="pre">Shift</span></code> 进入GRUB菜单，按 <code class="docutils literal notranslate"><span class="pre">e</span></code> 编辑启动项</p></li>
+<li><p>在 <code class="docutils literal notranslate"><span class="pre">linux</span></code> 那一行末尾添加 <code class="docutils literal notranslate"><span class="pre">nomodeset</span></code></p></li>
+<li><p>按 <code class="docutils literal notranslate"><span class="pre">Ctrl+X</span></code> 或 <code class="docutils literal notranslate"><span class="pre">F10</span></code> 启动</p></li>
+<li><p>安装完成并重启后，如果一切正常，可以去掉 <code class="docutils literal notranslate"><span class="pre">nomodeset</span></code></p></li>
+</ol>
+</div>
+<div class="warning admonition">
+<p class="admonition-title">混合显卡（核显+独显）PRIME offload 踩坑</p>
+<p>如果你的机器同时有 Intel/AMD 核显和 NVIDIA 独显，并且想让 NVIDIA 卡通过 <code class="docutils literal notranslate"><span class="pre">prime-run</span></code> 处理浏览器、游戏等图形任务，<strong>必须确保核显的 Xorg 配置启用了 DRI3</strong>。</p>
+<p>踩坑现象：</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">prime-run</span> <span class="pre">firefox</span></code> 或 <code class="docutils literal notranslate"><span class="pre">prime-run</span> <span class="pre">glxinfo</span></code> 仍然使用核显（Mesa/Intel）渲染</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">__NV_PRIME_RENDER_OFFLOAD=1</span></code> 环境变量不生效</p></li>
+<li><p>浏览器 <code class="docutils literal notranslate"><span class="pre">about:support</span></code> 或 <code class="docutils literal notranslate"><span class="pre">chrome://gpu</span></code> 显示使用 iGPU 而非 NVIDIA</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vkcube</span></code> 无法用 iGPU 渲染，只能走 NVIDIA 路径，但高分辨率下出现类似老式 CRT 逐行扫描的割裂画面</p></li>
+</ul>
+<p>原因：PRIME render offload 依赖 DRI3，而 Intel 驱动的默认配置可能未启用 DRI3。</p>
+<p>解决步骤：</p>
+<ol class="arabic">
+<li><p><strong>确认核显的 PCI 地址</strong>：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>lspci<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>vga
+</pre></div>
+</div>
+<p>输出类似 <code class="docutils literal notranslate"><span class="pre">00:02.0</span> <span class="pre">VGA</span> <span class="pre">compatible</span> <span class="pre">controller:</span> <span class="pre">Intel</span> <span class="pre">Corporation</span> <span class="pre">...</span></code>，记下前面的地址（如 <code class="docutils literal notranslate"><span class="pre">00:02.0</span></code>），稍后在 Xorg 配置中写为 <code class="docutils literal notranslate"><span class="pre">PCI:0:2:0</span></code>（冒号分隔，去掉前导零）。</p>
+</li>
+<li><p><strong>创建 Xorg 配置文件</strong>：</p>
+<p>新建文件 <code class="docutils literal notranslate"><span class="pre">/etc/X11/xorg.conf.d/20-intel-dri3.conf</span></code>，内容如下：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Section</span> <span class="s2">&quot;Device&quot;</span>
+    <span class="n">Identifier</span> <span class="s2">&quot;Intel&quot;</span>
+    <span class="n">Driver</span> <span class="s2">&quot;modesetting&quot;</span>
+    <span class="n">BusID</span> <span class="s2">&quot;PCI:0:2:0&quot;</span>
+    <span class="n">Option</span> <span class="s2">&quot;DRI&quot;</span> <span class="s2">&quot;3&quot;</span>
+<span class="n">EndSection</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p>将 <code class="docutils literal notranslate"><span class="pre">BusID</span></code> 中的 <code class="docutils literal notranslate"><span class="pre">PCI:0:2:0</span></code> 替换为你在第 1 步中确认的实际核显地址。</p>
+</div></blockquote>
+</li>
+<li><p><strong>重启系统</strong>，让 Xorg 加载新配置。</p></li>
+<li><p><strong>验证 offload 是否生效</strong>：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 应该显示 NVIDIA 渲染器</span>
+<span class="nv">__NV_PRIME_RENDER_OFFLOAD</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">__GLX_VENDOR_LIBRARY_NAME</span><span class="o">=</span>nvidia<span class="w"> </span>glxinfo<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot;OpenGL renderer&quot;</span>
+
+<span class="c1"># 应该列出两个 provider（含 NVIDIA-G0）</span>
+xrandr<span class="w"> </span>--listproviders
+</pre></div>
+</div>
+</li>
+</ol>
 </div>
 <section id="id4">
 <h3>驱动装不上？常见原因<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
@@ -485,6 +553,14 @@ nvidia-smi
 <tr class="row-odd"><td><p>装完重启黑屏</p></td>
 <td><p>驱动与显卡不匹配 或 Secure Boot 阻止</p></td>
 <td><p>进恢复模式卸载驱动，换版本重试，或禁用 Secure Boot</p></td>
+</tr>
+<tr class="row-even"><td><p>内核更新后 <code class="docutils literal notranslate"><span class="pre">nvidia-smi</span></code> 失效</p></td>
+<td><p>内核升级后DKMS模块未自动编译</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">dkms</span> <span class="pre">autoinstall</span></code> 然后重启</p></td>
+</tr>
+<tr class="row-odd"><td><p>桌面环境启动黑屏 / Wayland 无法进入</p></td>
+<td><p>NVIDIA DRM KMS 未启用</p></td>
+<td><p>检查 <code class="docutils literal notranslate"><span class="pre">cat</span> <span class="pre">/sys/module/nvidia_drm/parameters/modeset</span></code>，若为 N，在 GRUB 内核参数中添加 <code class="docutils literal notranslate"><span class="pre">nvidia-drm.modeset=1</span></code>；驱动 545+ 还可尝试补充 <code class="docutils literal notranslate"><span class="pre">nvidia_drm.fbdev=1</span></code></p></td>
 </tr>
 </tbody>
 </table>
@@ -1189,7 +1265,7 @@ docker<span class="w"> </span>run<span class="w"> </span>--gpus<span class="w"> 
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (4 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (5 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -1197,6 +1273,11 @@ docker<span class="w"> </span>run<span class="w"> </span>--gpus<span class="w"> 
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">7e2f65a</code>
+                2026-06-12 - <strong>Heyan Zhu</strong>: docs: add fish book collab guide, nvidia driver/prime/dri3 setup, R470 branch
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f159d56</code>
                 2026-05-08 - <strong>Heyan Zhu</strong>: fix: address complaints from the linter
