@@ -173,8 +173,8 @@ PyTorch的 `backward()` 自动完成了这些计算。
 ~~~{rubric} 参考文献
 :heading-level: 2
 ~~~
+```
 
 ~~~{bibliography}
 :filter: docname in docnames
 ~~~
-```

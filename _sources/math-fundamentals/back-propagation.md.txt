@@ -357,8 +357,8 @@ $$2 \times 2 \times ... \times 2 \quad (100次) = 2^{100} \approx 10^{30}$$
 ~~~{rubric} 参考文献
 :heading-level: 2
 ~~~
+```
 
 ~~~{bibliography}
 :filter: docname in docnames
 ~~~
-```

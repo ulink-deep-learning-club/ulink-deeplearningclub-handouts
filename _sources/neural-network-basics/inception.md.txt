@@ -283,8 +283,8 @@ Inception 的价值在于**提出了问题**：感受野应该多大？答案是
 ~~~{rubric} 参考文献
 :heading-level: 2
 ~~~
+```
 
 ~~~{bibliography}
 :filter: docname in docnames
 ~~~
-```

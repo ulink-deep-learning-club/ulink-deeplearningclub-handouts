@@ -103,6 +103,7 @@ graph LR
 
 - [The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)（Jay Alammar 的可视化讲解，Transformer 入门首选）
 - [The Annotated Transformer](http://nlp.seas.harvard.edu/annotated-transformer/)（Harvard NLP 的逐行注释实现）
+- [Why are Transformers replacing CNNs?](https://www.youtube.com/watch?v=KnCRTP11p5U) (油管视频，Transformer 与 CNN 的归纳偏置的不同造成的影响)
 
 ### 深入阅读
 
@@ -142,9 +143,8 @@ graph LR
 ~~~{rubric} 参考文献
 :heading-level: 2
 ~~~
+```
 
 ~~~{bibliography}
 :filter: docname in docnames
 ~~~
-```
-

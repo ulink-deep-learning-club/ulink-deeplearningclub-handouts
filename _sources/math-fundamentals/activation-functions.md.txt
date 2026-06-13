@@ -417,8 +417,8 @@ $$\text{softmax}(x_i) = \frac{e^{x_i}}{\sum_{j=1}^C e^{x_j}}$$
 ~~~{rubric} 参考文献
 :heading-level: 2
 ~~~
+```
 
 ~~~{bibliography}
 :filter: docname in docnames
 ~~~
-```

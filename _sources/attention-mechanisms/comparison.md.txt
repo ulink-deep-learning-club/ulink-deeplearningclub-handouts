@@ -112,8 +112,8 @@ $r$ 控制通道注意力的瓶颈维度，$r$ 越大参数越少但表达能力
 ~~~{rubric} 参考文献
 :heading-level: 2
 ~~~
+```
 
 ~~~{bibliography}
 :filter: docname in docnames
 ~~~
-```

@@ -120,10 +120,10 @@ A: 1) patch-based 训练；2) 混合精度训练；3) 深度可分离卷积。
 ~~~{rubric} 参考文献
 :heading-level: 2
 ~~~
+```
 
 ~~~{bibliography}
 :filter: docname in docnames
 ~~~
-```
 
 **本章完。**

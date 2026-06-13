@@ -788,8 +788,8 @@ scheduler = optim.lr_scheduler.SequentialLR(
 ~~~{rubric} 参考文献
 :heading-level: 2
 ~~~
+```
 
 ~~~{bibliography}
 :filter: docname in docnames
 ~~~
-```
