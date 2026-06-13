@@ -193,7 +193,218 @@ def set_seed(seed=42):
 set_seed(42)
 ```
 
-**注意**：完全确定性可能会降低训练速度（`benchmark=False`），仅在需要严格对比时使用。
+### 深入理解 PyTorch 的确定性行为
+
+上面的 `set_seed` 函数设置了 `torch.backends.cudnn.deterministic = True` 和 `torch.backends.cudnn.benchmark = False`。但你可能好奇：**PyTorch 默认为什么不保证确定性的结果？打开确定性会有什么代价？**
+
+#### 为什么 PyTorch 默认不确定？
+
+根源来自两个层面的叠加：**浮点数的数学特性** × **GPU 的并行执行方式**。
+
+##### 第一层：浮点数为什么不满足结合律？
+
+先看一个简单的例子：
+
+```python
+>>> 1e20 + (-1e20) + 1.0
+1.0
+
+>>> 1e20 + ((-1e20) + 1.0)
+0.0  # !?
+```
+
+第一个式子 $(10^{20} - 10^{20}) + 1 = 0 + 1 = 1$，结果正确。
+
+第二个式子 $10^{20} + (-10^{20} + 1)$ 在数学上也等于 1，但计算机的浮点数精度有限——`-1e20 + 1.0` 的结果仍然是 `-1e20`（因为 `1.0` 相比 `1e20` 太小，被"吃掉"了），所以最终结果是 $10^{20} - 10^{20} = 0$。
+
+```{admonition} 精度有限 不等于 精度可控
+:class: note
+
+并不是浮点数运算"容易出错"，而是**误差累积对计算顺序高度敏感**。$(a + b) + c$ 和 $a + (b + c)$ 在整数运算中永远相等，但在浮点数中可能不同——这个差异在每次加法中只有最后几位，但一个卷积核要做 $K^2 \times C_{in}$ 次乘加，再乘以几十万个位置，**微小差异被反复放大**。
+```
+
+##### 第二层：GPU 并行如何放大这个问题？
+
+GPU 的计算模式是 **SIMT**（Single Instruction, Multiple Threads）——数万个 CUDA 核心同时执行同一指令，但处理不同的数据。问题在于：**并行计算不保证归并顺序**。
+
+看一个具体的数字例子——同样四个数 $(10^8, 1, -10^8, 1)$，不同的归约顺序产生不同的结果。这种差异在矩阵乘法（卷积、全连接、注意力机制都靠它）中会被反复放大：
+
+```{tikz} GPU 并行归并的不确定性（一个夸张的例子）
+\begin{tikzpicture}[scale=1.0, font=\small,
+    box/.style={
+        draw, thick, rounded corners=2pt,
+        minimum width=2.8cm,
+        minimum height=0.8cm,
+        align=center
+    }
+]
+
+% ===== 输入层 =====
+\node at (-2, 8) {\textbf{输入:}};
+
+\foreach \x/\val in {
+    0/$10^8$,
+    2/$1$,
+    4/$-10^8$,
+    6/$1$
+} {
+    \node[draw, circle, fill=gray!10, minimum size=0.9cm]
+    (in\x) at (\x,8) {\val};
+}
+
+% ===== 路径 A =====
+\node[blue!70!black, font=\bfseries] at (-2,6) {路径 A};
+
+\node[box, fill=blue!15] (a1) at (1,6)
+{$10^8+1 \approx 10^8$};
+
+\node[box, fill=blue!15] (a2) at (5,6)
+{$-10^8+1 \approx -10^8$};
+
+\draw[->, thick, blue!50] (in0) -- (a1);
+\draw[->, thick, blue!50] (in2) -- (a1);
+\draw[->, thick, blue!50] (in4) -- (a2);
+\draw[->, thick, blue!50] (in6) -- (a2);
+
+\node[box, fill=red!15] (a3) at (3,4)
+{$10^8+(-10^8)=0$};
+
+\draw[->, thick, blue!50] (a1) -- (a3);
+\draw[->, thick, blue!50] (a2) -- (a3);
+
+\node[below=2pt of a3, blue!70!black]
+{\bfseries 结果 A = 0};
+
+% ===== 路径 B =====
+\node[green!50!black, font=\bfseries] at (-2,2) {路径 B};
+
+\node[box, fill=green!15] (b1) at (1,2)
+{$10^8+(-10^8)=0$};
+
+\node[box, fill=green!15] (b2) at (5,2)
+{$1+1=2$};
+
+\draw[->, thick, green!50!black]
+(in0) to[out=-90,in=90] (b1);
+
+\draw[->, thick, green!50!black]
+(in4) to[out=-90,in=90] (b1);
+
+\draw[->, thick, green!50!black]
+(in2) to[out=-90,in=90] (b2);
+
+\draw[->, thick, green!50!black]
+(in6) to[out=-90,in=90] (b2);
+
+\node[box, fill=orange!15] (b3) at (3,0)
+{$0+2=2$};
+
+\draw[->, thick, green!50!black] (b1) -- (b3);
+\draw[->, thick, green!50!black] (b2) -- (b3);
+    
+\node[below=2pt of b3, green!50!black]
+{\bfseries 结果 B = 2};
+
+\end{tikzpicture}
+```
+
+```{admonition} 为什么路径 A 和路径 B 的结果不同？
+:class: note
+
+**路径 A**： 先做 $10^8 + 1$：$10^8$ 远大于 $1$，在 float32 精度下 $1$ 被舍入掉了（相当于 $\approx 10^8$），另一侧 $-10^8 + 1 \approx -10^8$，最终 $10^8 + (-10^8) = 0$。
+
+**路径 B**： 先做 $10^8 + (-10^8) = 0$（大数先抵消），另一侧 $1 + 1 = 2$，最终 $0 + 2 = 2$。
+
+因此在这种体系下：
+
+$$(a+b)+(c+d) \neq (a+c)+(b+d)$$
+
+归并顺序不同，最终结果在最低有效位上产生差异。这个差异在单个操作中微不足道，但卷积核要做 $K^2 \times C_{in}$ 次乘加，再乘以几十万个位置——**微小差异被反复放大**。
+```
+
+数百个 CUDA 核心同时计算矩阵乘法的不同分块，每个分块内部的累加顺序取决于**线程调度时机**——GPU 给哪个线程组分配哪个计算单元，每次运行都可能不同。这导致了三个层面的不确定性源：
+
+| 不确定性源 | 解释 | 影响程度 |
+|-----------|------|---------|
+| **原子操作顺序** | 多个线程同时写同一个内存地址时，写入选顺序不定 | 小（仅最后几位） |
+| **cuDNN 算法选择** | cuDNN 默认会 benchmark 最快算法，但不同算法产生结果有微小差异 | 中（不同算法间差异可能更大） |
+| **浮点数累加顺序** | 矩阵乘法中的部分和以不同顺序相加（树形 vs 串行） | 大（随层数加深累积） |
+
+**一句话总结**：每次运行，GPU 线程的调度顺序都不同，浮点数对不同顺序敏感——所以同样的代码跑两次，结果在最后几位上不一样。这不是 bug，而是并行浮点计算的**物理常态**。
+
+#### PyTorch 中的三个确定性开关
+
+| 开关 | 默认值 | 作用 | 影响 |
+|------|--------|------|------|
+| `cudnn.benchmark = False` | `True` | cuDNN 不再自动搜索最快算法，而是使用固定算法 | 训练速度可能下降 **10~50%** |
+| `cudnn.deterministic = True` | `False` | cuDNN 使用确定性算法（避免原子操作的不确定性） | 部分操作（如 `scatter_add`）可能变慢 |
+| `use_deterministic_algorithms(True)` | `False` | 让更多 PyTorch 操作（如索引、插值）使用确定性实现 | 部分操作不受支持时会**抛异常** |
+
+```python
+import torch
+
+# 设置前两个开关（和 set_seed 中一样）
+torch.backends.cudnn.benchmark = False
+torch.backends.cudnn.deterministic = True
+
+# 可选：更严格的确定性模式（PyTorch 1.7+）
+# 开启后，不支持确定性实现的操作会直接报错，而不是静默运行
+# torch.use_deterministic_algorithms(True)
+```
+
+#### 什么时候该开，什么时候不该开？
+
+| 场景 | 推荐 | 原因 |
+|------|------|------|
+| **论文实验 / 学术研究** | ✅ 开启确定性 | 实验必须可复现，这是学术底线 |
+| **调试代码 bug** | ✅ 开启 | 每次运行结果不同，无法定位 bug |
+| **写单元测试** | ✅ 开启 | 测试断言需要固定输出 |
+| **日常模型训练** | ❌ 不开 | 1% 的随机波动不影响最终收敛，但 30% 的速度减慢实实在在 |
+| **生产环境推理** | ❌ 不开 | 推理速度比毫秒级一致性更重要 |
+| **大规模分布式训练** | ❌ 不开 | 分布式同步本身就是随机的，开确定性没用 |
+
+```{admonition} 从不确定性中学到的启示
+:class: tip
+
+深度学习的训练过程本身就是一个**随机过程**：我们依赖随机梯度下降（SGD）、随机初始化、随机打乱数据来探索参数空间。确定性模式只是保证这个随机过程的每次运行完全一致，而不是消除随机性本身。
+
+换句话说：**确定性 ≠ 模型更好，确定性 = 同样的随机种子跑出同样的结果**。
+```
+
+#### 验证是否真的确定
+
+写一个简单测试来验证你的实验是否真正可复现：
+
+```python
+def test_reproducibility():
+    """验证模型在相同输入下是否产生完全相同的结果"""
+    import torch
+    import torch.nn as nn
+    
+    # 固定所有随机源
+    torch.manual_seed(42)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    
+    # 创建模型并运行
+    model = nn.Linear(10, 5)
+    x = torch.randn(1, 10)
+    
+    output_1 = model(x)
+    
+    # 重置种子，完全重复
+    torch.manual_seed(42)
+    model = nn.Linear(10, 5)  # 重新初始化
+    x = torch.randn(1, 10)
+    
+    output_2 = model(x)
+    
+    # 断言完全相等（不只是近似）
+    assert torch.equal(output_1, output_2), "❌ 实验不可复现！"
+    print("✅ 实验可复现")
+```
+
+如果你通过了这个测试，你的实验就可以放心地写入论文或提交给合作者了。
 
 ### 实验记录
 

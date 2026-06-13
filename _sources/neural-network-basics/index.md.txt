@@ -12,7 +12,8 @@
 | -------- | ---------- | ----------------- |
 | {doc}`introduction` | MNIST 案例与全连接/CNN 对比预览 | 为什么需要 CNN？ |
 | {doc}`fc-layer-basics` | 全连接层原理与 PyTorch 实现 | {ref}`computational-graph` 的架构实现 |
-| {doc}`cnn-basics` | 卷积操作与参数共享机制 | {ref}`inductive-bias` 的具体体现 |
+| {doc}`cnn-basics` | 卷积操作、池化层与参数共享机制 | {ref}`inductive-bias` 的具体体现 |
+| {doc}`dataset-preparation` | 数据加载、transform、DataLoader、train/val/test 拆分 | 从文件到GPU的完整流水线 |
 | {doc}`le-net` | LeNet-5 架构逐层解析 | 经典 CNN 设计模式 |
 | {doc}`inception` | Inception多尺度感受野探索 | {ref}`receptive-field`的实际应用 |
 | {doc}`res-net` | ResNet残差连接与深层网络 | {ref}`gradient-vanishing`的解决方案 |
@@ -50,6 +51,7 @@ graph LR
 introduction
 fc-layer-basics
 cnn-basics
+dataset-preparation
 le-net
 inception
 res-net

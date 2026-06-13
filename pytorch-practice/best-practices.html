@@ -21,7 +21,7 @@
       ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
       : m;
   })();
-  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=c830a622" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=c830a622" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
 <body>
   
   
@@ -132,6 +132,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/introduction.html">引言</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/fc-layer-basics.html">全连接神经网络</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/cnn-basics.html">卷积神经网络</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/dataset-preparation.html">数据准备：从原始文件到训练流水线</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/le-net.html">LeNet-5架构详解</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/inception.html">Inception：多尺度感受野的探索</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../neural-network-basics/res-net.html">ResNet：深层网络的突破</a></li>
@@ -480,10 +481,195 @@
 <span class="n">set_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>注意</strong>：完全确定性可能会降低训练速度（<code class="docutils literal notranslate"><span class="pre">benchmark=False</span></code>），仅在需要严格对比时使用。</p>
 </section>
+<section id="pytorch">
+<h3>深入理解 PyTorch 的确定性行为<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h3>
+<p>上面的 <code class="docutils literal notranslate"><span class="pre">set_seed</span></code> 函数设置了 <code class="docutils literal notranslate"><span class="pre">torch.backends.cudnn.deterministic</span> <span class="pre">=</span> <span class="pre">True</span></code> 和 <code class="docutils literal notranslate"><span class="pre">torch.backends.cudnn.benchmark</span> <span class="pre">=</span> <span class="pre">False</span></code>。但你可能好奇：<strong>PyTorch 默认为什么不保证确定性的结果？打开确定性会有什么代价？</strong></p>
 <section id="id9">
-<h3>实验记录<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<h4>为什么 PyTorch 默认不确定？<a class="headerlink" href="#id9" title="Link to this heading">#</a></h4>
+<p>根源来自两个层面的叠加：<strong>浮点数的数学特性</strong> × <strong>GPU 的并行执行方式</strong>。</p>
+<section id="id10">
+<h5>第一层：浮点数为什么不满足结合律？<a class="headerlink" href="#id10" title="Link to this heading">#</a></h5>
+<p>先看一个简单的例子：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="mf">1e20</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="mf">1e20</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.0</span>
+<span class="go">1.0</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="mf">1e20</span> <span class="o">+</span> <span class="p">((</span><span class="o">-</span><span class="mf">1e20</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span>
+<span class="go">0.0  # !?</span>
+</pre></div>
+</div>
+<p>第一个式子 <span class="math notranslate nohighlight">\((10^{20} - 10^{20}) + 1 = 0 + 1 = 1\)</span>，结果正确。</p>
+<p>第二个式子 <span class="math notranslate nohighlight">\(10^{20} + (-10^{20} + 1)\)</span> 在数学上也等于 1，但计算机的浮点数精度有限——<code class="docutils literal notranslate"><span class="pre">-1e20</span> <span class="pre">+</span> <span class="pre">1.0</span></code> 的结果仍然是 <code class="docutils literal notranslate"><span class="pre">-1e20</span></code>（因为 <code class="docutils literal notranslate"><span class="pre">1.0</span></code> 相比 <code class="docutils literal notranslate"><span class="pre">1e20</span></code> 太小，被&quot;吃掉&quot;了），所以最终结果是 <span class="math notranslate nohighlight">\(10^{20} - 10^{20} = 0\)</span>。</p>
+<div class="note admonition">
+<p class="admonition-title">精度有限 不等于 精度可控</p>
+<p>并不是浮点数运算&quot;容易出错&quot;，而是<strong>误差累积对计算顺序高度敏感</strong>。<span class="math notranslate nohighlight">\((a + b) + c\)</span> 和 <span class="math notranslate nohighlight">\(a + (b + c)\)</span> 在整数运算中永远相等，但在浮点数中可能不同——这个差异在每次加法中只有最后几位，但一个卷积核要做 <span class="math notranslate nohighlight">\(K^2 \times C_{in}\)</span> 次乘加，再乘以几十万个位置，<strong>微小差异被反复放大</strong>。</p>
+</div>
+</section>
+<section id="gpu">
+<h5>第二层：GPU 并行如何放大这个问题？<a class="headerlink" href="#gpu" title="Link to this heading">#</a></h5>
+<p>GPU 的计算模式是 <strong>SIMT</strong>（Single Instruction, Multiple Threads）——数万个 CUDA 核心同时执行同一指令，但处理不同的数据。问题在于：<strong>并行计算不保证归并顺序</strong>。</p>
+<p>看一个具体的数字例子——同样四个数 <span class="math notranslate nohighlight">\((10^8, 1, -10^8, 1)\)</span>，不同的归约顺序产生不同的结果。这种差异在矩阵乘法（卷积、全连接、注意力机制都靠它）中会被反复放大：</p>
+<div class="figure" id="id23" style="text-align: center"><p><img  src="../_images/tikz-1c71b2e94ed754d4806e97ba857c482083516327.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">GPU 并行归并的不确定性（一个夸张的例子）</span></p>
+</div><div class="note admonition">
+<p class="admonition-title">为什么路径 A 和路径 B 的结果不同？</p>
+<p><strong>路径 A</strong>： 先做 <span class="math notranslate nohighlight">\(10^8 + 1\)</span>：<span class="math notranslate nohighlight">\(10^8\)</span> 远大于 <span class="math notranslate nohighlight">\(1\)</span>，在 float32 精度下 <span class="math notranslate nohighlight">\(1\)</span> 被舍入掉了（相当于 <span class="math notranslate nohighlight">\(\approx 10^8\)</span>），另一侧 <span class="math notranslate nohighlight">\(-10^8 + 1 \approx -10^8\)</span>，最终 <span class="math notranslate nohighlight">\(10^8 + (-10^8) = 0\)</span>。</p>
+<p><strong>路径 B</strong>： 先做 <span class="math notranslate nohighlight">\(10^8 + (-10^8) = 0\)</span>（大数先抵消），另一侧 <span class="math notranslate nohighlight">\(1 + 1 = 2\)</span>，最终 <span class="math notranslate nohighlight">\(0 + 2 = 2\)</span>。</p>
+<p>因此在这种体系下：</p>
+<div class="math notranslate nohighlight">
+\[(a+b)+(c+d) \neq (a+c)+(b+d)\]</div>
+<p>归并顺序不同，最终结果在最低有效位上产生差异。这个差异在单个操作中微不足道，但卷积核要做 <span class="math notranslate nohighlight">\(K^2 \times C_{in}\)</span> 次乘加，再乘以几十万个位置——<strong>微小差异被反复放大</strong>。</p>
+</div>
+<p>数百个 CUDA 核心同时计算矩阵乘法的不同分块，每个分块内部的累加顺序取决于<strong>线程调度时机</strong>——GPU 给哪个线程组分配哪个计算单元，每次运行都可能不同。这导致了三个层面的不确定性源：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>不确定性源</p></th>
+<th class="head"><p>解释</p></th>
+<th class="head"><p>影响程度</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>原子操作顺序</strong></p></td>
+<td><p>多个线程同时写同一个内存地址时，写入选顺序不定</p></td>
+<td><p>小（仅最后几位）</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>cuDNN 算法选择</strong></p></td>
+<td><p>cuDNN 默认会 benchmark 最快算法，但不同算法产生结果有微小差异</p></td>
+<td><p>中（不同算法间差异可能更大）</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>浮点数累加顺序</strong></p></td>
+<td><p>矩阵乘法中的部分和以不同顺序相加（树形 vs 串行）</p></td>
+<td><p>大（随层数加深累积）</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>一句话总结</strong>：每次运行，GPU 线程的调度顺序都不同，浮点数对不同顺序敏感——所以同样的代码跑两次，结果在最后几位上不一样。这不是 bug，而是并行浮点计算的<strong>物理常态</strong>。</p>
+</section>
+</section>
+<section id="id11">
+<h4>PyTorch 中的三个确定性开关<a class="headerlink" href="#id11" title="Link to this heading">#</a></h4>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>开关</p></th>
+<th class="head"><p>默认值</p></th>
+<th class="head"><p>作用</p></th>
+<th class="head"><p>影响</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cudnn.benchmark</span> <span class="pre">=</span> <span class="pre">False</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>cuDNN 不再自动搜索最快算法，而是使用固定算法</p></td>
+<td><p>训练速度可能下降 <strong>10~50%</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cudnn.deterministic</span> <span class="pre">=</span> <span class="pre">True</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>cuDNN 使用确定性算法（避免原子操作的不确定性）</p></td>
+<td><p>部分操作（如 <code class="docutils literal notranslate"><span class="pre">scatter_add</span></code>）可能变慢</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_deterministic_algorithms(True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>让更多 PyTorch 操作（如索引、插值）使用确定性实现</p></td>
+<td><p>部分操作不受支持时会<strong>抛异常</strong></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+<span class="c1"># 设置前两个开关（和 set_seed 中一样）</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">cudnn</span><span class="o">.</span><span class="n">benchmark</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">cudnn</span><span class="o">.</span><span class="n">deterministic</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="c1"># 可选：更严格的确定性模式（PyTorch 1.7+）</span>
+<span class="c1"># 开启后，不支持确定性实现的操作会直接报错，而不是静默运行</span>
+<span class="c1"># torch.use_deterministic_algorithms(True)</span>
+</pre></div>
+</div>
+</section>
+<section id="id12">
+<h4>什么时候该开，什么时候不该开？<a class="headerlink" href="#id12" title="Link to this heading">#</a></h4>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>场景</p></th>
+<th class="head"><p>推荐</p></th>
+<th class="head"><p>原因</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>论文实验 / 学术研究</strong></p></td>
+<td><p><span class="bz-emoji">✅</span> 开启确定性</p></td>
+<td><p>实验必须可复现，这是学术底线</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>调试代码 bug</strong></p></td>
+<td><p><span class="bz-emoji">✅</span> 开启</p></td>
+<td><p>每次运行结果不同，无法定位 bug</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>写单元测试</strong></p></td>
+<td><p><span class="bz-emoji">✅</span> 开启</p></td>
+<td><p>测试断言需要固定输出</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>日常模型训练</strong></p></td>
+<td><p><span class="bz-emoji">❌</span> 不开</p></td>
+<td><p>1% 的随机波动不影响最终收敛，但 30% 的速度减慢实实在在</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>生产环境推理</strong></p></td>
+<td><p><span class="bz-emoji">❌</span> 不开</p></td>
+<td><p>推理速度比毫秒级一致性更重要</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>大规模分布式训练</strong></p></td>
+<td><p><span class="bz-emoji">❌</span> 不开</p></td>
+<td><p>分布式同步本身就是随机的，开确定性没用</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">从不确定性中学到的启示</p>
+<p>深度学习的训练过程本身就是一个<strong>随机过程</strong>：我们依赖随机梯度下降（SGD）、随机初始化、随机打乱数据来探索参数空间。确定性模式只是保证这个随机过程的每次运行完全一致，而不是消除随机性本身。</p>
+<p>换句话说：<strong>确定性 ≠ 模型更好，确定性 = 同样的随机种子跑出同样的结果</strong>。</p>
+</div>
+</section>
+<section id="id13">
+<h4>验证是否真的确定<a class="headerlink" href="#id13" title="Link to this heading">#</a></h4>
+<p>写一个简单测试来验证你的实验是否真正可复现：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">test_reproducibility</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;验证模型在相同输入下是否产生完全相同的结果&quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+    
+    <span class="c1"># 固定所有随机源</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">cudnn</span><span class="o">.</span><span class="n">deterministic</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">cudnn</span><span class="o">.</span><span class="n">benchmark</span> <span class="o">=</span> <span class="kc">False</span>
+    
+    <span class="c1"># 创建模型并运行</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    
+    <span class="n">output_1</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    
+    <span class="c1"># 重置种子，完全重复</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>  <span class="c1"># 重新初始化</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    
+    <span class="n">output_2</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    
+    <span class="c1"># 断言完全相等（不只是近似）</span>
+    <span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">output_1</span><span class="p">,</span> <span class="n">output_2</span><span class="p">),</span> <span class="s2">&quot;<span class="bz-emoji">❌</span> 实验不可复现！&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;<span class="bz-emoji">✅</span> 实验可复现&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>如果你通过了这个测试，你的实验就可以放心地写入论文或提交给合作者了。</p>
+</section>
+</section>
+<section id="id14">
+<h3>实验记录<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
@@ -545,11 +731,11 @@
 </section>
 </section>
 <hr class="docutils" />
-<section id="id10">
-<h2>性能优化<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
+<section id="id15">
+<h2>性能优化<a class="headerlink" href="#id15" title="Link to this heading">#</a></h2>
 <p><a class="reference internal" href="../neural-network-basics/scaling-law.html"><span class="doc">缩放定律</span></a> 告诉我们，计算效率直接影响实验迭代速度。</p>
-<section id="id11">
-<h3>数据加载优化<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<section id="id16">
+<h3>数据加载优化<a class="headerlink" href="#id16" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 优化前（慢）</span>
 <span class="n">train_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -591,8 +777,8 @@
 </table>
 </div>
 </section>
-<section id="id12">
-<h3>混合精度训练<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
+<section id="id17">
+<h3>混合精度训练<a class="headerlink" href="#id17" title="Link to this heading">#</a></h3>
 <p>现代 GPU（V100及以上）支持 Tensor Cores，使用混合精度可以加速2-3倍：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torch.cuda.amp</span><span class="w"> </span><span class="kn">import</span> <span class="n">autocast</span><span class="p">,</span> <span class="n">GradScaler</span>
 
@@ -627,8 +813,8 @@
 <li><p><strong>混合精度</strong>：前向/反向用FP16，参数更新用FP32，兼顾速度和稳定性</p></li>
 </ul>
 </section>
-<section id="id13">
-<h3>梯度累积<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<section id="id18">
+<h3>梯度累积<a class="headerlink" href="#id18" title="Link to this heading">#</a></h3>
 <p>当GPU内存不足以支持大批量时，使用梯度累积：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">accumulation_steps</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1"># 累积4个batch再更新</span>
 
@@ -679,10 +865,10 @@
 </section>
 </section>
 <hr class="docutils" />
-<section id="id14">
-<h2>模型保存与加载的最佳实践<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
-<section id="id15">
-<h3>保存检查点<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<section id="id19">
+<h2>模型保存与加载的最佳实践<a class="headerlink" href="#id19" title="Link to this heading">#</a></h2>
+<section id="id20">
+<h3>保存检查点<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">save_checkpoint</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">scheduler</span><span class="p">,</span> <span class="n">epoch</span><span class="p">,</span> <span class="n">best_acc</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    保存完整训练状态，支持断点续训</span>
@@ -719,8 +905,8 @@
 </pre></div>
 </div>
 </section>
-<section id="id16">
-<h3>保存最佳模型<a class="headerlink" href="#id16" title="Link to this heading">#</a></h3>
+<section id="id21">
+<h3>保存最佳模型<a class="headerlink" href="#id21" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 训练循环中的早停和模型保存</span>
 <span class="n">best_acc</span> <span class="o">=</span> <span class="mf">0.0</span>
 <span class="n">patience</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># 早停耐心值</span>
@@ -756,8 +942,8 @@
 </section>
 </section>
 <hr class="docutils" />
-<section id="id17">
-<h2>下一步<a class="headerlink" href="#id17" title="Link to this heading">#</a></h2>
+<section id="id22">
+<h2>下一步<a class="headerlink" href="#id22" title="Link to this heading">#</a></h2>
 <p>恭喜你完成了 PyTorch 实践章节的全部内容！回顾本章学到的：</p>
 <div class="table colwidths-auto docutils container">
 <table class="docutils align-default">
@@ -799,7 +985,7 @@
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (4 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (5 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -807,6 +993,11 @@
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">ff8ec35</code>
+                2026-06-13 - <strong>Heyan Zhu</strong>: feat: add pooling, dataset-prep, albumentations, and deterministic mode docs
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b55c384</code>
                 2026-05-01 - <strong>Heyan Zhu</strong>: docs: fix document cross-references and add anchor tags
@@ -902,22 +1093,33 @@
 </li>
 <li><a class="reference internal" href="#id7">可复现性保证</a><ul>
 <li><a class="reference internal" href="#id8">固定随机种子</a></li>
-<li><a class="reference internal" href="#id9">实验记录</a></li>
+<li><a class="reference internal" href="#pytorch">深入理解 PyTorch 的确定性行为</a><ul>
+<li><a class="reference internal" href="#id9">为什么 PyTorch 默认不确定？</a><ul>
+<li><a class="reference internal" href="#id10">第一层：浮点数为什么不满足结合律？</a></li>
+<li><a class="reference internal" href="#gpu">第二层：GPU 并行如何放大这个问题？</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id10">性能优化</a><ul>
-<li><a class="reference internal" href="#id11">数据加载优化</a></li>
-<li><a class="reference internal" href="#id12">混合精度训练</a></li>
-<li><a class="reference internal" href="#id13">梯度累积</a></li>
+<li><a class="reference internal" href="#id11">PyTorch 中的三个确定性开关</a></li>
+<li><a class="reference internal" href="#id12">什么时候该开，什么时候不该开？</a></li>
+<li><a class="reference internal" href="#id13">验证是否真的确定</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id14">实验记录</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id15">性能优化</a><ul>
+<li><a class="reference internal" href="#id16">数据加载优化</a></li>
+<li><a class="reference internal" href="#id17">混合精度训练</a></li>
+<li><a class="reference internal" href="#id18">梯度累积</a></li>
 <li><a class="reference internal" href="#pytorch-2-0">编译模型（PyTorch 2​.0+）</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id14">模型保存与加载的最佳实践</a><ul>
-<li><a class="reference internal" href="#id15">保存检查点</a></li>
-<li><a class="reference internal" href="#id16">保存最佳模型</a></li>
+<li><a class="reference internal" href="#id19">模型保存与加载的最佳实践</a><ul>
+<li><a class="reference internal" href="#id20">保存检查点</a></li>
+<li><a class="reference internal" href="#id21">保存最佳模型</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id17">下一步</a></li>
+<li><a class="reference internal" href="#id22">下一步</a></li>
 </ul></nav>
   
 
@@ -952,5 +1154,5 @@
   <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
   <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
   <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
-  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../_static/documentation_options.js?v=5a0213dc"></script><script src="../_static/doctools.js?v=9bcbadda"></script><script src="../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../_static/translations.js?v=beaddf03"></script><script src="../_static/design-tabs.js?v=f930bc37"></script></body>
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../_static/documentation_options.js?v=5a0213dc"></script><script src="../_static/doctools.js?v=9bcbadda"></script><script src="../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../_static/translations.js?v=beaddf03"></script><script src="../_static/design-tabs.js?v=f930bc37"></script><script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script></body>
 </html>

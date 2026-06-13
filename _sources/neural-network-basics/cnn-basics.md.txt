@@ -205,14 +205,258 @@ H_{out} = \left\lfloor \frac{H - K + 2P}{S} \right\rfloor + 1
 4. **层次特征提取**：浅层提取边缘等低级特征，深层提取语义等高级特征
 ```
 
+(pooling)=
 ## 池化层
 
-池化层用于降采样，减少特征图的空间尺寸：
+### 直觉理解
 
-- **最大池化（Max Pooling）**：取局部区域的最大值
-- **平均池化（Average Pooling）**：取局部区域的平均值
+{ref}`receptive-field`告诉我们，卷积层通过堆叠来逐步扩大感受野。但有一个问题：如果只用卷积堆叠，特征图的空间尺寸始终不变（比如28×28），后面的全连接层要处理的参数量会非常庞大。
 
-池化操作不提供可学习参数，但能有效减少计算量和过拟合风险。
+**我们需要一种"压缩"机制**——在保留关键特征的同时，减小空间尺寸。
+
+池化层就是CNN的"压缩包"：
+
+- **最大池化（Max Pooling）**：保留最显著的特征，丢弃细节。就像做摘要：只记最重要的论点
+- **平均池化（Average Pooling）**：保留整体信息，平滑噪声。就像取平均成绩，反映整体水平
+
+### 图解：池化怎么压缩特征图
+
+```{tikz} 2×2池化操作示意
+\begin{tikzpicture}[scale=0.85, font=\small]
+  % ===== 输入特征图 4×4 =====
+  \node[font=\bfseries] at (2, 4.5) {输入特征图 4×4};
+  
+  % 绘制 4×4 网格
+  \foreach \i in {0,1,2,3}
+    \foreach \j in {0,1,2,3}
+      \draw[fill=blue!8, draw=black!50] (\i, \j) rectangle (\i+1, \j+1);
+  
+  % 填充数字
+  \node at (0.5,3.5) {1};  \node at (1.5,3.5) {3};  \node at (2.5,3.5) {2};  \node at (3.5,3.5) {4};
+  \node at (0.5,2.5) {5};  \node at (1.5,2.5) {6};  \node at (2.5,2.5) {7};  \node at (3.5,2.5) {1};
+  \node at (0.5,1.5) {0};  \node at (1.5,1.5) {2};  \node at (2.5,1.5) {3};  \node at (3.5,1.5) {1};
+  \node at (0.5,0.5) {3};  \node at (1.5,0.5) {1};  \node at (2.5,0.5) {4};  \node at (3.5,0.5) {2};
+  
+  % 红色池化框（2×2）
+  \draw[red, thick] (0,2) rectangle (2,4);   % 左上
+  \draw[red, thick] (2,2) rectangle (4,4);   % 右上
+  \draw[red, thick] (0,0) rectangle (2,2);   % 左下
+  \draw[red, thick] (2,0) rectangle (4,2);   % 右下
+  
+  % ===== 箭头 =====
+  \draw[->, thick] (4.3, 3) -- (6.7, 4) node[midway, above, font=\footnotesize] {Max};
+  \draw[->, thick] (4.3, 1) -- (6.7, 0) node[midway, below, font=\footnotesize] {Avg};
+  
+  % ===== Max Pooling 输出 2×2 =====
+  \node[font=\bfseries] at (8, 5.5) {Max Pooling 2×2};
+  
+  \foreach \i in {0,1}
+    \foreach \j in {0,1}
+      \draw[fill=red!12, draw=black!50] (\i+7, \j+3) rectangle (\i+8, \j+4);
+  
+  \node at (7.5, 4.5) {\textbf{6}};
+  \node at (8.5, 4.5) {\textbf{7}};
+  \node at (7.5, 3.5) {\textbf{3}};
+  \node at (8.5, 3.5) {\textbf{4}};
+  
+  % ===== Avg Pooling 输出 2×2 =====
+  \node[font=\bfseries] at (8, 1.5) {Avg Pooling 2×2};
+  
+  \foreach \i in {0,1}
+    \foreach \j in {0,1}
+      \draw[fill=green!8, draw=black!50] (\i+7, \j-1) rectangle (\i+8, \j);
+  
+  \node at (7.5, 0.5) {3.75};
+  \node at (8.5, 0.5) {3.50};
+  \node at (7.5, -0.5) {1.50};
+  \node at (8.5, -0.5) {2.50};
+\end{tikzpicture}
+```
+
+**Max Pooling**：每个2×2窗口只保留最大值——这代表该区域最强的特征响应。原来4×4=16个数字，压缩后只剩4个。
+
+**Avg Pooling**：每个2×2窗口取平均值——保留了该区域的整体信息强度。
+
+### 为什么Max Pooling更常用？
+
+在实际CNN中，**Max Pooling**远比Avg Pooling常用，原因与{ref}`inductive-bias`有关：
+
+- 卷积层学出的特征响应本身就是"这个位置有没有检测到某个模式"
+- Max Pooling保留的是**最强的检测信号**，丢弃了"这个模式在这个区域不是最强位置"
+- 这个过程本质上是一种**软性平移不变性**：只要特征出现在窗口内某个位置，Max Pooling就能捕获它
+
+```{admonition} Max Pooling的直觉
+:class: note
+
+想象你在一张照片里找猫。Max Pooling的操作是：把照片分成2×2的小格子，每个格子里只保留**最像猫的证据**（最高响应），丢掉其他像素。这样无论猫出现在格子的哪个位置，你都能找到它——这就是**平移不变性**的直觉来源。
+```
+
+### 数学定义
+
+对于输入特征图 $X \in \mathbb{R}^{C \times H \times W}$，池化操作在每个通道上独立进行，不改变通道数：
+
+**最大池化**：
+
+$$
+Y[c, i, j] = \max_{(m,n) \in \mathcal{R}_{ij}} X[c, m, n]
+$$
+
+**平均池化**：
+
+$$
+Y[c, i, j] = \frac{1}{|\mathcal{R}_{ij}|} \sum_{(m,n) \in \mathcal{R}_{ij}} X[c, m, n]
+$$
+
+其中 $\mathcal{R}_{ij}$ 是输出位置$(i,j)$对应的输入区域（如2×2窗口）。
+
+```{admonition} 池化与卷积的关键区别
+:class: warning
+
+池化操作**没有可学习参数**，它的计算是固定的（取最大值或平均值）。这意味着：
+- 池化不会增加模型的表达能力
+- 但池化能有效减少计算量（空间尺寸减半 = 计算量减半）
+- 池化层在反向传播时，梯度直接通过最大值位置回传，无需更新权重
+```
+
+### 池化层尺寸计算
+
+池化层的尺寸计算公式与卷积层一致：
+
+$$
+W_{\text{out}} = \left\lfloor \frac{W_{\text{in}} - K + 2P}{S} \right\rfloor + 1
+$$
+
+其中 $K$ 是池化窗口大小，$S$ 是步长，$P$ 是填充。最常用配置是 $K=2, S=2, P=0$，此时输出尺寸恰好减半：
+
+$$
+28 \xrightarrow{2\times2} 14 \xrightarrow{2\times2} 7 \xrightarrow{2\times2} 4 \quad \text{（不足窗口大小时，按floor处理）}
+$$
+
+### PyTorch实现
+
+```python
+import torch.nn as nn
+
+# 最常用：2×2最大池化，步长=2
+# 每次调用，空间尺寸减半，通道数不变
+pool = nn.MaxPool2d(kernel_size=2, stride=2)
+
+# 输入：batch_size × channels × height × width
+x = torch.randn(1, 32, 28, 28)  # 32通道，28×28
+y = pool(x)
+print(y.shape)  # torch.Size([1, 32, 14, 14]) —— 32通道不变，空间减半
+
+# 平均池化
+avg_pool = nn.AvgPool2d(kernel_size=2, stride=2)
+
+# 自适应池化：输入可变，输出固定尺寸
+# 这在 ResNet 中用于替代全连接层，称为全局平均池化（GAP）
+# 见本文后续"池化选型指南"表格中的说明
+adaptive_pool = nn.AdaptiveAvgPool2d((1, 1))
+```
+
+### 池化选型指南
+
+| 池化类型 | PyTorch类 | 典型配置 | 输出特点 | 适用场景 |
+| ---------- | ---------- | ---------- | ---------- | ---------- |
+| **最大池化** | `nn.MaxPool2d` | `kernel_size=2, stride=2` | 保留最强响应，空间减半 | CNN卷积层后降维（LeNet/ResNet标准配置） |
+| **平均池化** | `nn.AvgPool2d` | `kernel_size=2, stride=2` | 保留平均信息，空间减半 | 特征统计，轻量降维，辅助Max Pooling |
+| **全局平均池化** | `nn.AdaptiveAvgPool2d((1, 1))` | 输出固定1×1 | 无参数，完全压缩 | 替代FC层，大幅减少参数，见{ref}`res-net` |
+| **自适应池化** | `nn.AdaptiveAvgPool2d((H, W))` | 输出固定H×W | 输入可变，输出固定 | 多尺度输入、部署时输入尺寸不固定 |
+
+```{admonition} 全局平均池化（GAP）：ResNet的标志设计
+:class: tip
+
+全局平均池化将整个特征图压缩成1个数字（每个通道取平均），然后直接接分类层。这避免了全连接层的巨大参数量。在{ref}`res-net`中，我们将看到ResNet如何用GAP替代传统FC层，使网络参数减少90%以上。
+
+这种设计体现了CNN的另一种归纳偏置：**特征的空间位置信息在深层已不重要，重要的是每个通道的整体激活强度**——这与{ref}`inductive-bias`中讨论的"层次特征提取"一脉相承。
+```
+
+### 反向传播中的梯度流动
+
+池化层没有可学习参数，但梯度仍然需要通过它回传。反向传播的规则很简单：
+
+- **Max Pooling**：梯度只回传给最大值所在位置，其他位置梯度为0
+- **Average Pooling**：梯度均匀回传给窗口内的所有位置
+
+```{tikz} Max Pooling 反向传播示意
+\begin{tikzpicture}[scale=0.9, font=\small]
+  % ===== 前向传播区域 =====
+  \node[font=\bfseries] at (1, 4.5) {前向传播};
+  
+  % 2×2 输入网格
+  \draw[fill=blue!8, draw=black!60] (0,2) rectangle (1,3);
+  \draw[fill=blue!8, draw=black!60] (1,2) rectangle (2,3);
+  \draw[fill=blue!8, draw=black!60] (0,1) rectangle (1,2);
+  \draw[fill=blue!8, draw=black!60] (1,1) rectangle (2,2);
+  
+  \node at (0.5,2.5) {3};  \node at (1.5,2.5) {7};
+  \node at (0.5,1.5) {2};  \node at (1.5,1.5) {5};
+  
+  % 红色框标出最大值位置
+  \draw[red, thick] (1,2) rectangle (2,3);
+  
+  % 前向箭头
+  \draw[->, thick] (2.3, 2) -- (3.8, 2) node[midway, above, font=\footnotesize] {Max};
+  
+  % 输出
+  \draw[fill=red!12, draw=black!60] (4, 1.2) rectangle (5, 2.2);
+  \node[font=\bfseries] at (4.5, 1.7) {7};
+  
+  % ===== 反向传播区域 =====
+  \node[font=\bfseries] at (6.5, 4.5) {反向传播};
+  
+  % 上游梯度（放在右侧，不重叠）
+  \node[font=\small] at (6.5, 1.7) {上游梯度};
+  \node[font=\small] at (6.5, 1.2) {$\frac{\partial L}{\partial Y} = 0.1$};
+  
+  % 从输出到上游梯度的箭头
+  \draw[->, thick] (4.5, 1.2) -- (4.5, 0.3) -- (6.5, 0.3) -- (6.5, 0.8);
+  
+  % 反向传播箭头（蓝色，更长更清晰）
+  \draw[->, thick, blue] (4.2, 1.7) -- (2.8, 2.5);
+  
+  % 梯度标注（拉开间距，避免重叠）
+  \node[font=\small, blue] at (3.5, 3.5) {$\frac{\partial L}{\partial X_{(0,1)}} = 0.1$};
+  
+  % 零梯度标注（放在角落，不干扰主视觉）
+  \node[font=\small, gray] at (-0.8, 2.5) {$\frac{\partial L}{\partial X} = 0$};
+  \node[font=\small, gray] at (-0.8, 1.5) {$\frac{\partial L}{\partial X} = 0$};
+  \node[font=\small, gray] at (1.5, 0.3) {$\frac{\partial L}{\partial X} = 0$};
+\end{tikzpicture}
+```
+
+这个机制在后面讨论{ref}`gradient-vanishing`时会再次出现——Max Pooling的梯度"门控"特性，某种程度上帮助缓解了梯度在深层网络中的稀释问题。
+
+### 验证实验
+
+```python
+import torch
+import torch.nn as nn
+
+# 创建一个简单的卷积+池化块
+conv = nn.Conv2d(1, 32, kernel_size=3, padding=1)  # 保持尺寸
+pool = nn.MaxPool2d(2, 2)
+
+x = torch.randn(1, 1, 28, 28)
+print(f"输入尺寸: {x.shape}")           # [1, 1, 28, 28]
+
+x = conv(x)
+print(f"卷积后: {x.shape}")             # [1, 32, 28, 28] —— 尺寸不变（padding=1）
+
+x = pool(x)
+print(f"池化后: {x.shape}")             # [1, 32, 14, 14] —— 空间减半，通道不变
+
+x = pool(x)
+print(f"再池化: {x.shape}")             # [1, 32, 7, 7]   —— 继续减半
+
+# 参数量对比：有无池化
+# 无池化：fc_input = 32 × 28 × 28 = 25,088 → fc1(25088, 128) = 3,211,264 参数
+# 有池化：fc_input = 32 × 7 × 7 = 1,568  → fc1(1568, 128)  = 200,832 参数
+# 池化减少全连接层参数约94%！
+```
+
+**一句话总结**：池化层是CNN的"空间压缩器"——它不学习任何参数，但通过下采样让后续层的计算量大幅减少，同时通过取最大值提供了一种软性的平移不变性。
 
 ## PyTorch实现CNN
 
@@ -233,7 +477,7 @@ class SimpleCNN(nn.Module):
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
         self.bn2 = nn.BatchNorm2d(64)
         
-        # 池化层
+        # 池化层（见{ref}`pooling`）
         self.pool = nn.MaxPool2d(2, 2)
         
         # 全连接层
