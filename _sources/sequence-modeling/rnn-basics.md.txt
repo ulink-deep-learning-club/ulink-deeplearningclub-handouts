@@ -1,7 +1,7 @@
 (rnn-basics)=
 # 循环神经网络：让网络拥有"记忆"
 
-{doc}`../neural-network-basics/fc-layer-basics` 中的全连接网络和 {doc}`../neural-network-basics/cnn-basics` 中的 CNN 有一个共同特征：**给定一个输入，产生一个输出，然后"忘记"这个输入**。每次前向传播是独立的，网络不记得上一秒看到了什么。
+{doc}`../cnn-expedition/practice-peak/fc-layer-basics` 中的全连接网络和 {doc}`../cnn-expedition/practice-peak/cnn-basics` 中的 CNN 有一个共同特征：**给定一个输入，产生一个输出，然后"忘记"这个输入**。每次前向传播是独立的，网络不记得上一秒看到了什么。
 
 这显然不符合我们处理序列的方式。读这句话时，你的大脑记住了前文——"这"指代什么，"显然"修饰什么——这些理解都依赖于**记忆**。
 

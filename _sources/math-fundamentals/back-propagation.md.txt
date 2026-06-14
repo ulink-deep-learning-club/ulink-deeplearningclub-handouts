@@ -6,7 +6,7 @@
 
 神经网络训练时，我们根据最终损失来调整参数。核心问题是：**损失是由很多参数共同造成的，每个参数该"背多少锅"？**
 
-反向传播（Backpropagation）{cite}`rumelhart1986learning` 就是解决这个"**信用分配问题**"的高效算法。
+反向传播（Backpropagation）{cite}`rumelhart1986learning` 就是解决这个 "**信用分配问题**"的高效算法。
 
 ```{admonition} 类比：团队项目的责任分摊
 :class: tip
@@ -159,7 +159,7 @@ $$
 | Tanh | $\leq 1.0$ | < 15 层 | 比 Sigmoid 稍好，但仍会饱和 |
 | ReLU | $\approx 0.5$ | 20-30 层 | 负区间梯度为 0，正区间为 1（见 {doc}`activation-functions`）|
 | BatchNorm | $\approx 1.0$ | 50+ 层 | 标准化梯度分布，稳定数值 |
-| 跳跃连接 | $\approx 1.0$ | 100+ 层 | 提供梯度捷径，减少连乘长度（见 {doc}`../neural-network-basics/res-net`）|
+| 跳跃连接 | $\approx 1.0$ | 100+ 层 | 提供梯度捷径，减少连乘长度（见 {doc}`../cnn-expedition/image-net-era/res-net`）|
 
 **关键结论**：
 - 只有当 $\gamma \approx 1$ 时，深层网络才能稳定训练
@@ -315,7 +315,7 @@ $$0.01 \times 0.01 \times ... \times 0.01 \quad (100次) = 10^{-200}$$
 **解决方案**：
 - **ReLU激活函数**：正区间的梯度恒为1，不会衰减（见 {doc}`activation-functions`）
 - **批归一化（BatchNorm）**：控制每层的数值范围，避免进入饱和区
-- **残差连接（ResNet）**：让梯度有"捷径"可以直达前面层（见 {doc}`../neural-network-basics/res-net` 中的数学推导）
+- **残差连接（ResNet）**：让梯度有"捷径"可以直达前面层（见 {doc}`../cnn-expedition/image-net-era/res-net` 中的数学推导）
 - **跳跃连接（U-Net）**：在编码器-解码器架构中保留梯度路径（见 {doc}`../unet-image-segmentation/u-net`）
 
 ---
@@ -348,7 +348,7 @@ $$2 \times 2 \times ... \times 2 \quad (100次) = 2^{100} \approx 10^{30}$$
 
 反向传播计算出的梯度用于更新模型参数。下一节 {doc}`gradient-descent` 将详细介绍如何利用这些梯度进行参数优化。
 
-关于反向传播在实际神经网络训练中的应用，参见 {doc}`../neural-network-basics/neural-training-basics`。
+关于反向传播在实际神经网络训练中的应用，参见 {doc}`../cnn-expedition/practice-peak/neural-training-basics`。
 
 ---
 

@@ -1,18 +1,18 @@
 (pytorch-introduction)=
 # 引言：从理论到代码
 
-还记得 {doc}`../neural-network-basics/le-net` 中那 61,706 个参数吗？我们分析了每一层的维度、计算了参数量、讨论了为什么 CNN 比全连接更高效。
+还记得 {doc}`../cnn-expedition/practice-peak/le-net` 中那 61,706 个参数吗？我们分析了每一层的维度、计算了参数量、讨论了为什么 CNN 比全连接更高效。
 
 **但有一个问题：这些数字是怎么存到电脑里的？那些矩阵乘法是怎么算的？反向传播到底怎么实现？**
 
-本章将回答这些问题。我们会用 PyTorch 把 {doc}`../neural-network-basics/index` 中的理论全部实现出来，让你真正理解**从数学公式到可运行代码**的转化过程。
+本章将回答这些问题。我们会用 PyTorch 把 {doc}`../cnn-expedition/practice-peak/index` 中的理论全部实现出来，让你真正理解**从数学公式到可运行代码**的转化过程。
 
 ~~~{admonition} 学习目标
 :class: important
 
 完成本章后，你将能够：
 1. 用 PyTorch 实现 {doc}`../math-fundamentals/index` 中的计算图和反向传播
-2. 搭建 {doc}`../neural-network-basics/index` 中的全连接网络和 CNN
+2. 搭建 {doc}`../cnn-expedition/practice-peak/index` 中的全连接网络和 CNN
 3. 理解 PyTorch API 与理论概念的对应关系
 4. 训练并调试一个完整的 MNIST 分类器
 5. 掌握深度学习开发的工程实践技巧
@@ -33,7 +33,7 @@
 ~~~{admonition} 手动实现的痛苦
 :class: caution
 
-{doc}`../neural-network-basics/fc-layer-basics` 中那个 3 层全连接网络，手写反向传播就需要：
+{doc}`../cnn-expedition/practice-peak/fc-layer-basics` 中那个 3 层全连接网络，手写反向传播就需要：
 - 推导每一层的梯度公式
 - 小心矩阵维度匹配
 - 调试数值稳定性问题
@@ -59,7 +59,7 @@ PyTorch 把上面这些痛苦都解决了：
 
 让我们建立一个"理论→代码"的映射表：
 
-| {doc}`../math-fundamentals/index` 理论 | PyTorch 实现 | {doc}`../neural-network-basics/index` 应用 |
+| {doc}`../math-fundamentals/index` 理论 | PyTorch 实现 | {doc}`../cnn-expedition/practice-peak/index` 应用 |
 | ------- | ------------- | --------- |
 | {ref}`computational-graph` | `torch.Tensor` + 运算 | 数据如何在网络中流动 |
 | {ref}`back-propagation` | `.backward()` | 梯度如何回传更新参数 |
@@ -119,14 +119,14 @@ flowchart LR
     D --> E[训练循环<br/>完整流程]
 ~~~
 
-与 {doc}`../neural-network-basics/index` 的对应：
+与 {doc}`../cnn-expedition/practice-peak/index` 的对应：
 
 1. **{doc}`from-numpy-to-pytorch`**：理解 `torch.Tensor` 如何对应 {ref}`computational-graph` 中的节点
 2. **{doc}`tensor-ops`**：数据如何在网络中流动（reshape、transpose 对应维度变换）
-3. **{doc}`neural-network-module`**：用 `nn.Module` 实现 {doc}`../neural-network-basics/fc-layer-basics` 和 {doc}`../neural-network-basics/cnn-basics` 中的架构
+3. **{doc}`neural-network-module`**：用 `nn.Module` 实现 {doc}`../cnn-expedition/practice-peak/fc-layer-basics` 和 {doc}`../cnn-expedition/practice-peak/cnn-basics` 中的架构
 4. **{doc}`auto-grad`**：`.backward()` 就是 {ref}`back-propagation` 的自动化
 5. **{doc}`optimiser`**：`optimizer.step()` 实现 {ref}`gradient-descent` 的各种变体
-6. **{doc}`train-workflow`**：把 {doc}`../neural-network-basics/neural-training-basics` 中的流程代码化
+6. **{doc}`train-workflow`**：把 {doc}`../cnn-expedition/practice-peak/neural-training-basics` 中的流程代码化
 
 ## 核心认知：API 即理论
 
@@ -151,7 +151,7 @@ $$
 1. **带着理论学代码**：每看到一个 API，问"这对应哪个数学概念？"
 2. **动手实验**：修改参数看结果变化，比看书更有效
 3. **善用帮助**：`help(torch.nn.Conv2d)` 会告诉你数学公式和参数说明
-4. **连接前后**：随时回顾 {doc}`../math-fundamentals/index` 和 {doc}`../neural-network-basics/index` 的对应内容
+4. **连接前后**：随时回顾 {doc}`../math-fundamentals/index` 和 {doc}`../cnn-expedition/practice-peak/index` 的对应内容
 ~~~
 
 **一句话总结**：本章不是学新东西，而是用 PyTorch **重新表达**你已经懂的理论。

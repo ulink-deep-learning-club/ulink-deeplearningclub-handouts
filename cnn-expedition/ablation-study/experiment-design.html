@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-content_root="../../">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="实验设计" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="cnn-expedition/ablation-study/experiment-design.html" />
+<meta property="og:site_name" content="Deep Learning Club Handouts" />
+<meta property="og:description" content="基线模型 + 消融方案——每次只改一个变量，确保结果可归因。 引言：拆开看看 中我们定了规矩：每次少带一件装备，重新爬一次，看成绩掉多少。本节把规矩变成方案——基线模型长什么样、拆哪些装备、怎么量结果。 基线模型：全套装备的配置单: 先确定&quot;全套装备&quot;长什么样——一个在 CIFAR-10 上能正常工作的 CNN。消融的起点。 基线CNN架构：数据流与参数量,, 每个部件的..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_cnn-expedition_ablation-study_experiment-design_84f5ee61.png" />
+<meta property="og:image:alt" content="基线模型 + 消融方案——每次只改一个变量，确保结果可归因。 引言：拆开看看 中我们定了规矩：每次少带一件装备，重新爬一次，看成绩掉多少。本节把规矩变成方案——基线模型长什么样、拆哪些装备、怎么量结果。 基线模型：全套装备的配置单: 先确定&quot;全套装备&quot;长什么样——一个在 CIFAR-10 上能正常工作的 CNN。消融的起点。 基线CNN架构：数据流与参数量,, 每个部件的..." />
+<meta name="description" content="基线模型 + 消融方案——每次只改一个变量，确保结果可归因。 引言：拆开看看 中我们定了规矩：每次少带一件装备，重新爬一次，看成绩掉多少。本节把规矩变成方案——基线模型长什么样、拆哪些装备、怎么量结果。 基线模型：全套装备的配置单: 先确定&quot;全套装备&quot;长什么样——一个在 CIFAR-10 上能正常工作的 CNN。消融的起点。 基线CNN架构：数据流与参数量,, 每个部件的..." />
+<meta name="twitter:card" content="summary_large_image" />
+<title>实验设计 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../../genindex.html"><link rel="search" title="搜索" href="../../search.html"><link rel="next" title="PyTorch实现" href="implementation.html"><link rel="prev" title="引言：拆开看看" href="introduction.html"><script data-cfasync="false">(function(){
+    const m = localStorage.getItem("breeze-mode") || "auto";
+    const d = document.documentElement.dataset;
+    d.mode = m;
+    d.theme = m === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : m;
+  })();
+  </script><link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../../_static/style-fixes.css?v=c830a622" /><link rel="stylesheet" type="text/css" href="../../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+<body>
+  
+  
+  <div class="bz-skip-to-content"><a href="#bz-main-content">Skip to main content</a></div><header class="bz-header-main">
+  <div class="bz-header-start"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><a class="bz-header-brand" href="../../index.html">
+  
+  
+  <span>Deep Learning Club Handouts</span>
+</a>
+  </div>
+  <div class="bz-header-end"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><div id="docsearch" class="bz-search-button">
+  <a
+    href="../../search.html#q"
+    aria-label="Search the docs"
+    data-tooltip="Search the docs"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 -1 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
+    <span>搜索</span>
+    <kbd>Ctrl+K</kbd>
+  </a>
+</div><div class="bz-theme-switcher">
+  <button aria-label="Switch theme" data-tooltip="Switch theme">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
+      <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-dark" fill="currentColor">
+      <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+    </svg>
+  </button>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.766 11.695C4.703 11.437 3.25 9.904 3.25 7.92c0-.806.281-1.677.75-2.258-.203-.532-.172-1.662.062-2.129.626-.081 1.469.258 1.969.726.594-.194 1.219-.291 1.985-.291.765 0 1.39.097 1.953.274.484-.451 1.343-.79 1.969-.709.218.435.25 1.564.046 2.113.5.613.766 1.436.766 2.274 0 1.984-1.453 3.485-3.547 3.759.531.355.891 1.129.891 2.016v1.678c0 .484.39.758.859.564C13.781 14.824 16 11.905 16 8.291 16 3.726 12.406 0 7.984 0 3.562 0 0 3.726 0 8.291c0 3.581 2.203 6.55 5.172 7.663A.595.595 0 0 0 6 15.389v-1.291c-.219.097-.5.162-.75.162-1.031 0-1.641-.581-2.078-1.662-.172-.435-.36-.693-.719-.742-.187-.016-.25-.097-.25-.193 0-.194.313-.339.625-.339.453 0 .844.29 1.25.887.313.468.641.678 1.031.678.391 0 .641-.146 1-.516.266-.275.469-.517.657-.678Z"></path></svg>
+    
+    </a>
+  </div>
+  </div>
+</header><hr class="bz-header-hr">
+  <div class="bz-content"><aside class="bz-sidebar-primary" data-drawer="bz-sidebar-primary">
+  
+  
+    <nav class="bz-sidebar-nav" aria-label="Section Navigation"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../math-fundamentals/index.html">深度学习核心数学基础</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">翻越两座山：CNN 三十年攀登史</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html">引言：因为山在那里</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../practice-peak/index.html">上篇：练习峰</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../practice-peak/introduction.html">引言：从公式到代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../practice-peak/fc-layer-basics.html">全连接：赤手空拳</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../practice-peak/cnn-basics.html">卷积：发现装备</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../practice-peak/dataset-preparation.html">数据准备：打包行囊</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../practice-peak/neural-training-basics.html">训练基础：登山纪律</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../practice-peak/le-net.html">LeNet-5：练习峰首登</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../practice-peak/exp-cmp.html">实验对比：登山日志</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../practice-peak/the-end.html">练习峰，登顶</a></li>
+</ul></details></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">拆开看看：CNN 消融研究</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="introduction.html">引言：拆开看看</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">实验设计</a></li>
+<li class="toctree-l3"><a class="reference internal" href="implementation.html">PyTorch实现</a></li>
+<li class="toctree-l3"><a class="reference internal" href="the-end.html">结语</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../image-net-era/index.html">下篇：真正的未登峰</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/introduction.html">引言：真正的山</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/alexnet.html">AlexNet：真正的未登峰，首登！</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/inception.html">Inception：多尺度工具</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/res-net.html">ResNet：高原反应补给站</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/se-net.html">SE-Net：学会聚焦</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/cbam.html">CBAM：哪里重要 + 什么重要</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/mobilenet.html">MobileNet：一个人，一把冰镐</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/efficientnet.html">EfficientNet：每一分钱，花在刀刃上</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/the-end.html">登山下篇回顾：八年，八件装备</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/index.html">架构心法：从会用装备到会设计装备</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part1-intro.html">诊断入门：信息论听诊器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：效果、速度与硬件的三角权衡</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/the-end.html">登山者笔记：四件装备，三十年</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../the-end.html">下一座山</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../model-serving/index.html">模型部署与服务：从训练到生产</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/model-optimization.html">模型优化：量化与剪枝</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../unet-image-segmentation/index.html">U-Net：图像分割的革命</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sequence-modeling/index.html">序列建模：从 RNN 到 Transformer 再到 Mamba</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/introduction.html">引言：从空间到时间</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/transformer.html">Transformer：注意力的极致</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/mamba-intro.html">Mamba 简述：对RNN思想的回归</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../appendix/environment-setup/index.html">环境配置</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../appendix/sphinx-guide/index.html">Sphinx Markdown 语法参考</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../appendix/build-docs.html">编译文档</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../postscript.html">写在后面</a></li>
+</ul>
+</nav>
+  
+
+</aside><main id="bz-main-content"><header class="bz-article-header">
+  
+  
+    <nav class="bz-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li class="bz-breadcrumbs-home">
+      <a href="../../index.html" aria-label="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8.543 2.232a.75.75 0 0 0-1.085 0l-5.25 5.5A.75.75 0 0 0 2.75 9H4v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V9h1.25a.75.75 0 0 0 .543-1.268l-5.25-5.5Z" />
+        </svg>
+      </a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="../index.html">翻越两座山：CNN 三十年攀登史</a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="index.html">拆开看看：CNN 消融研究</a>
+    </li><li class="bz-breadcrumbs-current">
+      <span>实验设计</span>
+    </li>
+  </ol>
+</nav>
+  
+<label
+  class="bz-sidebar-secondary-toggle"
+  for="bz-sidebar-secondary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle table of contents"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75H20.25 M11.25 12H20.25 M7.75 17.25H20.25"
+    />
+  </svg>
+</label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="cnn-ablation-experiment">
+<span id="id1"></span><h1>实验设计<a class="headerlink" href="#cnn-ablation-experiment" title="Link to this heading">#</a></h1>
+<blockquote>
+<div><p>基线模型 + 消融方案——每次只改一个变量，确保结果可归因。</p>
+</div></blockquote>
+<p><a class="reference internal" href="introduction.html"><span class="doc">引言：拆开看看</span></a>中我们定了规矩：每次少带一件装备，重新爬一次，看成绩掉多少。本节把规矩变成方案——基线模型长什么样、拆哪些装备、怎么量结果。</p>
+<div class="warning admonition">
+<p class="admonition-title">重要提示</p>
+<p>本章中的实验数据（准确率、参数量、训练时间等）均为<strong>示例数据</strong>，用于演示消融研究的方法论。</p>
+<p><strong>你的实际实验结果可能不同</strong>，这取决于：</p>
+<ul class="simple">
+<li><p>随机种子</p></li>
+<li><p>硬件环境（CPU/GPU）</p></li>
+<li><p>PyTorch版本</p></li>
+<li><p>数据加载顺序</p></li>
+</ul>
+<p><strong>建议</strong>：将本章作为<strong>实验设计指南</strong>，自己动手复现每个实验，获得属于你自己的真实数据。</p>
+</div>
+<section id="id2">
+<h2>基线模型：全套装备的配置单<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>先确定&quot;全套装备&quot;长什么样——一个在 CIFAR-10 上能正常工作的 CNN。消融的起点。</p>
+<div class="figure" id="id139" style="text-align: center"><p><img  src="../../_images/tikz-d365b318b3c556ee644309351861a164d5f5ecb6.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">基线CNN架构：数据流与参数量</span></p>
+</div><section id="id3">
+<h3>每个部件的参数量<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<p>理解每件装备多重，才知道拆掉它省了多少负重。</p>
+<p><strong>逐层计算</strong>：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>层</p></th>
+<th class="head"><p>计算公式</p></th>
+<th class="head"><p>参数量</p></th>
+<th class="head"><p>占比</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Conv1</p></td>
+<td><p><span class="math notranslate nohighlight">\((3 \times 3 \times 3 + 1) \times 32\)</span></p></td>
+<td><p>896</p></td>
+<td><p>0.07%</p></td>
+</tr>
+<tr class="row-odd"><td><p>Conv2</p></td>
+<td><p><span class="math notranslate nohighlight">\((3 \times 3 \times 32 + 1) \times 64\)</span></p></td>
+<td><p>18,496</p></td>
+<td><p>1.5%</p></td>
+</tr>
+<tr class="row-even"><td><p>FC1</p></td>
+<td><p><span class="math notranslate nohighlight">\((4,096 + 1) \times 512\)</span></p></td>
+<td><p>2,097,664</p></td>
+<td><p><strong>85.4%</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>FC2</p></td>
+<td><p><span class="math notranslate nohighlight">\((512 + 1) \times 10\)</span></p></td>
+<td><p>5,130</p></td>
+<td><p>0.2%</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>总计</strong></p></td>
+<td><p>-</p></td>
+<td><p><strong>2,122,186</strong></p></td>
+<td><p>100%</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>关键发现</strong>：</p>
+<ul class="simple">
+<li><p>卷积层参数量很小（仅占 1.6%），但承担了主要的<strong>特征提取</strong>任务</p></li>
+<li><p>全连接层占绝大部分参数（85%+），主要用于<strong>分类决策</strong></p></li>
+<li><p>这也是为什么我们可以放心地冻结卷积层进行迁移学习——特征提取器本身很轻量</p></li>
+</ul>
+</section>
+<section id="id4">
+<h3>消融研究流程<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<pre  class="mermaid">
+        flowchart TD
+    A[基线模型&lt;br/&gt;准确率: 78.3%] --&gt; B{实验1: 移除组件?}
+    B --&gt;|移除卷积层| C[模型A: 1层卷积&lt;br/&gt;准确率: 65.7%]
+    B --&gt;|移除池化层| D[模型B: 无池化&lt;br/&gt;准确率: 72.1%]
+    B --&gt;|更换激活函数| E[模型C: Sigmoid&lt;br/&gt;准确率: 62.7%]
+    B --&gt;|移除BN| F[模型D: 无BN&lt;br/&gt;准确率: 78.3%]
+    B --&gt;|移除Dropout| G[模型E: 无Dropout&lt;br/&gt;准确率: 78.3%]
+    
+    C --&gt; H[分析: 卷积层&lt;br/&gt;贡献 +12.6%]
+    D --&gt; I[分析: 池化层&lt;br/&gt;贡献 +6.2%]
+    E --&gt; J[分析: ReLU&lt;br/&gt;贡献 +15.6%]
+    F --&gt; K[分析: BN&lt;br/&gt;加速收敛]
+    G --&gt; L[分析: Dropout&lt;br/&gt;防止过拟合]
+    </pre><p><strong>流程说明</strong>：</p>
+<ol class="arabic simple">
+<li><p><strong>建立基线</strong>：先跑通完整模型，记录性能</p></li>
+<li><p><strong>逐一消融</strong>：每次只修改一个组件，保持其他不变</p></li>
+<li><p><strong>对比分析</strong>：计算性能变化，评估组件重要性</p></li>
+</ol>
+</section>
+</section>
+<section id="id5">
+<h2>消融实验设计：拆哪几件<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<p>我们将进行以下消融实验：</p>
+<ol class="arabic simple">
+<li><p><strong>实验1</strong>：移除卷积层（减少特征提取能力）</p></li>
+<li><p><strong>实验2</strong>：移除池化层（保持空间分辨率）</p></li>
+<li><p><strong>实验3</strong>：更换激活函数（Sigmoid/Tanh vs ReLU）</p></li>
+<li><p><strong>实验4</strong>：移除批归一化（训练稳定性）</p></li>
+<li><p><strong>实验5</strong>：移除Dropout（过拟合风险）</p></li>
+<li><p><strong>实验6</strong>：改变卷积核大小（1×1, 3×3, 5×5）</p></li>
+<li><p><strong>实验7</strong>：改变池化类型（最大池化 vs 平均池化）</p></li>
+</ol>
+<p>每个实验保持其他组件不变，仅修改目标组件，在相同训练条件下比较性能。</p>
+</section>
+<section id="id6">
+<h2>评估指标：怎么量摔得多惨<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>准确率</strong>：测试集上的分类准确率</p></li>
+<li><p><strong>损失曲线</strong>：训练和验证损失的变化</p></li>
+<li><p><strong>收敛速度</strong>：达到特定准确率所需的epoch数</p></li>
+<li><p><strong>模型大小</strong>：参数数量和计算量（FLOPs）</p></li>
+<li><p><strong>训练时间</strong>：每个epoch的平均训练时间</p></li>
+</ul>
+</section>
+<section id="id7">
+<h2>消融结果：数据说话<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<section id="id8">
+<h3>实验1：卷积层的影响<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<p>我们通过减少卷积层数量来研究卷积层的作用：</p>
+<div class="tip admonition">
+<p class="admonition-title">实验设置</p>
+<ul class="simple">
+<li><p><strong>模型A</strong>：基线模型（2个卷积层）</p></li>
+<li><p><strong>模型B</strong>：仅1个卷积层（移除conv2）</p></li>
+<li><p><strong>模型C</strong>：3个卷积层（增加conv3）</p></li>
+</ul>
+</div>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>模型</p></th>
+<th class="head"><p>测试准确率</p></th>
+<th class="head"><p>参数量</p></th>
+<th class="head"><p>训练时间/epoch</p></th>
+<th class="head"><p>收敛epoch</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>基线（2层）</p></td>
+<td><p>78.3%</p></td>
+<td><p>1.2M</p></td>
+<td><p>45s</p></td>
+<td><p>15</p></td>
+</tr>
+<tr class="row-odd"><td><p>1层卷积</p></td>
+<td><p>65.7%</p></td>
+<td><p>0.8M</p></td>
+<td><p>38s</p></td>
+<td><p>20</p></td>
+</tr>
+<tr class="row-even"><td><p>3层卷积</p></td>
+<td><p>79.1%</p></td>
+<td><p>1.8M</p></td>
+<td><p>52s</p></td>
+<td><p>12</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="important admonition">
+<p class="admonition-title">分析</p>
+<ul class="simple">
+<li><p><strong>层数不足</strong>：1层卷积无法提取足够特征，准确率下降12.6%</p></li>
+<li><p>参见 <a class="reference internal" href="../practice-peak/cnn-basics.html"><span class="doc">卷积：发现装备</span></a> 中特征提取层次分析</p></li>
+<li><p><strong>层数增加</strong>：3层卷积略有提升，但参数量和计算量增加</p></li>
+<li><p><strong>边际收益递减</strong>：超过2层后提升有限，可能出现过拟合</p></li>
+</ul>
+</div>
+</section>
+<section id="id9">
+<h3>实验2：池化层的影响<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<p>池化层的作用是降低空间分辨率，增加平移不变性。参见 <a class="reference internal" href="../practice-peak/cnn-basics.html"><span class="doc">卷积：发现装备</span></a> 中池化操作详解。</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>池化类型</p></th>
+<th class="head"><p>测试准确率</p></th>
+<th class="head"><p>特征图尺寸</p></th>
+<th class="head"><p>参数量</p></th>
+<th class="head"><p>过拟合程度</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>最大池化（基线）</p></td>
+<td><p>78.3%</p></td>
+<td><p>8×8</p></td>
+<td><p>1.2M</p></td>
+<td><p>中等</p></td>
+</tr>
+<tr class="row-odd"><td><p>平均池化</p></td>
+<td><p>77.8%</p></td>
+<td><p>8×8</p></td>
+<td><p>1.2M</p></td>
+<td><p>中等</p></td>
+</tr>
+<tr class="row-even"><td><p>步长卷积（无池化）</p></td>
+<td><p>76.5%</p></td>
+<td><p>16×16</p></td>
+<td><p>1.5M</p></td>
+<td><p>高</p></td>
+</tr>
+<tr class="row-odd"><td><p>无池化（保持尺寸）</p></td>
+<td><p>72.1%</p></td>
+<td><p>32×32</p></td>
+<td><p>4.8M</p></td>
+<td><p>很高</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">池化的作用</p>
+<ul class="simple">
+<li><p><strong>降维</strong>：减少计算量和参数量，参见参数量计算表</p></li>
+<li><p><strong>平移不变性</strong>：对输入的小平移具有鲁棒性</p></li>
+<li><p><strong>防止过拟合</strong>：减少空间细节，增强泛化能力</p></li>
+<li><p><strong>最大 vs 平均</strong>：最大池化更关注显著特征，平均池化更平滑</p></li>
+</ul>
+</div>
+</section>
+<section id="id10">
+<h3>实验3：激活函数的影响<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<p>激活函数引入非线性，参见 <a class="reference internal" href="../../math-fundamentals/activation-functions.html"><span class="doc">激活函数</span></a> 中激活函数理论分析。</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>激活函数</p></th>
+<th class="head"><p>测试准确率</p></th>
+<th class="head"><p>训练速度</p></th>
+<th class="head"><p>梯度问题</p></th>
+<th class="head"><p>死亡神经元</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ReLU（基线）</p></td>
+<td><p>78.3%</p></td>
+<td><p>快</p></td>
+<td><p>无梯度消失</p></td>
+<td><p>可能</p></td>
+</tr>
+<tr class="row-odd"><td><p>Leaky ReLU</p></td>
+<td><p>78.5%</p></td>
+<td><p>快</p></td>
+<td><p>无梯度消失</p></td>
+<td><p>无</p></td>
+</tr>
+<tr class="row-even"><td><p>Sigmoid</p></td>
+<td><p>62.7%</p></td>
+<td><p>慢</p></td>
+<td><p>梯度消失严重</p></td>
+<td><p>无</p></td>
+</tr>
+<tr class="row-odd"><td><p>Tanh</p></td>
+<td><p>70.4%</p></td>
+<td><p>中等</p></td>
+<td><p>梯度消失</p></td>
+<td><p>无</p></td>
+</tr>
+<tr class="row-even"><td><p>Swish <span id="id11">[<a class="reference internal" href="../../math-fundamentals/activation-functions.html#id80" title="Prajit Ramachandran, Barret Zoph, and Quoc V Le. Swish: a self-gated activation function. arXiv preprint arXiv:1710.05941, 2017.">RZL17</a>]</span></p></td>
+<td><p>78.8%</p></td>
+<td><p>中等</p></td>
+<td><p>无梯度消失</p></td>
+<td><p>无</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="important admonition">
+<p class="admonition-title">激活函数选择建议</p>
+<ul class="simple">
+<li><p><strong>默认选择</strong>：ReLU（简单、高效）</p></li>
+<li><p><strong>深层网络</strong>：Leaky ReLU或Swish（避免死亡神经元）</p></li>
+<li><p><strong>避免使用</strong>：Sigmoid（梯度消失严重），详见 <a class="reference internal" href="../../math-fundamentals/activation-functions.html#sigmoid-gradient-vanish"><span class="std std-ref">Sigmoid 函数</span></a></p></li>
+</ul>
+</div>
+</section>
+<section id="id12">
+<h3>实验4：批归一化的影响<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
+<p>批归一化（Batch Normalization）通过标准化层输入来加速训练并提高稳定性 <span id="id13">[<a class="reference internal" href="../../unet-image-segmentation/u-net.html#id63" title="Sergey Ioffe and Christian Szegedy. Batch normalization: accelerating deep network training by reducing internal covariate shift. In International conference on machine learning, 448–456. PMLR, 2015.">IS15</a>]</span>。参见 <a class="reference internal" href="../practice-peak/neural-training-basics.html"><span class="doc">训练基础：登山纪律</span></a> 中批归一化原理。</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>配置</p></th>
+<th class="head"><p>最终准确率</p></th>
+<th class="head"><p>收敛epoch</p></th>
+<th class="head"><p>训练稳定性</p></th>
+<th class="head"><p>学习率敏感性</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>无BN</p></td>
+<td><p>78.3%</p></td>
+<td><p>15</p></td>
+<td><p>低</p></td>
+<td><p>高</p></td>
+</tr>
+<tr class="row-odd"><td><p>有BN</p></td>
+<td><p>81.2%</p></td>
+<td><p>8</p></td>
+<td><p>高</p></td>
+<td><p>低</p></td>
+</tr>
+<tr class="row-even"><td><p>BN + 更大学习率</p></td>
+<td><p>82.1%</p></td>
+<td><p>6</p></td>
+<td><p>高</p></td>
+<td><p>低</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">批归一化的优势</p>
+<ul class="simple">
+<li><p><strong>加速收敛</strong>：减少内部协变量偏移，收敛速度提高约50%</p></li>
+<li><p><strong>允许更大学习率</strong>：训练更稳定，可以使用更大的学习率</p></li>
+<li><p><strong>轻微正则化效果</strong>：减少对Dropout的依赖</p></li>
+<li><p><strong>改善梯度流动</strong>：缓解梯度消失/爆炸问题</p></li>
+</ul>
+</div>
+</section>
+<section id="dropout">
+<h3>实验5：Dropout的影响<a class="headerlink" href="#dropout" title="Link to this heading">#</a></h3>
+<p>Dropout是一种正则化技术，通过在训练过程中随机丢弃神经元来防止过拟合 <span id="id14">[<a class="reference internal" href="../practice-peak/neural-training-basics.html#id67" title="Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan Salakhutdinov. Dropout: a simple way to prevent neural networks from overfitting. The journal of machine learning research, 15(1):1929–1958, 2014.">SHK+14</a>]</span>。参见 <a class="reference internal" href="../practice-peak/neural-training-basics.html"><span class="doc">训练基础：登山纪律</span></a> 中正则化方法。</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Dropout率</p></th>
+<th class="head"><p>训练准确率</p></th>
+<th class="head"><p>测试准确率</p></th>
+<th class="head"><p>过拟合差距</p></th>
+<th class="head"><p>收敛epoch</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0.0（无Dropout）</p></td>
+<td><p>95.2%</p></td>
+<td><p>78.3%</p></td>
+<td><p>16.9%</p></td>
+<td><p>15</p></td>
+</tr>
+<tr class="row-odd"><td><p>0.3</p></td>
+<td><p>91.8%</p></td>
+<td><p>79.5%</p></td>
+<td><p>12.3%</p></td>
+<td><p>16</p></td>
+</tr>
+<tr class="row-even"><td><p>0.5（基线）</p></td>
+<td><p>88.7%</p></td>
+<td><p>78.3%</p></td>
+<td><p>10.4%</p></td>
+<td><p>17</p></td>
+</tr>
+<tr class="row-odd"><td><p>0.7</p></td>
+<td><p>84.3%</p></td>
+<td><p>76.9%</p></td>
+<td><p>7.4%</p></td>
+<td><p>19</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="important admonition">
+<p class="admonition-title">Dropout的作用与权衡</p>
+<ul class="simple">
+<li><p><strong>正则化效果</strong>：Dropout有效减少过拟合，训练-测试差距从16.9%降至7.4%</p></li>
+<li><p><strong>训练速度</strong>：Dropout增加训练时间，需要更多epoch收敛</p></li>
+<li><p><strong>最佳值</strong>：Dropout率0.3-0.5通常效果最佳</p></li>
+<li><p><strong>与BN的交互</strong>：批归一化也有正则化效果，两者结合需谨慎</p></li>
+</ul>
+</div>
+</section>
+<section id="id15">
+<h3>实验6：卷积核大小的影响<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<p>卷积核大小决定感受野大小，影响特征提取能力。参见 <a class="reference internal" href="../practice-peak/cnn-basics.html"><span class="doc">卷积：发现装备</span></a> 的 <a class="reference internal" href="../practice-peak/cnn-basics.html#receptive-field"><span class="std std-ref">感受野</span></a> 中感受野定义与计算。</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>卷积核大小</p></th>
+<th class="head"><p>测试准确率</p></th>
+<th class="head"><p>参数量</p></th>
+<th class="head"><p>计算量（FLOPs）</p></th>
+<th class="head"><p>感受野</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1×1</p></td>
+<td><p>72.5%</p></td>
+<td><p>0.9M</p></td>
+<td><p>0.8G</p></td>
+<td><p>1×1</p></td>
+</tr>
+<tr class="row-odd"><td><p>3×3（基线）</p></td>
+<td><p>78.3%</p></td>
+<td><p>1.2M</p></td>
+<td><p>1.2G</p></td>
+<td><p>3×3</p></td>
+</tr>
+<tr class="row-even"><td><p>5×5</p></td>
+<td><p>79.1%</p></td>
+<td><p>1.8M</p></td>
+<td><p>2.1G</p></td>
+<td><p>5×5</p></td>
+</tr>
+<tr class="row-odd"><td><p>7×7</p></td>
+<td><p>78.9%</p></td>
+<td><p>2.5M</p></td>
+<td><p>3.5G</p></td>
+<td><p>7×7</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">卷积核选择建议</p>
+<ul class="simple">
+<li><p><strong>小卷积核（1×1）</strong>：用于降维和升维，减少参数量</p></li>
+<li><p><strong>中等卷积核（3×3）</strong>：平衡感受野和计算量，最常用</p></li>
+<li><p><strong>大卷积核（5×5, 7×7）</strong>：可用多个3×3卷积替代，减少参数量</p></li>
+<li><p><strong>现代趋势</strong>：使用小卷积核堆叠（如VGG、ResNet）</p></li>
+</ul>
+</div>
+</section>
+<section id="id16">
+<h3>实验7：池化类型的影响<a class="headerlink" href="#id16" title="Link to this heading">#</a></h3>
+<p>我们进一步比较最大池化和平均池化在不同任务上的表现：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>任务类型</p></th>
+<th class="head"><p>最大池化准确率</p></th>
+<th class="head"><p>平均池化准确率</p></th>
+<th class="head"><p>优势类型</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>图像分类（CIFAR-10）</p></td>
+<td><p>78.3%</p></td>
+<td><p>77.8%</p></td>
+<td><p>最大池化</p></td>
+</tr>
+<tr class="row-odd"><td><p>目标检测（边界框）</p></td>
+<td><p>71.2%</p></td>
+<td><p>72.5%</p></td>
+<td><p>平均池化</p></td>
+</tr>
+<tr class="row-even"><td><p>语义分割（像素级）</p></td>
+<td><p>68.7%</p></td>
+<td><p>70.3%</p></td>
+<td><p>平均池化</p></td>
+</tr>
+<tr class="row-odd"><td><p>纹理分类</p></td>
+<td><p>76.4%</p></td>
+<td><p>74.1%</p></td>
+<td><p>最大池化</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="important admonition">
+<p class="admonition-title">池化类型选择指南</p>
+<ul class="simple">
+<li><p><strong>分类任务</strong>：最大池化更关注显著特征，通常表现更好</p></li>
+<li><p><strong>定位任务</strong>：平均池化保留更多空间信息，适合需要位置信息的任务</p></li>
+<li><p><strong>现代架构</strong>：许多网络使用步长卷积替代池化，提供更多灵活性</p></li>
+<li><p><strong>混合使用</strong>：某些网络在不同层使用不同类型的池化</p></li>
+</ul>
+</div>
+</section>
+</section>
+<section id="id17">
+<h2>综合分析与设计原则<a class="headerlink" href="#id17" title="Link to this heading">#</a></h2>
+<section id="id18">
+<h3>装备清单：按重要性排序<a class="headerlink" href="#id18" title="Link to this heading">#</a></h3>
+<p>基于消融实验结果，我们可以对CNN组件的重要性进行排序：</p>
+<div class="tip admonition">
+<p class="admonition-title">CNN组件重要性（从高到低）</p>
+<ol class="arabic simple">
+<li><p><strong>卷积层</strong>：特征提取的核心，不可或缺</p></li>
+<li><p><strong>激活函数</strong>：提供非线性，ReLU类函数效果最佳</p></li>
+<li><p><strong>批归一化</strong>：显著加速训练，提高稳定性</p></li>
+<li><p><strong>池化层</strong>：降低计算量，增加平移不变性</p></li>
+<li><p><strong>Dropout</strong>：正则化，防止过拟合</p></li>
+<li><p><strong>卷积核大小</strong>：3×3是最佳平衡点</p></li>
+<li><p><strong>池化类型</strong>：任务依赖性较强</p></li>
+</ol>
+</div>
+</section>
+<section id="id19">
+<h3>组件贡献可视化<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
+<div class="figure" id="id140" style="text-align: center"><p><img  src="../../_images/tikz-d0f6b59a3af31f7f79939b93adb738f4940e12cd.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">消融实验：组件贡献度对比</span></p>
+</div><p><strong>图表解读</strong>：</p>
+<ul class="simple">
+<li><p><strong>纵轴</strong>：移除该组件导致的准确率下降（百分比）</p></li>
+<li><p><strong>越高表示越重要</strong>：激活函数（15.6%）和卷积层（12.6%）是核心组件</p></li>
+<li><p><strong>稳定性组件</strong>：批归一化对准确率影响小（2.9%），但能显著加速训练</p></li>
+</ul>
+</section>
+<section id="cnn">
+<h3>CNN设计检查清单<a class="headerlink" href="#cnn" title="Link to this heading">#</a></h3>
+<p>基于消融研究，我们提出以下CNN设计检查清单：</p>
+<div class="important admonition">
+<p class="admonition-title">CNN设计检查清单</p>
+<ul class="simple">
+<li><p><strong>卷积层数</strong>：至少2层，根据任务复杂度增加</p></li>
+<li><p><strong>激活函数</strong>：默认使用ReLU，深层网络考虑Leaky ReLU或Swish</p></li>
+<li><p><strong>批归一化</strong>：除非有特殊原因，否则应该使用</p></li>
+<li><p><strong>池化策略</strong>：分类任务用最大池化，定位任务考虑平均池化</p></li>
+<li><p><strong>Dropout率</strong>：0.3-0.5，在全连接层使用</p></li>
+<li><p><strong>卷积核大小</strong>：默认3×3，可用多个小卷积核替代大卷积核</p></li>
+<li><p><strong>参数初始化</strong>：使用He初始化 <span id="id20">[<a class="reference internal" href="#id109" title="Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Delving deep into rectifiers: surpassing human-level performance on imagenet classification. In Proceedings of the IEEE International Conference on Computer Vision (ICCV), 1026–1034. 2015.">HZRS15</a>]</span>（配合ReLU）或Xavier初始化 <span id="id21">[<a class="reference internal" href="#id110" title="Xavier Glorot and Yoshua Bengio. Understanding the difficulty of training deep feedforward neural networks. In Proceedings of the Thirteenth International Conference on Artificial Intelligence and Statistics (AISTATS), 249–256. 2010.">GB10</a>]</span></p></li>
+<li><p><strong>学习率调度</strong>：使用余弦退火或ReduceLROnPlateau</p></li>
+</ul>
+</div>
+</section>
+<section id="id22">
+<h3>消融研究的最佳实践<a class="headerlink" href="#id22" title="Link to this heading">#</a></h3>
+<div class="tip admonition">
+<p class="admonition-title">进行消融研究的最佳实践</p>
+<ol class="arabic simple">
+<li><p><strong>定义明确基线</strong>：选择一个性能良好的模型作为基线</p></li>
+<li><p><strong>一次只改变一个变量</strong>：确保结果可归因于特定修改</p></li>
+<li><p><strong>控制随机性</strong>：使用固定随机种子，确保可重复性</p></li>
+<li><p><strong>充分训练</strong>：每个实验都训练到收敛，避免过早停止</p></li>
+<li><p><strong>多指标评估</strong>：不仅看准确率，还要看损失、收敛速度等</p></li>
+<li><p><strong>统计显著性</strong>：多次运行取平均，报告标准差</p></li>
+<li><p><strong>可视化结果</strong>：使用图表直观展示性能变化</p></li>
+<li><p><strong>记录实验细节</strong>：保存超参数、随机种子、环境信息</p></li>
+</ol>
+</div>
+</section>
+</section>
+<section id="id23">
+<h2>相关研究<a class="headerlink" href="#id23" title="Link to this heading">#</a></h2>
+<section id="id24">
+<h3>现代CNN架构的消融研究<a class="headerlink" href="#id24" title="Link to this heading">#</a></h3>
+<p>现代CNN架构（如ResNet、DenseNet、EfficientNet）引入了更多复杂组件：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>架构</p></th>
+<th class="head"><p>关键组件</p></th>
+<th class="head"><p>消融研究发现</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ResNet <span id="id25">[<a class="reference internal" href="../../unet-image-segmentation/u-net.html#id55" title="Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition, 770–778. 2016.">HZRS16</a>]</span></p></td>
+<td><p>残差连接</p></td>
+<td><p>残差连接使训练极深网络成为可能</p></td>
+</tr>
+<tr class="row-odd"><td><p>DenseNet <span id="id26">[<a class="reference internal" href="#id113" title="Gao Huang, Zhuang Liu, Laurens van der Maaten, and Kilian Q Weinberger. Densely connected convolutional networks. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2261–2269. 2017.">HLvdMW17</a>]</span></p></td>
+<td><p>密集连接</p></td>
+<td><p>特征重用显著减少参数量</p></td>
+</tr>
+<tr class="row-even"><td><p>EfficientNet <span id="id27">[<a class="reference internal" href="../model-architecture-design/the-end.html#id100" title="Mingxing Tan and Quoc V Le. Efficientnet: rethinking model scaling for convolutional neural networks. In Proceedings of the 36th International Conference on Machine Learning (ICML), 6105–6114. 2019.">TL19</a>]</span></p></td>
+<td><p>复合缩放</p></td>
+<td><p>平衡深度、宽度、分辨率效果最佳</p></td>
+</tr>
+<tr class="row-odd"><td><p>MobileNet <span id="id28">[<a class="reference internal" href="../model-architecture-design/the-end.html#id101" title="Andrew G Howard, Menglong Zhu, Bo Chen, Dmitry Kalenichenko, Weijun Wang, Tobias Weyand, Marco Andreetto, and Hartwig Adam. Mobilenets: efficient convolutional neural networks for mobile vision applications. arXiv preprint arXiv:1704.04861, 2017.">HZC+17</a>]</span></p></td>
+<td><p>深度可分离卷积</p></td>
+<td><p>大幅减少计算量，精度损失小</p></td>
+</tr>
+<tr class="row-even"><td><p>Vision Transformer <span id="id29">[<a class="reference internal" href="#id70" title="Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, Matthias Minderer, Georg Heigold, Sylvain Gelly, and others. An image is worth 16x16 words: transformers for image recognition at scale. In International Conference on Learning Representations. 2021.">DBK+21</a>]</span></p></td>
+<td><p>自注意力</p></td>
+<td><p>在大数据集上超越CNN，小数据集不如CNN</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id30">
+<h3>自动化消融研究<a class="headerlink" href="#id30" title="Link to this heading">#</a></h3>
+<p>随着AutoML的发展，自动化消融研究成为可能：</p>
+<div class="tip admonition">
+<p class="admonition-title">自动化消融研究工具</p>
+<ul class="simple">
+<li><p><strong>Neural Network Intelligence (NNI)</strong>：微软开发的AutoML工具包</p></li>
+<li><p><strong>AutoGluon</strong>：亚马逊开发的自动机器学习工具</p></li>
+<li><p><strong>Optuna</strong>：超参数优化框架，可用于消融研究</p></li>
+<li><p><strong>Weight &amp; Biases (W&amp;B)</strong>：实验跟踪和超参数调优</p></li>
+</ul>
+</div>
+</section>
+</section>
+<section id="id31">
+<h2>消融研究的局限性<a class="headerlink" href="#id31" title="Link to this heading">#</a></h2>
+<div class="important admonition">
+<p class="admonition-title">消融研究的局限性</p>
+<ul class="simple">
+<li><p><strong>组件交互</strong>：组件之间可能存在交互效应，单独移除可能低估其重要性</p></li>
+<li><p><strong>任务依赖性</strong>：组件重要性可能因任务而异</p></li>
+<li><p><strong>数据集偏差</strong>：结果可能依赖于特定数据集</p></li>
+<li><p><strong>计算成本</strong>：全面的消融研究需要大量计算资源</p></li>
+<li><p><strong>局部最优</strong>：可能只探索了设计空间的一小部分</p></li>
+</ul>
+</div>
+<hr class="docutils" />
+<p>方案有了。下一步——<a class="reference internal" href="implementation.html"><span class="doc">PyTorch实现</span></a>：把纸上设计变成可跑的代码。</p>
+<hr class="docutils" />
+<h2 class="rubric">参考文献</h2>
+<div class="docutils container" id="id32">
+<div role="list" class="citation-list">
+<div class="citation" id="id70" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id29">DBK+21</a><span class="fn-bracket">]</span></span>
+<p>Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, Matthias Minderer, Georg Heigold, Sylvain Gelly, and others. An image is worth 16x16 words: transformers for image recognition at scale. In <em>International Conference on Learning Representations</em>. 2021.</p>
+</div>
+<div class="citation" id="id110" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id21">GB10</a><span class="fn-bracket">]</span></span>
+<p>Xavier Glorot and Yoshua Bengio. Understanding the difficulty of training deep feedforward neural networks. In <em>Proceedings of the Thirteenth International Conference on Artificial Intelligence and Statistics (AISTATS)</em>, 249–256. 2010.</p>
+</div>
+<div class="citation" id="id109" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id20">HZRS15</a><span class="fn-bracket">]</span></span>
+<p>Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Delving deep into rectifiers: surpassing human-level performance on imagenet classification. In <em>Proceedings of the IEEE International Conference on Computer Vision (ICCV)</em>, 1026–1034. 2015.</p>
+</div>
+<div class="citation" id="id66" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id25">HZRS16</a><span class="fn-bracket">]</span></span>
+<p>Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In <em>Proceedings of the IEEE conference on computer vision and pattern recognition</em>, 770–778. 2016.</p>
+</div>
+<div class="citation" id="id112" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id28">HZC+17</a><span class="fn-bracket">]</span></span>
+<p>Andrew G Howard, Menglong Zhu, Bo Chen, Dmitry Kalenichenko, Weijun Wang, Tobias Weyand, Marco Andreetto, and Hartwig Adam. Mobilenets: efficient convolutional neural networks for mobile vision applications. <em>arXiv preprint arXiv:1704.04861</em>, 2017.</p>
+</div>
+<div class="citation" id="id113" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id26">HLvdMW17</a><span class="fn-bracket">]</span></span>
+<p>Gao Huang, Zhuang Liu, Laurens van der Maaten, and Kilian Q Weinberger. Densely connected convolutional networks. In <em>Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)</em>, 2261–2269. 2017.</p>
+</div>
+<div class="citation" id="id74" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id13">IS15</a><span class="fn-bracket">]</span></span>
+<p>Sergey Ioffe and Christian Szegedy. Batch normalization: accelerating deep network training by reducing internal covariate shift. In <em>International conference on machine learning</em>, 448–456. PMLR, 2015.</p>
+</div>
+<div class="citation" id="id101" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id11">RZL17</a><span class="fn-bracket">]</span></span>
+<p>Prajit Ramachandran, Barret Zoph, and Quoc V Le. Swish: a self-gated activation function. <em>arXiv preprint arXiv:1710.05941</em>, 2017.</p>
+</div>
+<div class="citation" id="id75" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id14">SHK+14</a><span class="fn-bracket">]</span></span>
+<p>Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan Salakhutdinov. Dropout: a simple way to prevent neural networks from overfitting. <em>The journal of machine learning research</em>, 15(1):1929–1958, 2014.</p>
+</div>
+<div class="citation" id="id111" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id27">TL19</a><span class="fn-bracket">]</span></span>
+<p>Mingxing Tan and Quoc V Le. Efficientnet: rethinking model scaling for convolutional neural networks. In <em>Proceedings of the 36th International Conference on Machine Learning (ICML)</em>, 6105–6114. 2019.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">dc35df2</code>
+                2026-06-14 - <strong>Heyan Zhu</strong>: refactor: unify into two-chapter mountain-climbing narrative
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+</article><footer class="bz-article-footer">
+  
+  
+    <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="introduction.html" rel="prev">
+    <span>Previous</span><span class="bz-related-pages-title">引言：拆开看看</span></a><a class="bz-related-pages-next" href="implementation.html" rel="next">
+    <span>Next</span>
+    <span class="bz-related-pages-title">PyTorch实现</span>
+  </a></nav>
+  
+
+</footer><aside class="bz-sidebar-secondary" data-drawer="bz-sidebar-secondary">
+  
+  
+    
+  
+  
+  
+  
+
+
+
+<div class="bz-repo-stats">
+  <a
+    data-provider="github"
+    data-user="ulink-deep-learning-club"
+    data-repo="ulink-deeplearningclub-handouts"
+    href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    aria-label="ulink-deep-learning-club/ulink-deeplearningclub-handouts repository"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    <span
+      style="--bz-repo-stats-name-length: 56"
+      title="ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    >
+      ulink-deep-learning-club/ulink-deeplearningclub-handouts
+    </span>
+    <div class="bz-repo-stats-row">
+      <span class="bz-repo-stats-item" aria-label="Repository stars">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path></svg>
+        <span data-stat="stars">-</span>
+      </span>
+      <span class="bz-repo-stats-item" aria-label="Repository forks">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
+        <span data-stat="forks">-</span>
+      </span>
+    </div>
+  </a>
+</div>
+
+  
+    <div class="bz-edit-this-page">
+  <a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/source/cnn-expedition/ablation-study/experiment-design.md" rel="edit">
+    Edit this page
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"></path></svg>
+  </a>
+</div>
+  
+    <nav class="bz-sidebar-toc" aria-label="Table of contents">
+  <p>On this page</p><ul>
+<li><a class="reference internal" href="#id2">基线模型：全套装备的配置单</a><ul>
+<li><a class="reference internal" href="#id3">每个部件的参数量</a></li>
+<li><a class="reference internal" href="#id4">消融研究流程</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id5">消融实验设计：拆哪几件</a></li>
+<li><a class="reference internal" href="#id6">评估指标：怎么量摔得多惨</a></li>
+<li><a class="reference internal" href="#id7">消融结果：数据说话</a><ul>
+<li><a class="reference internal" href="#id8">实验1：卷积层的影响</a></li>
+<li><a class="reference internal" href="#id9">实验2：池化层的影响</a></li>
+<li><a class="reference internal" href="#id10">实验3：激活函数的影响</a></li>
+<li><a class="reference internal" href="#id12">实验4：批归一化的影响</a></li>
+<li><a class="reference internal" href="#dropout">实验5：Dropout的影响</a></li>
+<li><a class="reference internal" href="#id15">实验6：卷积核大小的影响</a></li>
+<li><a class="reference internal" href="#id16">实验7：池化类型的影响</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id17">综合分析与设计原则</a><ul>
+<li><a class="reference internal" href="#id18">装备清单：按重要性排序</a></li>
+<li><a class="reference internal" href="#id19">组件贡献可视化</a></li>
+<li><a class="reference internal" href="#cnn">CNN设计检查清单</a></li>
+<li><a class="reference internal" href="#id22">消融研究的最佳实践</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id23">相关研究</a><ul>
+<li><a class="reference internal" href="#id24">现代CNN架构的消融研究</a></li>
+<li><a class="reference internal" href="#id30">自动化消融研究</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id31">消融研究的局限性</a></li>
+</ul></nav>
+  
+
+</aside></main>
+  </div>
+<footer class="bz-footer">
+  <div class="bz-footer-copyright"><p class="bz-copyright">© Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0</p><p>
+    
+    
+    
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a href="https://github.com/aksiome/breeze">Breeze theme</a>.
+    
+  </p>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    
+    </a>
+  </div>
+</footer><a href="#" class="bz-back-to-top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+    </svg>
+    <span>Back to top</span>
+  </a>
+  <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
+  <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
+  <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../../_static/documentation_options.js?v=5a0213dc"></script><script src="../../_static/doctools.js?v=9bcbadda"></script><script src="../../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../../_static/translations.js?v=beaddf03"></script><script src="../../_static/design-tabs.js?v=f930bc37"></script><script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script><script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script><script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script><script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 360px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 360px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("True" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll(".mermaid svg");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("True" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script></body>
+</html>

@@ -1,7 +1,7 @@
 (pytorch-neural-network-module)=
 # 神经网络模块：搭建计算图
 
-在 {doc}`../neural-network-basics/fc-layer-basics` 和 {doc}`../neural-network-basics/cnn-basics` 中，我们学习了全连接层和卷积层的数学原理：
+在 {doc}`../cnn-expedition/practice-peak/fc-layer-basics` 和 {doc}`../cnn-expedition/practice-peak/cnn-basics` 中，我们学习了全连接层和卷积层的数学原理：
 
 - **全连接层**：$y = Wx + b$，每个输入连接所有输出
 - **卷积层**：局部感受野 + 权值共享，检测空间特征
@@ -12,7 +12,7 @@
 
 ### 全连接层：nn.Linear
 
-回顾 {doc}`../neural-network-basics/fc-layer-basics`：
+回顾 {doc}`../cnn-expedition/practice-peak/fc-layer-basics`：
 
 $$
 y_j = \sum_{i=1}^{n} W_{ji} x_i + b_j
@@ -47,7 +47,7 @@ print(f"输出形状: {y.shape}")  # torch.Size([64, 256])
 - 偏置：$256$
 - **总计：200,960 参数**
 
-这与 {doc}`../neural-network-basics/fc-layer-basics` 中的计算一致。
+这与 {doc}`../cnn-expedition/practice-peak/fc-layer-basics` 中的计算一致。
 ```
 
 **全连接层的可视化**：
@@ -88,7 +88,7 @@ print(f"输出形状: {y.shape}")  # torch.Size([64, 256])
 
 ### 卷积层：nn.Conv2d
 
-回顾 {doc}`../neural-network-basics/cnn-basics`：
+回顾 {doc}`../cnn-expedition/practice-peak/cnn-basics`：
 
 $$
 Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v]
@@ -183,13 +183,13 @@ print(model)
 
 ### 完整示例：实现 LeNet-5
 
-让我们用 PyTorch 实现 {doc}`../neural-network-basics/le-net` 中的经典架构：
+让我们用 PyTorch 实现 {doc}`../cnn-expedition/practice-peak/le-net` 中的经典架构：
 
 ```python
 class LeNet5(nn.Module):
     """
     LeNet-5 的 PyTorch 实现
-    对应 {doc}`../neural-network-basics/le-net` 中的架构分析
+    对应 {doc}`../cnn-expedition/practice-peak/le-net` 中的架构分析
     """
     def __init__(self, num_classes=10):
         super(LeNet5, self).__init__()

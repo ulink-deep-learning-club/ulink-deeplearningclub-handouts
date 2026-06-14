@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-content_root="../../">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="操控效率：效果、速度与硬件的三角权衡" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="cnn-expedition/model-architecture-design/part5-efficiency.html" />
+<meta property="og:site_name" content="Deep Learning Club Handouts" />
+<meta property="og:description" content="第四件装备：背包。哪些可以不带？DW 卷积、Bottleneck、复合缩放。 操控注意力与长程依赖：信息该走哪条路 教会了我们信息该往哪走。但信息走哪条路只是问题的一半—— 每条路能承载多少车流 同样重要。本节我们从四个维度拆解效率瓶颈： 参数量、计算量、控制流、硬件利用 。 关键问题 ：同样的准确率，为什么一个模型比另一个慢 10 倍？参数量小就一定快吗？ 帕累托边界：效果的物理上限: 在..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_cnn-expedition_model-architecture-design_part5-efficiency_74e04eef.png" />
+<meta property="og:image:alt" content="第四件装备：背包。哪些可以不带？DW 卷积、Bottleneck、复合缩放。 操控注意力与长程依赖：信息该走哪条路 教会了我们信息该往哪走。但信息走哪条路只是问题的一半—— 每条路能承载多少车流 同样重要。本节我们从四个维度拆解效率瓶颈： 参数量、计算量、控制流、硬件利用 。 关键问题 ：同样的准确率，为什么一个模型比另一个慢 10 倍？参数量小就一定快吗？ 帕累托边界：效果的物理上限: 在..." />
+<meta name="description" content="第四件装备：背包。哪些可以不带？DW 卷积、Bottleneck、复合缩放。 操控注意力与长程依赖：信息该走哪条路 教会了我们信息该往哪走。但信息走哪条路只是问题的一半—— 每条路能承载多少车流 同样重要。本节我们从四个维度拆解效率瓶颈： 参数量、计算量、控制流、硬件利用 。 关键问题 ：同样的准确率，为什么一个模型比另一个慢 10 倍？参数量小就一定快吗？ 帕累托边界：效果的物理上限: 在..." />
+<meta name="twitter:card" content="summary_large_image" />
+<title>操控效率：效果、速度与硬件的三角权衡 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../../genindex.html"><link rel="search" title="搜索" href="../../search.html"><link rel="next" title="诊断与心法：当模型表现不佳时" href="part6-diagnosis.html"><link rel="prev" title="操控注意力与长程依赖：信息该走哪条路" href="part4-attention.html"><script data-cfasync="false">(function(){
+    const m = localStorage.getItem("breeze-mode") || "auto";
+    const d = document.documentElement.dataset;
+    d.mode = m;
+    d.theme = m === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : m;
+  })();
+  </script><link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../../_static/style-fixes.css?v=c830a622" /><link rel="stylesheet" type="text/css" href="../../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+<body>
+  
+  
+  <div class="bz-skip-to-content"><a href="#bz-main-content">Skip to main content</a></div><header class="bz-header-main">
+  <div class="bz-header-start"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><a class="bz-header-brand" href="../../index.html">
+  
+  
+  <span>Deep Learning Club Handouts</span>
+</a>
+  </div>
+  <div class="bz-header-end"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><div id="docsearch" class="bz-search-button">
+  <a
+    href="../../search.html#q"
+    aria-label="Search the docs"
+    data-tooltip="Search the docs"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 -1 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
+    <span>搜索</span>
+    <kbd>Ctrl+K</kbd>
+  </a>
+</div><div class="bz-theme-switcher">
+  <button aria-label="Switch theme" data-tooltip="Switch theme">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
+      <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-dark" fill="currentColor">
+      <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+    </svg>
+  </button>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.766 11.695C4.703 11.437 3.25 9.904 3.25 7.92c0-.806.281-1.677.75-2.258-.203-.532-.172-1.662.062-2.129.626-.081 1.469.258 1.969.726.594-.194 1.219-.291 1.985-.291.765 0 1.39.097 1.953.274.484-.451 1.343-.79 1.969-.709.218.435.25 1.564.046 2.113.5.613.766 1.436.766 2.274 0 1.984-1.453 3.485-3.547 3.759.531.355.891 1.129.891 2.016v1.678c0 .484.39.758.859.564C13.781 14.824 16 11.905 16 8.291 16 3.726 12.406 0 7.984 0 3.562 0 0 3.726 0 8.291c0 3.581 2.203 6.55 5.172 7.663A.595.595 0 0 0 6 15.389v-1.291c-.219.097-.5.162-.75.162-1.031 0-1.641-.581-2.078-1.662-.172-.435-.36-.693-.719-.742-.187-.016-.25-.097-.25-.193 0-.194.313-.339.625-.339.453 0 .844.29 1.25.887.313.468.641.678 1.031.678.391 0 .641-.146 1-.516.266-.275.469-.517.657-.678Z"></path></svg>
+    
+    </a>
+  </div>
+  </div>
+</header><hr class="bz-header-hr">
+  <div class="bz-content"><aside class="bz-sidebar-primary" data-drawer="bz-sidebar-primary">
+  
+  
+    <nav class="bz-sidebar-nav" aria-label="Section Navigation"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../math-fundamentals/index.html">深度学习核心数学基础</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">翻越两座山：CNN 三十年攀登史</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html">引言：因为山在那里</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../practice-peak/index.html">上篇：练习峰</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../practice-peak/introduction.html">引言：从公式到代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../practice-peak/fc-layer-basics.html">全连接：赤手空拳</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../practice-peak/cnn-basics.html">卷积：发现装备</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../practice-peak/dataset-preparation.html">数据准备：打包行囊</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../practice-peak/neural-training-basics.html">训练基础：登山纪律</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../practice-peak/le-net.html">LeNet-5：练习峰首登</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../practice-peak/exp-cmp.html">实验对比：登山日志</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../practice-peak/the-end.html">练习峰，登顶</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../ablation-study/index.html">拆开看看：CNN 消融研究</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../ablation-study/introduction.html">引言：拆开看看</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ablation-study/the-end.html">结语</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../image-net-era/index.html">下篇：真正的未登峰</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/introduction.html">引言：真正的山</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/alexnet.html">AlexNet：真正的未登峰，首登！</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/inception.html">Inception：多尺度工具</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/res-net.html">ResNet：高原反应补给站</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/se-net.html">SE-Net：学会聚焦</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/cbam.html">CBAM：哪里重要 + 什么重要</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/mobilenet.html">MobileNet：一个人，一把冰镐</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/efficientnet.html">EfficientNet：每一分钱，花在刀刃上</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/the-end.html">登山下篇回顾：八年，八件装备</a></li>
+</ul></details></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">架构心法：从会用装备到会设计装备</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="part1-intro.html">诊断入门：信息论听诊器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l3"><a class="reference internal" href="part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l3"><a class="reference internal" href="part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">操控效率：效果、速度与硬件的三角权衡</a></li>
+<li class="toctree-l3"><a class="reference internal" href="part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l3"><a class="reference internal" href="the-end.html">登山者笔记：四件装备，三十年</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../the-end.html">下一座山</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../model-serving/index.html">模型部署与服务：从训练到生产</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/model-optimization.html">模型优化：量化与剪枝</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../unet-image-segmentation/index.html">U-Net：图像分割的革命</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sequence-modeling/index.html">序列建模：从 RNN 到 Transformer 再到 Mamba</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/introduction.html">引言：从空间到时间</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/transformer.html">Transformer：注意力的极致</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/mamba-intro.html">Mamba 简述：对RNN思想的回归</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../appendix/environment-setup/index.html">环境配置</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../appendix/sphinx-guide/index.html">Sphinx Markdown 语法参考</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../appendix/build-docs.html">编译文档</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../postscript.html">写在后面</a></li>
+</ul>
+</nav>
+  
+
+</aside><main id="bz-main-content"><header class="bz-article-header">
+  
+  
+    <nav class="bz-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li class="bz-breadcrumbs-home">
+      <a href="../../index.html" aria-label="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8.543 2.232a.75.75 0 0 0-1.085 0l-5.25 5.5A.75.75 0 0 0 2.75 9H4v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V9h1.25a.75.75 0 0 0 .543-1.268l-5.25-5.5Z" />
+        </svg>
+      </a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="../index.html">翻越两座山：CNN 三十年攀登史</a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="index.html">架构心法：从会用装备到会设计装备</a>
+    </li><li class="bz-breadcrumbs-current">
+      <span>操控效率：效果、速度与硬件的三角权衡</span>
+    </li>
+  </ol>
+</nav>
+  
+<label
+  class="bz-sidebar-secondary-toggle"
+  for="bz-sidebar-secondary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle table of contents"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75H20.25 M11.25 12H20.25 M7.75 17.25H20.25"
+    />
+  </svg>
+</label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="arch-efficiency">
+<span id="id1"></span><h1>操控效率：效果、速度与硬件的三角权衡<a class="headerlink" href="#arch-efficiency" title="Link to this heading">#</a></h1>
+<blockquote>
+<div><p>第四件装备：背包。哪些可以不带？DW 卷积、Bottleneck、复合缩放。</p>
+</div></blockquote>
+<p><a class="reference internal" href="part4-attention.html"><span class="doc">操控注意力与长程依赖：信息该走哪条路</span></a> 教会了我们信息该往哪走。但信息走哪条路只是问题的一半——<strong>每条路能承载多少车流</strong>同样重要。本节我们从四个维度拆解效率瓶颈：<strong>参数量、计算量、控制流、硬件利用</strong>。</p>
+<p><strong>关键问题</strong>：同样的准确率，为什么一个模型比另一个慢 10 倍？参数量小就一定快吗？</p>
+<section id="id2">
+<h2>帕累托边界：效果的物理上限<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>在讨论效率优化之前，需要先理解一个基本概念：<strong>没有免费的午餐</strong>。</p>
+<p>对于给定的计算预算，存在一个<strong>帕累托边界（Pareto Frontier）</strong>——在这个边界上，任何效果的提升都必须以效率为代价，任何效率的提升都必须以效果为代价。</p>
+<div class="figure" style="text-align: center"><p><img  src="../../_images/tikz-c93c9343d9679931febec939a890563dc83dc337.svg" alt="Figure made with TikZ" /></p>
+</div><p><strong>帕累托最优</strong>的意思是：如果一个模型在帕累托边界上，你没法让它在不牺牲效果的前提下变得更快，也没法在不牺牲效率的前提下让它更好。</p>
+<p>而<strong>架构改造的意义</strong>就是<strong>推动帕累托边界向外移动</strong>——不是在同一曲线上往返，而是在相同计算量下达到更好效果，或在相同效果下减少更多计算量。</p>
+<p>这解释了为什么 Inception、ResNet、MobileNet 被认为是里程碑级别的贡献：它们不只是在已有曲线上滑动，而是<strong>重新定义了什么算&quot;最优&quot;</strong>。</p>
+<p>但帕累托边界的横轴&quot;计算量&quot;其实掩盖了很多细节。两个模型 FLOPs 相同，一个可能比另一个慢好几倍——因为效率不仅仅是&quot;算多少&quot;的问题，更是&quot;怎么算&quot;的问题。</p>
+</section>
+<section id="efficiency-four-dimensions">
+<span id="id3"></span><h2>效率问题的四个源头<a class="headerlink" href="#efficiency-four-dimensions" title="Link to this heading">#</a></h2>
+<p>如果把神经网络比作一条高速公路，效率问题可以归结为四类：</p>
+<div class="table docutils container" id="id138">
+<table class="docutils align-default" id="id138">
+<caption><span class="caption-text">效率问题的四个维度</span><a class="headerlink" href="#id138" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>维度</p></th>
+<th class="head"><p>问题表现</p></th>
+<th class="head"><p>根本原因</p></th>
+<th class="head"><p>就像…</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="#efficiency-parameters"><span class="std std-ref">维度一：参数量——让模型&quot;瘦身&quot;</span></a></p></td>
+<td><p>模型太大，存不下、传不动</p></td>
+<td><p>权重有冗余，很多连接不重要</p></td>
+<td><p>车上装了一堆空箱子</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#efficiency-computation"><span class="std std-ref">维度二：计算量——让每一次乘法都有价值</span></a></p></td>
+<td><p>训练/推理太慢，FLOPs 太高</p></td>
+<td><p>乘法太多，很多可以合并或省略</p></td>
+<td><p>每个路口都停下来称重</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#efficiency-control-flow"><span class="std std-ref">维度三：控制流——让计算不再&quot;排队等待&quot;</span></a></p></td>
+<td><p>GPU 利用率低，时快时慢</p></td>
+<td><p>Python 循环和分支阻止了并行和编译</p></td>
+<td><p>收费站一次只放一辆车</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#efficiency-hardware"><span class="std std-ref">维度四：硬件利用——让芯片&quot;吃饱&quot;</span></a></p></td>
+<td><p>算力浪费，功耗高，发热大</p></td>
+<td><p>数据搬运比计算还慢，芯片&quot;吃不饱&quot;</p></td>
+<td><p>高速公路限速 120，但每辆车只能开 30</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这四个维度相互独立又相互交织。接下来我们逐一拆解每个维度的直觉、问题和策略。</p>
+</section>
+<section id="efficiency-parameters">
+<span id="id4"></span><h2>维度一：参数量——让模型&quot;瘦身&quot;<a class="headerlink" href="#efficiency-parameters" title="Link to this heading">#</a></h2>
+<p><strong>直觉</strong>：一个 3×3 卷积的权重数量是 <span class="math notranslate nohighlight">\(K^2 \cdot C_{in} \cdot C_{out}\)</span>。当 <span class="math notranslate nohighlight">\(C_{in}=C_{out}=256\)</span> 时，仅一层就有 <span class="math notranslate nohighlight">\(9 \times 256 \times 256 = 589,824\)</span> 个参数。但 256 个通道之间真的需要全连接吗？<strong>通道之间可能存在大量冗余</strong>——很多通道捕捉的是几乎相同的信息。</p>
+<section id="bottleneck">
+<h3>Bottleneck：先压缩，再膨胀<a class="headerlink" href="#bottleneck" title="Link to this heading">#</a></h3>
+<p>Bottleneck 的核心思想来自 <a class="reference internal" href="../image-net-era/inception.html"><span class="doc">Inception：多尺度工具</span></a> 的 1×1 降维——<strong>先压缩再膨胀</strong>：</p>
+<pre  class="mermaid">
+        flowchart LR
+  A[&quot;`输入
+  $$H \times W \times C_{in}$$`&quot;]
+  B[&quot;`1×1 卷积
+  $$C_{in} \to C_{bottleneck}$$`&quot;]
+  C[&quot;`3×3 卷积
+  $$C_{bottleneck} \to C_{bottleneck}$$`&quot;]
+  D[&quot;`1×1 卷积
+  $$C_{bottleneck} \to C_{out}$$`&quot;]
+  E[&quot;`输出
+  $$H \times W \times C_{out}$$`&quot;]
+
+  A --&gt; B --&gt; C --&gt; D --&gt; E
+    </pre><p>这种&quot;沙漏结构&quot;将最昂贵的 3×3 卷积放在低维空间执行：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>方式</p></th>
+<th class="head"><p>参数分布</p></th>
+<th class="head"><p>主要计算在哪</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>直接 3×3</p></td>
+<td><p>256×3×3×256 = 589,824</p></td>
+<td><p>高维空间计算</p></td>
+</tr>
+<tr class="row-odd"><td><p>Bottleneck</p></td>
+<td><p>256×1×1×64 + 64×3×3×64 + 64×1×1×256 = 69,632</p></td>
+<td><p>3×3 在低维（64）执行</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>减少 88.2%</strong> 参数，而 3×3 卷积的执行维度从 256 降到 64。</p>
+<p><strong>为什么 Bottleneck 有效</strong>：1×1 卷积发现，256 个通道中的有效信息可以用更少的维度（64 维）表示——信息的<strong>低维结构</strong>保证了压缩不会丢失太多信息。用 <a class="reference internal" href="part1-intro.html#mutual-information"><span class="std std-ref">互信息</span></a> 的语言说：<span class="math notranslate nohighlight">\(I(X; Z) \approx I(X; Y)\)</span>，压缩后的特征 <span class="math notranslate nohighlight">\(Z\)</span> 保留了原始特征 <span class="math notranslate nohighlight">\(Y\)</span> 的几乎所有信息。</p>
+</section>
+<section id="pre-activation-vs-post-activation">
+<h3>Pre-activation vs Post-activation<a class="headerlink" href="#pre-activation-vs-post-activation" title="Link to this heading">#</a></h3>
+<p>Bottleneck 的激活函数位置影响信息传递质量。原始的 ResNet Bottleneck 使用 <strong>Post-activation</strong>（卷积后激活）：</p>
+<pre  class="mermaid">
+        flowchart LR
+    Input[输入] --&gt; C1[Conv 1×1]
+    C1 --&gt; BN1[BN]
+    BN1 --&gt; ReLU1[ReLU]
+    ReLU1 --&gt; C3[Conv 3×3]
+    C3 --&gt; BN2[BN]
+    BN2 --&gt; ReLU2[ReLU]
+    ReLU2 --&gt; C1b[Conv 1×1]
+    C1b --&gt; BN3[BN]
+    BN3 --&gt; Add[相加]
+    Input -.-&gt;|跳跃连接| Add
+    Add --&gt; ReLU3[ReLU]
+    ReLU3 --&gt; Output[输出]
+    </pre><p>改进的 <strong>Pre-activation</strong>（激活在卷积前）<span id="id5">[<a class="reference internal" href="#id66" title="Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Identity mappings in deep residual networks. In European Conference on Computer Vision, 630–645. Springer, 2016.">HZRS16</a>]</span>：</p>
+<pre  class="mermaid">
+        flowchart LR
+    Input[输入] --&gt; BN1[BN]
+    BN1 --&gt; ReLU1[ReLU]
+    ReLU1 --&gt; C1[Conv 1×1]
+    C1 --&gt; BN2[BN]
+    BN2 --&gt; ReLU2[ReLU]
+    ReLU2 --&gt; C3[Conv 3×3]
+    C3 --&gt; BN3[BN]
+    BN3 --&gt; ReLU3[ReLU]
+    ReLU3 --&gt; C1b[Conv 1×1]
+    C1b --&gt; Add[相加]
+    Input -.-&gt;|跳跃连接| Add
+    Add --&gt; Output[输出]
+    </pre><p><strong>Pre-activation 的优势</strong>：</p>
+<ol class="arabic simple">
+<li><p><strong>梯度更畅通</strong>：跳跃连接直接传递的是归一化后的特征，没有激活函数的&quot;阻断&quot;</p></li>
+<li><p><strong>正则化效果更好</strong>：每个卷积层前面都有 BN，训练更稳定</p></li>
+<li><p><strong>理论上更优</strong>：恒等映射 <span class="math notranslate nohighlight">\(y = x\)</span> 不需要经过非线性变换</p></li>
+</ol>
+<p><strong>实际效果</strong>：在极深网络（1000+层）上，Pre-activation 优势明显；普通深度（50-200层）两者差距不大。</p>
+</section>
+<section id="id6">
+<h3>参数量优化小结<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>策略</p></th>
+<th class="head"><p>原理</p></th>
+<th class="head"><p>减少幅度</p></th>
+<th class="head"><p>适用场景</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Bottleneck</p></td>
+<td><p>通道降维（256→64→256）</p></td>
+<td><p>~3-4×</p></td>
+<td><p>深层，<span class="math notranslate nohighlight">\(C \geq 128\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>Pre-activation</p></td>
+<td><p>让跳跃连接更&quot;纯净&quot;</p></td>
+<td><p>间接（提升收敛，非直接减参）</p></td>
+<td><p>极深网络（1000+层）</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>（除了 Bottleneck，还有其他减少参数量的方法如<strong>分组卷积</strong>（Group Convolution）——将通道分成若干组，每组独立卷积。它是 DW 卷积的&quot;中间态&quot;，本节将在维度二中一并讨论。）</p>
+</section>
+</section>
+<section id="efficiency-computation">
+<span id="id7"></span><h2>维度二：计算量——让每一次乘法都有价值<a class="headerlink" href="#efficiency-computation" title="Link to this heading">#</a></h2>
+<p><strong>直觉</strong>：参数量小不等于计算量小。一个 <span class="math notranslate nohighlight">\(1 \times 1\)</span> 卷积参数很少，但如果特征图很大（<span class="math notranslate nohighlight">\(1024 \times 1024\)</span>），FLOPs 依然很高。计算量的公式是：</p>
+<div class="math notranslate nohighlight">
+\[\text{FLOPs} = K_h \cdot K_w \cdot C_{in} \cdot C_{out} \cdot H_{out} \cdot W_{out}\]</div>
+<p><strong>关键观察</strong>：空间和通道混在一起计算。能不能分拆？</p>
+<section id="id8">
+<h3>深度可分离卷积：空间与通道分离<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<p>深度可分离卷积（Depthwise Separable Convolution，MobileNet 核心<span id="id9">[<a class="reference internal" href="the-end.html#id101" title="Andrew G Howard, Menglong Zhu, Bo Chen, Dmitry Kalenichenko, Weijun Wang, Tobias Weyand, Marco Andreetto, and Hartwig Adam. Mobilenets: efficient convolutional neural networks for mobile vision applications. arXiv preprint arXiv:1704.04861, 2017.">HZC+17</a>]</span>）的洞察：<strong>把空间和通道分开处理</strong>。</p>
+<div class="figure" style="text-align: center"><p><img  src="../../_images/tikz-dbdc8e085a0edbb59d9dff75773a522c09dd1689.svg" alt="Figure made with TikZ" /></p>
+</div><p><strong>两步拆分</strong>：</p>
+<ol class="arabic simple">
+<li><p><strong>Depthwise</strong>：<span class="math notranslate nohighlight">\(K \times K\)</span> 卷积，但每个通道独立处理（不跨通道）——计算量 <span class="math notranslate nohighlight">\(K^2 \cdot C_{in} \cdot H \cdot W\)</span></p></li>
+<li><p><strong>Pointwise</strong>：<span class="math notranslate nohighlight">\(1 \times 1\)</span> 卷积，只在通道间融合——计算量 <span class="math notranslate nohighlight">\(C_{in} \cdot C_{out} \cdot H \cdot W\)</span></p></li>
+</ol>
+<p>普通卷积计算量：<span class="math notranslate nohighlight">\(K^2 \cdot C_{in} \cdot C_{out} \cdot H \cdot W\)</span>
+分离卷积计算量：<span class="math notranslate nohighlight">\((K^2 \cdot C_{in} + C_{in} \cdot C_{out}) \cdot H \cdot W\)</span></p>
+<p><strong>计算量减少倍数</strong> <span class="math notranslate nohighlight">\(= \dfrac{K^2 \cdot C_{out}}{K^2 + C_{out}}\)</span></p>
+<p>当 <span class="math notranslate nohighlight">\(C_{out} = 256\)</span>, <span class="math notranslate nohighlight">\(K=3\)</span> 时，<span class="math notranslate nohighlight">\(\dfrac{9 \times 256}{9 + 256} \approx 8.7\)</span>，约减少 <strong>8.7 倍</strong>计算量（参数量也减少相同倍数）。</p>
+</section>
+<section id="id10">
+<h3>分组卷积：分离度的调节旋钮<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<p>DW 卷积实质上是<strong>分组卷积</strong>的极端情况——当 <code class="docutils literal notranslate"><span class="pre">groups</span> <span class="pre">=</span> <span class="pre">C_in</span> <span class="pre">=</span> <span class="pre">C_out</span></code> 时，分组卷积退化为 DW 卷积。分组卷积可以看作一个&quot;分离度旋钮&quot;：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>分组数</p></th>
+<th class="head"><p>行为</p></th>
+<th class="head"><p>相当于</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">groups=1</span></code></p></td>
+<td><p>标准卷积</p></td>
+<td><p>空间和通道完全耦合</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">groups=g</span></code>（<span class="math notranslate nohighlight">\(1 &lt; g &lt; C\)</span>）</p></td>
+<td><p>部分分离</p></td>
+<td><p>空间和通道部分解耦</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">groups=C</span></code></p></td>
+<td><p>DW 卷积</p></td>
+<td><p>空间和通道完全分离</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 分组卷积：调节 groups 参数</span>
+<span class="c1"># groups=1：标准卷积</span>
+<span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>   <span class="c1"># 空间和通道完全耦合</span>
+
+<span class="c1"># groups=4：分成 4 组，每组 64 通道</span>
+<span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>   <span class="c1"># 部分解耦</span>
+
+<span class="c1"># groups=256：DW 卷积（极端情况）</span>
+<span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="mi">256</span><span class="p">)</span> <span class="c1"># 空间和通道完全分离</span>
+</pre></div>
+</div>
+<p>分组卷积是&quot;标准卷积&quot;与&quot;DW 卷积&quot;之间的连续谱——group 越大，分离度越高，计算量越低，但信息融合越弱。</p>
+</section>
+<section id="mobilenetv2">
+<h3>MobileNetV2 的倒残差结构<a class="headerlink" href="#mobilenetv2" title="Link to this heading">#</a></h3>
+<p>MobileNetV2 结合了 DW 卷积和 Bottleneck，创造了<strong>倒残差结构</strong>（Inverted Residual）：</p>
+<div class="figure" id="id139" style="text-align: center"><p><img  src="../../_images/tikz-e06e1a5ecb6a3f4ba24bf2aab246af1aa0b54475.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">MobileNetV2 倒残差结构对比</span></p>
+</div><p><strong>关键区别</strong>：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>特性</p></th>
+<th class="head"><p>标准残差块 (ResNet)</p></th>
+<th class="head"><p>倒残差块 (MobileNetV2)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>形状</p></td>
+<td><p>高 → 低 → 高（沙漏）</p></td>
+<td><p>低 → 高 → 低（漏斗）</p></td>
+</tr>
+<tr class="row-odd"><td><p>核心卷积</p></td>
+<td><p>普通 3×3</p></td>
+<td><p>DW 3×3</p></td>
+</tr>
+<tr class="row-even"><td><p>升维/降维</p></td>
+<td><p>先降后升</p></td>
+<td><p>先升后降</p></td>
+</tr>
+<tr class="row-odd"><td><p>跳跃连接</p></td>
+<td><p>高维连接</p></td>
+<td><p><strong>低维连接</strong>（关键！）</p></td>
+</tr>
+<tr class="row-even"><td><p>激活位置</p></td>
+<td><p>升维后激活</p></td>
+<td><p>只在中间高维处激活</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>为什么倒残差更高效？</strong></p>
+<ol class="arabic simple">
+<li><p><strong>DW卷积在高维执行更高效</strong>：DW卷积计算量与通道数成正比，而标准卷积与通道数的平方成正比。在高维空间（192通道）执行 DW 卷积，比在低维空间（32通道）执行标准卷积更省——DW 节省 <strong>32×</strong>！</p></li>
+<li><p><strong>低维跳跃连接节省内存</strong>：跳跃连接不需要存储高维特征图，减少显存占用。</p></li>
+<li><p><strong>Linear Bottleneck（线性瓶颈）</strong>：最后的 1×1 降维后<strong>不接 ReLU</strong>——ReLU 在低维空间会破坏信息（一旦变负就永远为0）。</p></li>
+</ol>
+<p><strong>设计心法</strong>：倒残差是&quot;DW 卷积的 Bottleneck 版本&quot;——先升维创造&quot;计算空间&quot;，用 DW 卷积高效处理，再降维回到紧凑表示。</p>
+<div class="important admonition">
+<p class="admonition-title">维度一+二的统一心法</p>
+<p>Bottleneck、DW 卷积、倒残差本质上是一回事——<strong>利用信息冗余来降本</strong>，只是切入角度不同：</p>
+<ul class="simple">
+<li><p><strong>Bottleneck</strong>：利用通道间的冗余（256→64→256），主要降低<strong>参数量</strong></p></li>
+<li><p><strong>DW 卷积</strong>：利用空间和通道的可分离性（先空间再通道），主要降低<strong>计算量</strong></p></li>
+<li><p><strong>倒残差</strong>：结合两者（低维→高维→低维 + DW），同时降低参数和计算</p></li>
+</ul>
+<p>理解了这个本质，你就能灵活组合这些策略，设计出适合你自己任务的模块。</p>
+</div>
+</section>
+<section id="id11">
+<h3>计算量优化小结<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>策略</p></th>
+<th class="head"><p>原理</p></th>
+<th class="head"><p>减少幅度</p></th>
+<th class="head"><p>适用场景</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>DW 卷积</p></td>
+<td><p>空间通道分离计算</p></td>
+<td><p>~8-10×</p></td>
+<td><p>通道数 <span class="math notranslate nohighlight">\(\geq 32\)</span>，移动端</p></td>
+</tr>
+<tr class="row-odd"><td><p>分组卷积</p></td>
+<td><p>部分分离（调节 group 数）</p></td>
+<td><p>~2-4×</p></td>
+<td><p>需要平衡效果和效率</p></td>
+</tr>
+<tr class="row-even"><td><p>倒残差（DW+Bottleneck）</p></td>
+<td><p>低维跳连 + DW 在高维执行</p></td>
+<td><p>~8-15×</p></td>
+<td><p>移动端，极致效率</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="efficiency-control-flow">
+<span id="id12"></span><h2>维度三：控制流——让计算不再&quot;排队等待&quot;<a class="headerlink" href="#efficiency-control-flow" title="Link to this heading">#</a></h2>
+<p><strong>直觉</strong>：前两个维度关心&quot;算多少&quot;。但还有一个隐藏的杀手：<strong>计算能不能并行</strong>？如果 forward 函数里有 Python 的 <code class="docutils literal notranslate"><span class="pre">for</span></code> 循环和 <code class="docutils literal notranslate"><span class="pre">if/else</span></code> 分支，那么即使每个操作很快，整体速度也会被串行依赖拖垮。</p>
+<p><strong>关键问题</strong>：两个模型 FLOPs 完全相同，一个用 Python <code class="docutils literal notranslate"><span class="pre">for</span></code> 循环逐时间步计算，一个用全张量运算——前者可能慢 100 倍。为什么？</p>
+<section id="python">
+<h3>问题：Python 控制流的三重代价<a class="headerlink" href="#python" title="Link to this heading">#</a></h3>
+<p>在 forward 里写 Python <code class="docutils literal notranslate"><span class="pre">for</span></code> 循环或 <code class="docutils literal notranslate"><span class="pre">if/else</span></code> 分支，看似方便，实则付出三重代价：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># <span class="bz-emoji">❌</span> 看似正常，实则低效</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SlowRNN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="c1"># x: (batch, seq_len, hidden)</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">1</span><span class="p">)):</span>          <span class="c1"># ① 串行依赖：第 t 步必须等 t-1 步</span>
+            <span class="n">xt</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="n">t</span><span class="p">,</span> <span class="p">:]</span>                  <span class="c1"># ② 每次取一个切片，无法融合</span>
+            <span class="k">if</span> <span class="n">h</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>                  <span class="c1"># ③ 动态分支，阻止图优化</span>
+                <span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w_ih</span><span class="p">(</span><span class="n">xt</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_hh</span><span class="p">(</span><span class="n">h</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w_ih</span><span class="p">(</span><span class="n">xt</span><span class="p">))</span>
+            <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>   <span class="c1"># stack 操作又引入一次内存搬运</span>
+</pre></div>
+</div>
+<p>三重代价分别是：</p>
+<p><strong>代价一：串行依赖（Sequential Dependency）</strong>。循环体内的每一轮必须等上一轮结束。GPU 有上千个核心，但 <code class="docutils literal notranslate"><span class="pre">for</span> <span class="pre">t</span> <span class="pre">in</span> <span class="pre">range(seq_len)</span></code> 强行让这些核心排队——<code class="docutils literal notranslate"><span class="pre">t=0</span></code> 算完才能算 <code class="docutils literal notranslate"><span class="pre">t=1</span></code>。当 <span class="math notranslate nohighlight">\(seq\_len=1000\)</span> 时，意味着 999 个时间步在空转等待。</p>
+<p><strong>代价二：阻止计算图编译（No Graph Optimization）</strong>。PyTorch 是动态图框架，每一步的 Python 控制流都会创建一个新的计算图节点。<code class="docutils literal notranslate"><span class="pre">torch.compile</span></code> 和 <code class="docutils literal notranslate"><span class="pre">torch.jit.script</span></code> 尝试将 Python 代码编译为优化的静态图，但 <code class="docutils literal notranslate"><span class="pre">if</span></code> 和 <code class="docutils literal notranslate"><span class="pre">for</span></code> 让编译器&quot;看不懂&quot;完整的计算模式，无法做算子融合和内存规划。</p>
+<p><strong>代价三：内核启动开销（Kernel Launch Overhead）</strong>。每个 PyTorch 操作（如 <code class="docutils literal notranslate"><span class="pre">self.w_ih(xt)</span></code>）都涉及一次 GPU 内核（kernel）启动。当循环体里有 3 个操作、循环 1000 次时，就是 3000 次内核启动。每次启动的延迟约为 5-10μs——仅仅启动开销就累计了 15-30ms，而实际计算可能只需 5ms。</p>
+</section>
+<section id="id13">
+<h3>策略一：向量化——用张量运算代替循环<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<p>最直接的解法：<strong>把&quot;逐个处理&quot;变成&quot;整批处理&quot;</strong>。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># <span class="bz-emoji">✅</span> 向量化：一次处理整个序列</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FastRNN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="c1"># x: (batch, seq_len, hidden)</span>
+        <span class="n">batch</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">,</span> <span class="n">hidden</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">hidden</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">seq_len</span><span class="p">):</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="n">t</span><span class="p">,</span> <span class="p">:]</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_ih</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">h</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_hh</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+            <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>但 RNN 的串行本质无法完全消除——只能缓解。真正从架构层面解决这个问题的是 Transformer。</p>
+</section>
+<section id="transformer-rnn">
+<h3>策略二：从架构层面消除串行——Transformer 为何比 RNN 快<a class="headerlink" href="#transformer-rnn" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="../../sequence-modeling/transformer.html"><span class="doc">Transformer：注意力的极致</span></a> 中介绍的 Transformer<span id="id14">[<a class="reference internal" href="../../sequence-modeling/transformer.html#id110" title="Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In Advances in Neural Information Processing Systems (NeurIPS), volume 30. 2017.">VSP+17</a>]</span>，其核心突破不只是&quot;注意力机制&quot;——更本质的是<strong>将串行处理变为并行处理</strong>：</p>
+<div class="figure" style="text-align: center"><p><img  src="../../_images/tikz-e181a6e8435554bfc5b28977d1530d1495ac4cf0.svg" alt="Figure made with TikZ" /></p>
+</div><div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>维度</p></th>
+<th class="head"><p>RNN</p></th>
+<th class="head"><p>Transformer</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>处理方式</p></td>
+<td><p>逐个时间步串行</p></td>
+<td><p>所有位置同时处理</p></td>
+</tr>
+<tr class="row-odd"><td><p>信息路径</p></td>
+<td><p><span class="math notranslate nohighlight">\(O(n)\)</span>（第 n 步才能看到第 1 步）</p></td>
+<td><p><span class="math notranslate nohighlight">\(O(1)\)</span>（任意两位置直接相连）</p></td>
+</tr>
+<tr class="row-even"><td><p>GPU 利用率</p></td>
+<td><p>低（串行等待+内核启动开销）</p></td>
+<td><p>高（大规模矩阵乘法，GPU 最擅长）</p></td>
+</tr>
+<tr class="row-odd"><td><p>训练速度</p></td>
+<td><p>序列越长越慢</p></td>
+<td><p>序列长度影响较小（<span class="math notranslate nohighlight">\(O(n^2)\)</span> 注意力量化）</p></td>
+</tr>
+<tr class="row-even"><td><p>长程依赖</p></td>
+<td><p>梯度消失/爆炸，难以学习</p></td>
+<td><p>直接路径，容易学习</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Transformer 的效率秘诀</strong>：注意力矩阵乘法 <span class="math notranslate nohighlight">\(QK^T\)</span> 的维度是 <span class="math notranslate nohighlight">\((n, d) \times (d, n) \rightarrow (n, n)\)</span>。这是 GPU 最喜欢的操作——<strong>大矩阵乘法</strong>，充分利用了 GPU 的并行计算能力。相比之下，RNN 的 step-by-step 计算用的是<strong>小矩阵乘法</strong>（<span class="math notranslate nohighlight">\((1, d) \times (d, d)\)</span> 重复 <span class="math notranslate nohighlight">\(n\)</span> 次），GPU 每个核心都在&quot;摸鱼&quot;。</p>
+</section>
+<section id="torch-compile">
+<h3>策略三：编译优化——torch.compile 与静态图<a class="headerlink" href="#torch-compile" title="Link to this heading">#</a></h3>
+<p>即使架构层面无法完全消除串行，编译技术也能大幅减少开销。PyTorch 2.0 引入的 <code class="docutils literal notranslate"><span class="pre">torch.compile</span></code> 通过以下优化提升效率：</p>
+<ul class="simple">
+<li><p><strong>算子融合（Operator Fusion）</strong>：将 <code class="docutils literal notranslate"><span class="pre">Conv</span> <span class="pre">→</span> <span class="pre">BN</span> <span class="pre">→</span> <span class="pre">ReLU</span></code> 融合为一个内核调用，消除中间结果的内存读写</p></li>
+<li><p><strong>内存规划（Memory Planning）</strong>：预分配计算所需内存，避免运行时频繁分配/释放</p></li>
+<li><p><strong>自动混合精度</strong>：自动识别哪些操作可以用更低精度执行</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># PyTorch 2.0+：一行代码获得 10-50% 加速</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reduce-overhead&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>对于包含 Python 控制流的模型，<code class="docutils literal notranslate"><span class="pre">mode=&quot;reduce-overhead&quot;</span></code> 尤其有效——它会缓存编译后的图，避免每次 forward 都重新编译。</p>
+<div class="note admonition">
+<p class="admonition-title">torch.compile 的本质</p>
+<p><code class="docutils literal notranslate"><span class="pre">torch.compile</span></code> 做的事情可以概括为：<strong>把动态的 Python 逻辑&quot;拍扁&quot;成静态的计算图</strong>。一旦控制流被&quot;拍扁&quot;，编译器就能看到全局计算模式，做全局优化。</p>
+<p>但它不能完全&quot;拍扁&quot;动态分支——如果一个 <code class="docutils literal notranslate"><span class="pre">if</span></code> 的分支取决于输入数据（如 <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">x.sum()</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>），编译器无法预知走哪条路。这是静态图天生的局限，也是为什么 PyTorch 选择动态图作为默认：<strong>灵活性有代价</strong>。</p>
+</div>
+</section>
+<section id="id15">
+<h3>控制流优化小结<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>策略</p></th>
+<th class="head"><p>原理</p></th>
+<th class="head"><p>加速幅度</p></th>
+<th class="head"><p>适用场景</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>向量化</p></td>
+<td><p>用张量操作代替 Python 循环</p></td>
+<td><p>~10-100×</p></td>
+<td><p>任何有显式循环的 forward</p></td>
+</tr>
+<tr class="row-odd"><td><p>架构级并行</p></td>
+<td><p>用 Transformer/CNN 代替 RNN</p></td>
+<td><p>~10-50×（训练）</p></td>
+<td><p>序列建模、长程依赖</p></td>
+</tr>
+<tr class="row-even"><td><p>torch.compile</p></td>
+<td><p>动态图 → 静态图编译</p></td>
+<td><p>~10-50%</p></td>
+<td><p>PyTorch 2.0+，任何模型</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="efficiency-hardware">
+<span id="id16"></span><h2>维度四：硬件利用——让芯片&quot;吃饱&quot;<a class="headerlink" href="#efficiency-hardware" title="Link to this heading">#</a></h2>
+<p><strong>直觉</strong>：FLOPs 低 ≠ 速度快。有人把深度学习比作&quot;搬砖&quot;——计算（乘法）是你搬砖的速度，而数据搬运（内存读写）是你往返工地和仓库的时间。如果每次只搬一块砖，那 90% 的时间都花在路上。</p>
+<p>这就是<strong>内存带宽瓶颈（Memory-Bandwidth Bound）</strong>：芯片的计算能力绰绰有余，但数据喂不进来，算力闲置。</p>
+<section id="id17">
+<h3>问题：为什么&quot;算得少&quot;反而可能更&quot;慢&quot;<a class="headerlink" href="#id17" title="Link to this heading">#</a></h3>
+<p>考虑两个极端操作：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>操作</p></th>
+<th class="head"><p>FLOPs</p></th>
+<th class="head"><p>内存访问量（Bytes）</p></th>
+<th class="head"><p>算术强度（FLOPs/Byte）</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>矩阵乘法 <span class="math notranslate nohighlight">\(4096 \times 4096\)</span></p></td>
+<td><p>68.7 GFLOPs</p></td>
+<td><p>0.10 GB</p></td>
+<td><p><strong>687</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>逐元素加法 <span class="math notranslate nohighlight">\(4096 \times 4096\)</span></p></td>
+<td><p>0.016 GFLOPs</p></td>
+<td><p>0.10 GB</p></td>
+<td><p><strong>0.16</strong></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>矩阵乘法的算术强度是 687——计算量远大于数据搬运量，受限于<strong>计算能力</strong>（Compute-Bound）。
+逐元素加法的算术强度只有 0.16——数据搬运量远大于计算量，受限于<strong>内存带宽</strong>（Memory-Bound）。</p>
+<p><strong>DW 卷积的尴尬</strong>：DW 卷积虽然 FLOPs 低，但算术强度也低——<span class="math notranslate nohighlight">\(3 \times 3\)</span> 的卷积核只做 9 次乘法，却要读取 9 个输入值和 1 个输出值。加上每个通道独立，无法组成大矩阵乘法。这就是为什么 DW 卷积&quot;理论快 8 倍，实际可能只快 2-3 倍&quot;。</p>
+</section>
+<section id="id18">
+<h3>策略一：算子融合——减少&quot;往返搬运&quot;<a class="headerlink" href="#id18" title="Link to this heading">#</a></h3>
+<p>深度学习中最常见的算子序列是 <code class="docutils literal notranslate"><span class="pre">Conv</span> <span class="pre">→</span> <span class="pre">BN</span> <span class="pre">→</span> <span class="pre">ReLU</span></code>。朴素实现需要三次内核启动和三次内存读写：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># <span class="bz-emoji">❌</span> 三次内核启动，两次中间结果的内存读写</span>
+<span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>    <span class="c1"># 写中间结果到内存</span>
+<span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>      <span class="c1"># 读中间结果，写中间结果</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>       <span class="c1"># 读中间结果，写最终结果</span>
+</pre></div>
+</div>
+<p>算子融合将这三个操作合并为一次内核调用：</p>
+<div class="figure" style="text-align: center"><p><img  src="../../_images/tikz-ae881fa9c66957e311fdceccd8379ff41c51c732.svg" alt="Figure made with TikZ" /></p>
+</div><p>融合后，中间结果不再写回内存——在 GPU 寄存器或共享内存中直接传递。这正是 <code class="docutils literal notranslate"><span class="pre">torch.compile</span></code> 和推理框架（TensorRT、ONNX Runtime）的核心优化之一。</p>
+</section>
+<section id="id19">
+<h3>策略二：内存布局——数据怎么&quot;排列&quot;影响访问效率<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
+<p>内存布局决定了数据在显存中的物理排列顺序。PyTorch 默认使用 <strong>NCHW</strong>（batch, channel, height, width），而某些 GPU 操作对 <strong>NHWC</strong>（batch, height, width, channel）更友好：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>布局</p></th>
+<th class="head"><p>含义</p></th>
+<th class="head"><p>优势</p></th>
+<th class="head"><p>劣势</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>NCHW</p></td>
+<td><p>通道维度连续</p></td>
+<td><p>逐通道操作（BN）更高效</p></td>
+<td><p>逐像素操作效率低</p></td>
+</tr>
+<tr class="row-odd"><td><p>NHWC</p></td>
+<td><p>像素维度连续</p></td>
+<td><p>逐像素操作 + Tensor Core 效率高</p></td>
+<td><p>逐通道操作稍慢</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 转换为 channels_last（NHWC）内存布局</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">memory_format</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">channels_last</span><span class="p">)</span>
+
+<span class="c1"># 后续卷积自动使用优化后的 NHWC 内核</span>
+<span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># cuDNN 自动选择最优实现</span>
+</pre></div>
+</div>
+<p>对于使用 <code class="docutils literal notranslate"><span class="pre">nn.Conv2d</span></code> 等标准算子的模型，切换为 <code class="docutils literal notranslate"><span class="pre">channels_last</span></code> 通常能带来 10-30% 的加速，且代码改动仅为一行。</p>
+</section>
+<section id="id20">
+<h3>策略三：混合精度——精度够用就好，不必 32 位<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
+<p>FP32（32 位浮点）提供了极高的数值精度，但多数深度学习操作并不需要——FP16（16 位）或 BF16（Brain Float 16）的精度已足够。</p>
+<div class="table docutils container" id="id140">
+<table class="docutils align-default" id="id140">
+<caption><span class="caption-text">精度方案对比</span><a class="headerlink" href="#id140" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>精度</p></th>
+<th class="head"><p>位数</p></th>
+<th class="head"><p>速度</p></th>
+<th class="head"><p>显存占用</p></th>
+<th class="head"><p>适用 GPU</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>FP32</p></td>
+<td><p>32</p></td>
+<td><p>1×（基准）</p></td>
+<td><p>100%</p></td>
+<td><p>所有</p></td>
+</tr>
+<tr class="row-odd"><td><p>FP16 + FP32 混合</p></td>
+<td><p>16/32</p></td>
+<td><p>2-3×</p></td>
+<td><p>~60%</p></td>
+<td><p>V100+（Tensor Core）</p></td>
+</tr>
+<tr class="row-even"><td><p>BF16 + FP32 混合</p></td>
+<td><p>16/32</p></td>
+<td><p>2-3×</p></td>
+<td><p>~60%</p></td>
+<td><p>A100+（Ampere+）</p></td>
+</tr>
+<tr class="row-odd"><td><p>INT8 量化</p></td>
+<td><p>8</p></td>
+<td><p>3-4×（推理）</p></td>
+<td><p>~25%</p></td>
+<td><p>T4+（TensorRT）</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>混合精度的核心做法：<strong>前向和反向传播用 FP16/BF16 计算（快），权重更新用 FP32 累积（稳）</strong>。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># PyTorch 混合精度训练的标准写法</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.cuda.amp</span><span class="w"> </span><span class="kn">import</span> <span class="n">autocast</span><span class="p">,</span> <span class="n">GradScaler</span>
+
+<span class="n">scaler</span> <span class="o">=</span> <span class="n">GradScaler</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">data</span><span class="p">,</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">dataloader</span><span class="p">:</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+    
+    <span class="k">with</span> <span class="n">autocast</span><span class="p">():</span>                    <span class="c1"># 前向：自动用 FP16 计算</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+    
+    <span class="n">scaler</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>       <span class="c1"># 反向：scale 防止梯度下溢</span>
+    <span class="n">scaler</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">optimizer</span><span class="p">)</span>             <span class="c1"># 更新：FP32 精度累加</span>
+    <span class="n">scaler</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">GradScaler</span></code> 的作用：FP16 的数值范围远小于 FP32（<span class="math notranslate nohighlight">\(6 \times 10^{-8} \sim 65,504\)</span> vs <span class="math notranslate nohighlight">\(1.4 \times 10^{-45} \sim 3.4 \times 10^{38}\)</span>）。微小梯度在 FP16 下可能变成 0（下溢）。scaler 将 loss 放大若干倍，让梯度也放大，反向传播后再缩小回来——避免下溢的同时保持精度。</p>
+<p><a class="reference internal" href="../../pytorch-practice/best-practices.html"><span class="doc">工程最佳实践</span></a> 中有更详细的混合精度实战指南。</p>
+</section>
+<section id="id21">
+<h3>硬件利用优化小结<a class="headerlink" href="#id21" title="Link to this heading">#</a></h3>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>策略</p></th>
+<th class="head"><p>原理</p></th>
+<th class="head"><p>加速幅度</p></th>
+<th class="head"><p>代码改动</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>算子融合</p></td>
+<td><p>Conv+BN+ReLU 合并为一次内核调用</p></td>
+<td><p>~20-40%</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">torch.compile</span></code>，零改动</p></td>
+</tr>
+<tr class="row-odd"><td><p>channels_last</p></td>
+<td><p>NHWC 布局适配 Tensor Core</p></td>
+<td><p>~10-30%</p></td>
+<td><p>1 行：<code class="docutils literal notranslate"><span class="pre">x.to(memory_format=...)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>混合精度</p></td>
+<td><p>FP16/BF16 计算 + FP32 更新</p></td>
+<td><p>2-3×（训练）</p></td>
+<td><p>~5 行包装 <code class="docutils literal notranslate"><span class="pre">autocast</span></code>+<code class="docutils literal notranslate"><span class="pre">GradScaler</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="id22">
+<h2>四个维度的策略全景<a class="headerlink" href="#id22" title="Link to this heading">#</a></h2>
+<div class="table docutils container" id="id141">
+<span id="efficiency-summary"></span><span id="efficiency-summary"></span><table class="docutils align-default" id="id141">
+<caption><span class="caption-text">效率优化策略全景</span><a class="headerlink" href="#id141" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>维度</p></th>
+<th class="head"><p>最有效策略</p></th>
+<th class="head"><p>减少幅度</p></th>
+<th class="head"><p>主要代价</p></th>
+<th class="head"><p>典型应用</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="#efficiency-parameters"><span class="std std-ref">维度一：参数量——让模型&quot;瘦身&quot;</span></a></p></td>
+<td><p>Bottleneck（先压缩再膨胀）</p></td>
+<td><p>~3-4×</p></td>
+<td><p>需要合适 Bottleneck 维度</p></td>
+<td><p>ResNet-50/101/152</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#efficiency-computation"><span class="std std-ref">维度二：计算量——让每一次乘法都有价值</span></a></p></td>
+<td><p>DW 卷积 + 倒残差</p></td>
+<td><p>~8-15×</p></td>
+<td><p>可能损失少量精度（&lt;1%）</p></td>
+<td><p>MobileNetV2/V3, EfficientNet</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#efficiency-control-flow"><span class="std std-ref">维度三：控制流——让计算不再&quot;排队等待&quot;</span></a></p></td>
+<td><p>向量化 + torch.compile</p></td>
+<td><p>~10-100×（循环场景）</p></td>
+<td><p>架构可能需重新设计（RNN→Transformer）</p></td>
+<td><p>序列建模，长程依赖</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#efficiency-hardware"><span class="std std-ref">维度四：硬件利用——让芯片&quot;吃饱&quot;</span></a></p></td>
+<td><p>混合精度 + 算子融合</p></td>
+<td><p>2-3×</p></td>
+<td><p>需要硬件支持（V100+）</p></td>
+<td><p>几乎所有模型</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id23">
+<h2>失败案例：效率优化的陷阱<a class="headerlink" href="#id23" title="Link to this heading">#</a></h2>
+<section id="id24">
+<h3>案例一：Bottleneck 压缩率过大<a class="headerlink" href="#id24" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：设计图像分类网络，你将 Bottleneck 的压缩比设为 256→8→256（32 倍压缩）。</p>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>参数量确实大幅减少（约 15×）</p></li>
+<li><p>但准确率从 75% 暴跌到 45%</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>8 维的 Bottleneck 太小，无法承载 1000 类 ImageNet 的分类信息</p></li>
+<li><p>信息瓶颈过于狭窄，有用的特征在压缩过程中被&quot;挤掉&quot;</p></li>
+<li><p>从互信息角度：<span class="math notranslate nohighlight">\(I(X; Z)\)</span> 太小，<span class="math notranslate nohighlight">\(Z\)</span> 无法保留足够区分 1000 类的信息</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>Bottleneck 的维度有下限</strong>。对于 C 类分类任务，Bottleneck 维度至少应该是 C 的 2-4 倍。1000 类任务，Bottleneck 不应小于 256 维。</p>
+</section>
+<section id="dw">
+<h3>案例二：DW 卷积用于通道数少的层<a class="headerlink" href="#dw" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：网络第一层（3 通道输入，16 通道输出），你用了 DW 卷积+1×1 pointwise，而不是标准 3×3 卷积。</p>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>计算量反而增加了！</p></li>
+<li><p>准确率下降 2%</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>DW 卷积的优势在于&quot;空间和通道分离&quot;</p></li>
+<li><p>但当输入通道只有 3 时，DW 卷积的&quot;逐通道卷积&quot;几乎等价于标准卷积（反正每个输入通道独立处理）</p></li>
+<li><p>但 DW 卷积后还要加 1×1 pointwise 来融合通道，多了一步计算</p></li>
+<li><p>标准卷积在 3→16 时本来就是 3×3×3×16，没有冗余可省</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>DW 卷积只适用于通道数 <span class="math notranslate nohighlight">\(\geq 32\)</span> 的情况</strong>。浅层（通道数少）用标准卷积更高效。</p>
+</section>
+<section id="id25">
+<h3>案例三：盲目追求轻量导致无法收敛<a class="headerlink" href="#id25" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：为了部署到嵌入式设备，你将 MobileNetV2 的宽度乘子（width multiplier）设为 0.1（所有通道数变为原来的 10%）。</p>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>模型大小只有 0.5MB，满足部署要求</p></li>
+<li><p>但训练 loss 根本不下降，模型无法学习</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>宽度乘子 0.1 意味着 Bottleneck 维度从 192 降到 19</p></li>
+<li><p>19 维的特征空间无法表达 CIFAR-10 甚至 MNIST 的特征</p></li>
+<li><p>模型容量被压缩到连简单任务都无法完成</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>效率优化有极限</strong>。宽度乘子通常不应小于 0.25，否则模型会&quot;饿死&quot;。</p>
+</section>
+<section id="id26">
+<h3>案例四：倒残差用错激活函数位置<a class="headerlink" href="#id26" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：实现倒残差块时，你在最后的 1×1 降维后加了 ReLU 激活。</p>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>准确率比标准 MobileNetV2 低 3-5%</p></li>
+<li><p>特征可视化显示大量神经元&quot;死亡&quot;（恒为 0）</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>倒残差的最后降维到低维空间（如 24 通道）</p></li>
+<li><p>ReLU 在低维空间是&quot;信息杀手&quot;——一旦输出为负，信息永久丢失</p></li>
+<li><p>MobileNetV2 论文明确建议在最后的 Bottleneck 用线性激活（Linear Bottleneck）</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>倒残差的最后必须是线性激活</strong>。这是 MobileNetV2 的关键设计，不能省略。</p>
+</section>
+<section id="id27">
+<h3>案例五：Python 循环里的张量拼接<a class="headerlink" href="#id27" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：为了处理变长序列，你用 Python 循环逐个样本做 padding 和拼接：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># <span class="bz-emoji">❌</span> Python 循环 + 逐个 cat</span>
+<span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">:</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>                <span class="c1"># 每个样本单独 forward</span>
+    <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span>     <span class="c1"># 最后拼接</span>
+</pre></div>
+</div>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>训练速度只有预期的 5-10%</p></li>
+<li><p>GPU 利用率徘徊在 20-30%</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>每个样本单独 forward 意味着 <span class="math notranslate nohighlight">\(batch\_size\)</span> 次内核启动（而不是 1 次）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">torch.cat</span></code> 又触发一次内存重分配和拷贝</p></li>
+<li><p>GPU 被&quot;碎片化&quot;的小任务填满，无法发挥并行优势</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>尽量在 batch 维度上统一处理</strong>。用 <code class="docutils literal notranslate"><span class="pre">pad_sequence</span></code> + <code class="docutils literal notranslate"><span class="pre">pack_padded_sequence</span></code>（或 attention mask）在单次 forward 中处理整个 batch。</p>
+</section>
+<section id="id28">
+<h3>案例六：DW 卷积搭配小特征图<a class="headerlink" href="#id28" title="Link to this heading">#</a></h3>
+<p><strong>场景</strong>：你在 MobileNetV2 的深层（特征图只有 <span class="math notranslate nohighlight">\(7 \times 7\)</span>）大量使用 DW 卷积。</p>
+<p><strong>结果</strong>：</p>
+<ul class="simple">
+<li><p>实际速度只有理论速度的 30%</p></li>
+<li><p>换成标准卷积后反而更快</p></li>
+</ul>
+<p><strong>为什么失败</strong>：</p>
+<ul class="simple">
+<li><p>DW 卷积的算术强度极低（见<a class="reference internal" href="#efficiency-hardware"><span class="std std-ref">维度四：硬件利用——让芯片&quot;吃饱&quot;</span></a>）</p></li>
+<li><p>当特征图很小时，DW 卷积受限于内核启动开销和内存带宽，GPU 的并行能力完全浪费</p></li>
+<li><p>标准卷积虽然 FLOPs 更高，但能组成大矩阵乘法，硬件利用率高</p></li>
+</ul>
+<p><strong>教训</strong>：<strong>深层小特征图考虑换回标准卷积</strong>。DW 卷积在特征图 <span class="math notranslate nohighlight">\(\geq 14 \times 14\)</span> 时才最有效。</p>
+</section>
+<section id="id29">
+<h3>决策树：效率优化策略选择<a class="headerlink" href="#id29" title="Link to this heading">#</a></h3>
+<pre  class="mermaid">
+        flowchart TD
+    START[我的模型太慢，从哪入手？] --&gt; PROFILE{是否跑过&lt;br/&gt;性能分析？}
+    
+    PROFILE --&gt;|否| RUN[先跑一次 profile&lt;br/&gt;确定瓶颈]
+    PROFILE --&gt;|是| WHICH{最慢的操作是？}
+    
+    WHICH --&gt;|大卷积层| COMPUTE[计算量瓶颈]
+    WHICH --&gt;|Python 循环/索引| CTRL[控制流瓶颈]
+    WHICH --&gt;|许多小操作&lt;br/&gt;GPU利用率低| HW[硬件利用瓶颈]
+    WHICH --&gt;|显存不足| MEM[内存瓶颈]
+    
+    COMPUTE --&gt; COMP_Q{通道数 ≥ 32？}
+    COMP_Q --&gt;|是| DW[DW 卷积&lt;br/&gt;或倒残差]
+    COMP_Q --&gt;|否| STANDARD[标准卷积&lt;br/&gt;或 Bottleneck]
+    
+    CTRL --&gt; CTRL_Q{能否消除循环？}
+    CTRL_Q --&gt;|是| VEC[向量化 + torch.compile]
+    CTRL_Q --&gt;|否（RNN）| ARCH{能否换架构？}
+    ARCH --&gt;|可以| TRANS[Transformer&lt;br/&gt;或 CNN]
+    ARCH --&gt;|不行| COMPILE[torch.compile&lt;br/&gt;mode=reduce-overhead]
+    
+    HW --&gt; HW_Q{主要操作？}
+    HW_Q --&gt;|Conv+BN+ReLU| FUSE[torch.compile&lt;br/&gt;算子融合]
+    HW_Q --&gt;|DW 卷积| LAYOUT[channels_last&lt;br/&gt;+ 评估是否换回标准卷积]
+    HW_Q --&gt;|训练慢| AMP[混合精度训练]
+    HW_Q --&gt;|注意力机制| FLASH[Flash Attention]
+    
+    MEM --&gt; MEM_Q{什么占显存？}
+    MEM_Q --&gt;|特征图| BOTTLENECK[Bottleneck 降维]
+    MEM_Q --&gt;|梯度+优化器| AMP[混合精度训练]
+    MEM_Q --&gt;|模型权重| PRUNE[宽度乘子&lt;br/&gt;或模型剪枝]
+    </pre><p><strong>核心原则</strong>：</p>
+<ul class="simple">
+<li><p>效率优化是<strong>权衡</strong>，不是&quot;免费午餐&quot;——每个维度都有代价</p></li>
+<li><p><strong>先 profile，再优化</strong>——不要猜瓶颈在哪，用数据说话</p></li>
+<li><p>先确定 baseline 能正常工作，再逐步优化</p></li>
+<li><p>每次优化后都要验证准确率，别只盯着模型大小和速度</p></li>
+<li><p>四个维度可以叠加使用，但每次只加一个，测量效果后再加下一个</p></li>
+</ul>
+</section>
+</section>
+<section id="id30">
+<h2>信息论视角：效率优化为什么可能<a class="headerlink" href="#id30" title="Link to this heading">#</a></h2>
+<p>效率优化能成功的根本原因来自信息论：<strong>自然数据（图像、文本、语音）的特征具有稀疏性和低维结构</strong>。</p>
+<p>通道之间不是独立的——256 个通道中，很多通道捕捉的是高度相关的信息。1×1 卷积能发现这种相关性，将 256 维压缩到 64 维，保留的信息量基本相同。</p>
+<p>同样，空间和通道的<strong>可分离性</strong>意味着：空间模式（边缘、纹理）和通道模式（哪种特征）的交互不是任意组合的——把它们分开处理，信息损失很小。</p>
+<p>用<a class="reference internal" href="part1-intro.html#mutual-information"><span class="std std-ref">互信息</span></a>的语言说：</p>
+<ul class="simple">
+<li><p>Bottleneck 做了 <span class="math notranslate nohighlight">\(I(X;Z) \approx I(X;Y)\)</span> 的信息压缩——压缩后信息几乎不变</p></li>
+<li><p>DW 卷积利用了 <span class="math notranslate nohighlight">\(I_{\text{space}, \text{channel}} \approx I_{\text{space}} + I_{\text{channel}}\)</span> 的近似分离性</p></li>
+<li><p>混合精度利用了&quot;位数的冗余&quot;——大多数梯度值和权重值不需要 32 位精度来表达</p></li>
+<li><p>算子融合利用了&quot;计算的局部性&quot;——相邻操作之间的数据不需要写回全局内存</p></li>
+</ul>
+<p>这就是为什么我们能&quot;白嫖&quot;效率——压缩掉的是冗余，保留的是信息。而控制流优化和硬件感知算法更进一步：它们压缩的是<strong>时间维度</strong>的冗余（消除不必要的等待）和<strong>空间局部性</strong>的浪费（数据尽量留在高速缓存中）。</p>
+<hr class="docutils" />
+<p>四件装备齐了。但面对一座具体的山，先动哪件？<a class="reference internal" href="part6-diagnosis.html"><span class="doc">诊断与心法：当模型表现不佳时</span></a>——登山者的自救手册。</p>
+<hr class="docutils" />
+<h2 class="rubric">参考文献</h2>
+<div class="docutils container" id="id31">
+<div role="list" class="citation-list">
+<div class="citation" id="id66" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">HZRS16</a><span class="fn-bracket">]</span></span>
+<p>Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Identity mappings in deep residual networks. In <em>European Conference on Computer Vision</em>, 630–645. Springer, 2016.</p>
+</div>
+<div class="citation" id="id111" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id9">HZC+17</a><span class="fn-bracket">]</span></span>
+<p>Andrew G Howard, Menglong Zhu, Bo Chen, Dmitry Kalenichenko, Weijun Wang, Tobias Weyand, Marco Andreetto, and Hartwig Adam. Mobilenets: efficient convolutional neural networks for mobile vision applications. <em>arXiv preprint arXiv:1704.04861</em>, 2017.</p>
+</div>
+<div class="citation" id="id129" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id14">VSP+17</a><span class="fn-bracket">]</span></span>
+<p>Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In <em>Advances in Neural Information Processing Systems (NeurIPS)</em>, volume 30. 2017.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">dc35df2</code>
+                2026-06-14 - <strong>Heyan Zhu</strong>: refactor: unify into two-chapter mountain-climbing narrative
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+</article><footer class="bz-article-footer">
+  
+  
+    <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="part4-attention.html" rel="prev">
+    <span>Previous</span><span class="bz-related-pages-title">操控注意力与长程依赖：信息该走哪条路</span></a><a class="bz-related-pages-next" href="part6-diagnosis.html" rel="next">
+    <span>Next</span>
+    <span class="bz-related-pages-title">诊断与心法：当模型表现不佳时</span>
+  </a></nav>
+  
+
+</footer><aside class="bz-sidebar-secondary" data-drawer="bz-sidebar-secondary">
+  
+  
+    
+  
+  
+  
+  
+
+
+
+<div class="bz-repo-stats">
+  <a
+    data-provider="github"
+    data-user="ulink-deep-learning-club"
+    data-repo="ulink-deeplearningclub-handouts"
+    href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    aria-label="ulink-deep-learning-club/ulink-deeplearningclub-handouts repository"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    <span
+      style="--bz-repo-stats-name-length: 56"
+      title="ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    >
+      ulink-deep-learning-club/ulink-deeplearningclub-handouts
+    </span>
+    <div class="bz-repo-stats-row">
+      <span class="bz-repo-stats-item" aria-label="Repository stars">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path></svg>
+        <span data-stat="stars">-</span>
+      </span>
+      <span class="bz-repo-stats-item" aria-label="Repository forks">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
+        <span data-stat="forks">-</span>
+      </span>
+    </div>
+  </a>
+</div>
+
+  
+    <div class="bz-edit-this-page">
+  <a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/source/cnn-expedition/model-architecture-design/part5-efficiency.md" rel="edit">
+    Edit this page
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"></path></svg>
+  </a>
+</div>
+  
+    <nav class="bz-sidebar-toc" aria-label="Table of contents">
+  <p>On this page</p><ul>
+<li><a class="reference internal" href="#id2">帕累托边界：效果的物理上限</a></li>
+<li><a class="reference internal" href="#efficiency-four-dimensions">效率问题的四个源头</a></li>
+<li><a class="reference internal" href="#efficiency-parameters">维度一：参数量——让模型"瘦身"</a><ul>
+<li><a class="reference internal" href="#bottleneck">Bottleneck：先压缩，再膨胀</a></li>
+<li><a class="reference internal" href="#pre-activation-vs-post-activation">Pre-activation vs Post-activation</a></li>
+<li><a class="reference internal" href="#id6">参数量优化小结</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#efficiency-computation">维度二：计算量——让每一次乘法都有价值</a><ul>
+<li><a class="reference internal" href="#id8">深度可分离卷积：空间与通道分离</a></li>
+<li><a class="reference internal" href="#id10">分组卷积：分离度的调节旋钮</a></li>
+<li><a class="reference internal" href="#mobilenetv2">MobileNetV2 的倒残差结构</a></li>
+<li><a class="reference internal" href="#id11">计算量优化小结</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#efficiency-control-flow">维度三：控制流——让计算不再"排队等待"</a><ul>
+<li><a class="reference internal" href="#python">问题：Python 控制流的三重代价</a></li>
+<li><a class="reference internal" href="#id13">策略一：向量化——用张量运算代替循环</a></li>
+<li><a class="reference internal" href="#transformer-rnn">策略二：从架构层面消除串行——Transformer 为何比 RNN 快</a></li>
+<li><a class="reference internal" href="#torch-compile">策略三：编译优化——torch​.compile 与静态图</a></li>
+<li><a class="reference internal" href="#id15">控制流优化小结</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#efficiency-hardware">维度四：硬件利用——让芯片"吃饱"</a><ul>
+<li><a class="reference internal" href="#id17">问题：为什么"算得少"反而可能更"慢"</a></li>
+<li><a class="reference internal" href="#id18">策略一：算子融合——减少"往返搬运"</a></li>
+<li><a class="reference internal" href="#id19">策略二：内存布局——数据怎么"排列"影响访问效率</a></li>
+<li><a class="reference internal" href="#id20">策略三：混合精度——精度够用就好，不必 32 位</a></li>
+<li><a class="reference internal" href="#id21">硬件利用优化小结</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id22">四个维度的策略全景</a></li>
+<li><a class="reference internal" href="#id23">失败案例：效率优化的陷阱</a><ul>
+<li><a class="reference internal" href="#id24">案例一：Bottleneck 压缩率过大</a></li>
+<li><a class="reference internal" href="#dw">案例二：DW 卷积用于通道数少的层</a></li>
+<li><a class="reference internal" href="#id25">案例三：盲目追求轻量导致无法收敛</a></li>
+<li><a class="reference internal" href="#id26">案例四：倒残差用错激活函数位置</a></li>
+<li><a class="reference internal" href="#id27">案例五：Python 循环里的张量拼接</a></li>
+<li><a class="reference internal" href="#id28">案例六：DW 卷积搭配小特征图</a></li>
+<li><a class="reference internal" href="#id29">决策树：效率优化策略选择</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id30">信息论视角：效率优化为什么可能</a></li>
+</ul></nav>
+  
+
+</aside></main>
+  </div>
+<footer class="bz-footer">
+  <div class="bz-footer-copyright"><p class="bz-copyright">© Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0</p><p>
+    
+    
+    
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a href="https://github.com/aksiome/breeze">Breeze theme</a>.
+    
+  </p>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    
+    </a>
+  </div>
+</footer><a href="#" class="bz-back-to-top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+    </svg>
+    <span>Back to top</span>
+  </a>
+  <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
+  <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
+  <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../../_static/documentation_options.js?v=5a0213dc"></script><script src="../../_static/doctools.js?v=9bcbadda"></script><script src="../../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../../_static/translations.js?v=beaddf03"></script><script src="../../_static/design-tabs.js?v=f930bc37"></script><script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script><script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script><script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script><script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 360px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 360px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("True" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll(".mermaid svg");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("True" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script></body>
+</html>

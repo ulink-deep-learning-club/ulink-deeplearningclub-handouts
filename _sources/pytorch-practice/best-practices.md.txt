@@ -3,7 +3,7 @@
 
 {doc}`debug-and-visualise`教会我们如何诊断和修复训练中的问题。但要成为专业的深度学习开发者，还需要掌握工程实践——**如何组织代码、优化性能、保证实验可复现**。
 
-这些实践来自于工业界和学术界多年积累的经验，参考了{doc}`../neural-network-basics/scaling-law`中的效率优化思想。
+这些实践来自于工业界和学术界多年积累的经验，参考了{doc}`../cnn-expedition/model-architecture-design/part5-efficiency`中的效率优化思想。
 
 ---
 
@@ -46,9 +46,9 @@ my_project/
 
 ### 为什么这样组织？
 
-| 目录 | 作用 | 与{doc}`../neural-network-basics/scaling-law`的联系 |
+| 目录 | 作用 | 与{doc}`../cnn-expedition/ablation-study/index`的联系 |
 |------|------|---------------------------|
-| `configs/` | 集中管理超参数 | 方便进行{doc}`../neural-network-basics/scaling-law`中的系统实验 |
+| `configs/` | 集中管理超参数 | 方便进行{doc}`../cnn-expedition/ablation-study/index`中的系统实验 |
 | `models/` | 模块化网络结构 | 支持快速迭代不同架构 |
 | `utils/` | 复用工具代码 | 减少重复劳动，提高效率 |
 | `checkpoints/` | 保存训练状态 | 支持断点续训和模型选择 |
@@ -162,7 +162,7 @@ print(config['training']['optimizer']['name'])  # "AdamW"
 
 ## 可复现性保证
 
-{doc}`../neural-network-basics/scaling-law`中的实验需要严格的可复现性。如何做到？
+{doc}`../cnn-expedition/ablation-study/index`中的实验需要严格的可复现性。如何做到？
 
 ### 固定随机种子
 
@@ -470,7 +470,7 @@ class ExperimentLogger:
 
 ## 性能优化
 
-{doc}`../neural-network-basics/scaling-law` 告诉我们，计算效率直接影响实验迭代速度。
+{doc}`../cnn-expedition/model-architecture-design/part5-efficiency` 告诉我们，计算效率直接影响实验迭代速度。
 
 ### 数据加载优化
 
@@ -674,12 +674,12 @@ for epoch in range(num_epochs):
 | 自动微分 | {ref}`back-propagation`的PyTorch机制 |
 | 优化器 | {ref}`gradient-descent`的各种变体 |
 | 调试技巧 | {doc}`debug-and-visualise`中的诊断方法 |
-| 工程实践 | {doc}`../neural-network-basics/scaling-law`中的效率优化 |
+| 工程实践 | {doc}`../cnn-expedition/model-architecture-design/part5-efficiency`中的效率优化 |
 
 你已经具备了从理论到实践的完整能力。下一步建议：
 
 1. **实战项目**：尝试给 `mnist-helloworld` 框架添加新的模型或数据集（详见{ref}`framework-add-model`和{ref}`framework-add-dataset`）
-2. **深入研究**：回到{doc}`../neural-network-basics/index`学习更复杂的架构
+2. **深入研究**：回到{doc}`../cnn-expedition/practice-peak/index`学习更复杂的架构
 3. **前沿探索**：阅读论文，复现SOTA模型
 
 {doc}`the-end` 中，我们整理了更多学习资源，帮助你在深度学习之路上继续前进。

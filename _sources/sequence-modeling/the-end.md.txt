@@ -71,7 +71,7 @@ graph LR
 | {ref}`gradient-vanishing` | RNN 中梯度消失的数学根源（Jacobian 连乘）；LSTM 如何通过 $\mathbf{c}_t$ 旁路解决 |
 | {ref}`inductive-bias` | 四种架构的归纳偏置对比——从强（RNN/LSTM）到弱（Transformer）到中（Mamba） |
 | {ref}`res-net` | 残差连接在 Transformer 中的延续；LSTM 细胞状态的梯度高速公路 |
-| {ref}`attention-mechanisms` | CNN 的通道/空间注意力 vs Transformer 的自注意力——两种不同的"注意力" |
+| {doc}`../cnn-expedition/image-net-era/index` 的注意力 | CNN 的通道/空间注意力 vs Transformer 的自注意力——两种不同的"注意力" |
 | {ref}`computational-graph` | BPTT 在时间展开计算图上的反向传播 |
 | {ref}`activation-functions` | $\tanh$ 在 RNN/LSTM 中作为门控激活；ReLU 在 Transformer FFN 中 |
 
@@ -134,7 +134,7 @@ graph LR
 
 ---
 
-**下一步**：回到 {doc}`../index` 选择其他进阶章节，或者探索 {doc}`../model-architecture-design/index` 学习通用的架构设计心法。
+**下一步**：回到 {doc}`../index` 选择其他进阶章节，或者探索 {doc}`../cnn-expedition/model-architecture-design/index` 学习通用的架构设计心法。
 
 ---
 

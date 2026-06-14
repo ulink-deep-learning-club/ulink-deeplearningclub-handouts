@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-content_root="../../">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="全连接：赤手空拳" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="cnn-expedition/practice-peak/fc-layer-basics.html" />
+<meta property="og:site_name" content="Deep Learning Club Handouts" />
+<meta property="og:description" content="赤手空拳——不看山体结构，20 万参数走不远。 赤手空拳出发——每个像素连接每个神经元，20 万个参数，不做任何假设。很快就发现： 这山，爬不远。 站在 MNIST 面前。用的是攀岩的技术——每一块岩石亲手检查，不靠地形判断。784 个像素，全部连到 256 个神经元。200,960 个参数。不多想，先试试。 训练。看结果。 能跑，但吃力。 不是参数不够。攀岩的思路放到山上，天然就错了——你..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_cnn-expedition_practice-peak_fc-layer-basics_3433a036.png" />
+<meta property="og:image:alt" content="赤手空拳——不看山体结构，20 万参数走不远。 赤手空拳出发——每个像素连接每个神经元，20 万个参数，不做任何假设。很快就发现： 这山，爬不远。 站在 MNIST 面前。用的是攀岩的技术——每一块岩石亲手检查，不靠地形判断。784 个像素，全部连到 256 个神经元。200,960 个参数。不多想，先试试。 训练。看结果。 能跑，但吃力。 不是参数不够。攀岩的思路放到山上，天然就错了——你..." />
+<meta name="description" content="赤手空拳——不看山体结构，20 万参数走不远。 赤手空拳出发——每个像素连接每个神经元，20 万个参数，不做任何假设。很快就发现： 这山，爬不远。 站在 MNIST 面前。用的是攀岩的技术——每一块岩石亲手检查，不靠地形判断。784 个像素，全部连到 256 个神经元。200,960 个参数。不多想，先试试。 训练。看结果。 能跑，但吃力。 不是参数不够。攀岩的思路放到山上，天然就错了——你..." />
+<meta name="twitter:card" content="summary_large_image" />
+<title>全连接：赤手空拳 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../../genindex.html"><link rel="search" title="搜索" href="../../search.html"><link rel="next" title="卷积：发现装备" href="cnn-basics.html"><link rel="prev" title="引言：从公式到代码" href="introduction.html"><script data-cfasync="false">(function(){
+    const m = localStorage.getItem("breeze-mode") || "auto";
+    const d = document.documentElement.dataset;
+    d.mode = m;
+    d.theme = m === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : m;
+  })();
+  </script><link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../../_static/style-fixes.css?v=c830a622" /><link rel="stylesheet" type="text/css" href="../../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+<body>
+  
+  
+  <div class="bz-skip-to-content"><a href="#bz-main-content">Skip to main content</a></div><header class="bz-header-main">
+  <div class="bz-header-start"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><a class="bz-header-brand" href="../../index.html">
+  
+  
+  <span>Deep Learning Club Handouts</span>
+</a>
+  </div>
+  <div class="bz-header-end"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><div id="docsearch" class="bz-search-button">
+  <a
+    href="../../search.html#q"
+    aria-label="Search the docs"
+    data-tooltip="Search the docs"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 -1 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
+    <span>搜索</span>
+    <kbd>Ctrl+K</kbd>
+  </a>
+</div><div class="bz-theme-switcher">
+  <button aria-label="Switch theme" data-tooltip="Switch theme">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
+      <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-dark" fill="currentColor">
+      <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+    </svg>
+  </button>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.766 11.695C4.703 11.437 3.25 9.904 3.25 7.92c0-.806.281-1.677.75-2.258-.203-.532-.172-1.662.062-2.129.626-.081 1.469.258 1.969.726.594-.194 1.219-.291 1.985-.291.765 0 1.39.097 1.953.274.484-.451 1.343-.79 1.969-.709.218.435.25 1.564.046 2.113.5.613.766 1.436.766 2.274 0 1.984-1.453 3.485-3.547 3.759.531.355.891 1.129.891 2.016v1.678c0 .484.39.758.859.564C13.781 14.824 16 11.905 16 8.291 16 3.726 12.406 0 7.984 0 3.562 0 0 3.726 0 8.291c0 3.581 2.203 6.55 5.172 7.663A.595.595 0 0 0 6 15.389v-1.291c-.219.097-.5.162-.75.162-1.031 0-1.641-.581-2.078-1.662-.172-.435-.36-.693-.719-.742-.187-.016-.25-.097-.25-.193 0-.194.313-.339.625-.339.453 0 .844.29 1.25.887.313.468.641.678 1.031.678.391 0 .641-.146 1-.516.266-.275.469-.517.657-.678Z"></path></svg>
+    
+    </a>
+  </div>
+  </div>
+</header><hr class="bz-header-hr">
+  <div class="bz-content"><aside class="bz-sidebar-primary" data-drawer="bz-sidebar-primary">
+  
+  
+    <nav class="bz-sidebar-nav" aria-label="Section Navigation"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../math-fundamentals/index.html">深度学习核心数学基础</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">翻越两座山：CNN 三十年攀登史</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html">引言：因为山在那里</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">上篇：练习峰</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="introduction.html">引言：从公式到代码</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">全连接：赤手空拳</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cnn-basics.html">卷积：发现装备</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dataset-preparation.html">数据准备：打包行囊</a></li>
+<li class="toctree-l3"><a class="reference internal" href="neural-training-basics.html">训练基础：登山纪律</a></li>
+<li class="toctree-l3"><a class="reference internal" href="le-net.html">LeNet-5：练习峰首登</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exp-cmp.html">实验对比：登山日志</a></li>
+<li class="toctree-l3"><a class="reference internal" href="the-end.html">练习峰，登顶</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../ablation-study/index.html">拆开看看：CNN 消融研究</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../ablation-study/introduction.html">引言：拆开看看</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ablation-study/the-end.html">结语</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../image-net-era/index.html">下篇：真正的未登峰</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/introduction.html">引言：真正的山</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/alexnet.html">AlexNet：真正的未登峰，首登！</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/inception.html">Inception：多尺度工具</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/res-net.html">ResNet：高原反应补给站</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/se-net.html">SE-Net：学会聚焦</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/cbam.html">CBAM：哪里重要 + 什么重要</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/mobilenet.html">MobileNet：一个人，一把冰镐</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/efficientnet.html">EfficientNet：每一分钱，花在刀刃上</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/the-end.html">登山下篇回顾：八年，八件装备</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/index.html">架构心法：从会用装备到会设计装备</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part1-intro.html">诊断入门：信息论听诊器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：效果、速度与硬件的三角权衡</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/the-end.html">登山者笔记：四件装备，三十年</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../the-end.html">下一座山</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../model-serving/index.html">模型部署与服务：从训练到生产</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/model-optimization.html">模型优化：量化与剪枝</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../unet-image-segmentation/index.html">U-Net：图像分割的革命</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sequence-modeling/index.html">序列建模：从 RNN 到 Transformer 再到 Mamba</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/introduction.html">引言：从空间到时间</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/transformer.html">Transformer：注意力的极致</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/mamba-intro.html">Mamba 简述：对RNN思想的回归</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../appendix/environment-setup/index.html">环境配置</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../appendix/sphinx-guide/index.html">Sphinx Markdown 语法参考</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../appendix/build-docs.html">编译文档</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../postscript.html">写在后面</a></li>
+</ul>
+</nav>
+  
+
+</aside><main id="bz-main-content"><header class="bz-article-header">
+  
+  
+    <nav class="bz-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li class="bz-breadcrumbs-home">
+      <a href="../../index.html" aria-label="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8.543 2.232a.75.75 0 0 0-1.085 0l-5.25 5.5A.75.75 0 0 0 2.75 9H4v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V9h1.25a.75.75 0 0 0 .543-1.268l-5.25-5.5Z" />
+        </svg>
+      </a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="../index.html">翻越两座山：CNN 三十年攀登史</a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="index.html">上篇：练习峰</a>
+    </li><li class="bz-breadcrumbs-current">
+      <span>全连接：赤手空拳</span>
+    </li>
+  </ol>
+</nav>
+  
+<label
+  class="bz-sidebar-secondary-toggle"
+  for="bz-sidebar-secondary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle table of contents"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75H20.25 M11.25 12H20.25 M7.75 17.25H20.25"
+    />
+  </svg>
+</label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="fc-layer-basics">
+<span id="id1"></span><h1>全连接：赤手空拳<a class="headerlink" href="#fc-layer-basics" title="Link to this heading">#</a></h1>
+<blockquote>
+<div><p>赤手空拳——不看山体结构，20 万参数走不远。</p>
+</div></blockquote>
+<p>赤手空拳出发——每个像素连接每个神经元，20 万个参数，不做任何假设。很快就发现：<strong>这山，爬不远。</strong></p>
+<p>站在 MNIST 面前。用的是攀岩的技术——每一块岩石亲手检查，不靠地形判断。784 个像素，全部连到 256 个神经元。200,960 个参数。不多想，先试试。</p>
+<p>训练。看结果。<strong>能跑，但吃力。</strong></p>
+<p>不是参数不够。攀岩的思路放到山上，天然就错了——你把岩壁当成了一堆互不相关的碎石。相邻的像素本来连在一起，偏要一个一个检查。同一个数字&quot;7&quot;出现在左边和右边，偏要学两遍。全连接不假设任何空间结构——代价就是，20 万参数还爬不稳一座 28×28 的小山。</p>
+<p>先看这个工具本身。</p>
+<p><strong>全连接层（Fully Connected Layer）</strong>，源于感知机（Perceptron）<span id="id2">[<a class="reference internal" href="#id80" title="Frank Rosenblatt. The perceptron: a probabilistic model for information storage and organization in the brain. Psychological Review, 65(6):386–408, 1958.">Ros58</a>]</span>，是神经网络最基本的构建块。建议回顾<a class="reference internal" href="../../math-fundamentals/activation-functions.html#activation-functions"><span class="std std-ref">激活函数</span></a>中<strong>线性回归→多层感知机</strong>的演变。每个输入节点都与每个输出节点相连接——赤手空拳，不留死角。</p>
+<div class="figure" id="id116" style="text-align: center"><p><img  src="../../_images/tikz-7c25891a2581ebf2c7c3f520ab409f919e640e25.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">全连接层结构示意图</span></p>
+</div><div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>全连接层的数学表达</strong></p>
+<p>对于输入向量 <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathbb{R}^n\)</span> 和输出向量 <span class="math notranslate nohighlight">\(\mathbf{y} \in \mathbb{R}^m\)</span>，全连接层的变换为：</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{y} = \mathbf{W}\mathbf{x} + \mathbf{b}
+\]</div>
+<p>这正是<a class="reference internal" href="../../math-fundamentals/activation-functions.html#activation-functions"><span class="std std-ref">激活函数</span></a>中提到的<strong>线性变换</strong> <span class="math notranslate nohighlight">\(Wx + b\)</span> 的矩阵形式，其中：</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\mathbf{W} \in \mathbb{R}^{m \times n}\)</span> 是权重矩阵（所有连接）</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{b} \in \mathbb{R}^m\)</span> 是偏置向量</p></li>
+</ul>
+<p>正如我们在<a class="reference internal" href="../../math-fundamentals/activation-functions.html#activation-functions"><span class="std std-ref">激活函数</span></a>中看到的，如果没有非线性激活函数，多层全连接等价于单层。这就是为什么代码中需要使用 <code class="docutils literal notranslate"><span class="pre">F.relu()</span></code>。</p>
+</div>
+<section id="id3">
+<h2>为什么堆叠多层有用？<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>单层全连接（<span class="math notranslate nohighlight">\(y = Wx + b\)</span>）只能学习<strong>线性决策边界</strong>——在特征空间中画一条直线或超平面。但现实中大多数问题（手写数字识别、图像分类）的决策边界是高度非线性的。</p>
+<p>多层堆叠 + 非线性激活解决了这个问题：</p>
+<ol class="arabic simple">
+<li><p><strong>每层变换空间</strong>：<span class="math notranslate nohighlight">\(Wx + b\)</span> 对特征空间做旋转、缩放、平移</p></li>
+<li><p><strong>激活函数折叠空间</strong>：<a class="reference internal" href="../../math-fundamentals/activation-functions.html#activation-functions"><span class="std std-ref">激活函数</span></a> 中我们看到，ReLU 将负区域&quot;压平&quot;到 0，实现了空间的非线性折叠</p></li>
+<li><p><strong>层数越多，边界越复杂</strong>：第一层学直线，第二层组合直线成简单形状，第三层组合形状成复杂边界</p></li>
+</ol>
+<div class="tip admonition">
+<p class="admonition-title">3个神经元就能画出复杂边界</p>
+<p><a class="reference internal" href="../../math-fundamentals/activation-functions.html#decision-boundary"><span class="std std-ref">决策边界的形成</span></a> 一节展示了一个惊人的例子：仅用 <strong>3 个隐藏层神经元</strong>就能划分出任意复杂的不规则区域。每个神经元定义一个&quot;软&quot;半平面，通过乘法（<span class="math notranslate nohighlight">\(n_2 \times (n_1 + n_3)\)</span>）实现<strong>门控机制</strong>——一个神经元充当&quot;开关&quot;控制其他神经元的输出是否生效。少量神经元的非线性组合就能逼近几乎任何形状的决策边界。</p>
+<p>这就是多层感知机（MLP）的核心能力：<strong>用简单线性单元的层级组合表达任意复杂的函数</strong>。</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p><strong>全连接层的威力</strong></p>
+<div class="math notranslate nohighlight">
+\[
+\text{3层全连接} = \text{ReLU}(W_3 \cdot \text{ReLU}(W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2) + b_3)
+\]</div>
+<p>每一层 <span class="math notranslate nohighlight">\(W_i x + b_i\)</span> 做线性变换，每一层 ReLU 引入非线性折叠。三层叠在一起，理论上可以逼近任何连续函数（通用近似定理）。</p>
+<p>这正是全连接网络的核心矛盾：<strong>表达能力极强（可以学任何函数），但参数效率极低（什么先验都不假设）</strong>。</p>
+</div>
+</section>
+<section id="id4">
+<h2>参数数量分析<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p>数一数装备的重量。全连接层从 <span class="math notranslate nohighlight">\(n\)</span> 维到 <span class="math notranslate nohighlight">\(m\)</span> 维的参数总数：</p>
+<div class="math notranslate nohighlight">
+\[\text{Parameters} = m \times n + m = m(n + 1)\]</div>
+<p>以MNIST为例，如果将28×28=784像素的图像直接输入到全连接层：</p>
+<ul class="simple">
+<li><p>第一层：假设有256个神经元，参数数量为 <span class="math notranslate nohighlight">\(256 \times 784 + 256 = 200,960\)</span></p></li>
+<li><p>第二层：从256到128个神经元，参数数量为 <span class="math notranslate nohighlight">\(128 \times 256 + 128 = 32,896\)</span></p></li>
+<li><p>输出层：从128到10个类别，参数数量为 <span class="math notranslate nohighlight">\(10 \times 128 + 10 = 1,290\)</span></p></li>
+</ul>
+<p><strong>总参数数量：</strong> 235,146个参数</p>
+</section>
+<section id="id5">
+<h2>参数爆炸：全连接的核心问题<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<p>235,146个参数看似不多，但考虑以下问题：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>问题</p></th>
+<th class="head"><p>说明</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>空间信息丢失</strong></p></td>
+<td><p>784维向量完全打乱了28×28的二维结构，相邻像素在向量中可能相距很远</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>参数效率低</strong></p></td>
+<td><p>每个像素都连接到每个神经元，无论距离多远，没有&quot;局部性&quot;概念</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>过拟合风险</strong></p></td>
+<td><p>参数量大，而MNIST是相对简单的10类分类任务</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>直觉理解</strong>：全连接把图像当作&quot;表格&quot;，而非&quot;图片&quot;。它不知道像素 A 和像素 B 是相邻的——就像登山者把岩壁当成散落的碎石，看不到它们本来的连接。这种空间关系必须从零学起。</p>
+</section>
+<section id="pytorch">
+<h2>PyTorch实现<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">FullyConnectedNet</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_size</span><span class="o">=</span><span class="mi">784</span><span class="p">,</span> <span class="n">hidden_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FullyConnectedNet</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="c1"># 将28x28图像展平为784维向量</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flatten</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Flatten</span><span class="p">()</span>
+        
+        <span class="c1"># 全连接层堆叠</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fc1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">input_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fc2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">hidden_size</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fc3</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">)</span>
+        
+        <span class="c1"># Dropout层用于防止过拟合</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="c1"># 展平：28x28 图像 → 784 维向量</span>
+        <span class="c1"># 这就是&quot;空间信息丢失&quot;的发生点！二维结构变一维</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        
+        <span class="c1"># 第一层：784 -&gt; 256</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>      <span class="c1"># 线性变换 y = Wx + b</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>        <span class="c1"># 非线性激活（见 activation-functions）</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># 随机丢弃50%神经元，防止过拟合</span>
+        
+        <span class="c1"># 第二层：256 -&gt; 128</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>        <span class="c1"># 再次激活，增加表达能力</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        
+        <span class="c1"># 输出层：128 -&gt; 10（10个数字类别）</span>
+        <span class="c1"># 注意：最后一层不加激活，CrossEntropyLoss内部会应用Softmax</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc3</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">x</span>
+
+<span class="c1"># 模型实例化</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">FullyConnectedNet</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;模型总参数数量: </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id6">
+<h2>全连接层的优缺点<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<p>赤手空拳有赤手空拳的账本：</p>
+<div class="table colwidths-given docutils container" id="id117">
+<table class="docutils align-default" id="id117">
+<caption><span class="caption-text">全连接层优缺点对比</span><a class="headerlink" href="#id117" title="Link to this table">#</a></caption>
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>优点</strong></p></th>
+<th class="head"><p><strong>缺点</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>实现简单直观</p></td>
+<td><p>忽略空间结构信息</p></td>
+</tr>
+<tr class="row-odd"><td><p>理论成熟完善</p></td>
+<td><p>参数数量巨大</p></td>
+</tr>
+<tr class="row-even"><td><p>易于理解和调试</p></td>
+<td><p>容易过拟合</p></td>
+</tr>
+<tr class="row-odd"><td><p>计算效率高（小模型）</p></td>
+<td><p>对平移不具备鲁棒性</p></td>
+</tr>
+<tr class="row-even"><td><p>适用于非结构化数据</p></td>
+<td><p>需要大量训练数据</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id7">
+<h2>核心问题：参数效率低下<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<p>235,146 个参数。爬一座 28×28 的小山，太重了。</p>
+<section id="id8">
+<h3>什么是参数效率？<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<div class="math notranslate nohighlight">
+\[
+\text{参数效率} = \frac{\text{模型表达能力}}{\text{参数量}}
+\]</div>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>指标</p></th>
+<th class="head"><p>全连接网络</p></th>
+<th class="head"><p>评价</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>参数量</p></td>
+<td><p>235,146</p></td>
+<td><p>过多</p></td>
+</tr>
+<tr class="row-odd"><td><p>MNIST准确率</p></td>
+<td><p>~98%</p></td>
+<td><p>尚可</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>参数效率</strong></p></td>
+<td><p><strong>低</strong></p></td>
+<td><p>用20万参数&quot;记住&quot;数据，而非学会规律</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>问题本质</strong>：全连接缺乏<a class="reference internal" href="introduction.html#inductive-bias"><span class="std std-ref">归纳偏置</span></a>——它没有利用&quot;图像是二维的&quot;、&quot;相邻像素相关&quot;这些先验。从贝叶斯角度看，全连接是<strong>无信息先验</strong>——上山前不做任何假设，每一块岩石都要亲自检查。这是攀岩的思路。登山需要另一种。</p>
+<hr class="docutils" />
+<p>你用全连接爬了一次 MNIST。20 万参数。98%。</p>
+<p>能用。但代价不对——攀岩的技术放在山上，每一块岩石都要亲自检查。根源只有一个：全连接不看山体结构。</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>困境</p></th>
+<th class="head"><p>摔在哪里</p></th>
+<th class="head"><p>登山需要什么</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>每一块岩石单独检查</p></td>
+<td><p>参数爆炸</p></td>
+<td><p>局部感受野——只看相邻的</p></td>
+</tr>
+<tr class="row-odd"><td><p>山体被压成一条线</p></td>
+<td><p>空间信息丢失</p></td>
+<td><p>保留 2D 结构</p></td>
+</tr>
+<tr class="row-even"><td><p>同一模式每出现一次学一遍</p></td>
+<td><p>&quot;7&quot;在左上和右下是两回事</p></td>
+<td><p>权值共享——一个模式，全图通用</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>这次摔跤不是失败。它是地图——告诉你山的形状是什么，下一件装备要解决什么问题。</p>
+<p><a class="reference internal" href="cnn-basics.html"><span class="doc">卷积：发现装备</span></a>——走。换登山的思路。</p>
+<hr class="docutils" />
+<h2 class="rubric">参考文献</h2>
+<div class="docutils container" id="id9">
+<div role="list" class="citation-list">
+<div class="citation" id="id80" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">Ros58</a><span class="fn-bracket">]</span></span>
+<p>Frank Rosenblatt. The perceptron: a probabilistic model for information storage and organization in the brain. <em>Psychological Review</em>, 65(6):386–408, 1958.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">dc35df2</code>
+                2026-06-14 - <strong>Heyan Zhu</strong>: refactor: unify into two-chapter mountain-climbing narrative
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+</article><footer class="bz-article-footer">
+  
+  
+    <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="introduction.html" rel="prev">
+    <span>Previous</span><span class="bz-related-pages-title">引言：从公式到代码</span></a><a class="bz-related-pages-next" href="cnn-basics.html" rel="next">
+    <span>Next</span>
+    <span class="bz-related-pages-title">卷积：发现装备</span>
+  </a></nav>
+  
+
+</footer><aside class="bz-sidebar-secondary" data-drawer="bz-sidebar-secondary">
+  
+  
+    
+  
+  
+  
+  
+
+
+
+<div class="bz-repo-stats">
+  <a
+    data-provider="github"
+    data-user="ulink-deep-learning-club"
+    data-repo="ulink-deeplearningclub-handouts"
+    href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    aria-label="ulink-deep-learning-club/ulink-deeplearningclub-handouts repository"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    <span
+      style="--bz-repo-stats-name-length: 56"
+      title="ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    >
+      ulink-deep-learning-club/ulink-deeplearningclub-handouts
+    </span>
+    <div class="bz-repo-stats-row">
+      <span class="bz-repo-stats-item" aria-label="Repository stars">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path></svg>
+        <span data-stat="stars">-</span>
+      </span>
+      <span class="bz-repo-stats-item" aria-label="Repository forks">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
+        <span data-stat="forks">-</span>
+      </span>
+    </div>
+  </a>
+</div>
+
+  
+    <div class="bz-edit-this-page">
+  <a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/source/cnn-expedition/practice-peak/fc-layer-basics.md" rel="edit">
+    Edit this page
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"></path></svg>
+  </a>
+</div>
+  
+    <nav class="bz-sidebar-toc" aria-label="Table of contents">
+  <p>On this page</p><ul>
+<li><a class="reference internal" href="#id3">为什么堆叠多层有用？</a></li>
+<li><a class="reference internal" href="#id4">参数数量分析</a></li>
+<li><a class="reference internal" href="#id5">参数爆炸：全连接的核心问题</a></li>
+<li><a class="reference internal" href="#pytorch">PyTorch实现</a></li>
+<li><a class="reference internal" href="#id6">全连接层的优缺点</a></li>
+<li><a class="reference internal" href="#id7">核心问题：参数效率低下</a><ul>
+<li><a class="reference internal" href="#id8">什么是参数效率？</a></li>
+</ul>
+</li>
+</ul></nav>
+  
+
+</aside></main>
+  </div>
+<footer class="bz-footer">
+  <div class="bz-footer-copyright"><p class="bz-copyright">© Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0</p><p>
+    
+    
+    
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a href="https://github.com/aksiome/breeze">Breeze theme</a>.
+    
+  </p>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    
+    </a>
+  </div>
+</footer><a href="#" class="bz-back-to-top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+    </svg>
+    <span>Back to top</span>
+  </a>
+  <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
+  <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
+  <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../../_static/documentation_options.js?v=5a0213dc"></script><script src="../../_static/doctools.js?v=9bcbadda"></script><script src="../../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../../_static/translations.js?v=beaddf03"></script><script src="../../_static/design-tabs.js?v=f930bc37"></script><script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script></body>
+</html>

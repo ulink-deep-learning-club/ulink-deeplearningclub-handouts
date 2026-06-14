@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-content_root="../../">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="数据准备：打包行囊" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="cnn-expedition/practice-peak/dataset-preparation.html" />
+<meta property="og:site_name" content="Deep Learning Club Handouts" />
+<meta property="og:description" content="打包行囊——数据怎么从硬盘飞到 GPU？ 装备有了。出发前最后一件事： 打包行囊。 数据不会自己变成张量。 卷积：发现装备 教会了 CNN 如何提取特征，但数据从哪里来、怎么从硬盘飞到 GPU——这是登山前必须解决的。 本节回答这个问题，打造一条完整的数据流水线：从原始数据 → 预处理 → Dataset → DataLoader → GPU。 数据流水线概览: 从右往左看： PyTorch..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_cnn-expedition_practice-peak_dataset-preparation_26cab2c7.png" />
+<meta property="og:image:alt" content="打包行囊——数据怎么从硬盘飞到 GPU？ 装备有了。出发前最后一件事： 打包行囊。 数据不会自己变成张量。 卷积：发现装备 教会了 CNN 如何提取特征，但数据从哪里来、怎么从硬盘飞到 GPU——这是登山前必须解决的。 本节回答这个问题，打造一条完整的数据流水线：从原始数据 → 预处理 → Dataset → DataLoader → GPU。 数据流水线概览: 从右往左看： PyTorch..." />
+<meta name="description" content="打包行囊——数据怎么从硬盘飞到 GPU？ 装备有了。出发前最后一件事： 打包行囊。 数据不会自己变成张量。 卷积：发现装备 教会了 CNN 如何提取特征，但数据从哪里来、怎么从硬盘飞到 GPU——这是登山前必须解决的。 本节回答这个问题，打造一条完整的数据流水线：从原始数据 → 预处理 → Dataset → DataLoader → GPU。 数据流水线概览: 从右往左看： PyTorch..." />
+<meta name="twitter:card" content="summary_large_image" />
+<title>数据准备：打包行囊 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../../genindex.html"><link rel="search" title="搜索" href="../../search.html"><link rel="next" title="训练基础：登山纪律" href="neural-training-basics.html"><link rel="prev" title="卷积：发现装备" href="cnn-basics.html"><script data-cfasync="false">(function(){
+    const m = localStorage.getItem("breeze-mode") || "auto";
+    const d = document.documentElement.dataset;
+    d.mode = m;
+    d.theme = m === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : m;
+  })();
+  </script><link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../../_static/style-fixes.css?v=c830a622" /><link rel="stylesheet" type="text/css" href="../../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="../../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+<body>
+  
+  
+  <div class="bz-skip-to-content"><a href="#bz-main-content">Skip to main content</a></div><header class="bz-header-main">
+  <div class="bz-header-start"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><a class="bz-header-brand" href="../../index.html">
+  
+  
+  <span>Deep Learning Club Handouts</span>
+</a>
+  </div>
+  <div class="bz-header-end"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><div id="docsearch" class="bz-search-button">
+  <a
+    href="../../search.html#q"
+    aria-label="Search the docs"
+    data-tooltip="Search the docs"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 -1 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
+    <span>搜索</span>
+    <kbd>Ctrl+K</kbd>
+  </a>
+</div><div class="bz-theme-switcher">
+  <button aria-label="Switch theme" data-tooltip="Switch theme">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
+      <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-dark" fill="currentColor">
+      <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+    </svg>
+  </button>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.766 11.695C4.703 11.437 3.25 9.904 3.25 7.92c0-.806.281-1.677.75-2.258-.203-.532-.172-1.662.062-2.129.626-.081 1.469.258 1.969.726.594-.194 1.219-.291 1.985-.291.765 0 1.39.097 1.953.274.484-.451 1.343-.79 1.969-.709.218.435.25 1.564.046 2.113.5.613.766 1.436.766 2.274 0 1.984-1.453 3.485-3.547 3.759.531.355.891 1.129.891 2.016v1.678c0 .484.39.758.859.564C13.781 14.824 16 11.905 16 8.291 16 3.726 12.406 0 7.984 0 3.562 0 0 3.726 0 8.291c0 3.581 2.203 6.55 5.172 7.663A.595.595 0 0 0 6 15.389v-1.291c-.219.097-.5.162-.75.162-1.031 0-1.641-.581-2.078-1.662-.172-.435-.36-.693-.719-.742-.187-.016-.25-.097-.25-.193 0-.194.313-.339.625-.339.453 0 .844.29 1.25.887.313.468.641.678 1.031.678.391 0 .641-.146 1-.516.266-.275.469-.517.657-.678Z"></path></svg>
+    
+    </a>
+  </div>
+  </div>
+</header><hr class="bz-header-hr">
+  <div class="bz-content"><aside class="bz-sidebar-primary" data-drawer="bz-sidebar-primary">
+  
+  
+    <nav class="bz-sidebar-nav" aria-label="Section Navigation"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../math-fundamentals/index.html">深度学习核心数学基础</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">翻越两座山：CNN 三十年攀登史</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html">引言：因为山在那里</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">上篇：练习峰</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="introduction.html">引言：从公式到代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fc-layer-basics.html">全连接：赤手空拳</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cnn-basics.html">卷积：发现装备</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">数据准备：打包行囊</a></li>
+<li class="toctree-l3"><a class="reference internal" href="neural-training-basics.html">训练基础：登山纪律</a></li>
+<li class="toctree-l3"><a class="reference internal" href="le-net.html">LeNet-5：练习峰首登</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exp-cmp.html">实验对比：登山日志</a></li>
+<li class="toctree-l3"><a class="reference internal" href="the-end.html">练习峰，登顶</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../ablation-study/index.html">拆开看看：CNN 消融研究</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../ablation-study/introduction.html">引言：拆开看看</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ablation-study/the-end.html">结语</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../image-net-era/index.html">下篇：真正的未登峰</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/introduction.html">引言：真正的山</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/alexnet.html">AlexNet：真正的未登峰，首登！</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/inception.html">Inception：多尺度工具</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/res-net.html">ResNet：高原反应补给站</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/se-net.html">SE-Net：学会聚焦</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/cbam.html">CBAM：哪里重要 + 什么重要</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/mobilenet.html">MobileNet：一个人，一把冰镐</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/efficientnet.html">EfficientNet：每一分钱，花在刀刃上</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/the-end.html">登山下篇回顾：八年，八件装备</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/index.html">架构心法：从会用装备到会设计装备</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part1-intro.html">诊断入门：信息论听诊器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：效果、速度与硬件的三角权衡</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/the-end.html">登山者笔记：四件装备，三十年</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../the-end.html">下一座山</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../model-serving/index.html">模型部署与服务：从训练到生产</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/model-optimization.html">模型优化：量化与剪枝</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../unet-image-segmentation/index.html">U-Net：图像分割的革命</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sequence-modeling/index.html">序列建模：从 RNN 到 Transformer 再到 Mamba</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/introduction.html">引言：从空间到时间</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/transformer.html">Transformer：注意力的极致</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/mamba-intro.html">Mamba 简述：对RNN思想的回归</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../appendix/environment-setup/index.html">环境配置</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../appendix/sphinx-guide/index.html">Sphinx Markdown 语法参考</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../appendix/build-docs.html">编译文档</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../postscript.html">写在后面</a></li>
+</ul>
+</nav>
+  
+
+</aside><main id="bz-main-content"><header class="bz-article-header">
+  
+  
+    <nav class="bz-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li class="bz-breadcrumbs-home">
+      <a href="../../index.html" aria-label="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8.543 2.232a.75.75 0 0 0-1.085 0l-5.25 5.5A.75.75 0 0 0 2.75 9H4v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V9h1.25a.75.75 0 0 0 .543-1.268l-5.25-5.5Z" />
+        </svg>
+      </a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="../index.html">翻越两座山：CNN 三十年攀登史</a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="index.html">上篇：练习峰</a>
+    </li><li class="bz-breadcrumbs-current">
+      <span>数据准备：打包行囊</span>
+    </li>
+  </ol>
+</nav>
+  
+<label
+  class="bz-sidebar-secondary-toggle"
+  for="bz-sidebar-secondary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle table of contents"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75H20.25 M11.25 12H20.25 M7.75 17.25H20.25"
+    />
+  </svg>
+</label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="dataset-preparation">
+<span id="id1"></span><h1>数据准备：打包行囊<a class="headerlink" href="#dataset-preparation" title="Link to this heading">#</a></h1>
+<blockquote>
+<div><p>打包行囊——数据怎么从硬盘飞到 GPU？</p>
+</div></blockquote>
+<p>装备有了。出发前最后一件事：<strong>打包行囊。</strong> 数据不会自己变成张量。<a class="reference internal" href="cnn-basics.html"><span class="doc">卷积：发现装备</span></a> 教会了 CNN 如何提取特征，但数据从哪里来、怎么从硬盘飞到 GPU——这是登山前必须解决的。</p>
+<p>本节回答这个问题，打造一条完整的数据流水线：从原始数据 → 预处理 → Dataset → DataLoader → GPU。</p>
+<section id="data-preparation-flow">
+<span id="id2"></span><h2>数据流水线概览<a class="headerlink" href="#data-preparation-flow" title="Link to this heading">#</a></h2>
+<pre  class="mermaid">
+        graph LR
+    A[原始数据&lt;br/&gt;磁盘上的文件] --&gt; B[Transform&lt;br/&gt;预处理/增强]
+    B --&gt; C[Dataset&lt;br/&gt;Python可索引对象]
+    C --&gt; D[DataLoader&lt;br/&gt;自动批量化+并行加载]
+    D --&gt; E[GPU&lt;br/&gt;训练循环]
+    </pre><p>从右往左看：<strong>PyTorch 不需要你知道文件存在哪里，它只需要一个能<code class="docutils literal notranslate"><span class="pre">按索引返回(图片,</span> <span class="pre">标签)</span></code>的对象</strong>——这就是 Dataset。DataLoader 负责在这个对象上自动打包成 batch、打乱顺序、多进程预加载。</p>
+</section>
+<section id="id3">
+<h2>第一步：数据从哪里来<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<section id="id4">
+<h3>内置数据集（最省心）<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p>对于 MNIST、CIFAR-10、ImageNet 等经典基准数据集，PyTorch 通过 <code class="docutils literal notranslate"><span class="pre">torchvision.datasets</span></code> 一行代码下载并准备好：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torchvision</span>
+
+<span class="c1"># 下载 MNIST（第一次自动下载，之后复用本地缓存）</span>
+<span class="n">train_data</span> <span class="o">=</span> <span class="n">torchvision</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">MNIST</span><span class="p">(</span>
+    <span class="n">root</span><span class="o">=</span><span class="s1">&#39;./data&#39;</span><span class="p">,</span>      <span class="c1"># 本地缓存目录</span>
+    <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>         <span class="c1"># 训练集</span>
+    <span class="n">download</span><span class="o">=</span><span class="kc">True</span>       <span class="c1"># 第一次运行时设为 True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="note admonition">
+<p class="admonition-title">常用内置数据集</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>数据集</p></th>
+<th class="head"><p>PyTorch 类</p></th>
+<th class="head"><p>任务</p></th>
+<th class="head"><p>规模</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>MNIST</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">torchvision.datasets.MNIST</span></code></p></td>
+<td><p>手写数字分类（10类）</p></td>
+<td><p>60K训练 / 10K测试</p></td>
+</tr>
+<tr class="row-odd"><td><p>Fashion-MNIST</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">torchvision.datasets.FashionMNIST</span></code></p></td>
+<td><p>服装分类（10类）</p></td>
+<td><p>60K训练 / 10K测试</p></td>
+</tr>
+<tr class="row-even"><td><p>CIFAR-10</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">torchvision.datasets.CIFAR10</span></code></p></td>
+<td><p>通用物体分类（10类）</p></td>
+<td><p>50K训练 / 10K测试</p></td>
+</tr>
+<tr class="row-odd"><td><p>CIFAR-100</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">torchvision.datasets.CIFAR100</span></code></p></td>
+<td><p>通用物体分类（100类）</p></td>
+<td><p>50K训练 / 10K测试</p></td>
+</tr>
+<tr class="row-even"><td><p>ImageNet</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">torchvision.datasets.ImageNet</span></code></p></td>
+<td><p>大规模分类（1000类）</p></td>
+<td><p>1.2M训练 / 50K验证</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="id5">
+<h3>自定义数据集（真实项目）<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<p>真实场景中你的数据通常是以文件夹形式组织的：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>data/
+├── train/
+│   ├── cat/        # 按类别分文件夹
+│   │   ├── cat_001.jpg
+│   │   ├── cat_002.jpg
+│   │   └── ...
+│   ├── dog/
+│   └── ...
+└── test/
+    ├── cat/
+    ├── dog/
+    └── ...
+</pre></div>
+</div>
+<p>对于这种结构，<code class="docutils literal notranslate"><span class="pre">torchvision.datasets.ImageFolder</span></code> 直接读取：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchvision.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">ImageFolder</span>
+
+<span class="c1"># 自动按文件夹名分配标签：cat→0, dog→1, ...</span>
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">ImageFolder</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;data/train&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">classes</span><span class="p">)</span>      <span class="c1"># [&#39;cat&#39;, &#39;dog&#39;, ...]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">class_to_idx</span><span class="p">)</span> <span class="c1"># {&#39;cat&#39;: 0, &#39;dog&#39;: 1, ...}</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">警告</p>
+<p>ImageFolder 要求数据按<strong>文件夹名 = 类别名</strong>组织。如果你的数据是 CSV/JSON/X光片等非图像格式，就需要自己写 Dataset 类（见第六步）。</p>
+</div>
+</section>
+</section>
+<section id="transform">
+<h2>第二步：Transform——从图像到张量<a class="headerlink" href="#transform" title="Link to this heading">#</a></h2>
+<p>原始图像是 JPEG/PNG 文件（像素值 0~255），不能直接喂给神经网络，需要<strong>三步标准处理</strong>：</p>
+<pre  class="mermaid">
+        graph LR
+    A[&quot;JPEG文件&lt;br/&gt;PIL Image&quot;] --&gt; B[&quot;ToTensor&lt;br/&gt;H×W×C → C×H×W&lt;br/&gt;0-255 → 0.0-1.0&quot;]
+    B --&gt; C[&quot;Normalize&lt;br/&gt;(x - mean) / std&lt;br/&gt;中心化+缩放到&quot;]
+    C --&gt; D[&quot;最终输入&lt;br/&gt;分布≈N(0,1)&quot;]
+    </pre><section id="totensor">
+<h3>ToTensor：格式转换 + 归一化<a class="headerlink" href="#totensor" title="Link to this heading">#</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">()</span>  <span class="c1"># 做了两件事：</span>
+                      <span class="c1"># 1. PIL Image (H×W×C) → Tensor (C×H×W)</span>
+                      <span class="c1"># 2. [0, 255] → [0.0, 1.0]</span>
+</pre></div>
+</div>
+</section>
+<section id="normalize">
+<h3>Normalize：标准化<a class="headerlink" href="#normalize" title="Link to this heading">#</a></h3>
+<p>图像数据中，像素强度差异很大（背景暗、文字亮）。标准化让每个通道的均值为 0、方差为 1，<strong>帮助梯度下降更稳定地收敛</strong>。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchvision</span><span class="w"> </span><span class="kn">import</span> <span class="n">transforms</span>
+
+<span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+    <span class="c1"># (x - mean) / std，mean 和 std 是数据集的统计值</span>
+    <span class="c1"># MNIST 是灰度图，所以只有 1 个通道</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.1307</span><span class="p">,),</span> <span class="p">(</span><span class="mf">0.3081</span><span class="p">,))</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+<p>这里的 <code class="docutils literal notranslate"><span class="pre">(0.1307,)</span></code> 和 <code class="docutils literal notranslate"><span class="pre">(0.3081,)</span></code> 是从整个 MNIST 训练集计算出来的<strong>全局均值和标准差</strong>。它们的作用是让模型输入具有统一的数值范围，不受亮度、对比度的影响。</p>
+<p><strong>对于彩色图像</strong>（如 CIFAR-10）每个通道分别标准化：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># CIFAR-10 的 RGB 三通道统计值</span>
+<span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span>
+        <span class="n">mean</span><span class="o">=</span><span class="p">(</span><span class="mf">0.4914</span><span class="p">,</span> <span class="mf">0.4822</span><span class="p">,</span> <span class="mf">0.4465</span><span class="p">),</span>  <span class="c1"># R/G/B 各通道均值</span>
+        <span class="n">std</span><span class="o">=</span><span class="p">(</span><span class="mf">0.2023</span><span class="p">,</span> <span class="mf">0.1994</span><span class="p">,</span> <span class="mf">0.2010</span><span class="p">)</span>    <span class="c1"># R/G/B 各通道标准差</span>
+    <span class="p">)</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="id6">
+<h3>训练集与验证集的 transform 不同<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p>这是实践中最常犯的错误之一：<strong>验证集和测试集不能做数据增强</strong>，只能用标准的 ToTensor + Normalize。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 训练集 transform：可做数据增强</span>
+<span class="n">train_transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">RandomRotation</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>        <span class="c1"># 随机旋转 ±10°</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">RandomAffine</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">translate</span><span class="o">=</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)),</span>  <span class="c1"># 随机平移 ±10%</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.1307</span><span class="p">,),</span> <span class="p">(</span><span class="mf">0.3081</span><span class="p">,))</span>
+<span class="p">])</span>
+
+<span class="c1"># 验证/测试集 transform：只做标准化</span>
+<span class="n">val_transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.1307</span><span class="p">,),</span> <span class="p">(</span><span class="mf">0.3081</span><span class="p">,))</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+<div class="warning admonition">
+<p class="admonition-title">为什么验证集不能做数据增强？</p>
+<p>数据增强（旋转、平移、翻转）本质上是在<strong>制造&quot;假样本&quot;<strong>来扩增训练数据。但在验证时，我们需要</strong>评估模型在真实数据上的表现</strong>——如果验证集也被增强了，评估结果就不反映真实性能了。就像你平时用模拟题练习（数据增强），但考试时题目必须是原题（无增强）。</p>
+</div>
+</section>
+<section id="id7">
+<h3>常见数据增强操作一览<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>操作</p></th>
+<th class="head"><p>transforms 类</p></th>
+<th class="head"><p>典型参数</p></th>
+<th class="head"><p>效果</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>随机旋转</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RandomRotation</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">degrees=10</span></code></p></td>
+<td><p>小幅旋转，增加旋转不变性</p></td>
+</tr>
+<tr class="row-odd"><td><p>随机平移</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RandomAffine</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">translate=(0.1,</span> <span class="pre">0.1)</span></code></p></td>
+<td><p>小幅平移，增加平移不变性</p></td>
+</tr>
+<tr class="row-even"><td><p>随机翻转</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RandomHorizontalFlip</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">p=0.5</span></code></p></td>
+<td><p>水平镜像，增加翻转不变性</p></td>
+</tr>
+<tr class="row-odd"><td><p>随机裁剪</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RandomCrop</span></code> / <code class="docutils literal notranslate"><span class="pre">RandomResizedCrop</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">size=224</span></code></p></td>
+<td><p>局部特征，增加尺度不变性</p></td>
+</tr>
+<tr class="row-even"><td><p>色彩抖动</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ColorJitter</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">brightness=0.2</span></code></p></td>
+<td><p>调整亮度/对比度，增加光照不变性</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="albumentations">
+<span id="id8"></span><h3>Albumentations：更强大的图像增强库<a class="headerlink" href="#albumentations" title="Link to this heading">#</a></h3>
+<p>上面表格中的操作可以应付 MNIST/CIFAR 等基础任务，但在真实项目中（特别是竞赛和生产环境），你可能需要<strong>更强、更快、更丰富的增强策略</strong>——这就是 <a class="reference internal" href="../../pytorch-practice/train-workflow.html"><span class="doc">完整训练流程</span></a> 中提到的 <a class="reference internal" href="../../pytorch-practice/best-practices.html"><span class="doc">工程最佳实践</span></a> 里会再次讨论的 Albumentations。</p>
+<section id="id9">
+<h4>为什么用 Albumentations？<a class="headerlink" href="#id9" title="Link to this heading">#</a></h4>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>对比维度</p></th>
+<th class="head"><p>torchvision.transforms</p></th>
+<th class="head"><p>Albumentations</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>增强种类</strong></p></td>
+<td><p>~20种</p></td>
+<td><p><strong>~70种</strong>，涵盖像素级、空间级、噪声模拟</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>速度</strong></p></td>
+<td><p>一般</p></td>
+<td><p><strong>快 2~5 倍</strong>（基于 OpenCV 实现）</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>API 一致性</strong></p></td>
+<td><p>每个类参数风格不同</p></td>
+<td><p>统一的 <code class="docutils literal notranslate"><span class="pre">always_apply</span></code> / <code class="docutils literal notranslate"><span class="pre">p=0.5</span></code> 概率控制</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>边界框/掩码同步增强</strong></p></td>
+<td><p><span class="bz-emoji">❌</span> 不支持</p></td>
+<td><p><span class="bz-emoji">✅</span> 目标检测/分割的标注同步变换</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>pip install</strong></p></td>
+<td><p>随 torchvision 自带</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">albumentations</span></code> 单独安装</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id10">
+<h4>安装<a class="headerlink" href="#id10" title="Link to this heading">#</a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>albumentations
+</pre></div>
+</div>
+</section>
+<section id="id11">
+<h4>基本用法<a class="headerlink" href="#id11" title="Link to this heading">#</a></h4>
+<p>Albumentations 的 API 与 <code class="docutils literal notranslate"><span class="pre">transforms.Compose</span></code> 类似，但参数更一致，并且所有操作都支持统一的概率控制：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">albumentations</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">A</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">albumentations.pytorch</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToTensorV2</span>
+
+<span class="c1"># 训练集增强</span>
+<span class="c1"># 注意每个操作都有 p=... 指定概率，默认 p=1</span>
+<span class="c1"># A.Compose 按顺序应用，与 torchvision 的 transforms.Compose 相同</span>
+<span class="n">train_transform</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+    <span class="n">A</span><span class="o">.</span><span class="n">HorizontalFlip</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>               <span class="c1"># 50% 概率翻转</span>
+    <span class="n">A</span><span class="o">.</span><span class="n">Rotate</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.8</span><span class="p">),</span>             <span class="c1"># 80% 概率旋转 ±15°</span>
+    <span class="n">A</span><span class="o">.</span><span class="n">RandomBrightnessContrast</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>     <span class="c1"># 50% 概率调整亮度对比度</span>
+    <span class="n">A</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="p">(</span><span class="mf">0.1307</span><span class="p">,),</span> <span class="n">std</span><span class="o">=</span><span class="p">(</span><span class="mf">0.3081</span><span class="p">,)),</span>
+    <span class="n">ToTensorV2</span><span class="p">(),</span>
+<span class="p">])</span>
+
+<span class="c1"># 验证集：只做标准化（与 torchvision 一致）</span>
+<span class="n">val_transform</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+    <span class="n">A</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="p">(</span><span class="mf">0.1307</span><span class="p">,),</span> <span class="n">std</span><span class="o">=</span><span class="p">(</span><span class="mf">0.3081</span><span class="p">,)),</span>
+    <span class="n">ToTensorV2</span><span class="p">(),</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="pytorch-dataset">
+<h4>与 PyTorch Dataset 集成<a class="headerlink" href="#pytorch-dataset" title="Link to this heading">#</a></h4>
+<p>Albumentations 的输入输出格式与 torchvision 不同，需要在 Dataset 的 <code class="docutils literal notranslate"><span class="pre">__getitem__</span></code> 中做适配：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">AlbumentationsDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;支持 Albumentations 增强的 Dataset&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_paths</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image_paths</span> <span class="o">=</span> <span class="n">image_paths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image_paths</span><span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="c1"># 1. 读取图像（Albumentations 需要 numpy 数组格式）</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image_paths</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_BGR2RGB</span><span class="p">)</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        
+        <span class="c1"># 2. 应用增强（传入 dict，返回 dict）</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">:</span>
+            <span class="n">augmented</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="n">image</span><span class="p">)</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">augmented</span><span class="p">[</span><span class="s1">&#39;image&#39;</span><span class="p">]</span>
+        
+        <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">label</span>
+</pre></div>
+</div>
+</section>
+<section id="id12">
+<h4>Albumentations 的独家增强操作<a class="headerlink" href="#id12" title="Link to this heading">#</a></h4>
+<p>以下是一些 torchvision 没有、但在竞赛中非常常用的增强：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>操作</p></th>
+<th class="head"><p>类</p></th>
+<th class="head"><p>效果</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>网格失真</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">A.GridDistortion</span></code></p></td>
+<td><p>模拟镜头畸变，增加几何鲁棒性</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>光学畸变</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">A.OpticalDistortion</span></code></p></td>
+<td><p>模拟鱼眼镜头效果</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Cutout / CoarseDropout</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">A.CoarseDropout</span></code></p></td>
+<td><p>随机遮罩部分区域，防止过拟合到特定纹理</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>像素级噪声</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">A.GaussNoise</span></code></p></td>
+<td><p>模拟传感器噪声，增加抗噪能力</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>锐化/模糊</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">A.Sharpen</span></code> / <code class="docutils literal notranslate"><span class="pre">A.Blur</span></code> / <code class="docutils literal notranslate"><span class="pre">A.MotionBlur</span></code></p></td>
+<td><p>模拟对焦不准或运动模糊</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>通道偏移</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">A.ChannelShuffle</span></code></p></td>
+<td><p>随机打乱颜色通道，增加色彩鲁棒性</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="torchvision-albumentations">
+<h4>何时用 torchvision，何时用 Albumentations？<a class="headerlink" href="#torchvision-albumentations" title="Link to this heading">#</a></h4>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>场景</p></th>
+<th class="head"><p>推荐</p></th>
+<th class="head"><p>理由</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>MNIST/CIFAR 学习入门</p></td>
+<td><p>torchvision</p></td>
+<td><p>零额外依赖，够用</p></td>
+</tr>
+<tr class="row-odd"><td><p>ImageNet 级分类</p></td>
+<td><p>torchvision 或 Albumentations</p></td>
+<td><p>两者均可</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>目标检测 / 语义分割</strong></p></td>
+<td><p><strong>Albumentations</strong></p></td>
+<td><p>标注（边界框、掩码）同步变换是关键能力</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>比赛 / 生产调优</strong></p></td>
+<td><p><strong>Albumentations</strong></p></td>
+<td><p>70+ 增强策略，精细控制，可反复组合</p></td>
+</tr>
+<tr class="row-even"><td><p>自定义数据加载逻辑</p></td>
+<td><p>两者结合</p></td>
+<td><p>torchvision 处理基础，Albumentations 扩展增强</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">数据增强哲学：适度优于过度</p>
+<p>数据增强不是越多越好。过多的增强（如同时做旋转+畸变+Cutout+噪声）可能导致：</p>
+<ol class="arabic simple">
+<li><p><strong>样本失真</strong>：增强后的图像人类都认不出，模型更不可能学会</p></li>
+<li><p><strong>训练不稳定</strong>：输入分布变化过大，梯度难以收敛</p></li>
+<li><p><strong>性价比递减</strong>：前 3~5 种增强效果最显著，超过 8 种几乎没有额外收益</p></li>
+</ol>
+<p>一个实用的起点是：<strong>旋转 + 翻转 + 颜色抖动 + Cutout</strong>，根据任务逐步追加。</p>
+</div>
+</section>
+</section>
+</section>
+<section id="dataset">
+<h2>第三步：Dataset——数据结构的统一接口<a class="headerlink" href="#dataset" title="Link to this heading">#</a></h2>
+<p><strong>Dataset 是 PyTorch 数据系统的核心抽象</strong>。它定义了一个简单的协议：“给我一个索引，返回一个 (数据, 标签) 对”。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
+
+<span class="c1"># 任何 Dataset 都只需要实现两个方法</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;返回数据集总大小&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;返回第 idx 个样本的 (数据, 标签) &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+<p>对于内置数据集（如 MNIST），PyTorch 已经实现了这两个方法，你不需要自己写。</p>
+<p><strong>Dataset 只负责&quot;有什么数据&quot;，不负责&quot;怎么组织成 batch&quot;</strong>——那是 DataLoader 的事。</p>
+<div class="important admonition">
+<p class="admonition-title">Dataset vs DataLoader 的职责边界</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>组件</p></th>
+<th class="head"><p>职责</p></th>
+<th class="head"><p>不负责</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Dataset</strong></p></td>
+<td><p>索引 → (数据, 标签)</p></td>
+<td><p>打乱顺序、打包batch、多进程</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>DataLoader</strong></p></td>
+<td><p>Dataset → batch</p></td>
+<td><p>文件读取、预处理</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="dataloader">
+<h2>第四步：DataLoader——从单样本到批量<a class="headerlink" href="#dataloader" title="Link to this heading">#</a></h2>
+<p>有了 Dataset 之后，DataLoader 把它变成一个<strong>可迭代的批量数据源</strong>：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataLoader</span>
+
+<span class="n">train_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span>
+    <span class="n">train_dataset</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>     <span class="c1"># 每批 64 个样本</span>
+    <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>      <span class="c1"># 每 epoch 打乱顺序</span>
+    <span class="n">num_workers</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>     <span class="c1"># 2 个子进程预加载数据</span>
+    <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span>    <span class="c1"># 加速 GPU 数据传输</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<section id="id13">
+<h3>关键参数详解<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<p><strong><code class="docutils literal notranslate"><span class="pre">batch_size</span></code></strong>：每批打包多少个样本。模型是<strong>每批更新一次参数</strong>，所以 batch size 直接影响：</p>
+<ul class="simple">
+<li><p>内存占用：batch size × 单个样本大小</p></li>
+<li><p>梯度稳定性：batch 越大，梯度估计越准确</p></li>
+<li><p>泛化能力：过大的 batch 可能降低泛化性能</p></li>
+</ul>
+<p><strong><code class="docutils literal notranslate"><span class="pre">shuffle</span></code></strong>：每轮训练前打乱数据。如果不打乱，模型会&quot;记住&quot;数据顺序而非真正学习特征。</p>
+<p><strong><code class="docutils literal notranslate"><span class="pre">num_workers</span></code></strong>：用几个子进程预加载下一批数据。设置为 2~8 可以显著加速数据加载，但过大反而增加开销。</p>
+<p><strong><code class="docutils literal notranslate"><span class="pre">pin_memory</span></code></strong>：将数据固定在 CPU 内存的特定区域，<strong>加速 CPU → GPU 传输</strong>。设为 <code class="docutils literal notranslate"><span class="pre">True</span></code> 几乎总是更好。</p>
+</section>
+<section id="id14">
+<h3>实际效果演示<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 假设 train_dataset 有 60,000 张 MNIST 图片</span>
+<span class="n">train_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span>
+    <span class="n">train_dataset</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+    <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">num_workers</span><span class="o">=</span><span class="mi">2</span>
+<span class="p">)</span>
+
+<span class="c1"># 每次迭代返回一个 batch</span>
+<span class="k">for</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">train_loader</span><span class="p">):</span>
+    <span class="c1"># images.shape: [64, 1, 28, 28]  — 64张灰度图</span>
+    <span class="c1"># labels.shape: [64]             — 64个标签</span>
+    <span class="c1"># batch_idx: 0, 1, 2, ..., 937   — 共 938 个 batch</span>
+    
+    <span class="k">if</span> <span class="n">batch_idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;image shape: </span><span class="si">{</span><span class="n">images</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># [64, 1, 28, 28]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;label shape: </span><span class="si">{</span><span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>   <span class="c1"># [64]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;labels: </span><span class="si">{</span><span class="n">labels</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>               <span class="c1"># tensor([3, 7, 1, ...])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;total batches per epoch: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">train_loader</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 938</span>
+        <span class="k">break</span>
+</pre></div>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">GPU 数据传输路径</p>
+<p>流式加载机制保证了训练循环不会因为 I/O 而停滞——GPU 在算第 N 批时，CPU 已经在加载第 N+1 批了。</p>
+</div>
+</section>
+</section>
+<section id="train-val-test">
+<h2>第五步：数据集拆分——train / val / test<a class="headerlink" href="#train-val-test" title="Link to this heading">#</a></h2>
+<p><strong>模型训练不能只看训练集</strong>，需要三组数据各司其职：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>数据集</p></th>
+<th class="head"><p>用途</p></th>
+<th class="head"><p>使用频率</p></th>
+<th class="head"><p>核心要求</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>训练集</strong></p></td>
+<td><p>更新模型参数（权重+偏置）</p></td>
+<td><p>每个 epoch 反复使用</p></td>
+<td><p>数据量大，覆盖多样性</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>验证集</strong></p></td>
+<td><p>选择超参数、检测过拟合</p></td>
+<td><p>每 epoch 后评估一次</p></td>
+<td><p>与训练集独立分布，但不可参与训练</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>测试集</strong></p></td>
+<td><p>最终报告模型性能</p></td>
+<td><p>只在全部调参完成后用一次</p></td>
+<td><p>完全隔离，绝不可泄露</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="train-test-split">
+<h3>最常用：随机拆分（train_test_split）<a class="headerlink" href="#train-test-split" title="Link to this heading">#</a></h3>
+<p>很多内置数据集只给了训练/测试两份，<strong>需要自己从中分出验证集</strong>。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">random_split</span>
+
+<span class="c1"># MNIST 标准划分：60K 训练 / 10K 测试</span>
+<span class="c1"># 从 60K 训练集中分出 10% 作为验证集</span>
+<span class="n">train_dataset</span> <span class="o">=</span> <span class="n">torchvision</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">MNIST</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;./data&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">test_dataset</span>  <span class="o">=</span> <span class="n">torchvision</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">MNIST</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;./data&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">val_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">0.1</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">))</span>  <span class="c1"># 6,000 张</span>
+<span class="n">train_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">)</span> <span class="o">-</span> <span class="n">val_size</span>  <span class="c1"># 54,000 张</span>
+
+<span class="c1"># random_split 按比例随机拆分，不会破坏类别平衡</span>
+<span class="n">train_subset</span><span class="p">,</span> <span class="n">val_subset</span> <span class="o">=</span> <span class="n">random_split</span><span class="p">(</span>
+    <span class="n">train_dataset</span><span class="p">,</span> 
+    <span class="p">[</span><span class="n">train_size</span><span class="p">,</span> <span class="n">val_size</span><span class="p">],</span>
+    <span class="n">generator</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">Generator</span><span class="p">()</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>  <span class="c1"># 固定种子，确保可复现</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;训练集: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">train_subset</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>   <span class="c1"># 54,000</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;验证集: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">val_subset</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>     <span class="c1"># 6,000</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;测试集: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>   <span class="c1"># 10,000</span>
+</pre></div>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">为什么需要固定 random_split 种子？</p>
+<p>不固定种子的话，每次运行程序验证集会不同——今天在 A 组上验证好，明天可能在 B 组上不好，实验结果不可复现。固定 <code class="docutils literal notranslate"><span class="pre">manual_seed(42)</span></code> 确保每次拆分结果一致。</p>
+</div>
+</section>
+<section id="id15">
+<h3>分层拆分（保持类别比例）<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">random_split</span></code> 是随机抽取，在小数据集上可能破坏类别平衡。如果原始数据分布不均（如猫 90%，狗 10%），随机抽取的验证集可能恰好没有狗。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># 获取所有数据的标签</span>
+<span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">train_dataset</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">))]</span>
+
+<span class="c1"># 分层拆分：按标签比例分配</span>
+<span class="n">train_idx</span><span class="p">,</span> <span class="n">val_idx</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">)),</span>
+    <span class="n">test_size</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+    <span class="n">stratify</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span>    <span class="c1"># 按标签分层</span>
+    <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span>
+<span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Subset</span>
+<span class="n">train_subset</span> <span class="o">=</span> <span class="n">Subset</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">train_idx</span><span class="p">)</span>
+<span class="n">val_subset</span>   <span class="o">=</span> <span class="n">Subset</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">val_idx</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="note admonition">
+<p class="admonition-title">scikit-learn vs torch 的选择</p>
+<ul class="simple">
+<li><p>数据量大且类别均衡 → <code class="docutils literal notranslate"><span class="pre">random_split</span></code> 就够了（简单、无额外依赖）</p></li>
+<li><p>小数据集或类别不均衡 → <code class="docutils literal notranslate"><span class="pre">train_test_split(stratify=...)</span></code>（需要 sklearn）</p></li>
+<li><p>做交叉验证 → <code class="docutils literal notranslate"><span class="pre">KFold</span></code> / <code class="docutils literal notranslate"><span class="pre">StratifiedKFold</span></code>（也需要 sklearn）</p></li>
+</ul>
+</div>
+</section>
+<section id="id16">
+<h3>完整数据流水线模板<a class="headerlink" href="#id16" title="Link to this heading">#</a></h3>
+<p>把上述所有步骤组合成一个可复用的函数：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">prepare_mnist_data</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">val_split</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    返回 train_loader, val_loader, test_loader</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        batch_size: 每批样本数</span>
+<span class="sd">        val_split:  从训练集中分出的验证集比例</span>
+<span class="sd">        num_workers: 并行加载进程数</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># 1. 定义 transform（训练集有增强，验证/测试集无增强）</span>
+    <span class="n">train_transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">RandomRotation</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">RandomAffine</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">translate</span><span class="o">=</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)),</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.1307</span><span class="p">,),</span> <span class="p">(</span><span class="mf">0.3081</span><span class="p">,))</span>
+    <span class="p">])</span>
+    
+    <span class="n">val_transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.1307</span><span class="p">,),</span> <span class="p">(</span><span class="mf">0.3081</span><span class="p">,))</span>
+    <span class="p">])</span>
+    
+    <span class="c1"># 2. 加载原始数据</span>
+    <span class="n">full_train</span> <span class="o">=</span> <span class="n">torchvision</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">MNIST</span><span class="p">(</span>
+        <span class="n">root</span><span class="o">=</span><span class="s1">&#39;./data&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">test_dataset</span> <span class="o">=</span> <span class="n">torchvision</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">MNIST</span><span class="p">(</span>
+        <span class="n">root</span><span class="o">=</span><span class="s1">&#39;./data&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">val_transform</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># 3. 拆分 train / val</span>
+    <span class="n">val_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">val_split</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">full_train</span><span class="p">))</span>
+    <span class="n">train_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">full_train</span><span class="p">)</span> <span class="o">-</span> <span class="n">val_size</span>
+    
+    <span class="n">train_dataset</span><span class="p">,</span> <span class="n">val_dataset</span> <span class="o">=</span> <span class="n">random_split</span><span class="p">(</span>
+        <span class="n">full_train</span><span class="p">,</span> <span class="p">[</span><span class="n">train_size</span><span class="p">,</span> <span class="n">val_size</span><span class="p">],</span>
+        <span class="n">generator</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">Generator</span><span class="p">()</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># 4. 分别应用 transform（注意：random_split 之后才 apply transform）</span>
+    <span class="c1"># 因为 transform 已经在 Dataset 初始化时应用了，</span>
+    <span class="c1"># 所以这里我们预先在 full_train 上应用了 transform（略）</span>
+    <span class="c1"># </span>
+    <span class="c1"># 实际做法：用 Subset + 重写 __getitem__，或提前 apply</span>
+    <span class="c1"># 这里简化为：在初始化 Dataset 时直接传 transform</span>
+    <span class="c1"># 详见下面的&quot;最佳实践&quot;完整示例</span>
+    
+    <span class="c1"># 5. 创建 DataLoader</span>
+    <span class="n">train_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">train_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="n">num_workers</span><span class="p">,</span> <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">val_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">val_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="n">num_workers</span><span class="p">,</span> <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">test_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">test_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="n">num_workers</span><span class="p">,</span> <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">train_loader</span><span class="p">,</span> <span class="n">val_loader</span><span class="p">,</span> <span class="n">test_loader</span>
+</pre></div>
+</div>
+</section>
+<section id="id17">
+<h3>验证集与测试集的严格区分<a class="headerlink" href="#id17" title="Link to this heading">#</a></h3>
+<p>在训练循环中，验证集和测试集的使用方式截然不同：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="p">):</span>
+    <span class="c1"># —— 训练阶段 ——</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">images</span><span class="p">,</span> <span class="n">labels</span> <span class="ow">in</span> <span class="n">train_loader</span><span class="p">:</span>
+        <span class="n">images</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">labels</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">model</span><span class="p">(</span><span class="n">images</span><span class="p">),</span> <span class="n">labels</span><span class="p">)</span>
+        <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+    
+    <span class="c1"># —— 验证阶段 ——</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+    <span class="n">val_loss</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>  <span class="c1"># 验证时不计算梯度</span>
+        <span class="k">for</span> <span class="n">images</span><span class="p">,</span> <span class="n">labels</span> <span class="ow">in</span> <span class="n">val_loader</span><span class="p">:</span>
+            <span class="n">images</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">labels</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">val_loss</span> <span class="o">+=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">model</span><span class="p">(</span><span class="n">images</span><span class="p">),</span> <span class="n">labels</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s2">: val_loss = </span><span class="si">{</span><span class="n">val_loss</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">val_loader</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># —— 早停：验证集 loss 不再下降时停止训练 ——</span>
+    <span class="k">if</span> <span class="n">val_loss</span> <span class="o">&gt;</span> <span class="n">best_val_loss</span><span class="p">:</span>
+        <span class="n">patience_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">patience_counter</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>  <span class="c1"># 连续 5 个 epoch 没改善</span>
+            <span class="k">break</span>                   <span class="c1"># 停止训练</span>
+    
+<span class="c1"># —— 最终测试（只用一次！）——</span>
+<span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="n">test_acc</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">images</span><span class="p">,</span> <span class="n">labels</span> <span class="ow">in</span> <span class="n">test_loader</span><span class="p">:</span>
+        <span class="n">test_acc</span> <span class="o">+=</span> <span class="p">(</span><span class="n">model</span><span class="p">(</span><span class="n">images</span><span class="p">)</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="n">labels</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Test accuracy: </span><span class="si">{</span><span class="n">test_acc</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">test_loader</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id18">
+<h2>第六步：自定义 Dataset——处理任意格式的数据<a class="headerlink" href="#id18" title="Link to this heading">#</a></h2>
+<p>当 torchvision 和 ImageFolder 都满足不了需求时（比如你需要读取 CSV 文件、医疗 DICOM 图像、自定义二进制格式），就自己写 Dataset 类：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CustomImageDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;从 CSV 文件 + 图片文件夹读取数据&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csv_file</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            csv_file: CSV 文件路径，包含 &#39;filename&#39;, &#39;label&#39; 两列</span>
+<span class="sd">            img_dir:  图片所在文件夹</span>
+<span class="sd">            transform: 预处理流水线</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">csv_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">img_dir</span> <span class="o">=</span> <span class="n">img_dir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;返回第 idx 个样本的 (image, label)&quot;&quot;&quot;</span>
+        <span class="c1"># 1. 读取图片</span>
+        <span class="n">img_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">img_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">img_dir</span><span class="p">,</span> <span class="n">img_name</span><span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img_path</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;RGB&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># 2. 读取标签</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        
+        <span class="c1"># 3. 应用预处理</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">:</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">label</span>
+</pre></div>
+</div>
+<div class="warning admonition">
+<p class="admonition-title">关键设计原则</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">__getitem__</span></code> <strong>在每次被调用时即时读取文件</strong>，而不是在 <code class="docutils literal notranslate"><span class="pre">__init__</span></code> 中一次性把所有图片加载到内存。如果数据集有 10,000 张图，一次性加载需要数十 GB 内存，按需加载只需要几 MB。</p></li>
+<li><p>一种常见的优化是<strong>缓存到内存</strong>：如果内存够大且频繁访问，可以在第一次读取后缓存结果。PyTorch 也提供了 <code class="docutils literal notranslate"><span class="pre">torchdata</span></code> 库来处理这类场景。</p></li>
+</ul>
+</div>
+</section>
+<section id="id19">
+<h2>总结<a class="headerlink" href="#id19" title="Link to this heading">#</a></h2>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>步骤</p></th>
+<th class="head"><p>组件</p></th>
+<th class="head"><p>一句话</p></th>
+<th class="head"><p>常见坑</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>数据源</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">torchvision.datasets</span></code></p></td>
+<td><p>下载即用，不用自己找</p></td>
+<td><p>忘记设 <code class="docutils literal notranslate"><span class="pre">download=True</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>预处理</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">transforms.Compose</span></code></p></td>
+<td><p>图像→张量→标准化</p></td>
+<td><p>验证集误用了数据增强</p></td>
+</tr>
+<tr class="row-even"><td><p>数据集</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Dataset</span></code> / <code class="docutils literal notranslate"><span class="pre">ImageFolder</span></code></p></td>
+<td><p>按索引返回 (数据, 标签)</p></td>
+<td><p>自定义 Dataset 时忘记 <code class="docutils literal notranslate"><span class="pre">convert('RGB')</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>拆分</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">random_split</span></code> / <code class="docutils literal notranslate"><span class="pre">Subset</span></code></p></td>
+<td><p>训练 / 验证 / 测试三份</p></td>
+<td><p>忘记固定种子，不可复现</p></td>
+</tr>
+<tr class="row-even"><td><p>批量化</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DataLoader</span></code></p></td>
+<td><p>自动打包 batch + 并行加载</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">num_workers=0</span></code> 导致训练速度瓶颈</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr class="docutils" />
+<p>行囊打好。但登山还有一条规矩——<a class="reference internal" href="neural-training-basics.html"><span class="doc">训练基础：登山纪律</span></a>：装备再好，不守纪律也会摔。</p>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">dc35df2</code>
+                2026-06-14 - <strong>Heyan Zhu</strong>: refactor: unify into two-chapter mountain-climbing narrative
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+</article><footer class="bz-article-footer">
+  
+  
+    <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="cnn-basics.html" rel="prev">
+    <span>Previous</span><span class="bz-related-pages-title">卷积：发现装备</span></a><a class="bz-related-pages-next" href="neural-training-basics.html" rel="next">
+    <span>Next</span>
+    <span class="bz-related-pages-title">训练基础：登山纪律</span>
+  </a></nav>
+  
+
+</footer><aside class="bz-sidebar-secondary" data-drawer="bz-sidebar-secondary">
+  
+  
+    
+  
+  
+  
+  
+
+
+
+<div class="bz-repo-stats">
+  <a
+    data-provider="github"
+    data-user="ulink-deep-learning-club"
+    data-repo="ulink-deeplearningclub-handouts"
+    href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    aria-label="ulink-deep-learning-club/ulink-deeplearningclub-handouts repository"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    <span
+      style="--bz-repo-stats-name-length: 56"
+      title="ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    >
+      ulink-deep-learning-club/ulink-deeplearningclub-handouts
+    </span>
+    <div class="bz-repo-stats-row">
+      <span class="bz-repo-stats-item" aria-label="Repository stars">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path></svg>
+        <span data-stat="stars">-</span>
+      </span>
+      <span class="bz-repo-stats-item" aria-label="Repository forks">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
+        <span data-stat="forks">-</span>
+      </span>
+    </div>
+  </a>
+</div>
+
+  
+    <div class="bz-edit-this-page">
+  <a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/source/cnn-expedition/practice-peak/dataset-preparation.md" rel="edit">
+    Edit this page
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"></path></svg>
+  </a>
+</div>
+  
+    <nav class="bz-sidebar-toc" aria-label="Table of contents">
+  <p>On this page</p><ul>
+<li><a class="reference internal" href="#data-preparation-flow">数据流水线概览</a></li>
+<li><a class="reference internal" href="#id3">第一步：数据从哪里来</a><ul>
+<li><a class="reference internal" href="#id4">内置数据集（最省心）</a></li>
+<li><a class="reference internal" href="#id5">自定义数据集（真实项目）</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#transform">第二步：Transform——从图像到张量</a><ul>
+<li><a class="reference internal" href="#totensor">ToTensor：格式转换 + 归一化</a></li>
+<li><a class="reference internal" href="#normalize">Normalize：标准化</a></li>
+<li><a class="reference internal" href="#id6">训练集与验证集的 transform 不同</a></li>
+<li><a class="reference internal" href="#id7">常见数据增强操作一览</a></li>
+<li><a class="reference internal" href="#albumentations">Albumentations：更强大的图像增强库</a><ul>
+<li><a class="reference internal" href="#id9">为什么用 Albumentations？</a></li>
+<li><a class="reference internal" href="#id10">安装</a></li>
+<li><a class="reference internal" href="#id11">基本用法</a></li>
+<li><a class="reference internal" href="#pytorch-dataset">与 PyTorch Dataset 集成</a></li>
+<li><a class="reference internal" href="#id12">Albumentations 的独家增强操作</a></li>
+<li><a class="reference internal" href="#torchvision-albumentations">何时用 torchvision，何时用 Albumentations？</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dataset">第三步：Dataset——数据结构的统一接口</a></li>
+<li><a class="reference internal" href="#dataloader">第四步：DataLoader——从单样本到批量</a><ul>
+<li><a class="reference internal" href="#id13">关键参数详解</a></li>
+<li><a class="reference internal" href="#id14">实际效果演示</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#train-val-test">第五步：数据集拆分——train / val / test</a><ul>
+<li><a class="reference internal" href="#train-test-split">最常用：随机拆分（train_​test_​split）</a></li>
+<li><a class="reference internal" href="#id15">分层拆分（保持类别比例）</a></li>
+<li><a class="reference internal" href="#id16">完整数据流水线模板</a></li>
+<li><a class="reference internal" href="#id17">验证集与测试集的严格区分</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id18">第六步：自定义 Dataset——处理任意格式的数据</a></li>
+<li><a class="reference internal" href="#id19">总结</a></li>
+</ul></nav>
+  
+
+</aside></main>
+  </div>
+<footer class="bz-footer">
+  <div class="bz-footer-copyright"><p class="bz-copyright">© Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0</p><p>
+    
+    
+    
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a href="https://github.com/aksiome/breeze">Breeze theme</a>.
+    
+  </p>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    
+    </a>
+  </div>
+</footer><a href="#" class="bz-back-to-top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+    </svg>
+    <span>Back to top</span>
+  </a>
+  <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
+  <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
+  <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../../_static/documentation_options.js?v=5a0213dc"></script><script src="../../_static/doctools.js?v=9bcbadda"></script><script src="../../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../../_static/translations.js?v=beaddf03"></script><script src="../../_static/design-tabs.js?v=f930bc37"></script><script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script><script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script><script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 360px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 360px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("True" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll(".mermaid svg");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("True" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script></body>
+</html>

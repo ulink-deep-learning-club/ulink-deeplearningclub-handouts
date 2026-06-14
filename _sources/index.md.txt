@@ -5,15 +5,12 @@
 
 preface
 math-fundamentals/index
-neural-network-basics/index
+cnn-expedition/index
 pytorch-practice/index
-cnn-ablation-study/index
+model-serving/index
 transfer-learning/index
-attention-mechanisms/index
-model-architecture-design/index
 unet-image-segmentation/index
 sequence-modeling/index
-model-serving/index
 appendix/index
 postscript
 ~~~
@@ -29,19 +26,17 @@ postscript
 
 ~~~{mermaid}
 graph LR
-    A[数学基础<br/>计算图与梯度] --> B[神经网络基础<br/>CNN架构]
+    A[数学基础<br/>计算图与梯度] --> B[翻越两座山<br/>CNN架构演化]
     B --> C[PyTorch实践<br/>训练流程]
-    C --> E{进阶方向<br/>任选其一}
-    E --> D1[注意力机制<br/>模型改进]
-    E --> D3[序列建模<br/>RNN到Transformer到Mamba]
-    E --> F[CNN消融研究<br/>科学方法论]
-    E --> G[迁移学习<br/>实用技术]
-    E --> H[U-Net分割<br/>CV实战]
-    E --> I[模型部署<br/>工程实践]
-    D1 --> D2[CNN架构改造<br/>设计心法]
+    C --> D{进阶方向<br/>任选方向}
+    D --> E[模型部署<br/>工程实践]
+    D --> F[迁移学习<br/>实用技术]
+    D --> G[U-Net分割<br/>CV实战]
+    D --> H[CNN架构改造<br/>设计心法]
+    D --> I[序列建模<br/>RNN到Transformer到Mamba]
 ~~~
 
-**核心路径**（必修）：数学基础 → 神经网络基础 → PyTorch实践  
+**核心路径**（必修）：数学基础 → 翻越两座山 → PyTorch实践
 **进阶路径**（选修）：根据兴趣选择一个或多个方向深入研究
 
 ~~~{rubric} 前置知识
@@ -57,9 +52,9 @@ graph LR
 **配套教材**：斋藤康毅《深度学习入门：基于Python的理论与实现》（俗称"鱼书"）。
 
 > 鱼书从Python/NumPy出发，**不依赖任何外部库**，手把手教你从零手写神经网络。本材料使用**PyTorch**，侧重"为什么"和"怎么用好"。两者是**互补关系**：
-> - 鱼书第3章（神经网络）→ 本材料{doc}`neural-network-basics/index`
-> - 鱼书第5章（计算图/反向传播）→ 本材料{doc}`pytorch-practice/index`（自动微分）
-> - 鱼书第7章（手写CNN）→ 本材料{doc}`cnn-ablation-study/index`
+> - 鱼书第3章（神经网络）→ 本材料{doc}`cnn-expedition/index`
+> - 鱼书第5章（计算图/反向传播）→ 本材料{doc}`math-fundamentals/index`
+> - 鱼书第7章（手写CNN）→ 本材料{doc}`cnn-expedition/index`
 >
 > 详见{doc}`preface`中的完整对照说明与8周并行学习计划。
 
@@ -69,16 +64,14 @@ graph LR
 
 | 阶段 | 章节 | 预计时间 | 核心目标 |
 | ---------- | ---------- | ---------- | ---------- |
-| **基础阶段** | 数学基础 | 2-3小时 | 理解自动微分和梯度下降的核心机制 |
-| | 神经网络基础 | 3-4小时 | 掌握归纳偏置，理解全连接与CNN的本质差异 |
+| **基础阶段** | 数学基础 | 2-3小时 | 理解计算图、反向传播和梯度下降的核心机制 |
+| | 翻越两座山 | 7-9小时 | 全连接→CNN→LeNet（上篇），AlexNet到EfficientNet（下篇），消融研究，架构心法 |
 | **实践阶段** | PyTorch实践 | 4-5小时 | 动手搭建并训练完整神经网络 |
-| **进阶阶段** | CNN消融研究 | 2-4周 | 培养科学实验思维，理解各组件贡献 |
+| **进阶阶段** | 模型部署 | 3-4小时 | ONNX导出、量化剪枝、服务架构、Ferrinx部署上线 |
 | | 迁移学习 | 2-3小时 | 掌握小数据集训练大模型的核心技术 |
-| | 序列建模 | 4-6小时 | 理解RNN/LSTM/Transformer/Mamba的演化逻辑与核心直觉 |
-| | 注意力机制 | 2-3小时 | 理解SE-Net、CBAM等注意力模块原理 |
-| | CNN架构改造 | 2-3小时 | 掌握CNN架构设计心法，学会系统改造模型 |
 | | U-Net分割 | 3-4小时 | 实现图像分割模型，理解编码器-解码器架构 |
-| | 模型部署 | 2-3小时 | 将训练好的模型导出并部署为API服务 |
+| | CNN架构改造 | 2-3小时 | 掌握CNN架构设计心法（属翻越两座山章，独立选修） |
+| | 序列建模 | 4-6小时 | 理解RNN/LSTM/Transformer/Mamba的演化逻辑 |
 
 **学习建议**：理论理解 40% + 代码实践 60% = 最佳效果
 
@@ -111,6 +104,5 @@ graph LR
 
 > ⚠️ **警告**：本课程包含大量梯度下降、反向传播和玄学调参。副作用可能包括：对 GPU 产生依赖、对过拟合产生恐惧、以及半夜醒来突然想到"是不是学习率太大"。
 
-**最后更新**：2026-04-29
+**最后更新**：2026-06-14
 ```
-

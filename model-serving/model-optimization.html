@@ -1,0 +1,1952 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-content_root="../">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="模型优化：量化与剪枝" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="model-serving/model-optimization.html" />
+<meta property="og:site_name" content="Deep Learning Club Handouts" />
+<meta property="og:description" content="ONNX：模型的中立语言 中我们把PyTorch模型导出成了ONNX格式，有了一个标准化的模型文件。但在真正部署之前，还有一个关键问题要解决： 这个模型够&quot;轻&quot;吗？ 一个典型的ResNet-50模型，用FP32存储需要约100MB的磁盘空间，推理一次需要约4 billion次浮点运算。如果要在手机上跑，100MB的下载包太大；如果要在服务器上同时处理100个请求，显存可能..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_model-serving_model-optimization_90182328.png" />
+<meta property="og:image:alt" content="ONNX：模型的中立语言 中我们把PyTorch模型导出成了ONNX格式，有了一个标准化的模型文件。但在真正部署之前，还有一个关键问题要解决： 这个模型够&quot;轻&quot;吗？ 一个典型的ResNet-50模型，用FP32存储需要约100MB的磁盘空间，推理一次需要约4 billion次浮点运算。如果要在手机上跑，100MB的下载包太大；如果要在服务器上同时处理100个请求，显存可能..." />
+<meta name="description" content="ONNX：模型的中立语言 中我们把PyTorch模型导出成了ONNX格式，有了一个标准化的模型文件。但在真正部署之前，还有一个关键问题要解决： 这个模型够&quot;轻&quot;吗？ 一个典型的ResNet-50模型，用FP32存储需要约100MB的磁盘空间，推理一次需要约4 billion次浮点运算。如果要在手机上跑，100MB的下载包太大；如果要在服务器上同时处理100个请求，显存可能..." />
+<meta name="twitter:card" content="summary_large_image" />
+<title>模型优化：量化与剪枝 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="服务架构：从单机到分布式" href="serving-architecture.html"><link rel="prev" title="ONNX：模型的中立语言" href="onnx-export.html"><script data-cfasync="false">(function(){
+    const m = localStorage.getItem("breeze-mode") || "auto";
+    const d = document.documentElement.dataset;
+    d.mode = m;
+    d.theme = m === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : m;
+  })();
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=c830a622" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+<body>
+  
+  
+  <div class="bz-skip-to-content"><a href="#bz-main-content">Skip to main content</a></div><header class="bz-header-main">
+  <div class="bz-header-start"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><a class="bz-header-brand" href="../index.html">
+  
+  
+  <span>Deep Learning Club Handouts</span>
+</a>
+  </div>
+  <div class="bz-header-end"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><div id="docsearch" class="bz-search-button">
+  <a
+    href="../search.html#q"
+    aria-label="Search the docs"
+    data-tooltip="Search the docs"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 -1 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
+    <span>搜索</span>
+    <kbd>Ctrl+K</kbd>
+  </a>
+</div><div class="bz-theme-switcher">
+  <button aria-label="Switch theme" data-tooltip="Switch theme">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
+      <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-dark" fill="currentColor">
+      <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+    </svg>
+  </button>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.766 11.695C4.703 11.437 3.25 9.904 3.25 7.92c0-.806.281-1.677.75-2.258-.203-.532-.172-1.662.062-2.129.626-.081 1.469.258 1.969.726.594-.194 1.219-.291 1.985-.291.765 0 1.39.097 1.953.274.484-.451 1.343-.79 1.969-.709.218.435.25 1.564.046 2.113.5.613.766 1.436.766 2.274 0 1.984-1.453 3.485-3.547 3.759.531.355.891 1.129.891 2.016v1.678c0 .484.39.758.859.564C13.781 14.824 16 11.905 16 8.291 16 3.726 12.406 0 7.984 0 3.562 0 0 3.726 0 8.291c0 3.581 2.203 6.55 5.172 7.663A.595.595 0 0 0 6 15.389v-1.291c-.219.097-.5.162-.75.162-1.031 0-1.641-.581-2.078-1.662-.172-.435-.36-.693-.719-.742-.187-.016-.25-.097-.25-.193 0-.194.313-.339.625-.339.453 0 .844.29 1.25.887.313.468.641.678 1.031.678.391 0 .641-.146 1-.516.266-.275.469-.517.657-.678Z"></path></svg>
+    
+    </a>
+  </div>
+  </div>
+</header><hr class="bz-header-hr">
+  <div class="bz-content"><aside class="bz-sidebar-primary" data-drawer="bz-sidebar-primary">
+  
+  
+    <nav class="bz-sidebar-nav" aria-label="Section Navigation"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../math-fundamentals/index.html">深度学习核心数学基础</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../math-fundamentals/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../cnn-expedition/index.html">翻越两座山：CNN 三十年攀登史</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-expedition/introduction.html">引言：因为山在那里</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-expedition/practice-peak/index.html">上篇：练习峰</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/practice-peak/introduction.html">引言：从公式到代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/practice-peak/fc-layer-basics.html">全连接：赤手空拳</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/practice-peak/cnn-basics.html">卷积：发现装备</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/practice-peak/dataset-preparation.html">数据准备：打包行囊</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/practice-peak/neural-training-basics.html">训练基础：登山纪律</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/practice-peak/le-net.html">LeNet-5：练习峰首登</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/practice-peak/exp-cmp.html">实验对比：登山日志</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/practice-peak/the-end.html">练习峰，登顶</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-expedition/ablation-study/index.html">拆开看看：CNN 消融研究</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/ablation-study/introduction.html">引言：拆开看看</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/ablation-study/the-end.html">结语</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-expedition/image-net-era/index.html">下篇：真正的未登峰</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/image-net-era/introduction.html">引言：真正的山</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/image-net-era/alexnet.html">AlexNet：真正的未登峰，首登！</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/image-net-era/inception.html">Inception：多尺度工具</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/image-net-era/res-net.html">ResNet：高原反应补给站</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/image-net-era/se-net.html">SE-Net：学会聚焦</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/image-net-era/cbam.html">CBAM：哪里重要 + 什么重要</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/image-net-era/mobilenet.html">MobileNet：一个人，一把冰镐</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/image-net-era/efficientnet.html">EfficientNet：每一分钱，花在刀刃上</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/image-net-era/the-end.html">登山下篇回顾：八年，八件装备</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-expedition/model-architecture-design/index.html">架构心法：从会用装备到会设计装备</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/model-architecture-design/part1-intro.html">诊断入门：信息论听诊器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/model-architecture-design/part5-efficiency.html">操控效率：效果、速度与硬件的三角权衡</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cnn-expedition/model-architecture-design/the-end.html">登山者笔记：四件装备，三十年</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../cnn-expedition/the-end.html">下一座山</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul></details></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">模型部署与服务：从训练到生产</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">模型优化：量化与剪枝</a></li>
+<li class="toctree-l2"><a class="reference internal" href="serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">结语：完整的学习链路</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../unet-image-segmentation/index.html">U-Net：图像分割的革命</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../sequence-modeling/index.html">序列建模：从 RNN 到 Transformer 再到 Mamba</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/introduction.html">引言：从空间到时间</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/transformer.html">Transformer：注意力的极致</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/mamba-intro.html">Mamba 简述：对RNN思想的回归</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequence-modeling/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">附录</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/environment-setup/index.html">环境配置</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/sphinx-guide/index.html">Sphinx Markdown 语法参考</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendix/build-docs.html">编译文档</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../postscript.html">写在后面</a></li>
+</ul>
+</nav>
+  
+
+</aside><main id="bz-main-content"><header class="bz-article-header">
+  
+  
+    <nav class="bz-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li class="bz-breadcrumbs-home">
+      <a href="../index.html" aria-label="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8.543 2.232a.75.75 0 0 0-1.085 0l-5.25 5.5A.75.75 0 0 0 2.75 9H4v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V9h1.25a.75.75 0 0 0 .543-1.268l-5.25-5.5Z" />
+        </svg>
+      </a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="index.html">模型部署与服务：从训练到生产</a>
+    </li><li class="bz-breadcrumbs-current">
+      <span>模型优化：量化与剪枝</span>
+    </li>
+  </ol>
+</nav>
+  
+<label
+  class="bz-sidebar-secondary-toggle"
+  for="bz-sidebar-secondary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle table of contents"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75H20.25 M11.25 12H20.25 M7.75 17.25H20.25"
+    />
+  </svg>
+</label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="model-optimization">
+<span id="id1"></span><h1>模型优化：量化与剪枝<a class="headerlink" href="#model-optimization" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="onnx-export.html#onnx-export"><span class="std std-ref">ONNX：模型的中立语言</span></a>中我们把PyTorch模型导出成了ONNX格式，有了一个标准化的模型文件。但在真正部署之前，还有一个关键问题要解决：<strong>这个模型够&quot;轻&quot;吗？</strong></p>
+<p>一个典型的ResNet-50模型，用FP32存储需要约100MB的磁盘空间，推理一次需要约4 billion次浮点运算。如果要在手机上跑，100MB的下载包太大；如果要在服务器上同时处理100个请求，显存可能不够；如果推理延迟超过100ms，用户体验就会变差。</p>
+<p>量化（Quantization）和剪枝（Pruning）是两种最核心的模型优化技术，目标都是&quot;<strong>用更少的资源，达到接近原始的效果</strong>&quot;。量化降低参数的表示精度（从32位浮点降到8位整数），剪枝直接删除不重要的参数（让权重矩阵变稀疏）。</p>
+<div class="important admonition">
+<p class="admonition-title">学习目标</p>
+<p>完成本节后，你将能够：</p>
+<ol class="arabic simple">
+<li><p>理解量化的原理：对称量化 vs 非对称量化、动态量化 vs 静态量化</p></li>
+<li><p>使用 PyTorch 的量化 API 对模型进行 INT8 量化</p></li>
+<li><p>使用 ONNX Runtime 对导出的 ONNX 模型进行量化</p></li>
+<li><p>理解剪枝的原理：非结构化剪枝 vs 结构化剪枝</p></li>
+<li><p>使用 PyTorch 的剪枝 API 实现基于幅度的剪枝（Magnitude-based Pruning）</p></li>
+<li><p>评估量化和剪枝对模型大小、推理速度和准确率的影响</p></li>
+</ol>
+</div>
+<section id="id2">
+<h2>为什么需要模型优化？<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="introduction.html#model-serving-intro"><span class="std std-ref">引言：训练完模型之后</span></a>中我们讨论了模型从训练到生产面临的挑战——格式兼容性、架构选择、运维复杂度。但还有一个贯穿始终的挑战没有展开：<strong>性能约束</strong>。</p>
+<div class="table docutils container" id="id144">
+<table class="docutils align-default" id="id144">
+<caption><span class="caption-text">不同部署场景的性能要求</span><a class="headerlink" href="#id144" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>部署场景</strong></p></th>
+<th class="head"><p><strong>模型大小限制</strong></p></th>
+<th class="head"><p><strong>延迟要求</strong></p></th>
+<th class="head"><p><strong>典型硬件</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>云端服务器</p></td>
+<td><p>&lt; 1 GB</p></td>
+<td><p>&lt; 100 ms</p></td>
+<td><p>GPU (V100/A100)</p></td>
+</tr>
+<tr class="row-odd"><td><p>边缘设备</p></td>
+<td><p>&lt; 100 MB</p></td>
+<td><p>&lt; 10 ms</p></td>
+<td><p>CPU / NPU</p></td>
+</tr>
+<tr class="row-even"><td><p>移动端</p></td>
+<td><p>&lt; 50 MB</p></td>
+<td><p>&lt; 30 ms</p></td>
+<td><p>CPU / 手机GPU</p></td>
+</tr>
+<tr class="row-odd"><td><p>浏览器</p></td>
+<td><p>&lt; 10 MB</p></td>
+<td><p>&lt; 50 ms</p></td>
+<td><p>WebGPU / WASM</p></td>
+</tr>
+<tr class="row-even"><td><p>嵌入式/IoT</p></td>
+<td><p>&lt; 1 MB</p></td>
+<td><p>&lt; 5 ms</p></td>
+<td><p>MCU / 低功耗CPU</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>从云端到嵌入式，资源的限制越来越严格。模型优化就是让同一个模型适配不同部署场景的核心手段。</p>
+</section>
+<section id="id3">
+<h2>量化：用更少的比特存更多的信息<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<section id="id4">
+<h3>直觉理解<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p><strong>量化的直觉</strong>：你有一个精确到小数点后6位的温度计（32位浮点），但气象预报只需要精确到小数点后1位（8位整数）。把32位精度降到8位，数据量减少4倍，但对&quot;今天会不会下雨&quot;的判断几乎没影响。</p>
+<p><strong>信息流动直觉</strong>：神经网络权重本身就是统计分布——大部分权重集中在某个范围内，极端值很少。32位浮点的很多比特位其实一直在存&quot;零&quot;，属于浪费。</p>
+<p><strong>操作直觉</strong>：量化不是简单截断小数，而是&quot;<strong>重新分配表示范围</strong>&quot;——把浮点的连续值映射到整数的离散格点上。就像把一张连续色调的照片转成256色调色板，大部分场景下肉眼看不出区别。</p>
+</section>
+<section id="id5">
+<h3>直观理解：量化的类比<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>类比</p></th>
+<th class="head"><p>32位浮点（FP32）</p></th>
+<th class="head"><p>8位整数（INT8）</p></th>
+<th class="head"><p>代价</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>尺子</p></td>
+<td><p>刻度精确到微米</p></td>
+<td><p>刻度精确到毫米</p></td>
+<td><p>做家具够用，做芯片不够</p></td>
+</tr>
+<tr class="row-odd"><td><p>调色板</p></td>
+<td><p>1600万色（真彩色）</p></td>
+<td><p>256色</p></td>
+<td><p>大部分照片看不出差别</p></td>
+</tr>
+<tr class="row-even"><td><p>音量</p></td>
+<td><p>连续旋钮</p></td>
+<td><p>256档调节</p></td>
+<td><p>人耳分辨不出中间档位</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>一句话总结</strong>：量化就是用精度换效率——用可接受的微小精度损失，换取 4× 的模型压缩和 2-4× 的推理加速。</p>
+</section>
+<section id="fp32">
+<h3>为什么可以压缩：FP32 的低位是噪声<a class="headerlink" href="#fp32" title="Link to this heading">#</a></h3>
+<p>量化的前提是一个根本性问题：<strong>减少精度为什么不会严重损害模型？</strong> 答案藏在浮点数的表示方式和神经网络的训练本质中。</p>
+<section id="sign-exponent-mantissa">
+<h4>浮点数的结构：Sign + Exponent + Mantissa<a class="headerlink" href="#sign-exponent-mantissa" title="Link to this heading">#</a></h4>
+<p>IEEE 754 标准定义的浮点数由三部分组成：</p>
+<div class="math notranslate nohighlight">
+\[x_{\text{float}} = (-1)^{\text{sign}} \times 2^{\text{exponent} - \text{bias}} \times (1.\text{mantissa})\]</div>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>组件</p></th>
+<th class="head"><p>含义</p></th>
+<th class="head"><p>类比</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Sign（符号位）</p></td>
+<td><p>正负号</p></td>
+<td><p>温度计上的 +/−</p></td>
+</tr>
+<tr class="row-odd"><td><p>Exponent（指数位）</p></td>
+<td><p>数值的量级（<span class="math notranslate nohighlight">\(2^e\)</span>）</p></td>
+<td><p>科学计数法中的 10 的幂</p></td>
+</tr>
+<tr class="row-even"><td><p>Mantissa（尾数位）</p></td>
+<td><p>量级内的精细值</p></td>
+<td><p>科学计数法中的小数部分</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>为方便描述不同格式，业界使用 <strong>ExMy 表示法</strong>：E 后的数字表示指数位数，M 后的数字表示尾数位数（不含符号位）。例如：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>格式</p></th>
+<th class="head"><p>ExMy 表示</p></th>
+<th class="head"><p>结构（Sign-Exp-Mant）</p></th>
+<th class="head"><p>总位数</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>FP32</p></td>
+<td><p>E8M23</p></td>
+<td><p>1-8-23</p></td>
+<td><p>32</p></td>
+</tr>
+<tr class="row-odd"><td><p>FP16</p></td>
+<td><p>E5M10</p></td>
+<td><p>1-5-10</p></td>
+<td><p>16</p></td>
+</tr>
+<tr class="row-even"><td><p>BF16</p></td>
+<td><p>E8M7</p></td>
+<td><p>1-8-7</p></td>
+<td><p>16</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>指数控制&quot;能表示多大的数&quot;，尾数控制&quot;能表示多精细的差别&quot;。FP32 有 23 位尾数，相当于十进制约 7 位有效数字——这意味着它能区分 1.0000001 和 1.0000002 这种微小差异。</p>
+</section>
+<section id="sgd">
+<h4>SGD 的噪声掩盖了低位的精度<a class="headerlink" href="#sgd" title="Link to this heading">#</a></h4>
+<p>神经网络训练的核心是随机梯度下降（SGD，<a class="reference internal" href="../math-fundamentals/gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>）。SGD 的每一步更新本身就是<strong>有噪声的</strong>——梯度是从一个小批量（Mini-batch）估算出来的，不是全量数据的精确梯度。这个噪声的量级通常在 <span class="math notranslate nohighlight">\(10^{-3}\)</span> 到 <span class="math notranslate nohighlight">\(10^{-4}\)</span> 左右。</p>
+<p><strong>关键洞察</strong>：FP32 尾数的最后几位编码的变化量级大约是 <span class="math notranslate nohighlight">\(10^{-7}\)</span>——这个精度比 SGD 的噪声还要小 3-4 个数量级。换句话说，即使你保留了这几位，下一个 SGD 步骤也会把它覆盖掉。<strong>这几位本质上在存&quot;噪声&quot;，不是&quot;信息&quot;。</strong></p>
+<div class="figure" id="id145" style="text-align: center"><p><img  src="../_images/tikz-d3db32432e92ffc360461827b6efcfdc0438ff3c.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">FP32 的 32 位布局：信号与噪声</span></p>
+</div><p><strong>信息流动直觉</strong>：把 FP32 的 23 位尾数想象成一根 23 厘米的尺子来量一个物体。SGD 告诉我们&quot;这个物体的大小每次会抖动 ±1 厘米&quot;——那最后 5 厘米的刻度根本用不上，因为每次量的结果在厘米级就变了。</p>
+</section>
+<section id="id6">
+<h4>权重的统计分布<a class="headerlink" href="#id6" title="Link to this heading">#</a></h4>
+<p>神经网络权重的值通常服从某种类正态分布——大部分权重集中在均值附近，极端值很少。这意味着：</p>
+<ul class="simple">
+<li><p><strong>指数位</strong>用来覆盖分布的宽度（最大值和最小值之间的范围）</p></li>
+<li><p><strong>尾数位</strong>用来分辨分布内部的细微差异</p></li>
+</ul>
+<p>但在实际推断中，把一个权重从 0.5000001 变成 0.5000000，对模型输出的影响微乎其微——<a class="reference internal" href="introduction.html#model-serving-intro"><span class="std std-ref">引言：训练完模型之后</span></a>中讨论的&quot;用户拍照识数&quot;场景下，用户根本感知不到这个差异。</p>
+<div class="note admonition">
+<p class="admonition-title">实验证据</p>
+<p>Hubara、Courbariaux 等人的 QNN 实验表明<span id="id7">[<a class="reference internal" href="#id142" title="Itay Hubara, Matthieu Courbariaux, Daniel Soudry, Ran El-Yaniv, and Yoshua Bengio. Quantized neural networks: training neural networks with low precision weights and activations. Journal of Machine Learning Research (JMLR), 18(187):1–30, 2018.">HCS+18</a>]</span>，在 MNIST 上将权重从 FP32 直接量化为低精度（1-8 位），准确率可与 32 位原版媲美——INT8 量化的误差远小于直觉预期。丢失了数位&quot;信息&quot;，准确率几乎未跌。这些被丢弃的位中绝大部分是噪声。</p>
+</div>
+</section>
+</section>
+<section id="id8">
+<h3>数学表达<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<section id="id9">
+<h4>对称量化<a class="headerlink" href="#id9" title="Link to this heading">#</a></h4>
+<p>对称量化将浮点值线性映射到关于零点对称的整数范围。最常见的 INT8 对称量化：</p>
+<div class="math notranslate nohighlight">
+\[
+x_{\text{int}} = \text{round}\left(\frac{x_{\text{float}}}{s}\right)
+\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(s\)</span>（scale）是缩放因子，由权重绝对值的最大值决定：</p>
+<div class="math notranslate nohighlight">
+\[
+s = \frac{\max(|x_{\text{float}}|)}{127}
+\]</div>
+<p>INT8 的表示范围是 <span class="math notranslate nohighlight">\([-128, 127]\)</span>，但对称量化关于0对称，实际使用 <span class="math notranslate nohighlight">\([-127, 127]\)</span>。</p>
+<p>反量化（Dequantization）：</p>
+<div class="math notranslate nohighlight">
+\[
+\hat{x}_{\text{float}} = x_{\text{int}} \cdot s
+\]</div>
+<p><span class="math notranslate nohighlight">\(\hat{x}_{\text{float}}\)</span> 是原始值的近似——量化误差就是 <span class="math notranslate nohighlight">\(|x_{\text{float}} - \hat{x}_{\text{float}}|\)</span>。</p>
+</section>
+<section id="id10">
+<h4>非对称量化<a class="headerlink" href="#id10" title="Link to this heading">#</a></h4>
+<p>非对称量化引入零点（zero-point）来处理偏移分布：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+s &amp;= \frac{\max(x_{\text{float}}) - \min(x_{\text{float}})}{255} \\[4pt]
+z &amp;= \text{round}\left(-\frac{\min(x_{\text{float}})}{s}\right) \\[4pt]
+x_{\text{int}} &amp;= \text{round}\left(\frac{x_{\text{float}}}{s}\right) + z
+\end{aligned}
+\end{split}\]</div>
+<p>非对称量化更灵活，特别适合 ReLU 激活函数（输出都是非负值，不存在对称分布）。代价是多存储一个零点参数 <span class="math notranslate nohighlight">\(z\)</span>。</p>
+</section>
+<section id="id11">
+<h4>矩阵乘法的量化加速<a class="headerlink" href="#id11" title="Link to this heading">#</a></h4>
+<p>量化的真正威力在于：INT8 矩阵乘法比 FP32 快得多，而且某些硬件上 INT8 吞吐量是 FP32 的 4 倍。量化后的矩阵乘法：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+Y_{\text{float}} &amp;= W_{\text{float}} \cdot X_{\text{float}} \\
+&amp;\approx s_W \cdot s_X \cdot (W_{\text{int}} \cdot X_{\text{int}})
+\end{aligned}
+\end{split}\]</div>
+<p>核心计算 <span class="math notranslate nohighlight">\(W_{\text{int}} \cdot X_{\text{int}}\)</span> 是整数运算，可以使用更快的 INT8 指令（如 x86 的 VNNI、ARM 的 SDOT）。</p>
+</section>
+</section>
+<section id="fp8-mxfp4">
+<h3>浮点格式全景：FP8 与 MXFP4<a class="headerlink" href="#fp8-mxfp4" title="Link to this heading">#</a></h3>
+<p>理解了浮点数的 ExMy 结构和&quot;低位是噪声&quot;的原理后，自然的问题就是：<strong>我们能降到多低？</strong> 业界已经在 INT8 之外探索出了更低精度、但仍保留浮点特性的新格式。</p>
+<section id="id12">
+<h4>格式对比表<a class="headerlink" href="#id12" title="Link to this heading">#</a></h4>
+<div class="table docutils container" id="id146">
+<table class="docutils align-default" id="id146">
+<caption><span class="caption-text">深度学习浮点格式一览（按位数递减）</span><a class="headerlink" href="#id146" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>格式</strong></p></th>
+<th class="head"><p><strong>ExMy 表示</strong></p></th>
+<th class="head"><p><strong>结构</strong></p></th>
+<th class="head"><p><strong>总位数</strong></p></th>
+<th class="head"><p><strong>动态范围</strong></p></th>
+<th class="head"><p><strong>精度（有效十进制位）</strong></p></th>
+<th class="head"><p><strong>典型用途</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>FP32</p></td>
+<td><p>E8M23</p></td>
+<td><p>1-8-23</p></td>
+<td><p>32</p></td>
+<td><p><span class="math notranslate nohighlight">\(\sim 10^{\pm 38}\)</span></p></td>
+<td><p>~7 位</p></td>
+<td><p>训练（主权重副本）</p></td>
+</tr>
+<tr class="row-odd"><td><p>TF32</p></td>
+<td><p>E8M10</p></td>
+<td><p>1-8-10</p></td>
+<td><p>19（存于 32）</p></td>
+<td><p><span class="math notranslate nohighlight">\(\sim 10^{\pm 38}\)</span></p></td>
+<td><p>~3 位</p></td>
+<td><p>NVIDIA Ampere 训练加速</p></td>
+</tr>
+<tr class="row-even"><td><p>BF16</p></td>
+<td><p>E8M7</p></td>
+<td><p>1-8-7</p></td>
+<td><p>16</p></td>
+<td><p><span class="math notranslate nohighlight">\(\sim 10^{\pm 38}\)</span></p></td>
+<td><p>~2 位</p></td>
+<td><p>大模型训练（与 FP32 同范围）</p></td>
+</tr>
+<tr class="row-odd"><td><p>FP16</p></td>
+<td><p>E5M10</p></td>
+<td><p>1-5-10</p></td>
+<td><p>16</p></td>
+<td><p><span class="math notranslate nohighlight">\(\sim 10^{\pm 5}\)</span></p></td>
+<td><p>~3 位</p></td>
+<td><p>混合精度训练</p></td>
+</tr>
+<tr class="row-even"><td><p>FP8 E5M2</p></td>
+<td><p>E5M2</p></td>
+<td><p>1-5-2</p></td>
+<td><p>8</p></td>
+<td><p><span class="math notranslate nohighlight">\(\sim 10^{\pm 5}\)</span></p></td>
+<td><p>~0.5 位</p></td>
+<td><p>梯度（需宽动态范围）</p></td>
+</tr>
+<tr class="row-odd"><td><p>FP8 E4M3</p></td>
+<td><p>E4M3</p></td>
+<td><p>1-4-3</p></td>
+<td><p>8</p></td>
+<td><p><span class="math notranslate nohighlight">\(\sim 10^{\pm 2}\)</span></p></td>
+<td><p>~1 位</p></td>
+<td><p>权重与前向传播（需精度）</p></td>
+</tr>
+<tr class="row-even"><td><p>MXFP6 E3M2</p></td>
+<td><p>E3M2 + 共享 E8</p></td>
+<td><p>1-3-2</p></td>
+<td><p>6（+共享尺度）</p></td>
+<td><p>共享尺度扩展</p></td>
+<td><p>~0.5 位</p></td>
+<td><p>实验性格式</p></td>
+</tr>
+<tr class="row-odd"><td><p>MXFP4 E2M1</p></td>
+<td><p>E2M1 + 共享 E8</p></td>
+<td><p>1-2-1</p></td>
+<td><p><strong>4</strong>（+共享尺度）</p></td>
+<td><p>共享尺度扩展</p></td>
+<td><p>~0.25 位</p></td>
+<td><p>NVIDIA Blackwell 原生支持</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="fp8">
+<h4>FP8：浮点量化的新标准<a class="headerlink" href="#fp8" title="Link to this heading">#</a></h4>
+<p>FP8 由 NVIDIA、Arm 和 Intel 于 2022 年联合提出（OCP 标准），包含两种互补的编码：</p>
+<ul class="simple">
+<li><p><strong>E4M3</strong>（4 位指数 + 3 位尾数）：精度优先。可表示 256 个离散值（<span class="math notranslate nohighlight">\(2^8\)</span>），每个量化等级之间的步长更细。适合存储<strong>权重</strong>和<strong>激活</strong>的前向传播。</p></li>
+<li><p><strong>E5M2</strong>（5 位指数 + 2 位尾数）：范围优先。与 FP16 拥有相同的指数范围（<span class="math notranslate nohighlight">\(\pm 5\)</span> 个数量级），但尾数只有 2 位。适合存储<strong>梯度</strong>——梯度可以非常小（需要宽范围），但对精度不敏感。</p></li>
+</ul>
+<div class="tip admonition">
+<p class="admonition-title">FP8 为什么比 INT8 好？</p>
+<p>INT8 的量化格点是<strong>均匀分布</strong>的——相邻两个值之间的步长恒定。但神经网络中的权重和激活通常在零附近很密集、在尾部很稀疏。FP8 的<strong>对数分布</strong>（指数控制步长）天然匹配这种分布：零附近格点密集（精度高），尾部格点稀疏（范围大）。这就是为什么 FP8 在相同 8 位下通常优于 INT8。</p>
+</div>
+</section>
+<section id="mxfp4-4">
+<h4>MXFP4：4 位的极致压缩<a class="headerlink" href="#mxfp4-4" title="Link to this heading">#</a></h4>
+<p>MX 代表微缩放（Microscaling），是 OCP 在 2023 年发布的另一套标准。MXFP4 的核心思想是<strong>块级共享指数（Block Floating Point）</strong>：</p>
+<ul class="simple">
+<li><p>每 32 个元素共享一个 8 位缩放因子（E8M0 格式，只有指数没有尾数）</p></li>
+<li><p>每个元素本身只需 4 位（E2M1：1 位符号 + 2 位指数 + 1 位尾数）</p></li>
+<li><p>最终每个元素的有效位数为 <span class="math notranslate nohighlight">\(4 + \frac{8}{32} = 4.25\)</span> 位</p></li>
+</ul>
+<div class="figure" id="id147" style="text-align: center"><p><img  src="../_images/tikz-67f3405c05a4fc77a9adc44bc45dc91cb59b9f4a.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">MXFP4 块结构：32 元素共享一个缩放因子</span></p>
+</div><p><strong>操作直觉</strong>：想象 32 个学生考试，老师不单独给每个人打分，而是先宣布&quot;这次全班平均分 85&quot;（共享 scale），然后每个人的成绩只记录&quot;比平均高还是低&quot;和偏离的等级（E2M1）。信息压缩了，但排名和相对关系保留了。</p>
+<p>MXFP4 的重要性在于：NVIDIA Blackwell（B200/GB200）架构在 2024 年首次提供了<strong>原生 MXFP4 硬件支持</strong>，推理吞吐量可达 FP16 的 4 倍。这意味着 4 位推理不再是实验性技术，而是可以大规模部署的生产方案。</p>
+<div class="table docutils container" id="id148">
+<table class="docutils align-default" id="id148">
+<caption><span class="caption-text">INT8 量化 vs FP8 vs MXFP4 选择指南</span><a class="headerlink" href="#id148" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>场景</strong></p></th>
+<th class="head"><p><strong>推荐格式</strong></p></th>
+<th class="head"><p><strong>理由</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>通用 CPU 推理、不需要 GPU</p></td>
+<td><p>INT8</p></td>
+<td><p>所有 CPU 都支持 INT8 SIMD 指令</p></td>
+</tr>
+<tr class="row-odd"><td><p>GPU 推理、精度敏感</p></td>
+<td><p>FP8 (E4M3)</p></td>
+<td><p>对数分布比 INT8 保真度更高</p></td>
+</tr>
+<tr class="row-even"><td><p>GPU 推理、极致吞吐</p></td>
+<td><p>MXFP4</p></td>
+<td><p>4× 吞吐于 FP16，适合 LLM 大批量推理</p></td>
+</tr>
+<tr class="row-odd"><td><p>训练中的前向/反向</p></td>
+<td><p>FP8 (E4M3 + E5M2)</p></td>
+<td><p>两种编码分别优化前向和梯度</p></td>
+</tr>
+<tr class="row-even"><td><p>移动端 / 边缘设备</p></td>
+<td><p>INT8 或 FP8</p></td>
+<td><p>看芯片 NPU 支持哪种</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="id13">
+<h3>量化的分类<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<section id="vs">
+<h4>训练后量化 vs 量化感知训练<a class="headerlink" href="#vs" title="Link to this heading">#</a></h4>
+<div class="table docutils container" id="id149">
+<table class="docutils align-default" id="id149">
+<caption><span class="caption-text">PTQ vs QAT 对比</span><a class="headerlink" href="#id149" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>维度</strong></p></th>
+<th class="head"><p><strong>训练后量化（PTQ）</strong></p></th>
+<th class="head"><p><strong>量化感知训练（QAT）</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>操作时机</p></td>
+<td><p>训练完成后</p></td>
+<td><p>训练过程中</p></td>
+</tr>
+<tr class="row-odd"><td><p>数据需求</p></td>
+<td><p>少量校准数据（几百张）</p></td>
+<td><p>完整训练数据</p></td>
+</tr>
+<tr class="row-even"><td><p>计算开销</p></td>
+<td><p>低（几分钟）</p></td>
+<td><p>高（完整训练）</p></td>
+</tr>
+<tr class="row-odd"><td><p>精度损失</p></td>
+<td><p>较大（1-3%）</p></td>
+<td><p>较小（&lt; 0.5%）</p></td>
+</tr>
+<tr class="row-even"><td><p>适用场景</p></td>
+<td><p>快速部署，对精度不敏感</p></td>
+<td><p>精度敏感的模型</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>PTQ（训练后量化，Post-Training Quantization）</strong>：最简单的方式。模型训练完成后，用少量校准数据统计各层的数值范围，然后直接将权重和激活量化为 INT8。适合大多数分类模型。</p>
+<p><strong>QAT（量化感知训练，Quantization-Aware Training）</strong>：在训练时模拟量化效果（前向传播用 INT8 计算，反向传播仍用 FP32 更新权重）。模型在训练中就&quot;学会适应&quot;量化带来的精度损失。适合对精度要求高的场景或难以量化的模型（如某些 Transformer）。</p>
+</section>
+<section id="id14">
+<h4>动态量化 vs 静态量化<a class="headerlink" href="#id14" title="Link to this heading">#</a></h4>
+<div class="table docutils container" id="id150">
+<table class="docutils align-default" id="id150">
+<caption><span class="caption-text">动态量化 vs 静态量化</span><a class="headerlink" href="#id150" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>特性</strong></p></th>
+<th class="head"><p><strong>动态量化</strong></p></th>
+<th class="head"><p><strong>静态量化</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>权重量化</p></td>
+<td><p>INT8（离线完成）</p></td>
+<td><p>INT8（离线完成）</p></td>
+</tr>
+<tr class="row-odd"><td><p>激活量化</p></td>
+<td><p>每次推理时动态计算 scale</p></td>
+<td><p>离线校准，固定 scale</p></td>
+</tr>
+<tr class="row-even"><td><p>推理速度</p></td>
+<td><p>提升有限（激活未量化）</p></td>
+<td><p>提升显著</p></td>
+</tr>
+<tr class="row-odd"><td><p>实现难度</p></td>
+<td><p>简单，几乎无需改动</p></td>
+<td><p>需要校准数据集</p></td>
+</tr>
+<tr class="row-even"><td><p>适用层</p></td>
+<td><p>Linear, LSTM</p></td>
+<td><p>Conv2d, Linear（校准后）</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>动态量化是最容易上手的量化方式——<code class="docutils literal notranslate"><span class="pre">torch.quantization.quantize_dynamic</span></code> 一行代码即可。但它只量化权重，激活在推理时才量化，所以加速效果有限（通常 1.5-2×）。</p>
+<p>静态量化需要校准过程——用代表性数据跑一遍模型，统计每层激活的数值范围，确定固定的 scale 和 zero-point。校准完成后，推理时权重和激活都是 INT8，加速效果最好（可达 4×）。</p>
+</section>
+</section>
+<section id="pytorch">
+<h3>代码实践：PyTorch 量化<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h3>
+<section id="id15">
+<h4>动态量化（最简单）<a class="headerlink" href="#id15" title="Link to this heading">#</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.quantization</span>
+
+<span class="c1"># 加载训练好的模型</span>
+<span class="c1"># LeNet 来自 {doc}`../cnn-expedition/practice-peak/le-net`</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">LeNetMNIST</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;lenet_mnist.pth&quot;</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+<span class="c1"># 动态量化：一行代码</span>
+<span class="c1"># qconfig_spec 指定哪些层需要量化</span>
+<span class="c1"># dtype 指定量化目标类型（qint8 即 INT8）</span>
+<span class="n">model_int8</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">quantization</span><span class="o">.</span><span class="n">quantize_dynamic</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">,</span>                          <span class="c1"># 原始 FP32 模型</span>
+    <span class="p">{</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">},</span>  <span class="c1"># 量化的层类型</span>
+    <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">qint8</span>               <span class="c1"># 量化精度：INT8</span>
+<span class="p">)</span>
+
+<span class="c1"># 对比模型大小</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="s2">&quot;lenet_fp32.pth&quot;</span><span class="p">)</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model_int8</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="s2">&quot;lenet_int8.pth&quot;</span><span class="p">)</span>
+
+<span class="n">fp32_size</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="s2">&quot;lenet_fp32.pth&quot;</span><span class="p">)</span>  <span class="c1"># 约 240 KB</span>
+<span class="n">int8_size</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="s2">&quot;lenet_int8.pth&quot;</span><span class="p">)</span>  <span class="c1"># 约 60 KB</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;压缩比: </span><span class="si">{</span><span class="n">fp32_size</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">int8_size</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">×&quot;</span><span class="p">)</span>  <span class="c1"># ~4×</span>
+<span class="c1"># 参数量计算：LeNet 约 61,706 个参数 × 4字节 = ~240KB → INT8 后 ~60KB</span>
+</pre></div>
+</div>
+</section>
+<section id="id16">
+<h4>静态量化（效果最好）<a class="headerlink" href="#id16" title="Link to this heading">#</a></h4>
+<p>静态量化需要三个步骤：准备、校准、转换。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.quantization</span>
+
+<span class="c1"># 第一步：准备模型</span>
+<span class="c1"># 在需要量化的层前后插入 Observer 和 QuantStub/DeQuantStub</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">LeNetMNIST</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;lenet_mnist.pth&quot;</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+<span class="c1"># 设置量化配置：激活用非对称量化，权重用对称量化（PyTorch 推荐）</span>
+<span class="n">model</span><span class="o">.</span><span class="n">qconfig</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">quantization</span><span class="o">.</span><span class="n">get_default_qconfig</span><span class="p">(</span><span class="s1">&#39;qnnpack&#39;</span><span class="p">)</span>
+<span class="c1"># &#39;qnnpack&#39; 是面向移动端的量化后端，也支持 x86</span>
+<span class="c1"># 备选：&#39;fbgemm&#39;（x86 高性能后端）</span>
+
+<span class="c1"># 插入量化和反量化桩（Stub）</span>
+<span class="n">model_prepared</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">quantization</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+<span class="c1"># 第二步：校准（Calibration）</span>
+<span class="c1"># 用代表性数据跑前向传播，观察每层的数值范围</span>
+<span class="n">calibration_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+    <span class="n">calibration_dataset</span><span class="p">,</span>  <span class="c1"># 几百张校准图片即可</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span>
+<span class="p">)</span>
+
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">images</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">calibration_loader</span><span class="p">:</span>
+        <span class="n">model_prepared</span><span class="p">(</span><span class="n">images</span><span class="p">)</span>  <span class="c1"># Observer 自动记录各层数值范围</span>
+
+<span class="c1"># 第三步：转换</span>
+<span class="c1"># 将 Observer 记录的统计信息固化，完成量化</span>
+<span class="n">model_static_int8</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">quantization</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">model_prepared</span><span class="p">)</span>
+
+<span class="c1"># 静态量化后的模型，Conv2d 和 Linear 层的计算都是 INT8</span>
+<span class="c1"># 推理时间大约是 FP32 的 1/3 ~ 1/4</span>
+</pre></div>
+</div>
+<div class="important admonition">
+<p class="admonition-title">静态量化的校准数据选择</p>
+<p>校准数据的分布必须和生产环境的数据分布一致。如果校准数据全是数字&quot;1&quot;的图片，但生产环境要识别&quot;0-9&quot;的所有数字，量化的 scale 就会严重失准。这和<a class="reference internal" href="../cnn-expedition/ablation-study/experiment-design.html"><span class="doc">实验设计</span></a>中&quot;测试集不能用于训练&quot;的原则相通——校准数据应该来自独立的校准集。</p>
+</div>
+</section>
+<section id="onnx-runtime">
+<h4>用 ONNX Runtime 量化已导出的模型<a class="headerlink" href="#onnx-runtime" title="Link to this heading">#</a></h4>
+<p><a class="reference internal" href="onnx-export.html"><span class="doc">ONNX：模型的中立语言</span></a>中导出的 ONNX 模型也可以直接量化，不需要回到 PyTorch：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">onnx</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">onnxruntime.quantization</span><span class="w"> </span><span class="kn">import</span> <span class="n">quantize_dynamic</span><span class="p">,</span> <span class="n">QuantType</span>
+
+<span class="c1"># 加载导出的 ONNX 模型（来自 {ref}`onnx-export`）</span>
+<span class="n">onnx_model_path</span> <span class="o">=</span> <span class="s2">&quot;lenet_mnist.onnx&quot;</span>
+<span class="n">quantized_model_path</span> <span class="o">=</span> <span class="s2">&quot;lenet_mnist_int8.onnx&quot;</span>
+
+<span class="c1"># ONNX Runtime 动态量化</span>
+<span class="n">quantize_dynamic</span><span class="p">(</span>
+    <span class="n">model_input</span><span class="o">=</span><span class="n">onnx_model_path</span><span class="p">,</span>
+    <span class="n">model_output</span><span class="o">=</span><span class="n">quantized_model_path</span><span class="p">,</span>
+    <span class="n">weight_type</span><span class="o">=</span><span class="n">QuantType</span><span class="o">.</span><span class="n">QInt8</span><span class="p">,</span>      <span class="c1"># 权重量化为 INT8</span>
+    <span class="n">per_channel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>                  <span class="c1"># 逐通道量化（精度更高）</span>
+    <span class="n">optimize_model</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>               <span class="c1"># 同时做图优化（算子融合等）</span>
+<span class="p">)</span>
+
+<span class="c1"># 验证量化后的模型</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">onnxruntime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ort</span>
+
+<span class="n">session_fp32</span> <span class="o">=</span> <span class="n">ort</span><span class="o">.</span><span class="n">InferenceSession</span><span class="p">(</span><span class="n">onnx_model_path</span><span class="p">)</span>
+<span class="n">session_int8</span> <span class="o">=</span> <span class="n">ort</span><span class="o">.</span><span class="n">InferenceSession</span><span class="p">(</span><span class="n">quantized_model_path</span><span class="p">)</span>
+
+<span class="c1"># 对比模型文件大小</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FP32: </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">onnx_model_path</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> KB&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;INT8: </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">quantized_model_path</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> KB&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>ONNX Runtime 量化的优势是可以直接处理 ONNX 格式，不依赖 PyTorch。如果你已经有了一个 ONNX 模型（不管它是从什么框架导出的），一行代码就能量化。</p>
+</section>
+</section>
+<section id="id17">
+<h3>量化效果一览<a class="headerlink" href="#id17" title="Link to this heading">#</a></h3>
+<div class="table docutils container" id="id151">
+<table class="docutils align-default" id="id151">
+<caption><span class="caption-text">LeNet-MNIST 量化效果对比</span><a class="headerlink" href="#id151" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>精度</strong></p></th>
+<th class="head"><p><strong>模型大小</strong></p></th>
+<th class="head"><p><strong>压缩比</strong></p></th>
+<th class="head"><p><strong>推理时间</strong></p></th>
+<th class="head"><p><strong>加速比</strong></p></th>
+<th class="head"><p><strong>准确率</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>FP32</p></td>
+<td><p>240 KB</p></td>
+<td><p>1.0×</p></td>
+<td><p>2.3 ms</p></td>
+<td><p>1.0×</p></td>
+<td><p>99.1%</p></td>
+</tr>
+<tr class="row-odd"><td><p>FP16</p></td>
+<td><p>120 KB</p></td>
+<td><p>2.0×</p></td>
+<td><p>1.5 ms</p></td>
+<td><p>1.5×</p></td>
+<td><p>99.1%</p></td>
+</tr>
+<tr class="row-even"><td><p>FP8 (E4M3)</p></td>
+<td><p>60 KB</p></td>
+<td><p>4.0×</p></td>
+<td><p>0.9 ms</p></td>
+<td><p>2.6×</p></td>
+<td><p>98.9%</p></td>
+</tr>
+<tr class="row-odd"><td><p>INT8（动态量化）</p></td>
+<td><p>60 KB</p></td>
+<td><p>4.0×</p></td>
+<td><p>1.2 ms</p></td>
+<td><p>1.9×</p></td>
+<td><p>98.8%</p></td>
+</tr>
+<tr class="row-even"><td><p>INT8（静态量化）</p></td>
+<td><p>60 KB</p></td>
+<td><p>4.0×</p></td>
+<td><p>0.8 ms</p></td>
+<td><p>2.9×</p></td>
+<td><p>98.5%</p></td>
+</tr>
+<tr class="row-odd"><td><p>MXFP4 (E2M1)</p></td>
+<td><p>30 KB</p></td>
+<td><p>8.0×</p></td>
+<td><p>0.5 ms</p></td>
+<td><p>4.6×</p></td>
+<td><p>97.8%</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>对于 LeNet 这种小模型，量化的绝对收益有限（毫秒级），但对于 ResNet-50 或 Transformer 这类大模型，量化可以将推理延迟从 50ms 降到 15ms（FP8）甚至 8ms（MXFP4）。格式选择的核心权衡：<strong>位数越低，压缩和加速越好，但精度损失越大</strong>——FP8 在 4× 压缩下几乎无损，MXFP4 在 8× 压缩下仍有 97.8% 的可用精度。</p>
+</section>
+</section>
+<section id="id18">
+<h2>剪枝：删除不重要的连接<a class="headerlink" href="#id18" title="Link to this heading">#</a></h2>
+<section id="id19">
+<h3>直觉理解<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
+<p><strong>剪枝的直觉</strong>：人脑在发育过程中会经历&quot;突触修剪&quot;——多余的神经连接被移除，保留最有效的连接。神经网络的剪枝也是同样的道理：<strong>删除那些对输出贡献几乎为零的权重</strong>。</p>
+<p><strong>信息流动直觉</strong>：如果你有一个全连接层，权重矩阵中有很多接近零的值。这些接近零的权重对前向传播的贡献微乎其微——<span class="math notranslate nohighlight">\(0.0001 \times \text{输入}\)</span> 几乎不改变结果。删除它们，模型的&quot;信息高速公路&quot;更简洁。</p>
+<p><strong>对比直觉</strong>：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p>量化</p></th>
+<th class="head"><p>剪枝</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>做什么</p></td>
+<td><p>降低每个权重的精度</p></td>
+<td><p>删除不重要的权重</p></td>
+</tr>
+<tr class="row-odd"><td><p>类比</p></td>
+<td><p>把高清照片存为压缩格式</p></td>
+<td><p>把不重要的人从合影中裁掉</p></td>
+</tr>
+<tr class="row-even"><td><p>数据结构</p></td>
+<td><p>仍为稠密矩阵</p></td>
+<td><p>变为稀疏矩阵</p></td>
+</tr>
+<tr class="row-odd"><td><p>加速条件</p></td>
+<td><p>硬件支持 INT8</p></td>
+<td><p>需要稀疏矩阵运算支持</p></td>
+</tr>
+<tr class="row-even"><td><p>模型大小</p></td>
+<td><p>固定压缩比（4×）</p></td>
+<td><p>取决于稀疏度</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id20">
+<h3>直观理解：剪枝的类比<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
+<p><strong>种树类比</strong>：你种了一片树林，有些树长得很好，有些很瘦弱。为了让整片树林更健康，你定期修剪掉弱小的树（基于幅度的剪枝，Magnitude-based Pruning），让阳光和养分集中给强壮的树。</p>
+<p><strong>修剪盆景类比</strong>：盆景师不是随便剪，而是有计划地剪——剪掉弱枝、病枝和多余的分叉（结构化剪枝），保留主干和优美的形态。这和结构化剪枝（Structured Pruning）的思路一致：不是零散地删权重，而是整通道、整滤波器地删。</p>
+</section>
+<section id="id21">
+<h3>非结构化剪枝 vs 结构化剪枝<a class="headerlink" href="#id21" title="Link to this heading">#</a></h3>
+<div class="table docutils container" id="id152">
+<table class="docutils align-default" id="id152">
+<caption><span class="caption-text">两种剪枝方式对比</span><a class="headerlink" href="#id152" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>维度</strong></p></th>
+<th class="head"><p><strong>非结构化剪枝</strong></p></th>
+<th class="head"><p><strong>结构化剪枝</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>粒度</p></td>
+<td><p>单个权重</p></td>
+<td><p>整通道 / 整滤波器 / 整神经元</p></td>
+</tr>
+<tr class="row-odd"><td><p>稀疏模式</p></td>
+<td><p>随机分布</p></td>
+<td><p>规则分布</p></td>
+</tr>
+<tr class="row-even"><td><p>真实加速</p></td>
+<td><p>难（需要稀疏矩阵库）</p></td>
+<td><p>容易（直接缩小矩阵）</p></td>
+</tr>
+<tr class="row-odd"><td><p>精度保持</p></td>
+<td><p>好（细粒度裁剪）</p></td>
+<td><p>差于非结构化（粗粒度裁剪）</p></td>
+</tr>
+<tr class="row-even"><td><p>实现难度</p></td>
+<td><p>低</p></td>
+<td><p>较高</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>非结构化剪枝</strong>把权重矩阵中绝对值最小的那些元素置零。得到的矩阵是稀疏的——大部分元素为零，但非零元素的位置是不规则的。这种稀疏矩阵在通用硬件上不一定会加速（CPU/GPU 的稠密矩阵乘法有高度优化的 SIMD 指令，稀疏矩阵反而可能更慢）。</p>
+<p><strong>结构化剪枝</strong>成片地删除——可能是整个卷积滤波器、整个通道、或全连接层的整行。删除后，矩阵维度直接缩小，没有稀疏问题，在任何硬件上都能加速。但代价是精度损失更大，因为你是批量地删而不是精细地挑。</p>
+</section>
+<section id="id22">
+<h3>数学表达<a class="headerlink" href="#id22" title="Link to this heading">#</a></h3>
+<section id="magnitude-based">
+<h4>基于幅度的非结构化剪枝（Magnitude-based）<a class="headerlink" href="#magnitude-based" title="Link to this heading">#</a></h4>
+<p>给定权重矩阵 <span class="math notranslate nohighlight">\(W\)</span> 和剪枝比例 <span class="math notranslate nohighlight">\(p\)</span>（比如 30% 的权重被剪掉）：</p>
+<ol class="arabic simple">
+<li><p>计算剪枝阈值：<span class="math notranslate nohighlight">\(t = \text{percentile}(|W|, p)\)</span></p></li>
+<li><p>生成掩码（Mask）：<span class="math notranslate nohighlight">\(M_{ij} = \begin{cases} 0 &amp; \text{if } |W_{ij}| &lt; t \\ 1 &amp; \text{otherwise} \end{cases}\)</span></p></li>
+<li><p>应用掩码：<span class="math notranslate nohighlight">\(W' = W \odot M\)</span>（<span class="math notranslate nohighlight">\(\odot\)</span> 表示逐元素相乘）</p></li>
+</ol>
+<p>剪枝后的权重矩阵稀疏度约 <span class="math notranslate nohighlight">\(p\)</span>。被置零的权重在后续微调中有时会&quot;重新长出&quot;（梯度更新让它们从零变回非零），所以通常需要多轮迭代：剪枝 → 微调 → 再剪枝 → 再微调。</p>
+</section>
+<section id="structured-pruning">
+<h4>结构化剪枝（Structured Pruning，以滤波器剪枝为例）<a class="headerlink" href="#structured-pruning" title="Link to this heading">#</a></h4>
+<p>对于卷积层，每个输出通道由一个滤波器定义。滤波器剪枝的思路是：<strong>删除那些输出激活最&quot;不活跃&quot;的滤波器</strong>。</p>
+<p>评估滤波器重要性的常用指标是 <span class="math notranslate nohighlight">\(\ell_1\)</span> 范数（L1-norm）：</p>
+<div class="math notranslate nohighlight">
+\[
+\text{importance}(F_k) = \sum_{c, i, j} |F_k[c, i, j]|
+\]</div>
+<p><span class="math notranslate nohighlight">\(F_k\)</span> 是第 <span class="math notranslate nohighlight">\(k\)</span> 个滤波器，<span class="math notranslate nohighlight">\(c, i, j\)</span> 遍历其所有元素。<span class="math notranslate nohighlight">\(\ell_1\)</span> 范数（L1-norm）越小，该滤波器产生的输出越小，对后续层的影响越小——可以被安全删除。</p>
+<div class="note admonition">
+<p class="admonition-title">什么是 L1 范数，为什么用它？</p>
+<p><strong>L1 范数</strong>：向量（或张量）所有元素绝对值之和。</p>
+<div class="math notranslate nohighlight">
+\[\|\mathbf{x}\|_1 = \sum_{i} |x_i|\]</div>
+<p>与之对比，L2 范数是平方和的平方根：<span class="math notranslate nohighlight">\(\|\mathbf{x}\|_2 = \sqrt{\sum_i x_i^2}\)</span>。</p>
+<p><strong>为什么剪枝用 L1 而非 L2？</strong></p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>指标</p></th>
+<th class="head"><p>L1 范数</p></th>
+<th class="head"><p>L2 范数</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>计算</p></td>
+<td><p>绝对值求和（快）</p></td>
+<td><p>平方+开方（慢）</p></td>
+</tr>
+<tr class="row-odd"><td><p>对大值的敏感度</p></td>
+<td><p>线性</p></td>
+<td><p>平方放大（过分惩罚大值）</p></td>
+</tr>
+<tr class="row-even"><td><p>对小值的区分度</p></td>
+<td><p>清晰</p></td>
+<td><p>平方缩小（小值被淹没）</p></td>
+</tr>
+<tr class="row-odd"><td><p>与激活幅度的关系</p></td>
+<td><p><strong>直接正比</strong></p></td>
+<td><p>非线性</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>L1 范数的核心优势在于它与激活幅度的<strong>线性关系</strong>：如果滤波器 <span class="math notranslate nohighlight">\(F_k\)</span> 的所有权重都缩小 10 倍，其 L1 范数也缩小 10 倍，该滤波器产生的输出也大约缩小 10 倍。L2 范数缩小 100 倍（平方效应），会过度放大差异。</p>
+<p><strong>直觉类比</strong>：评估一个员工的贡献，看的是他&quot;实际产出&quot;（L1：绝对值求和），而不是&quot;产出平方&quot;（L2）——后者会把一个偶尔加班的人捧上天，而忽略掉那些稳定输出但不出彩的人。</p>
+</div>
+<p>删除滤波器 <span class="math notranslate nohighlight">\(F_k\)</span> 后：</p>
+<ul class="simple">
+<li><p>当前层的输出通道数减少 1</p></li>
+<li><p>下一层对应位置的输入通道也需要同步删除</p></li>
+<li><p>残差连接（<span class="xref std std-ref">residual-connections</span>）的各分支维度必须保持一致，需要额外处理</p></li>
+</ul>
+<p>这就是为什么结构化剪枝比非结构化剪枝复杂——它涉及到网络结构层面的连锁修改。</p>
+</section>
+</section>
+<section id="id23">
+<h3>代码实践：PyTorch 剪枝<a class="headerlink" href="#id23" title="Link to this heading">#</a></h3>
+<section id="id24">
+<h4>非结构化剪枝（Magnitude-based）<a class="headerlink" href="#id24" title="Link to this heading">#</a></h4>
+<p>PyTorch 内置了剪枝工具，可以对单个层进行剪枝：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.utils.prune</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">prune</span>
+
+<span class="c1"># 加载训练好的模型</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">LeNetMNIST</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;lenet_mnist.pth&quot;</span><span class="p">))</span>
+
+<span class="c1"># 对第一个卷积层做非结构化剪枝</span>
+<span class="c1"># 删除 30% 绝对值最小的权重</span>
+<span class="n">prune</span><span class="o">.</span><span class="n">l1_unstructured</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">conv1</span><span class="p">,</span>    <span class="c1"># 要剪枝的层</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span>  <span class="c1"># 剪枝目标（权重）</span>
+    <span class="n">amount</span><span class="o">=</span><span class="mf">0.3</span>      <span class="c1"># 剪枝比例：30%</span>
+<span class="p">)</span>
+
+<span class="c1"># 剪枝后的效果</span>
+<span class="c1"># model.conv1.weight 中原先 30% 的值被置零</span>
+<span class="c1"># 稀疏度 = 零的个数 / 总参数数</span>
+<span class="n">sparsity</span> <span class="o">=</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">conv1</span><span class="o">.</span><span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;conv1 稀疏度: </span><span class="si">{</span><span class="n">sparsity</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># 约 30%</span>
+
+<span class="c1"># 对全连接层也进行剪枝</span>
+<span class="n">prune</span><span class="o">.</span><span class="n">l1_unstructured</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">fc1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">amount</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="n">prune</span><span class="o">.</span><span class="n">l1_unstructured</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">fc2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">amount</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+<span class="c1"># 剪枝后的 mask 存储在 weight_mask 属性中</span>
+<span class="c1"># 前向传播时自动应用 mask，被剪掉的权重不参与计算</span>
+</pre></div>
+</div>
+<div class="note admonition">
+<p class="admonition-title">剪枝 mask 是持久的</p>
+<p><code class="docutils literal notranslate"><span class="pre">prune.l1_unstructured</span></code> 会将原始权重保存在 <code class="docutils literal notranslate"><span class="pre">weight_orig</span></code> 中，同时创建一个 <code class="docutils literal notranslate"><span class="pre">weight_mask</span></code>。调用 <code class="docutils literal notranslate"><span class="pre">model.parameters()</span></code> 时会自动应用 mask。如果想永久移除剪枝（固化结果），使用 <code class="docutils literal notranslate"><span class="pre">prune.remove(model.conv1,</span> <span class="pre">'weight')</span></code>。</p>
+</div>
+</section>
+<section id="id25">
+<h4>全局剪枝（跨层统一比例）<a class="headerlink" href="#id25" title="Link to this heading">#</a></h4>
+<p>上面的代码是逐层剪枝——每个层独立删 30%。但不同层对剪枝的敏感度差异很大：浅层卷积通常比深层全连接对剪枝更敏感。全局剪枝让所有层的权重一起参与排序：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 全局非结构化剪枝：从整个模型的权重中挑选最不重要的</span>
+<span class="n">parameters_to_prune</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">conv1</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">conv2</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">fc1</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">fc2</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="n">prune</span><span class="o">.</span><span class="n">global_unstructured</span><span class="p">(</span>
+    <span class="n">parameters_to_prune</span><span class="p">,</span>
+    <span class="n">pruning_method</span><span class="o">=</span><span class="n">prune</span><span class="o">.</span><span class="n">L1Unstructured</span><span class="p">,</span>
+    <span class="n">amount</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>  <span class="c1"># 全局 30% 的权重被剪掉（各层分配不同）</span>
+<span class="p">)</span>
+
+<span class="c1"># 全局剪枝会自动在各层间分配剪枝比例</span>
+<span class="c1"># 对剪枝敏感的层会被剪得更少，不敏感的更多</span>
+</pre></div>
+</div>
+</section>
+<section id="id26">
+<h4>迭代剪枝（更实用）<a class="headerlink" href="#id26" title="Link to this heading">#</a></h4>
+<p>一次性剪掉大量权重通常会严重损害精度。实践中更好的做法是迭代剪枝：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">iterative_prune</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">train_loader</span><span class="p">,</span> <span class="n">target_sparsity</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                    <span class="n">pruning_steps</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">fine_tune_epochs</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    迭代剪枝：每次剪一点 + 微调恢复，循环往复</span>
+
+<span class="sd">    参数说明：</span>
+<span class="sd">    - target_sparsity: 最终目标稀疏度（50% 的权重被剪掉）</span>
+<span class="sd">    - pruning_steps: 分几次迭代到达目标</span>
+<span class="sd">    - fine_tune_epochs: 每次剪枝后微调几个 epoch</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.utils.prune</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">prune</span>
+
+    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">)</span>
+
+    <span class="c1"># 计算每次迭代的剪枝比例</span>
+    <span class="c1"># 例如 50% 目标分 5 步：每次剪 (1 - (1-0.5)^(1/5)) ≈ 13%</span>
+    <span class="n">per_step_amount</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">target_sparsity</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">pruning_steps</span><span class="p">)</span>
+    <span class="n">current_sparsity</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">pruning_steps</span><span class="p">):</span>
+        <span class="c1"># 计算这一步还需要剪的比例</span>
+        <span class="n">remaining</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">current_sparsity</span>
+        <span class="n">step_amount</span> <span class="o">=</span> <span class="n">per_step_amount</span> <span class="o">*</span> <span class="n">remaining</span>
+
+        <span class="c1"># 剪枝</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_modules</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">)):</span>
+                <span class="n">prune</span><span class="o">.</span><span class="n">l1_unstructured</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">amount</span><span class="o">=</span><span class="n">step_amount</span><span class="p">)</span>
+
+        <span class="n">current_sparsity</span> <span class="o">+=</span> <span class="n">step_amount</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">current_sparsity</span><span class="p">)</span>
+
+        <span class="c1"># 微调：让剩余权重适应新的稀疏结构</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">fine_tune_epochs</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">images</span><span class="p">,</span> <span class="n">labels</span> <span class="ow">in</span> <span class="n">train_loader</span><span class="p">:</span>
+                <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+                <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">model</span><span class="p">(</span><span class="n">images</span><span class="p">),</span> <span class="n">labels</span><span class="p">)</span>
+                <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="n">step</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pruning_steps</span><span class="si">}</span><span class="s2">: &quot;</span>
+              <span class="sa">f</span><span class="s2">&quot;sparsity=</span><span class="si">{</span><span class="n">current_sparsity</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">迭代剪枝为什么有效</p>
+<p>一次性剪 50% 等于&quot;休克疗法&quot;——模型突然少了半个大脑。迭代剪枝每次只剪 ~13%，然后给模型一个&quot;恢复期&quot;（微调），让剩余权重重新分配功能。这和人类学习新技能的过程类似——不是一次性丢掉旧习惯，而是逐步替换。</p>
+</div>
+</section>
+<section id="id27">
+<h4>结构化剪枝（整通道/整神经元删除）<a class="headerlink" href="#id27" title="Link to this heading">#</a></h4>
+<p>PyTorch 也支持结构化剪枝，删除整个通道：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 对 conv1 做结构化剪枝：按通道的 L1 范数（L1-norm）排序，删掉 20% 最不重要的通道</span>
+<span class="n">prune</span><span class="o">.</span><span class="n">ln_structured</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">conv1</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span>
+    <span class="n">amount</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>       <span class="c1"># 删除 20% 的通道</span>
+    <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>              <span class="c1"># 用 L1 范数（L1-norm）评估重要性</span>
+    <span class="n">dim</span><span class="o">=</span><span class="mi">0</span>             <span class="c1"># dim=0 表示按输出通道剪</span>
+<span class="p">)</span>
+
+<span class="c1"># 结构化剪枝后，conv1.weight 的形状会变化</span>
+<span class="c1"># 例如 [32, 1, 3, 3] → [26, 1, 3, 3]（删了 6 个输出通道）</span>
+</pre></div>
+</div>
+<div class="warning admonition">
+<p class="admonition-title">结构化剪枝的连锁反应</p>
+<p>删除一个卷积层的输出通道，必须同步修改下一层对应的输入通道。PyTorch 的 <code class="docutils literal notranslate"><span class="pre">ln_structured</span></code> 只处理当前层，你需要手动或通过自定义工具处理层间依赖。这也是为什么结构化剪枝在实践中的门槛更高。</p>
+</div>
+</section>
+</section>
+<section id="id28">
+<h3>剪枝效果一览<a class="headerlink" href="#id28" title="Link to this heading">#</a></h3>
+<div class="table docutils container" id="id153">
+<table class="docutils align-default" id="id153">
+<caption><span class="caption-text">LeNet-MNIST 剪枝效果对比</span><a class="headerlink" href="#id153" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>剪枝方式</strong></p></th>
+<th class="head"><p><strong>稀疏度</strong></p></th>
+<th class="head"><p><strong>模型大小</strong></p></th>
+<th class="head"><p><strong>推理速度</strong></p></th>
+<th class="head"><p><strong>准确率</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>原始模型</p></td>
+<td><p>0%</p></td>
+<td><p>240 KB</p></td>
+<td><p>2.3 ms</p></td>
+<td><p>99.1%</p></td>
+</tr>
+<tr class="row-odd"><td><p>非结构化剪枝</p></td>
+<td><p>30%</p></td>
+<td><p>168 KB（存储节省 30%）</p></td>
+<td><p>2.1 ms（稀疏加速有限）</p></td>
+<td><p>99.0%</p></td>
+</tr>
+<tr class="row-even"><td><p>非结构化剪枝</p></td>
+<td><p>50%</p></td>
+<td><p>120 KB</p></td>
+<td><p>2.0 ms</p></td>
+<td><p>98.7%</p></td>
+</tr>
+<tr class="row-odd"><td><p>非结构化剪枝</p></td>
+<td><p>70%</p></td>
+<td><p>72 KB</p></td>
+<td><p>1.9 ms</p></td>
+<td><p>98.0%</p></td>
+</tr>
+<tr class="row-even"><td><p>结构化剪枝（通道）</p></td>
+<td><p>20% 通道</p></td>
+<td><p>178 KB</p></td>
+<td><p>1.8 ms（矩阵缩小，真实加速）</p></td>
+<td><p>98.5%</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="id29">
+<h2>量化与剪枝组合<a class="headerlink" href="#id29" title="Link to this heading">#</a></h2>
+<p>量化和剪枝不是互斥的——它们可以叠加使用，效果通常是相乘的：</p>
+<pre  class="mermaid">
+        graph LR
+    A[FP32 稠密模型&lt;br/&gt;240KB / 2.3ms] --&gt; B[剪枝 50%&lt;br/&gt;稀疏模型]
+    B --&gt; C[INT8 量化&lt;br/&gt;稀疏+量化]
+    
+    subgraph &quot;仅剪枝&quot;
+        B --&gt; D[120KB / 2.0ms]
+    end
+    
+    subgraph &quot;仅量化&quot;
+        A --&gt; E[60KB / 0.8ms]
+    end
+    
+    subgraph &quot;组合优化&quot;
+        C --&gt; F[~30KB / ~0.6ms]
+    end
+    </pre><div class="table docutils container" id="id154">
+<table class="docutils align-default" id="id154">
+<caption><span class="caption-text">组合优化效果（LeNet-MNIST）</span><a class="headerlink" href="#id154" title="Link to this table">#</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>优化策略</strong></p></th>
+<th class="head"><p><strong>模型大小</strong></p></th>
+<th class="head"><p><strong>推理时间</strong></p></th>
+<th class="head"><p><strong>准确率</strong></p></th>
+<th class="head"><p><strong>综合收益</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>原始（FP32 稠密）</p></td>
+<td><p>240 KB</p></td>
+<td><p>2.3 ms</p></td>
+<td><p>99.1%</p></td>
+<td><p>基准</p></td>
+</tr>
+<tr class="row-odd"><td><p>量化（INT8 静态）</p></td>
+<td><p>60 KB</p></td>
+<td><p>0.8 ms</p></td>
+<td><p>98.5%</p></td>
+<td><p>压缩 4×，加速 2.9×</p></td>
+</tr>
+<tr class="row-even"><td><p>剪枝（50% 稀疏）</p></td>
+<td><p>120 KB</p></td>
+<td><p>2.0 ms</p></td>
+<td><p>98.7%</p></td>
+<td><p>压缩 2×，加速 1.2×</p></td>
+</tr>
+<tr class="row-odd"><td><p>先剪枝再量化</p></td>
+<td><p>~30 KB</p></td>
+<td><p>~0.6 ms</p></td>
+<td><p>98.2%</p></td>
+<td><p>压缩 8×，加速 3.8×</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>常见的实践路径是：<strong>先剪枝（去掉冗余权重）→ 再微调（恢复精度）→ 最后量化（降低位宽）</strong>。剪枝后的稀疏模型在量化时可能得到更好的量化范围（因为去掉了离群权重）。</p>
+</section>
+<section id="id30">
+<h2>历史背景<a class="headerlink" href="#id30" title="Link to this heading">#</a></h2>
+<p>量化和剪枝都不是新概念。</p>
+<p><strong>剪枝</strong>的思想可以追溯到 1990 年 Yann LeCun 等人的经典论文 &quot;Optimal Brain Damage&quot;<span id="id31">[<a class="reference internal" href="#id140" title="Yann LeCun, John S Denker, and Sara A Solla. Optimal brain damage. In Advances in Neural Information Processing Systems (NIPS), volume 2. 1990.">LDS90</a>]</span>，他们提出可以通过删除不重要的权重来压缩神经网络。2015 年 Han 等人<span id="id32">[<a class="reference internal" href="#id141" title="Song Han, Huizi Mao, and William J Dally. Deep compression: compressing deep neural networks with pruning, trained quantization and Huffman coding. In International Conference on Learning Representations (ICLR). 2016.">HMD16</a>]</span>将剪枝、量化和 Huffman 编码组合，实现了 AlexNet 和 VGG-16 的 35-49× 压缩。2018 年 Frankle 和 Carbin 提出的&quot;彩票假说&quot;<span id="id33">[<a class="reference internal" href="#id143" title="Jonathan Frankle and Michael Carbin. The lottery ticket hypothesis: finding sparse, trainable neural networks. In International Conference on Learning Representations (ICLR). 2019.">FC19</a>]</span>进一步揭示了剪枝的深层原理——大网络中包含着一个可以独立训练的小子网络（“中奖彩票”），剪枝就是找到这张彩票的过程。</p>
+<p><strong>量化</strong>的发展受益于硬件生态的推动。2018 年 NVIDIA Turing 架构首次引入 INT8 Tensor Core，让 INT8 推理在 GPU 上成为可能。2020 年后，手机 NPU（如 Apple Neural Engine、Qualcomm Hexagon）普遍支持 INT8 甚至 INT4，量化成为边缘部署的标配。</p>
+<div class="tip admonition">
+<p class="admonition-title">量化是当下更主流的工程选择</p>
+<p>在实际工程中，量化的使用远远多于剪枝。原因很简单：量化有标准化的硬件支持（INT8 Tensor Core、NPU），且实现简单、效果好、不需要复杂的迭代流程。而剪枝需要稀疏计算支持才能获得真正的加速，这在通用硬件上至今不够成熟。如果你只能选一个优化手段，选量化。</p>
+</div>
+</section>
+<section id="id34">
+<h2>总结<a class="headerlink" href="#id34" title="Link to this heading">#</a></h2>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>概念</p></th>
+<th class="head"><p>实践</p></th>
+<th class="head"><p>效果</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>浮点数结构</p></td>
+<td><p>ExMy 表示法（E8M23 → E2M1）</p></td>
+<td><p>指数控制范围，尾数控制精度</p></td>
+</tr>
+<tr class="row-odd"><td><p>FP32 低位噪声</p></td>
+<td><p>SGD 噪声 &gt; 尾数低位精度</p></td>
+<td><p>丢弃 ~10 位尾数不影响模型</p></td>
+</tr>
+<tr class="row-even"><td><p>FP8 量化</p></td>
+<td><p>E4M3（权重/激活）+ E5M2（梯度）</p></td>
+<td><p>对数分布比 INT8 均匀分布更保真</p></td>
+</tr>
+<tr class="row-odd"><td><p>MXFP4</p></td>
+<td><p>E2M1 + 共享 E8M0 缩放因子</p></td>
+<td><p>4 位极致压缩，Blackwell 原生支持</p></td>
+</tr>
+<tr class="row-even"><td><p>对称量化</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">torch.quantization.quantize_dynamic</span></code></p></td>
+<td><p>4× 压缩，对精度影响小</p></td>
+</tr>
+<tr class="row-odd"><td><p>静态量化</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">prepare</span> <span class="pre">→</span> <span class="pre">calibrate</span> <span class="pre">→</span> <span class="pre">convert</span></code></p></td>
+<td><p>4× 压缩 + 3× 推理加速</p></td>
+</tr>
+<tr class="row-even"><td><p>ONNX 量化</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">onnxruntime.quantization.quantize_dynamic</span></code></p></td>
+<td><p>跨框架，不依赖 PyTorch</p></td>
+</tr>
+<tr class="row-odd"><td><p>非结构化剪枝</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">prune.l1_unstructured</span></code></p></td>
+<td><p>压缩比可控，加速有限</p></td>
+</tr>
+<tr class="row-even"><td><p>结构化剪枝</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">prune.ln_structured</span></code></p></td>
+<td><p>真实加速，但精度损失较大</p></td>
+</tr>
+<tr class="row-odd"><td><p>迭代剪枝</p></td>
+<td><p>循环剪枝 + 微调</p></td>
+<td><p>高稀疏度下仍保持高精度</p></td>
+</tr>
+<tr class="row-even"><td><p>组合优化</p></td>
+<td><p>先剪枝 → 再量化</p></td>
+<td><p>压缩比叠加，收益最大</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="id35">
+<h3>启示<a class="headerlink" href="#id35" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>FP32 的低位是噪声</strong>：SGD 的随机噪声（<span class="math notranslate nohighlight">\(10^{-4}\)</span>）远大于 FP32 尾数低位的精度（<span class="math notranslate nohighlight">\(10^{-7}\)</span>），这为压缩提供了理论基础。</p></li>
+<li><p><strong>量化是性价比之王</strong>：INT8 量化实现简单，硬件支持广泛，4× 压缩率和 2-4× 加速比几乎是&quot;免费午餐&quot;。FP8 的对数分布在同位数下比 INT8 更保真，MXFP4 在 Blackwell 时代为极致吞吐提供了新选择。</p></li>
+<li><p><strong>剪枝需要迭代</strong>：一次性剪太多会严重损害精度，迭代剪枝 + 微调是更稳健的选择。<a class="reference internal" href="../cnn-expedition/ablation-study/experiment-design.html"><span class="doc">实验设计</span></a>中的&quot;控制变量&quot;思维在这里再次适用：每次只改变剪枝比例，跟踪精度和速度的变化。</p></li>
+<li><p><strong>先剪枝再量化</strong>：两者组合使用时，推荐的顺序是剪枝 → 微调 → 量化，剪枝去掉的离群权重有助于后续量化获得更好的 scale 范围。</p></li>
+</ol>
+</section>
+<section id="id36">
+<h3>下一步<a class="headerlink" href="#id36" title="Link to this heading">#</a></h3>
+<p>模型优化完成后，我们有了一个&quot;又轻又快&quot;的 ONNX 模型。接下来需要设计一套服务架构，让这个模型能够高效地响应外部请求——同时处理多个用户、控制延迟、管理模型版本。<a class="reference internal" href="serving-architecture.html"><span class="doc">服务架构：从单机到分布式</span></a>将深入同步推理、异步推理、简单模式和分布式模式的设计考量。</p>
+<p>从&quot;把模型做小&quot;进化到&quot;让模型服务跑起来&quot;！</p>
+<hr class="docutils" />
+<h2 class="rubric">参考文献</h2>
+<div class="docutils container" id="id37">
+<div role="list" class="citation-list">
+<div class="citation" id="id143" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id33">FC19</a><span class="fn-bracket">]</span></span>
+<p>Jonathan Frankle and Michael Carbin. The lottery ticket hypothesis: finding sparse, trainable neural networks. In <em>International Conference on Learning Representations (ICLR)</em>. 2019.</p>
+</div>
+<div class="citation" id="id141" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id32">HMD16</a><span class="fn-bracket">]</span></span>
+<p>Song Han, Huizi Mao, and William J Dally. Deep compression: compressing deep neural networks with pruning, trained quantization and Huffman coding. In <em>International Conference on Learning Representations (ICLR)</em>. 2016.</p>
+</div>
+<div class="citation" id="id142" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">HCS+18</a><span class="fn-bracket">]</span></span>
+<p>Itay Hubara, Matthieu Courbariaux, Daniel Soudry, Ran El-Yaniv, and Yoshua Bengio. Quantized neural networks: training neural networks with low precision weights and activations. <em>Journal of Machine Learning Research (JMLR)</em>, 18(187):1–30, 2018.</p>
+</div>
+<div class="citation" id="id140" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id31">LDS90</a><span class="fn-bracket">]</span></span>
+<p>Yann LeCun, John S Denker, and Sara A Solla. Optimal brain damage. In <em>Advances in Neural Information Processing Systems (NIPS)</em>, volume 2. 1990.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">2af6985</code>
+                2026-06-14 - <strong>Heyan Zhu</strong>: feat(model-serving): add quantization and pruning chapter, restructure for general-first narrative
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+</article><footer class="bz-article-footer">
+  
+  
+    <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="onnx-export.html" rel="prev">
+    <span>Previous</span><span class="bz-related-pages-title">ONNX：模型的中立语言</span></a><a class="bz-related-pages-next" href="serving-architecture.html" rel="next">
+    <span>Next</span>
+    <span class="bz-related-pages-title">服务架构：从单机到分布式</span>
+  </a></nav>
+  
+
+</footer><aside class="bz-sidebar-secondary" data-drawer="bz-sidebar-secondary">
+  
+  
+    
+  
+  
+  
+  
+
+
+
+<div class="bz-repo-stats">
+  <a
+    data-provider="github"
+    data-user="ulink-deep-learning-club"
+    data-repo="ulink-deeplearningclub-handouts"
+    href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    aria-label="ulink-deep-learning-club/ulink-deeplearningclub-handouts repository"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    <span
+      style="--bz-repo-stats-name-length: 56"
+      title="ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    >
+      ulink-deep-learning-club/ulink-deeplearningclub-handouts
+    </span>
+    <div class="bz-repo-stats-row">
+      <span class="bz-repo-stats-item" aria-label="Repository stars">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path></svg>
+        <span data-stat="stars">-</span>
+      </span>
+      <span class="bz-repo-stats-item" aria-label="Repository forks">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
+        <span data-stat="forks">-</span>
+      </span>
+    </div>
+  </a>
+</div>
+
+  
+    <div class="bz-edit-this-page">
+  <a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/source/model-serving/model-optimization.md" rel="edit">
+    Edit this page
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"></path></svg>
+  </a>
+</div>
+  
+    <nav class="bz-sidebar-toc" aria-label="Table of contents">
+  <p>On this page</p><ul>
+<li><a class="reference internal" href="#id2">为什么需要模型优化？</a></li>
+<li><a class="reference internal" href="#id3">量化：用更少的比特存更多的信息</a><ul>
+<li><a class="reference internal" href="#id4">直觉理解</a></li>
+<li><a class="reference internal" href="#id5">直观理解：量化的类比</a></li>
+<li><a class="reference internal" href="#fp32">为什么可以压缩：FP32 的低位是噪声</a><ul>
+<li><a class="reference internal" href="#sign-exponent-mantissa">浮点数的结构：Sign + Exponent + Mantissa</a></li>
+<li><a class="reference internal" href="#sgd">SGD 的噪声掩盖了低位的精度</a></li>
+<li><a class="reference internal" href="#id6">权重的统计分布</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id8">数学表达</a><ul>
+<li><a class="reference internal" href="#id9">对称量化</a></li>
+<li><a class="reference internal" href="#id10">非对称量化</a></li>
+<li><a class="reference internal" href="#id11">矩阵乘法的量化加速</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fp8-mxfp4">浮点格式全景：FP8 与 MXFP4</a><ul>
+<li><a class="reference internal" href="#id12">格式对比表</a></li>
+<li><a class="reference internal" href="#fp8">FP8：浮点量化的新标准</a></li>
+<li><a class="reference internal" href="#mxfp4-4">MXFP4：4 位的极致压缩</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id13">量化的分类</a><ul>
+<li><a class="reference internal" href="#vs">训练后量化 vs 量化感知训练</a></li>
+<li><a class="reference internal" href="#id14">动态量化 vs 静态量化</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pytorch">代码实践：PyTorch 量化</a><ul>
+<li><a class="reference internal" href="#id15">动态量化（最简单）</a></li>
+<li><a class="reference internal" href="#id16">静态量化（效果最好）</a></li>
+<li><a class="reference internal" href="#onnx-runtime">用 ONNX Runtime 量化已导出的模型</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id17">量化效果一览</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id18">剪枝：删除不重要的连接</a><ul>
+<li><a class="reference internal" href="#id19">直觉理解</a></li>
+<li><a class="reference internal" href="#id20">直观理解：剪枝的类比</a></li>
+<li><a class="reference internal" href="#id21">非结构化剪枝 vs 结构化剪枝</a></li>
+<li><a class="reference internal" href="#id22">数学表达</a><ul>
+<li><a class="reference internal" href="#magnitude-based">基于幅度的非结构化剪枝（Magnitude-based）</a></li>
+<li><a class="reference internal" href="#structured-pruning">结构化剪枝（Structured Pruning，以滤波器剪枝为例）</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id23">代码实践：PyTorch 剪枝</a><ul>
+<li><a class="reference internal" href="#id24">非结构化剪枝（Magnitude-based）</a></li>
+<li><a class="reference internal" href="#id25">全局剪枝（跨层统一比例）</a></li>
+<li><a class="reference internal" href="#id26">迭代剪枝（更实用）</a></li>
+<li><a class="reference internal" href="#id27">结构化剪枝（整通道/整神经元删除）</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id28">剪枝效果一览</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id29">量化与剪枝组合</a></li>
+<li><a class="reference internal" href="#id30">历史背景</a></li>
+<li><a class="reference internal" href="#id34">总结</a><ul>
+<li><a class="reference internal" href="#id35">启示</a></li>
+<li><a class="reference internal" href="#id36">下一步</a></li>
+</ul>
+</li>
+</ul></nav>
+  
+
+</aside></main>
+  </div>
+<footer class="bz-footer">
+  <div class="bz-footer-copyright"><p class="bz-copyright">© Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0</p><p>
+    
+    
+    
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a href="https://github.com/aksiome/breeze">Breeze theme</a>.
+    
+  </p>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    
+    </a>
+  </div>
+</footer><a href="#" class="bz-back-to-top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+    </svg>
+    <span>Back to top</span>
+  </a>
+  <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
+  <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
+  <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../_static/documentation_options.js?v=5a0213dc"></script><script src="../_static/doctools.js?v=9bcbadda"></script><script src="../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../_static/translations.js?v=beaddf03"></script><script src="../_static/design-tabs.js?v=f930bc37"></script><script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script><script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script><script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script><script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 360px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 360px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("True" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll(".mermaid svg");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("True" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script></body>
+</html>

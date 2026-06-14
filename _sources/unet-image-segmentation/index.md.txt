@@ -11,10 +11,10 @@
 | 章节 | 内容 | 与前面章节的联系 |
 | ------ | --------- | --------- |
 | {doc}`introduction` | 分割问题与 U-Net 的核心思想 | "在哪"和"是什么"必须同时解决 |
-| {doc}`u-net` | U 形架构：编码器、解码器、跳跃连接 | {doc}`../neural-network-basics/le-net` 的对称扩展 |
+| {doc}`u-net` | U 形架构：编码器、解码器、跳跃连接 | {doc}`../cnn-expedition/practice-peak/le-net` 的对称扩展 |
 | {doc}`loss-func` | Dice 损失与交叉熵损失 | {ref}`loss-functions` 的进阶应用 |
 | {doc}`core-impl` | 从零实现 U-Net | {doc}`../pytorch-practice/neural-network-module` 的实践 |
-| {doc}`practice` | 数据增强与训练技巧 | {doc}`../neural-network-basics/neural-training-basics` 的迁移 |
+| {doc}`practice` | 数据增强与训练技巧 | {doc}`../cnn-expedition/practice-peak/neural-training-basics` 的迁移 |
 | {doc}`the-end` | 应用、变体、局限与展望 | U-Net 为什么十年不过时 |
 
 ~~~{rubric} 学习路径
@@ -39,9 +39,9 @@ graph LR
 
 | 前置章节 | 本章应用 |
 | ------ | --------- |
-| {doc}`../neural-network-basics/cnn-basics` | 卷积/池化 → 编码器的构建块 |
-| {doc}`../neural-network-basics/le-net` | 编码器-分类器 → 编码器-解码器 |
-| {doc}`../attention-mechanisms/index` | 注意力 → Attention U-Net |
+| {doc}`../cnn-expedition/practice-peak/cnn-basics` | 卷积/池化 → 编码器的构建块 |
+| {doc}`../cnn-expedition/practice-peak/le-net` | 编码器-分类器 → 编码器-解码器 |
+| {doc}`../cnn-expedition/image-net-era/index` | 注意力 → Attention U-Net |
 ```
 
 ```{toctree}

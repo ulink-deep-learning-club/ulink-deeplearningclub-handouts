@@ -87,7 +87,7 @@ conv_output = torch.randn(64, 32, 28, 28)  # batch=64, 32通道, 28×28特征图
 fc_input = conv_output.reshape(64, -1)  # -1 表示自动计算
 print(f"展平后: {fc_input.shape}")  # torch.Size([64, 25088])
 
-# 这就是 {doc}`../neural-network-basics/le-net` 中 C5 层到 F6 层的操作！
+# 这就是 {doc}`../cnn-expedition/practice-peak/le-net` 中 C5 层到 F6 层的操作！
 ```
 
 ### squeeze 与 unsqueeze：增减维度
@@ -414,8 +414,8 @@ z = y.reshape(6, 4)
 
 掌握了张量操作后，我们可以开始构建神经网络了。在 {doc}`neural-network-module` 中：
 
-- 用 `nn.Linear` 实现 {doc}`../neural-network-basics/fc-layer-basics` 中的全连接层
-- 用 `nn.Conv2d` 实现 {doc}`../neural-network-basics/cnn-basics` 中的卷积层
+- 用 `nn.Linear` 实现 {doc}`../cnn-expedition/practice-peak/fc-layer-basics` 中的全连接层
+- 用 `nn.Conv2d` 实现 {doc}`../cnn-expedition/practice-peak/cnn-basics` 中的卷积层
 - 理解 `forward` 方法中的张量流动
 
 **核心认知**：神经网络的每一层本质上都是**张量 → 张量**的映射——理解形状变换，就理解了数据在网络中的流动。

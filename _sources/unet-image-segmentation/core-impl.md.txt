@@ -72,7 +72,7 @@ class UNet(nn.Module):
 - 解码器：$\approx 24$M 参数  
 - 总计：约 **55M** 参数
 
-作为对比，{doc}`../neural-network-basics/le-net` 的 LeNet-5 约 60K 参数。U-Net 比它大了近 1000 倍——因为通道多（1024 vs 120）、有解码器、有跳跃连接的双卷积。
+作为对比，{doc}`../cnn-expedition/practice-peak/le-net` 的 LeNet-5 约 60K 参数。U-Net 比它大了近 1000 倍——因为通道多（1024 vs 120）、有解码器、有跳跃连接的双卷积。
 ```
 
 ## 模型初始化

@@ -1,7 +1,7 @@
 (sequence-modeling-intro)=
 # 引言：从空间到时间
 
-到目前为止，我们一直在处理图像——{doc}`../neural-network-basics/cnn-basics` 中的卷积核在二维像素格上滑动，{doc}`../attention-mechanisms/index` 中的注意力模块在通道和空间维度上重加权。这些架构共享一个隐含假设：**输入是静态的、定长的、没有先后顺序的**。
+到目前为止，我们一直在处理图像——{doc}`../cnn-expedition/practice-peak/cnn-basics` 中的卷积核在二维像素格上滑动，{doc}`../cnn-expedition/image-net-era/index` 中的注意力模块在通道和空间维度上重加权。这些架构共享一个隐含假设：**输入是静态的、定长的、没有先后顺序的**。
 
 但现实中的很多数据不是这样。一段文字、一首歌、一段视频——它们都有**时间顺序**。单词的排列决定语义，音节的先后决定旋律，帧的连续决定动作。
 

@@ -3,7 +3,7 @@
 
 {doc}`./optimiser`中我们掌握了如何更新参数。现在的问题是：**如何把所有组件整合成一个完整的训练系统？**
 
-在 {doc}`../neural-network-basics/neural-training-basics`中，我们学习了训练的核心概念——Epoch、Batch、过拟合与欠拟合、正则化技巧等。但这些知识零散，需要串联成可运行的代码。
+在 {doc}`../cnn-expedition/practice-peak/neural-training-basics`中，我们学习了训练的核心概念——Epoch、Batch、过拟合与欠拟合、正则化技巧等。但这些知识零散，需要串联成可运行的代码。
 
 **本节就是答案**：我们将构建一个完整的 MNIST 训练系统，涵盖数据加载、模型训练、验证评估、模型保存等全部环节。
 
@@ -20,7 +20,7 @@ flowchart LR
     F -->|否| G[结束]
 ```
 
-**核心流程**（对应 {doc}`../neural-network-basics/neural-training-basics`）：
+**核心流程**（对应 {doc}`../cnn-expedition/practice-peak/neural-training-basics`）：
 
 1. **数据准备**：加载数据，划分训练/验证集，创建 DataLoader
 2. **模型定义**：搭建网络架构
@@ -32,7 +32,7 @@ flowchart LR
 
 ### 数据集与 DataLoader
 
-{doc}`../neural-network-basics/neural-training-basics`中提到：**Batch Size** 是每次参数更新使用的样本数。PyTorch 用 `DataLoader` 实现这个机制。
+{doc}`../cnn-expedition/practice-peak/neural-training-basics`中提到：**Batch Size** 是每次参数更新使用的样本数。PyTorch 用 `DataLoader` 实现这个机制。
 
 ```python
 import torchvision
@@ -88,7 +88,7 @@ print(f"每 epoch 迭代次数: {len(train_loader)}")  # 938
 
 ### 数据增强（可选）
 
-{doc}`../neural-network-basics/neural-training-basics`中的**数据增强**可以增加训练样本多样性：
+{doc}`../cnn-expedition/practice-peak/neural-training-basics`中的**数据增强**可以增加训练样本多样性：
 
 ```python
 # 训练时增强，测试时不增强
@@ -109,7 +109,7 @@ test_transform = transforms.Compose([
 
 ### CNN 架构实现
 
-对应 {doc}`../neural-network-basics/cnn-basics`中的卷积网络设计：
+对应 {doc}`../cnn-expedition/practice-peak/cnn-basics`中的卷积网络设计：
 
 ```python
 import torch.nn as nn
@@ -177,7 +177,7 @@ class MNISTNet(nn.Module):
 
 ### 单 epoch 训练
 
-对应 {doc}`../neural-network-basics/neural-training-basics`中的训练循环：
+对应 {doc}`../cnn-expedition/practice-peak/neural-training-basics`中的训练循环：
 
 ```python
 def train_epoch(model, device, train_loader, optimizer, criterion, epoch):
@@ -384,7 +384,7 @@ def main():
 
 ### 绘制损失和准确率曲线
 
-对应 {doc}`../neural-network-basics/neural-training-basics`中的过拟合检测：
+对应 {doc}`../cnn-expedition/practice-peak/neural-training-basics`中的过拟合检测：
 
 ```python
 def plot_history(history):
@@ -480,12 +480,12 @@ def load_and_predict(model_path, image):
 
 | 步骤 | 关键代码 | 对应理论 |
 | ------ | --------- | --------- |
-| 数据加载 | `DataLoader` | {doc}`../neural-network-basics/neural-training-basics` 中的 Batch |
-| 模型定义 | `nn.Module` | {doc}`../neural-network-basics/cnn-basics` |
+| 数据加载 | `DataLoader` | {doc}`../cnn-expedition/practice-peak/neural-training-basics` 中的 Batch |
+| 模型定义 | `nn.Module` | {doc}`../cnn-expedition/practice-peak/cnn-basics` |
 | 损失函数 | `CrossEntropyLoss` | {doc}`../math-fundamentals/loss-functions` |
 | 优化器 | `optim.Adam` | {doc}`../math-fundamentals/gradient-descent` |
 | 反向传播 | `loss.backward()` | {doc}`../math-fundamentals/back-propagation` |
-| 正则化 | `weight_decay`, `Dropout` | {doc}`../neural-network-basics/neural-training-basics` |
+| 正则化 | `weight_decay`, `Dropout` | {doc}`../cnn-expedition/practice-peak/neural-training-basics` |
 | 验证评估 | `model.eval()` | 检测过拟合 |
 | 学习率调度 | `lr_scheduler` | 训练后期微调 |
 

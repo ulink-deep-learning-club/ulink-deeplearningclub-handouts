@@ -24,7 +24,7 @@ graph LR
     H --> I[使用框架<br/>工程化工具]
 ~~~
 
-每个节点都对应着{doc}`../math-fundamentals/index`和{doc}`../neural-network-basics/index`中的理论概念，现在你已经能把它们变成实际运行的代码。
+每个节点都对应着{doc}`../math-fundamentals/index`和{doc}`../cnn-expedition/practice-peak/index`中的理论概念，现在你已经能把它们变成实际运行的代码。
 
 ---
 
@@ -66,7 +66,7 @@ graph LR
 | ------ | ------ | ------ | ------ |
 | **MNIST 分类器**（手写） | ⭐ 入门 | 完整训练流程 | {doc}`train-workflow` |
 | **mnist-helloworld**（框架） | ⭐ 入门 | 工程化项目结构、配置管理、实验追踪 | 社团自有框架 `mnist-helloworld/` |
-| **CIFAR-10 ResNet** | ⭐⭐ 基础 | 更深网络、数据增强 | {doc}`../neural-network-basics/cnn-basics` |
+| **CIFAR-10 ResNet** | ⭐⭐ 基础 | 更深网络、数据增强 | {doc}`../cnn-expedition/practice-peak/cnn-basics` |
 | **猫狗分类器** | ⭐⭐ 基础 | 迁移学习 | {doc}`../transfer-learning/index` |
 | **情感分析** | ⭐⭐⭐ 进阶 | 文本处理、RNN | {ref}`sequence-modeling` |
 | **GAN 图像生成** | ⭐⭐⭐⭐ 困难 | 对抗训练、生成模型 | 生成模型专题 |
@@ -105,7 +105,7 @@ graph LR
   - 泛化理论（为什么深度学习不会过拟合）
 
 - 方向二：探索新架构
-  在{doc}`../neural-network-basics/index`基础上学习：
+  在{doc}`../cnn-expedition/practice-peak/index`基础上学习：
   - ResNet、DenseNet 等现代 CNN 架构
   - Transformer 在视觉中的应用（ViT）
   - 生成模型：VAE、GAN、Diffusion Models 等
@@ -117,7 +117,7 @@ graph LR
   - 为开源项目贡献代码
 
 - 方向四：工程优化
-  深入学习{doc}`../neural-network-basics/scaling-law`中提到的：
+  深入学习{doc}`../cnn-expedition/model-architecture-design/part5-efficiency`中提到的：
   - 分布式训练（Data Parallel / Model Parallel）
   - 模型压缩与部署
   - 高效的数据流水线设计
@@ -155,7 +155,7 @@ graph LR
 
 深度学习是一门**理论与实践紧密结合**的学科。
 
-{doc}`../math-fundamentals/index`给了你理解原理的数学工具，{doc}`../neural-network-basics/index`给了你设计网络的架构知识，而本章的 PyTorch 实践让你能**亲手把这些变成现实**。
+{doc}`../math-fundamentals/index`给了你理解原理的数学工具，{doc}`../cnn-expedition/practice-peak/index`给了你设计网络的架构知识，而本章的 PyTorch 实践让你能**亲手把这些变成现实**。
 
 记住这三个核心理念：
 
@@ -173,7 +173,7 @@ graph LR
 **本章相关理论**：
 
 - {doc}`../math-fundamentals/index`：计算图、反向传播、梯度下降
-- {doc}`../neural-network-basics/index`：全连接网络、CNN、训练技巧
+- {doc}`../cnn-expedition/practice-peak/index`：全连接网络、CNN、训练技巧
 - {doc}`../transfer-learning/index`：迁移学习、预训练模型
 
 **PyTorch 官方**：

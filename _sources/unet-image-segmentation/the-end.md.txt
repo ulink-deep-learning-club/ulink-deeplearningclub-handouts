@@ -17,7 +17,7 @@
 
 ## 与前面章节的联系
 
-本章是 {doc}`../neural-network-basics/index` 和 {doc}`../attention-mechanisms/index` 的**综合应用**：
+本章是 {doc}`../cnn-expedition/practice-peak/index` 和 {doc}`../cnn-expedition/image-net-era/index` 的**综合应用**：
 
 | 前置知识 | 本章应用 |
 | ------ | --------- |
@@ -90,7 +90,7 @@ A: 1) patch-based 训练；2) 混合精度训练；3) 深度可分离卷积。
 
 掌握了 U-Net 后，你可以探索：
 
-1. **{doc}`../attention-mechanisms/index`**：Attention U-Net 如何将注意力引入分割
+1. **{doc}`../cnn-expedition/image-net-era/index`**：Attention U-Net 如何将注意力引入分割
 2. **DeepLab 系列**：空洞卷积扩大感受野，ASPP 多尺度融合
 3. **Mask R-CNN**：实例分割（区分不同个体）
 4. **SAM (Segment Anything)**：基于提示的通用分割模型

@@ -1,7 +1,7 @@
 (deployment-practice)=
 # 部署实践：用Ferrinx服务模型
 
-{ref}`serving-architecture`中我们讨论了模型服务的架构设计——同步异步、简单分布式、模型路由、认证限流。现在我们把理论变成实践：用Ferrinx把{ref}`onnx-export`导出的LeNet模型部署成一个真正的API服务。
+{ref}`serving-architecture`中我们讨论了模型服务的架构设计——推理模式、部署拓扑、API设计、认证安全、模型路由。现在我们把理论变成实践：用Ferrinx把{ref}`onnx-export`导出的LeNet模型（如果你做了{ref}`model-optimization`，就是优化后的版本）部署成一个真正的API服务。
 
 这一节的操作流程和{doc}`../pytorch-practice/using-framework`中框架的使用思路一致：先了解工具的基本用法，然后通过实际操作来掌握各项功能。不同的是，这里的工具不是用来训练模型，而是用来服务模型。
 
@@ -126,7 +126,7 @@ Ferrinx会读取配置文件中的元信息、模型路径、预处理/后处理
 ```{admonition} 模型验证的两层检查
 :class: note
 
-Ferrinx在注册模型时会做两层验证。第一层检查ONNX文件的magic number（文件头是否合法），第二层尝试解析模型的输入输出元信息，提取层名、形状和数据类型。这些元信息会被保存，后续推理时用于自动匹配输入。可选的第三层验证会创建ONNX Session来确认模型可执行，在`model_validation.validate_session = true`时启用——这个选项会显著增加注册时间。
+Ferrinx在注册模型时会做两层验证。第一层检查ONNX文件的魔数（Magic Number，文件头是否合法），第二层尝试解析模型的输入输出元信息，提取层名、形状和数据类型。这些元信息会被保存，后续推理时用于自动匹配输入。可选的第三层验证会创建ONNX推理会话（Session）来确认模型可执行，在`model_validation.validate_session = true`时启用——这个选项会显著增加注册时间。
 ```
 
 ## 执行推理
@@ -179,7 +179,7 @@ execution_provider = "CUDA"    # 可选: CPU, CUDA, CoreML, ROCm, WEBGPU
 gpu_device_id = 0
 ```
 
-不同的执行提供者需要不同的Feature编译：
+不同的执行提供者需要启用不同的编译特性（Feature）：
 - WebGPU：`cargo build --release --features webgpu`
 - CUDA：`cargo build --release --features cuda`
 - CoreML：`cargo build --release --features coreml`
@@ -187,7 +187,7 @@ gpu_device_id = 0
 ```{admonition} GPU配置的注意事项
 :class: warning
 
-编译时启用的执行提供者Feature必须和配置文件中的`execution_provider`一致。如果在配置中设置了CUDA但编译时没有启用cuda feature，Ferrinx会在启动时报错。WebGPU是推荐的GPU加速选项——它通过Vulkan/DirectX/Metal适配各类GPU，不需要安装CUDA Toolkit。
+编译时启用的编译特性（Feature）必须和配置文件中的`execution_provider`一致。如果在配置中设置了CUDA但编译时没有启用cuda feature，Ferrinx会在启动时报错。WebGPU是推荐的GPU加速选项——它通过Vulkan/DirectX/Metal适配各类GPU，不需要安装CUDA Toolkit。
 ```
 
 ## API Key管理
@@ -251,9 +251,9 @@ max_files = 10
 
 ## 从框架到Ferrinx的一体化流程
 
-现在回顾整条链路：从PyTorch代码开始（{doc}`../pytorch-practice/index`），经过模型设计和训练（{doc}`../neural-network-basics/index`），用消融实验验证（{doc}`../cnn-ablation-study/index`），导出为ONNX格式（{doc}`onnx-export`），最后部署到Ferrinx服务（本节）——一条完整的"从研究到生产"的管线就这样建立起来了。
+现在回顾整条链路：从PyTorch代码开始（{doc}`../pytorch-practice/index`），经过模型设计和训练（{doc}`../cnn-expedition/practice-peak/index`），用消融实验验证（{doc}`../cnn-expedition/ablation-study/index`），导出为ONNX格式（{doc}`onnx-export`），做量化和剪枝优化（{doc}`model-optimization`），最后部署到Ferrinx服务（本节）——一条完整的"从研究到生产"的管线就这样建立起来了。
 
-这种端到端的视角是理解深度学习工程化的关键。每一章学的技能不是孤立的，它们构成了一个完整的工具链：PyTorch让你能做实验，消融研究让你能验证设计，ONNX解决了格式壁垒，Ferrinx解决了部署问题。下一节{doc}`the-end`我们来回顾整条链路，并讨论未来可以深入的方向。
+这种端到端的视角是理解深度学习工程化的关键。每一章学的技能不是孤立的，它们构成了一个完整的工具链：PyTorch让你能做实验，消融研究让你能验证设计，ONNX解决了格式壁垒，量化和剪枝让模型适配生产环境，Ferrinx解决了部署问题。下一节{doc}`the-end`我们来回顾整条链路，并讨论未来可以深入的方向。
 
 ---
 

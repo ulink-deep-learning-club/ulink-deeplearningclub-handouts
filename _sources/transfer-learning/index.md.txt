@@ -42,9 +42,9 @@ graph LR
 | {doc}`../pytorch-practice/neural-network-module` | 加载预训练模型、替换分类头 |
 | {doc}`../pytorch-practice/optimiser` | 分层学习率、参数冻结 |
 | {doc}`../pytorch-practice/train-workflow` | 完整训练流程、早停机制 |
-| {doc}`../neural-network-basics/neural-training-basics` | 过拟合诊断、正则化策略 |
-| {doc}`../neural-network-basics/cnn-basics` | {ref}`inductive-bias` 与预训练权重的关系 |
-| {doc}`../model-architecture-design/index` | 微调中的架构改造——何时解冻、何时加模块 |
+| {doc}`../cnn-expedition/practice-peak/neural-training-basics` | 过拟合诊断、正则化策略 |
+| {doc}`../cnn-expedition/practice-peak/cnn-basics` | {ref}`inductive-bias` 与预训练权重的关系 |
+| {doc}`../cnn-expedition/model-architecture-design/index` | 微调中的架构改造——何时解冻、何时加模块 |
 ```
 
 ```{toctree}

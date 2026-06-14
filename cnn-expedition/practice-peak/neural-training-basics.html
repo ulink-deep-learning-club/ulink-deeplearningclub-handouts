@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-content_root="../../">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="训练基础：登山纪律" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="cnn-expedition/practice-peak/neural-training-basics.html" />
+<meta property="og:site_name" content="Deep Learning Club Handouts" />
+<meta property="og:description" content="登山纪律——装备好也会摔，监控损失曲线，控制学习率。 行囊备好。但登山者的第一条铁律： 先学纪律，再学攀登。 纪律是什么？监控损失曲线——知道模型在变好还是变坏；选对学习率——步子太大摔跤，太小爬不动；知道什么时候停——练过头就是死记硬背。这些比架构本身更能决定一次攀登的成败。 全连接：赤手空拳 和 卷积：发现装备 教会了你搭架构——但知道&quot;建什么&quot;不等于知道&quot;..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_cnn-expedition_practice-peak_neural-training-basics_7ad8002e.png" />
+<meta property="og:image:alt" content="登山纪律——装备好也会摔，监控损失曲线，控制学习率。 行囊备好。但登山者的第一条铁律： 先学纪律，再学攀登。 纪律是什么？监控损失曲线——知道模型在变好还是变坏；选对学习率——步子太大摔跤，太小爬不动；知道什么时候停——练过头就是死记硬背。这些比架构本身更能决定一次攀登的成败。 全连接：赤手空拳 和 卷积：发现装备 教会了你搭架构——但知道&quot;建什么&quot;不等于知道&quot;..." />
+<meta name="description" content="登山纪律——装备好也会摔，监控损失曲线，控制学习率。 行囊备好。但登山者的第一条铁律： 先学纪律，再学攀登。 纪律是什么？监控损失曲线——知道模型在变好还是变坏；选对学习率——步子太大摔跤，太小爬不动；知道什么时候停——练过头就是死记硬背。这些比架构本身更能决定一次攀登的成败。 全连接：赤手空拳 和 卷积：发现装备 教会了你搭架构——但知道&quot;建什么&quot;不等于知道&quot;..." />
+<meta name="twitter:card" content="summary_large_image" />
+<title>训练基础：登山纪律 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../../genindex.html"><link rel="search" title="搜索" href="../../search.html"><link rel="next" title="LeNet-5：练习峰首登" href="le-net.html"><link rel="prev" title="数据准备：打包行囊" href="dataset-preparation.html"><script data-cfasync="false">(function(){
+    const m = localStorage.getItem("breeze-mode") || "auto";
+    const d = document.documentElement.dataset;
+    d.mode = m;
+    d.theme = m === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : m;
+  })();
+  </script><link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../../_static/style-fixes.css?v=c830a622" /><link rel="stylesheet" type="text/css" href="../../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+<body>
+  
+  
+  <div class="bz-skip-to-content"><a href="#bz-main-content">Skip to main content</a></div><header class="bz-header-main">
+  <div class="bz-header-start"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><a class="bz-header-brand" href="../../index.html">
+  
+  
+  <span>Deep Learning Club Handouts</span>
+</a>
+  </div>
+  <div class="bz-header-end"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><div id="docsearch" class="bz-search-button">
+  <a
+    href="../../search.html#q"
+    aria-label="Search the docs"
+    data-tooltip="Search the docs"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 -1 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
+    <span>搜索</span>
+    <kbd>Ctrl+K</kbd>
+  </a>
+</div><div class="bz-theme-switcher">
+  <button aria-label="Switch theme" data-tooltip="Switch theme">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
+      <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-dark" fill="currentColor">
+      <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+    </svg>
+  </button>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.766 11.695C4.703 11.437 3.25 9.904 3.25 7.92c0-.806.281-1.677.75-2.258-.203-.532-.172-1.662.062-2.129.626-.081 1.469.258 1.969.726.594-.194 1.219-.291 1.985-.291.765 0 1.39.097 1.953.274.484-.451 1.343-.79 1.969-.709.218.435.25 1.564.046 2.113.5.613.766 1.436.766 2.274 0 1.984-1.453 3.485-3.547 3.759.531.355.891 1.129.891 2.016v1.678c0 .484.39.758.859.564C13.781 14.824 16 11.905 16 8.291 16 3.726 12.406 0 7.984 0 3.562 0 0 3.726 0 8.291c0 3.581 2.203 6.55 5.172 7.663A.595.595 0 0 0 6 15.389v-1.291c-.219.097-.5.162-.75.162-1.031 0-1.641-.581-2.078-1.662-.172-.435-.36-.693-.719-.742-.187-.016-.25-.097-.25-.193 0-.194.313-.339.625-.339.453 0 .844.29 1.25.887.313.468.641.678 1.031.678.391 0 .641-.146 1-.516.266-.275.469-.517.657-.678Z"></path></svg>
+    
+    </a>
+  </div>
+  </div>
+</header><hr class="bz-header-hr">
+  <div class="bz-content"><aside class="bz-sidebar-primary" data-drawer="bz-sidebar-primary">
+  
+  
+    <nav class="bz-sidebar-nav" aria-label="Section Navigation"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../preface.html">写在前面：关于深度学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../math-fundamentals/index.html">深度学习核心数学基础</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/introduction.html">引言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/computational-graph.html">计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/task-formulations.html">学习任务的形式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/activation-functions.html">激活函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/loss-functions.html">损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/back-propagation.html">反向传播算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/gradient-descent.html">梯度下降与优化算法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../math-fundamentals/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">翻越两座山：CNN 三十年攀登史</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html">引言：因为山在那里</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">上篇：练习峰</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="introduction.html">引言：从公式到代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fc-layer-basics.html">全连接：赤手空拳</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cnn-basics.html">卷积：发现装备</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dataset-preparation.html">数据准备：打包行囊</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">训练基础：登山纪律</a></li>
+<li class="toctree-l3"><a class="reference internal" href="le-net.html">LeNet-5：练习峰首登</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exp-cmp.html">实验对比：登山日志</a></li>
+<li class="toctree-l3"><a class="reference internal" href="the-end.html">练习峰，登顶</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../ablation-study/index.html">拆开看看：CNN 消融研究</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../ablation-study/introduction.html">引言：拆开看看</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ablation-study/experiment-design.html">实验设计</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ablation-study/implementation.html">PyTorch实现</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ablation-study/the-end.html">结语</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../image-net-era/index.html">下篇：真正的未登峰</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/introduction.html">引言：真正的山</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/alexnet.html">AlexNet：真正的未登峰，首登！</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/inception.html">Inception：多尺度工具</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/res-net.html">ResNet：高原反应补给站</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/se-net.html">SE-Net：学会聚焦</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/cbam.html">CBAM：哪里重要 + 什么重要</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/mobilenet.html">MobileNet：一个人，一把冰镐</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/efficientnet.html">EfficientNet：每一分钱，花在刀刃上</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../image-net-era/the-end.html">登山下篇回顾：八年，八件装备</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../model-architecture-design/index.html">架构心法：从会用装备到会设计装备</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part1-intro.html">诊断入门：信息论听诊器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part2-receptive-field.html">操控感受野：网络应该看多大</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part3-depth-connection.html">操控深度与连接：信息如何在网络中流动</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part4-attention.html">操控注意力与长程依赖：信息该走哪条路</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part5-efficiency.html">操控效率：效果、速度与硬件的三角权衡</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/part6-diagnosis.html">诊断与心法：当模型表现不佳时</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../model-architecture-design/the-end.html">登山者笔记：四件装备，三十年</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../the-end.html">下一座山</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pytorch-practice/index.html">PyTorch 实践：把理论变成代码</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/introduction.html">引言：从理论到代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/from-numpy-to-pytorch.html">从 NumPy 到 PyTorch：张量的本质</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/tensor-ops.html">张量操作：数据在网络中的流动</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/neural-network-module.html">神经网络模块：搭建计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/auto-grad.html">自动微分：PyTorch 的核心魔法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/optimiser.html">优化器：用梯度更新参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/train-workflow.html">完整训练流程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/debug-and-visualise.html">调试与可视化技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/best-practices.html">工程最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/using-framework.html">使用训练框架</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pytorch-practice/the-end.html">结语：从入门到实践</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../model-serving/index.html">模型部署与服务：从训练到生产</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/introduction.html">引言：训练完模型之后</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/onnx-export.html">ONNX：模型的中立语言</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/model-optimization.html">模型优化：量化与剪枝</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/serving-architecture.html">服务架构：从单机到分布式</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/deployment-practice.html">部署实践：用Ferrinx服务模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model-serving/the-end.html">结语：完整的学习链路</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../transfer-learning/index.html">迁移学习与微调：站在巨人的肩膀上</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part1-intro.html">导论与核心思想</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part2-taxonomy.html">迁移学习分类体系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part3-model-transfer.html">基于模型的迁移</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/part4-practical-guide.html">实操指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../transfer-learning/the-end.html">结语：站在巨人的肩膀上</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../unet-image-segmentation/index.html">U-Net：图像分割的革命</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/introduction.html">引言：图像分割问题</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/u-net.html">U 形架构详解</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/loss-func.html">损失函数设计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/core-impl.html">完整实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/practice.html">数据增强与训练技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../unet-image-segmentation/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sequence-modeling/index.html">序列建模：从 RNN 到 Transformer 再到 Mamba</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/introduction.html">引言：从空间到时间</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/rnn-basics.html">循环神经网络：让网络拥有"记忆"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/lstm.html">LSTM：给记忆装上"门"</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/from-rnn-to-attention.html">从RNN到注意力：一个思想的跳跃</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/transformer.html">Transformer：注意力的极致</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/mamba-intro.html">Mamba 简述：对RNN思想的回归</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequence-modeling/the-end.html">总结与展望</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../appendix/environment-setup/index.html">环境配置</a>
+<details><summary aria-label="Toggle submenu"></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/linux-basics.html">Linux基础：为什么炼丹用Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/nvidia-setup.html">NVIDIA驱动与CUDA：让GPU真正工作</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/remote-access.html">远程访问：从任何地方连上你的GPU服务器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/server-management.html">服务管理：让训练一直跑，服务一直开</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../appendix/environment-setup/the-end.html">结语：现在你有一台真正能用的服务器了</a></li>
+</ul></details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../appendix/sphinx-guide/index.html">Sphinx Markdown 语法参考</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../appendix/build-docs.html">编译文档</a></li>
+</ul></details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../postscript.html">写在后面</a></li>
+</ul>
+</nav>
+  
+
+</aside><main id="bz-main-content"><header class="bz-article-header">
+  
+  
+    <nav class="bz-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li class="bz-breadcrumbs-home">
+      <a href="../../index.html" aria-label="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8.543 2.232a.75.75 0 0 0-1.085 0l-5.25 5.5A.75.75 0 0 0 2.75 9H4v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V9h1.25a.75.75 0 0 0 .543-1.268l-5.25-5.5Z" />
+        </svg>
+      </a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="../index.html">翻越两座山：CNN 三十年攀登史</a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="index.html">上篇：练习峰</a>
+    </li><li class="bz-breadcrumbs-current">
+      <span>训练基础：登山纪律</span>
+    </li>
+  </ol>
+</nav>
+  
+<label
+  class="bz-sidebar-secondary-toggle"
+  for="bz-sidebar-secondary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle table of contents"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75H20.25 M11.25 12H20.25 M7.75 17.25H20.25"
+    />
+  </svg>
+</label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="neural-training-basics">
+<span id="id1"></span><h1>训练基础：登山纪律<a class="headerlink" href="#neural-training-basics" title="Link to this heading">#</a></h1>
+<blockquote>
+<div><p>登山纪律——装备好也会摔，监控损失曲线，控制学习率。</p>
+</div></blockquote>
+<p>行囊备好。但登山者的第一条铁律：<strong>先学纪律，再学攀登。</strong> 纪律是什么？监控损失曲线——知道模型在变好还是变坏；选对学习率——步子太大摔跤，太小爬不动；知道什么时候停——练过头就是死记硬背。这些比架构本身更能决定一次攀登的成败。<a class="reference internal" href="fc-layer-basics.html"><span class="doc">全连接：赤手空拳</span></a> 和 <a class="reference internal" href="cnn-basics.html"><span class="doc">卷积：发现装备</span></a> 教会了你搭架构——但知道&quot;建什么&quot;不等于知道&quot;怎么训练&quot;。本节从 <a class="reference internal" href="../../math-fundamentals/gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a> 和 <a class="reference internal" href="../../math-fundamentals/back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a> 的理论出发，掌握让神经网络真正&quot;学会&quot;的实战技巧。</p>
+<section id="id2">
+<h2>训练的本质：从数据到能力<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>想象你在教小孩认数字。你不会只给他看一遍卡片就指望他记住，而是需要：</p>
+<ul class="simple">
+<li><p><strong>反复练习</strong>：同一组卡片看很多遍（多轮训练）</p></li>
+<li><p><strong>及时反馈</strong>：猜对了表扬，猜错了纠正（计算损失）</p></li>
+<li><p><strong>循序渐进</strong>：从简单到复杂，调整学习节奏（学习率调度）</p></li>
+<li><p><strong>防止死记</strong>：确保他理解数字的本质，不只是记住卡片（防止过拟合）</p></li>
+</ul>
+<p>神经网络训练完全遵循同样的逻辑。<a class="reference internal" href="../../math-fundamentals/gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>告诉我们沿着梯度方向更新参数，但实践中还有大量细节需要把握。</p>
+</section>
+<hr class="docutils" />
+<section id="id3">
+<h2>核心训练概念<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p>在深入之前，我们需要统一几个基本概念：</p>
+<p><strong>Epoch（轮次）</strong>：完整遍历整个训练数据集一次。就像把整副卡片从头到尾看一遍。MNIST有60,000张训练图片，一个epoch就是看完全部60,000张。</p>
+<p><strong>Batch（批次）</strong>：一次更新参数时使用的样本集合。如果一次看一张就更新，效率太低；如果看完60,000张才更新，内存可能不够。<strong>Batch Size</strong>就是每批的样本数，常用32、64、128等2的幂次。</p>
+<p><strong>Iteration（迭代）</strong>：完成一个批次的训练。一个epoch包含的迭代次数 = 总样本数 ÷ Batch Size。</p>
+<div class="tip admonition">
+<p class="admonition-title">MNIST训练示例</p>
+<ul class="simple">
+<li><p>总训练样本：60,000张</p></li>
+<li><p>Batch Size：64</p></li>
+<li><p>每epoch的迭代次数：60,000 ÷ 64 ≈ 938次</p></li>
+<li><p>训练10个epoch：总共迭代9,380次，更新参数9,380次</p></li>
+</ul>
+</div>
+</section>
+<hr class="docutils" />
+<section id="id4">
+<h2>损失函数的选择<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="../../math-fundamentals/loss-functions.html#loss-functions"><span class="std std-ref">损失函数</span></a>中我们讨论了不同任务的损失函数设计。在实战中，选择主要取决于<strong>任务类型</strong>：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>任务类型</p></th>
+<th class="head"><p>推荐损失函数</p></th>
+<th class="head"><p>为什么</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>回归</p></td>
+<td><p>MSE / MAE</p></td>
+<td><p>直接衡量数值偏差</p></td>
+</tr>
+<tr class="row-odd"><td><p>二分类</p></td>
+<td><p>BCE Loss</p></td>
+<td><p>衡量概率校准程度</p></td>
+</tr>
+<tr class="row-even"><td><p>多分类</p></td>
+<td><p>CrossEntropy</p></td>
+<td><p>结合Softmax，梯度更稳定</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">MNIST的交叉熵</p>
+<p>MNIST是10类分类，使用<strong>交叉熵损失</strong>：</p>
+<div class="math notranslate nohighlight">
+\[
+\mathcal{L} = -\sum_{c=1}^{10} y_c \log(p_c)
+\]</div>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(y_c\)</span>：真实标签的one-hot编码（目标类别为1，其余为0）</p></li>
+<li><p><span class="math notranslate nohighlight">\(p_c\)</span>：Softmax输出的概率</p></li>
+</ul>
+<p><strong>为什么不用MSE？</strong> 分类任务的输出是概率分布，交叉熵对这种&quot;分布间的差异&quot;更敏感，且避免了梯度消失问题（见<a class="reference internal" href="../../math-fundamentals/back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>）。</p>
+</div>
+</section>
+<hr class="docutils" />
+<section id="id5">
+<h2>过拟合与欠拟合：学习的两种失败<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<p>训练神经网络就像准备考试——有两种典型的失败模式：</p>
+<section id="id6">
+<h3>欠拟合：学得太少<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p>想象一个学生只翻了翻课本，没做练习题就去考试：</p>
+<ul class="simple">
+<li><p>训练时表现就不好（训练损失高）</p></li>
+<li><p>考试时更差（验证损失也高）</p></li>
+<li><p><strong>原因</strong>：模型太简单，没能捕捉数据的基本规律</p></li>
+<li><p><strong>解决</strong>：增加网络深度、训练更长时间、降低正则化强度</p></li>
+</ul>
+</section>
+<section id="id7">
+<h3>过拟合：死记硬背<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<p>另一个学生把所有练习题都背下来了：</p>
+<ul class="simple">
+<li><p>做练习题时几乎全对（训练损失很低）</p></li>
+<li><p>遇到新题就不会（验证损失高，差距大）</p></li>
+<li><p><strong>原因</strong>：模型记住了训练数据的噪声，而非学习通用规律</p></li>
+<li><p><strong>解决</strong>：使用正则化、早停、数据增强、降低模型复杂度</p></li>
+</ul>
+<div class="figure" id="id131" style="text-align: center"><p><img  src="../../_images/tikz-67b89bbfd840701fc983520ba081eef2335a15be.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">模型复杂度与泛化性能</span></p>
+</div><p>图中的&quot;最佳点&quot;是我们追求的目标：足够复杂的模型捕捉规律，但不至于过拟合。找到这个点需要<strong>验证集</strong>——用训练集学习，用验证集调参，最后用测试集评估。</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id8">
+<h2>数据划分：训练集、验证集、测试集<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<p>为什么需要三组数据？</p>
+<ul class="simple">
+<li><p><strong>训练集</strong>：学习参数（权重和偏置）</p></li>
+<li><p><strong>验证集</strong>：选择超参数（学习率、网络结构、正则化强度）</p></li>
+<li><p><strong>测试集</strong>：最终评估（只能用一次！）</p></li>
+</ul>
+<div class="warning admonition">
+<p class="admonition-title">测试集的禁忌</p>
+<p>测试集只能用于最终报告，绝不能用来调参或选择模型。否则就像考试时偷看答案——分数虚高，真实能力被高估。</p>
+</div>
+<p>MNIST的标准划分：60,000训练 + 10,000测试。实践中，我们会从训练集中分出10%（6,000张）作为验证集，剩下54,000张真正用于训练。</p>
+<hr class="docutils" />
+</section>
+<section id="regularization">
+<span id="id9"></span><h2>正则化：防止死记硬背的四种方法<a class="headerlink" href="#regularization" title="Link to this heading">#</a></h2>
+<p>正则化的核心思想：<strong>限制模型的&quot;记忆能力&quot;，逼迫它学习&quot;理解能力&quot;</strong>。</p>
+<p>为什么需要限制？想象一个拥有超强记忆力的学生——他可以背下所有练习题答案，考试时遇到原题全对，但稍微变化就不会。神经网络也有这种&quot;过强记忆&quot;的能力，特别是参数量大时。正则化就是防止这种&quot;死记硬背&quot;。</p>
+<hr class="docutils" />
+<section id="l2">
+<h3>1. L2正则化（权重衰减）：强制&quot;粗笔画&quot;<a class="headerlink" href="#l2" title="Link to this heading">#</a></h3>
+<div class="tip admonition">
+<p class="admonition-title">核心洞察：权重大小决定决策边界的&quot;粗细&quot;</p>
+<p>想象用画笔画画：</p>
+<ul class="simple">
+<li><p><strong>细笔画</strong>（大权重）：可以画出非常锐利、复杂的边界，精确勾勒每个训练样本的细节——就像用0.5mm的针管笔，能画出极细的线条</p></li>
+<li><p><strong>粗笔画</strong>（小权重）：只能画出平滑、模糊的轮廓，捕捉大体形状——就像用毛笔，线条自然柔和</p></li>
+</ul>
+<p>神经网络的决策边界也是由权重决定的。大权重让边界变得&quot;尖锐&quot;，可以&quot;钻牛角尖&quot;去拟合每个训练点；小权重让边界保持&quot;平滑&quot;，只能学习通用的模式。</p>
+</div>
+<section id="id10">
+<h4>为什么L2惩罚能实现这一点？<a class="headerlink" href="#id10" title="Link to this heading">#</a></h4>
+<p>L2正则化在损失函数中加入权重的平方和：</p>
+<div class="math notranslate nohighlight">
+\[
+\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{original}} + \frac{\lambda}{2} \sum_{i} w_i^2
+\]</div>
+<p><strong>关键洞察</strong>：平方惩罚对大权重的&quot;惩罚力度&quot;远大于小权重。</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>权重值</p></th>
+<th class="head"><p>原始损失惩罚</p></th>
+<th class="head"><p>平方惩罚</p></th>
+<th class="head"><p>相对增加</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0.1</p></td>
+<td><p>1</p></td>
+<td><p>0.01</p></td>
+<td><p>1%</p></td>
+</tr>
+<tr class="row-odd"><td><p>1.0</p></td>
+<td><p>1</p></td>
+<td><p>0.5</p></td>
+<td><p>50%</p></td>
+</tr>
+<tr class="row-even"><td><p>10.0</p></td>
+<td><p>1</p></td>
+<td><p>50</p></td>
+<td><p>5000%</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>结果</strong>：优化器会发现，与其让少数权重变得很大（承担巨额平方惩罚），不如让所有权重都保持较小。这就像税收——平方税率对大收入者更严厉，促使财富分布更均匀。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># PyTorch中的L2正则化（weight_decay）</span>
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
+    <span class="n">lr</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+    <span class="n">weight_decay</span><span class="o">=</span><span class="mf">1e-4</span>  <span class="c1"># λ = 0.0001</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>为什么有效？</strong> 小权重的网络更&quot;保守&quot;，不会为了拟合某个训练样本的噪声而剧烈调整输出。它必须找到更通用的规律，才能在保持权重小的同时降低原始损失。</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="dropout">
+<h3>2. Dropout：随机&quot;罢工&quot;迫使协作<a class="headerlink" href="#dropout" title="Link to this heading">#</a></h3>
+<p>Dropout 由 Srivastava 等人在 2014 年提出 <span id="id11">[<a class="reference internal" href="#id67" title="Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan Salakhutdinov. Dropout: a simple way to prevent neural networks from overfitting. The journal of machine learning research, 15(1):1929–1958, 2014.">SHK+14</a>]</span>，是防止神经网络过拟合的有效方法。</p>
+<div class="tip admonition">
+<p class="admonition-title">核心洞察：随机&quot;点名&quot;防止依赖&quot;学霸&quot;</p>
+<p>想象一个班级有50人，老师提问时总是叫同一个&quot;学霸&quot;回答：</p>
+<ul class="simple">
+<li><p>学霸越来越厉害（某些神经元权重变得极大）</p></li>
+<li><p>其他同学从不思考（其他神经元权重趋于0）</p></li>
+<li><p>结果：班级极度依赖学霸，一旦学霸生病（过拟合到新数据），全班表现崩盘</p></li>
+</ul>
+<p>Dropout就像<strong>随机点名</strong>：每次提问随机抽一半同学，学霸也可能被抽中休息。</p>
+<ul class="simple">
+<li><p><strong>后果</strong>：每个人都必须准备好回答问题</p></li>
+<li><p><strong>结果</strong>：知识必须在全班<strong>分布式存储</strong>，形成<strong>冗余表示</strong></p></li>
+</ul>
+</div>
+<section id="id12">
+<h4>为什么冗余表示能防止过拟合？<a class="headerlink" href="#id12" title="Link to this heading">#</a></h4>
+<p>过拟合的本质是&quot;记忆&quot;——模型记住了训练数据的具体特征（包括噪声）。如果知识只存储在少数几个神经元中，这些神经元就会&quot;死记硬背&quot;训练样本。</p>
+<p>Dropout 迫使知识分散存储：</p>
+<ul class="simple">
+<li><p>识别&quot;横线&quot;的特征不是由某1个神经元专门负责，而是由10个神经元共同分担</p></li>
+<li><p>即使其中5个被&quot;dropout&quot;了，剩下5个还能大致识别横线</p></li>
+<li><p>每个神经元都不能&quot;偷懒&quot;记忆特定样本，必须学习通用特征</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Net</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fc1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">784</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>  <span class="c1"># 50%的dropout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fc2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># 训练时随机丢弃，测试时自动关闭</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>测试时为什么关闭Dropout？</strong> 训练时的随机丢弃相当于训练了多个&quot;子网络&quot;（2^N种可能的组合）。测试时我们使用完整网络，相当于 <strong>集成（ensemble）</strong> 了所有这些子网络的预测，取平均——这通常比任何单个子网络更稳定。</p>
+<hr class="docutils" />
+</section>
+</section>
+<section id="early-stopping">
+<span id="id13"></span><h3>3. 早停法：在&quot;最佳点&quot;刹车<a class="headerlink" href="#early-stopping" title="Link to this heading">#</a></h3>
+<div class="tip admonition">
+<p class="admonition-title">核心洞察：训练就像在山谷中行走，不要越过谷底</p>
+<p>想象你在一个山谷中（损失函数的Loss Landscape），从高处往低处走（梯度下降）：</p>
+<p><strong>初期</strong>：你在宽阔的山谷顶部，大步流星地向谷底走去——训练损失和验证损失都在下降，方向基本一致。</p>
+<p><strong>中期</strong>：你接近谷底，步伐变小，损失下降变慢——但仍朝着正确的方向微调。</p>
+<p><strong>后期</strong>：如果你继续走，可能会<strong>越过谷底</strong>，走上另一侧山坡——训练损失还在下降（因为你更贴合训练数据），但验证损失开始上升（因为你开始&quot;钻牛角尖&quot;，拟合了训练集的噪声）。</p>
+</div>
+<div class="figure" id="id132" style="text-align: center"><p><img  src="../../_images/tikz-d3e00549d6cac1c1d1fef388e2ddc7d7eb86b1db.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">早停法：在谷底停止，不要越过</span></p>
+</div><section id="id14">
+<h4>为什么验证损失上升意味着过拟合？<a class="headerlink" href="#id14" title="Link to this heading">#</a></h4>
+<p>训练损失只衡量模型在<strong>训练数据</strong>上的表现。当你训练太久，模型开始&quot;记住&quot;训练数据中的噪声——那些只存在于训练集、不存在于真实世界的随机波动。</p>
+<p>验证集是<strong>独立的</strong>数据，不包含训练集的噪声。所以当模型开始拟合训练噪声时，它在验证集上的表现反而会变差。</p>
+<p><strong>早停法的本质</strong>：在&quot;学习真实规律&quot;和&quot;记忆训练噪声&quot;的临界点停止训练。</p>
+<div class="tip admonition">
+<p class="admonition-title">工程实现：框架中的早停</p>
+<p>社团框架将早停封装为一行参数——<code class="docutils literal notranslate"><span class="pre">--patience</span> <span class="pre">5</span></code> 表示验证损失连续 5 轮不下降即停止训练。详见<a class="reference internal" href="../../pytorch-practice/using-framework.html#framework-experiments"><span class="std std-ref">实验管理：从手动记录到自动追踪</span></a>。</p>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id15">
+<h3>4. 数据增强：免费的&quot;新数据&quot;<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<div class="tip admonition">
+<p class="admonition-title">核心洞察：更多数据帮助区分&quot;本质&quot;与&quot;偶然&quot;</p>
+<p>想象你要学会&quot;识别圆形&quot;：</p>
+<ul class="simple">
+<li><p>只看过1个圆 → 你可能以为&quot;红色、半径5cm、在画面中央&quot;才是圆的本质特征</p></li>
+<li><p>看过100个圆（不同颜色、不同大小、不同位置）→ 你意识到&quot;到中心点距离相等&quot;才是本质，颜色和大小只是偶然特征</p></li>
+</ul>
+<p><strong>过拟合的本质是&quot;将偶然当成必然&quot;</strong>——把训练数据中的特定属性（如&quot;这个位置的像素总是白色&quot;）当成了类别的本质特征。</p>
+<p>数据增强通过创造<strong>人工变体</strong>，让模型看到更多样的样本：</p>
+</div>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>原始样本</p></th>
+<th class="head"><p>增强变体</p></th>
+<th class="head"><p>学到的规律</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>数字&quot;3&quot;在中央</p></td>
+<td><p>数字&quot;3&quot;向左移2像素</p></td>
+<td><p>位置不重要，形状才重要</p></td>
+</tr>
+<tr class="row-odd"><td><p>数字&quot;3&quot;正常大小</p></td>
+<td><p>数字&quot;3&quot;放大10%</p></td>
+<td><p>大小不重要，比例才重要</p></td>
+</tr>
+<tr class="row-even"><td><p>数字&quot;3&quot;竖直</p></td>
+<td><p>数字&quot;3&quot;轻微旋转</p></td>
+<td><p>方向不重要，拓扑结构才重要</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">train_transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">RandomRotation</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>      <span class="c1"># ±10度旋转</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">RandomAffine</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">translate</span><span class="o">=</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)),</span>  <span class="c1"># ±10%平移</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.1307</span><span class="p">,),</span> <span class="p">(</span><span class="mf">0.3081</span><span class="p">,))</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+<section id="id16">
+<h4>为什么有效？<a class="headerlink" href="#id16" title="Link to this heading">#</a></h4>
+<p>数据增强迫使模型学习<strong>不变性</strong>（invariance）——哪些特征在变换下保持不变。模型发现：</p>
+<ul class="simple">
+<li><p>无论&quot;3&quot;在什么位置，它都是&quot;3&quot;</p></li>
+<li><p>无论&quot;3&quot;多大，它都是&quot;3&quot;</p></li>
+<li><p>无论&quot;3&quot;是否倾斜，它都是&quot;3&quot;</p></li>
+</ul>
+<p>因此，模型必须抓住<strong>本质特征</strong>（形状、拓扑结构），而不能依赖<strong>偶然特征</strong>（位置、大小、角度）。这些偶然特征在不同样本间变化，无法作为可靠的分类依据。</p>
+</section>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id17">
+<h2>如何选择正则化方法？<a class="headerlink" href="#id17" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="fc-layer-basics.html"><span class="doc">全连接：赤手空拳</span></a>中我们讨论了全连接网络的参数量爆炸问题，<a class="reference internal" href="cnn-basics.html"><span class="doc">卷积：发现装备</span></a>中则看到CNN如何通过归纳偏置减少参数。但无论架构如何，<strong>正则化都是必需的</strong>——它是防止模型&quot;死记硬背&quot;的最后防线。</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>方法</p></th>
+<th class="head"><p>使用场景</p></th>
+<th class="head"><p>实现难度</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>早停法</p></td>
+<td><p><strong>总是使用</strong></p></td>
+<td><p><span class="bz-emoji">⭐</span> 最简单</p></td>
+</tr>
+<tr class="row-odd"><td><p>L2正则化</p></td>
+<td><p>几乎所有情况</p></td>
+<td><p><span class="bz-emoji">⭐</span> 添加一个参数</p></td>
+</tr>
+<tr class="row-even"><td><p>Dropout</p></td>
+<td><p>深层网络、过拟合严重时</p></td>
+<td><p><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span> 需调整比例</p></td>
+</tr>
+<tr class="row-odd"><td><p>数据增强</p></td>
+<td><p>图像、语音等数据</p></td>
+<td><p><span class="bz-emoji">⭐</span><span class="bz-emoji">⭐</span> 需设计变换</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>初学者路径</strong>：</p>
+<ol class="arabic simple">
+<li><p><strong>第一步</strong>：只用早停法（零成本，必做）</p></li>
+<li><p><strong>第二步</strong>：加上L2正则化（weight_decay=1e-4）</p></li>
+<li><p><strong>第三步</strong>：添加Dropout（0.3-0.5）</p></li>
+<li><p><strong>第四步</strong>：尝试数据增强</p></li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="id18">
+<h2>批量大小与学习率<a class="headerlink" href="#id18" title="Link to this heading">#</a></h2>
+<section id="id19">
+<h3>批量大小的权衡<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>批量大小</p></th>
+<th class="head"><p>优点</p></th>
+<th class="head"><p>缺点</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>小（32-64）</p></td>
+<td><p>泛化性好，内存占用低</p></td>
+<td><p>梯度噪声大，训练不稳定</p></td>
+</tr>
+<tr class="row-odd"><td><p>大（256+）</p></td>
+<td><p>梯度准确，可并行加速</p></td>
+<td><p>可能陷入尖锐局部最优，内存需求大</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>直觉</strong>：小批量就像用少量样本&quot;试探&quot;方向，虽然每次方向不太准，但不容易被困住；大批量像精准测量，但可能错过更好的路径。</p>
+<p>这与<a class="reference internal" href="../../math-fundamentals/gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>中讨论的&quot;噪声帮助逃离局部最优&quot;原理一致——适度的梯度噪声反而有助于找到更好的解。</p>
+</section>
+<section id="id20">
+<h3>学习率调度<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
+<p>固定学习率不一定是最佳选择。回顾<a class="reference internal" href="../../math-fundamentals/gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>中的&quot;下山&quot;类比——刚开始你可能希望大步快走，接近谷底时需要小步微调。常见策略：</p>
+<ul class="simple">
+<li><p><strong>预热（Warmup）</strong>：刚开始用较小学习率，逐渐增加——避免初期震荡（防止&quot;一脚踩空&quot;）</p></li>
+<li><p><strong>衰减（Decay）</strong>：训练后期逐渐减小学习率——精细化调整（在谷底附近小心探索）</p></li>
+<li><p><strong>余弦退火（Cosine Annealing）</strong>：周期性变化——帮助逃离局部最优（周期性地&quot;震荡&quot;寻找更好的山谷）</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 余弦退火调度</span>
+<span class="n">scheduler</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">CosineAnnealingLR</span><span class="p">(</span>
+    <span class="n">optimizer</span><span class="p">,</span> <span class="n">T_max</span><span class="o">=</span><span class="mi">100</span>  <span class="c1"># 100个epoch为一个周期</span>
+<span class="p">)</span>
+
+<span class="c1"># 训练循环中</span>
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_epochs</span><span class="p">):</span>
+    <span class="n">train</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>  <span class="c1"># 训练</span>
+    <span class="n">scheduler</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>  <span class="c1"># 更新学习率</span>
+</pre></div>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">工程实现：框架中的调度器</p>
+<p>社团框架内置 5 种调度器（Step / Cosine / Plateau / Exponential / None），CLI 参数 <code class="docutils literal notranslate"><span class="pre">--scheduler</span> <span class="pre">cosine</span> <span class="pre">--scheduler-t-max</span> <span class="pre">50</span></code> 即可启用。详见<a class="reference internal" href="../../pytorch-practice/using-framework.html#framework-config"><span class="std std-ref">配置系统：从硬编码到配置文件</span></a>。</p>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id21">
+<h2>训练监控指标<a class="headerlink" href="#id21" title="Link to this heading">#</a></h2>
+<p>有效的训练需要实时监控：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>指标</p></th>
+<th class="head"><p>正常趋势</p></th>
+<th class="head"><p>异常信号</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>训练损失</p></td>
+<td><p>逐渐下降</p></td>
+<td><p>不降或震荡</p></td>
+</tr>
+<tr class="row-odd"><td><p>验证损失</p></td>
+<td><p>先降后平</p></td>
+<td><p>上升（过拟合）</p></td>
+</tr>
+<tr class="row-even"><td><p>训练准确率</p></td>
+<td><p>逐渐提高</p></td>
+<td><p>停滞在低位（欠拟合）</p></td>
+</tr>
+<tr class="row-odd"><td><p>验证准确率</p></td>
+<td><p>跟踪训练准确率</p></td>
+<td><p>与训练差距大（过拟合）</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>关键观察</strong>：</p>
+<ul class="simple">
+<li><p>训练损失 <span class="math notranslate nohighlight">\(&lt;\)</span> 验证损失：正常现象</p></li>
+<li><p>训练损失 <span class="math notranslate nohighlight">\(\ll\)</span> 验证损失：严重过拟合，加强正则化</p></li>
+<li><p>两者都高：欠拟合，增加模型容量或训练时间</p></li>
+</ul>
+<p>回顾本节讨论的<strong>过拟合与欠拟合</strong>现象——这些监控指标就是诊断工具，帮助你在训练过程中实时判断模型状态。</p>
+<div class="tip admonition">
+<p class="admonition-title">工程实现：框架中的自动监控</p>
+<p>社团框架每轮自动记录损失、准确率、学习率、训练速度，训练结束后自动绘制 4 面板训练曲线图（<code class="docutils literal notranslate"><span class="pre">runs/expN/training_curves.png</span></code>），无需手动记录和绘图。详见<a class="reference internal" href="../../pytorch-practice/using-framework.html#framework-experiments"><span class="std std-ref">实验管理：从手动记录到自动追踪</span></a>。</p>
+</div>
+</section>
+<hr class="docutils" />
+<section id="id22">
+<h2>总结：训练检查清单<a class="headerlink" href="#id22" title="Link to this heading">#</a></h2>
+<p>开始训练前，确认以下事项：</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>检查项</p></th>
+<th class="head"><p>建议</p></th>
+<th class="head"><p>框架实现</p></th>
+<th class="head"><p>参考章节</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>数据划分</p></td>
+<td><p>训练/验证/测试 = 70%/15%/15% 或类似比例</p></td>
+<td><p>数据集类内置划分</p></td>
+<td><p>本节&quot;数据划分&quot;部分</p></td>
+</tr>
+<tr class="row-odd"><td><p>损失函数</p></td>
+<td><p>分类用CrossEntropy，回归用MSE</p></td>
+<td><p>模型自带 <code class="docutils literal notranslate"><span class="pre">get_criterion()</span></code></p></td>
+<td><p><a class="reference internal" href="../../math-fundamentals/loss-functions.html#loss-functions"><span class="std std-ref">损失函数</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p>优化器</p></td>
+<td><p>Adam <span id="id23">[<a class="reference internal" href="../../unet-image-segmentation/practice.html#id63" title="Diederik P Kingma and Jimmy Ba. Adam: a method for stochastic optimization. In International Conference on Learning Representations. 2015.">KB15</a>]</span> 是默认首选，学习率0.001</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--optimizer</span> <span class="pre">adamw</span></code></p></td>
+<td><p><a class="reference internal" href="../../math-fundamentals/gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>正则化</p></td>
+<td><p>至少使用早停法和L2正则化</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--patience</span></code> + <code class="docutils literal notranslate"><span class="pre">--weight-decay</span></code></p></td>
+<td><p>本节&quot;正则化&quot;部分</p></td>
+</tr>
+<tr class="row-even"><td><p>批量大小</p></td>
+<td><p>从64或128开始，根据内存调整</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--batch-size</span> <span class="pre">64</span></code></p></td>
+<td><p>本节&quot;批量大小&quot;部分</p></td>
+</tr>
+<tr class="row-odd"><td><p>监控指标</p></td>
+<td><p>同时关注训练和验证的表现</p></td>
+<td><p>自动记录并绘制曲线</p></td>
+<td><p>本节&quot;训练监控指标&quot;部分</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>本节将<a class="reference internal" href="../../math-fundamentals/gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>和<a class="reference internal" href="../../math-fundamentals/back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>的理论转化为实践——从选择<a class="reference internal" href="../../math-fundamentals/loss-functions.html#loss-functions"><span class="std std-ref">损失函数</span></a>、设计正则化策略，到监控训练过程。现在你已经掌握了让神经网络&quot;学会&quot;而不是&quot;记住&quot;的完整工具箱。</p>
+<hr class="docutils" />
+<p>纪律在手。装备在身。该冲顶了——<a class="reference internal" href="le-net.html"><span class="doc">LeNet-5：练习峰首登</span></a>：第一个真正爬上去的 CNN 架构。</p>
+<hr class="docutils" />
+<h2 class="rubric">参考文献</h2>
+<div class="docutils container" id="id24">
+<div role="list" class="citation-list">
+<div class="citation" id="id68" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id23">KB15</a><span class="fn-bracket">]</span></span>
+<p>Diederik P Kingma and Jimmy Ba. Adam: a method for stochastic optimization. In <em>International Conference on Learning Representations</em>. 2015.</p>
+</div>
+<div class="citation" id="id67" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id11">SHK+14</a><span class="fn-bracket">]</span></span>
+<p>Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan Salakhutdinov. Dropout: a simple way to prevent neural networks from overfitting. <em>The journal of machine learning research</em>, 15(1):1929–1958, 2014.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">dc35df2</code>
+                2026-06-14 - <strong>Heyan Zhu</strong>: refactor: unify into two-chapter mountain-climbing narrative
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+</article><footer class="bz-article-footer">
+  
+  
+    <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="dataset-preparation.html" rel="prev">
+    <span>Previous</span><span class="bz-related-pages-title">数据准备：打包行囊</span></a><a class="bz-related-pages-next" href="le-net.html" rel="next">
+    <span>Next</span>
+    <span class="bz-related-pages-title">LeNet-5：练习峰首登</span>
+  </a></nav>
+  
+
+</footer><aside class="bz-sidebar-secondary" data-drawer="bz-sidebar-secondary">
+  
+  
+    
+  
+  
+  
+  
+
+
+
+<div class="bz-repo-stats">
+  <a
+    data-provider="github"
+    data-user="ulink-deep-learning-club"
+    data-repo="ulink-deeplearningclub-handouts"
+    href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    aria-label="ulink-deep-learning-club/ulink-deeplearningclub-handouts repository"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    <span
+      style="--bz-repo-stats-name-length: 56"
+      title="ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    >
+      ulink-deep-learning-club/ulink-deeplearningclub-handouts
+    </span>
+    <div class="bz-repo-stats-row">
+      <span class="bz-repo-stats-item" aria-label="Repository stars">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path></svg>
+        <span data-stat="stars">-</span>
+      </span>
+      <span class="bz-repo-stats-item" aria-label="Repository forks">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
+        <span data-stat="forks">-</span>
+      </span>
+    </div>
+  </a>
+</div>
+
+  
+    <div class="bz-edit-this-page">
+  <a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/source/cnn-expedition/practice-peak/neural-training-basics.md" rel="edit">
+    Edit this page
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"></path></svg>
+  </a>
+</div>
+  
+    <nav class="bz-sidebar-toc" aria-label="Table of contents">
+  <p>On this page</p><ul>
+<li><a class="reference internal" href="#id2">训练的本质：从数据到能力</a></li>
+<li><a class="reference internal" href="#id3">核心训练概念</a></li>
+<li><a class="reference internal" href="#id4">损失函数的选择</a></li>
+<li><a class="reference internal" href="#id5">过拟合与欠拟合：学习的两种失败</a><ul>
+<li><a class="reference internal" href="#id6">欠拟合：学得太少</a></li>
+<li><a class="reference internal" href="#id7">过拟合：死记硬背</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id8">数据划分：训练集、验证集、测试集</a></li>
+<li><a class="reference internal" href="#regularization">正则化：防止死记硬背的四种方法</a><ul>
+<li><a class="reference internal" href="#l2">1​. L2正则化（权重衰减）：强制"粗笔画"</a><ul>
+<li><a class="reference internal" href="#id10">为什么L2惩罚能实现这一点？</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dropout">2​. Dropout：随机"罢工"迫使协作</a><ul>
+<li><a class="reference internal" href="#id12">为什么冗余表示能防止过拟合？</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#early-stopping">3​. 早停法：在"最佳点"刹车</a><ul>
+<li><a class="reference internal" href="#id14">为什么验证损失上升意味着过拟合？</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id15">4​. 数据增强：免费的"新数据"</a><ul>
+<li><a class="reference internal" href="#id16">为什么有效？</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id17">如何选择正则化方法？</a></li>
+<li><a class="reference internal" href="#id18">批量大小与学习率</a><ul>
+<li><a class="reference internal" href="#id19">批量大小的权衡</a></li>
+<li><a class="reference internal" href="#id20">学习率调度</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id21">训练监控指标</a></li>
+<li><a class="reference internal" href="#id22">总结：训练检查清单</a></li>
+</ul></nav>
+  
+
+</aside></main>
+  </div>
+<footer class="bz-footer">
+  <div class="bz-footer-copyright"><p class="bz-copyright">© Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0</p><p>
+    
+    
+    
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a href="https://github.com/aksiome/breeze">Breeze theme</a>.
+    
+  </p>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    
+    </a>
+  </div>
+</footer><a href="#" class="bz-back-to-top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+    </svg>
+    <span>Back to top</span>
+  </a>
+  <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
+  <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
+  <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../../_static/documentation_options.js?v=5a0213dc"></script><script src="../../_static/doctools.js?v=9bcbadda"></script><script src="../../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../../_static/translations.js?v=beaddf03"></script><script src="../../_static/design-tabs.js?v=f930bc37"></script><script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script></body>
+</html>

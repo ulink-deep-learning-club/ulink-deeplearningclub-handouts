@@ -201,7 +201,7 @@ z_gpu = x_gpu * w_gpu
 ~~~{admonition} 性能对比
 :class: tip
 
-在 {doc}`../neural-network-basics/exp-cmp` 中，我们讨论了训练速度。使用 GPU 通常比 CPU 快 **10-100 倍**，这让训练大模型（如 ResNet）成为可能。
+在 {doc}`../cnn-expedition/practice-peak/exp-cmp` 中，我们讨论了训练速度。使用 GPU 通常比 CPU 快 **10-100 倍**，这让训练大模型（如 ResNet）成为可能。
 ~~~
 
 ## 张量的属性：理解计算图节点
@@ -357,7 +357,7 @@ with torch.no_grad():
 现在你已经理解了张量是 {ref}`computational-graph` 的代码实现。接下来：
 
 1. **{doc}`tensor-ops`**：学习张量的各种操作（reshape、transpose 等），理解它们对应的数据流变换
-2. **{doc}`neural-network-module`**：用张量搭建 {doc}`../neural-network-basics/fc-layer-basics` 和 {doc}`../neural-network-basics/cnn-basics` 中的网络
+2. **{doc}`neural-network-module`**：用张量搭建 {doc}`../cnn-expedition/practice-peak/fc-layer-basics` 和 {doc}`../cnn-expedition/practice-peak/cnn-basics` 中的网络
 
 **关键认知**：PyTorch 开发的核心流程就是——
 - 用 `torch.Tensor` 存储数据（对应计算图节点）

@@ -141,7 +141,7 @@ graph TD
 | 场景 | 建议 |
 |------|------|
 | 你**完全零基础** | 先读鱼书第1~3章，再读本材料的数学基础和神经网络基础 |
-| 你**懂Python但不懂反向传播** | 鱼书第5章（计算图）+ 本材料PyTorch自动微分章节，两手抓 |
+| 你**懂Python但不懂反向传播** | 鱼书第5章（计算图）+ 本材料{doc}`数学基础 <math-fundamentals/index>`，两手抓 |
 | 你**会跑PyTorch但不懂原理** | 鱼书第4~6章（梯度下降、更新技巧）+ 本材料对应理论，填坑 |
 | 你**想参加比赛/做项目** | 鱼书第7章（CNN手写实现）+ 本材料CNN消融研究+迁移学习，实战起飞 |
 | 你**卡在某个概念** | 鱼书用代码讲，本材料用直觉和类比讲，两边对照 |
@@ -149,9 +149,9 @@ graph TD
 **一个简单的阅读策略**：
 
 1. **并行推进**：鱼书读一章，本材料读对应章节
-   - 鱼书第3章（神经网络）→ 本材料{doc}`neural-network-basics/index`
-   - 鱼书第5章（反向传播）→ 本材料{doc}`pytorch-practice/index`（自动微分）
-   - 鱼书第7章（CNN）→ 本材料{doc}`cnn-ablation-study/index`
+   - 鱼书第3章（神经网络）→ 本材料{doc}`cnn-expedition/index`
+   - 鱼书第5章（反向传播）→ 本材料{doc}`math-fundamentals/index`
+   - 鱼书第7章（CNN）→ 本材料{doc}`cnn-expedition/ablation-study/index`
 
 2. **交叉验证**：鱼书教会你"怎么造轮子"，本材料教会你"怎么开车"+"为什么这样设计车"。当你在本材料看到 `nn.Conv2d` 时，鱼书第7章让你知道它内部是怎么做im2col和矩阵乘法的。
 
@@ -161,16 +161,16 @@ graph TD
 
 | 周次 | 鱼书章节 | 本材料章节 | 核心目标 |
 |------|---------|-----------|---------|
-| 第1周 | 第1章（Python复习）<br>第2章（感知机） | {doc}`math-fundamentals/index` | 补齐NumPy/Python，建立数学工具箱 |
-| 第2周 | 第3章（神经网络） | {doc}`neural-network-basics/index` | 理解前向传播，手写 → PyTorch 对照 |
-| 第3周 | 第4章（神经网络的学习） | {doc}`neural-network-basics/index`（续） | 理解损失函数、梯度下降、数值微分 |
-| 第4周 | 第5章（误差反向传播） | {doc}`pytorch-practice/index`（自动微分） | 手写计算图 → PyTorch `.backward()` 原理 |
-| 第5周 | 第6章（学习技巧） | {doc}`pytorch-practice/index`（优化器） | 理解SGD/Momentum/Adam、BatchNorm |
-| 第6周 | 第7章（CNN手写实现） | {doc}`cnn-ablation-study/index` | im2col内部机制 → PyTorch `nn.Conv2d` 实践 |
-| 第7周 | 第8章（深度学习历史） | {doc}`model-architecture-design/index` | 从AlexNet到ResNet的设计演化 |
-| 第8周 | — | {doc}`transfer-learning/index` + {doc}`model-serving/index` | 微调、部署、GPU选型，完成第一个项目 |
+| 第1周 | 第1章（Python复习）<br>第2章（感知机） | {doc}`math-fundamentals/index` | 补齐 NumPy/Python，建立数学工具箱 |
+| 第2周 | 第3章（神经网络）<br>第4章（神经网络的学习） | {doc}`math-fundamentals/index`（续） | 前向传播、损失函数、梯度下降——数学打底 |
+| 第3周 | 第5章（误差反向传播） | {doc}`math-fundamentals/index`（反向传播） | 计算图 + 链式法则——全书最难，单独一周消化 |
+| 第4周 | — | {doc}`pytorch-practice/index` | 前3周数学储备已够，正式上手 PyTorch：张量、自动微分、训练循环 |
+| 第5周 | 第6章（学习技巧） | {doc}`cnn-expedition/practice-peak/index` | 优化器、BatchNorm、正则化 → 用 PyTorch 写出第一个 LeNet |
+| 第6周 | 第7章（CNN手写实现） | {doc}`cnn-expedition/ablation-study/index` | 对照鱼书 im2col 内部机制 → 拆开 LeNet 验证每个组件贡献 |
+| 第7周 | 第8章（深度学习历史） | {doc}`cnn-expedition/image-net-era/index` | AlexNet→Inception→ResNet→MobileNet→EfficientNet 全景 |
+| 第8周 | — | {doc}`model-serving/index` 或 {doc}`transfer-learning/index` | 二选一：端到端部署上线，或迁移学习做新任务——完成第一个项目 |
 
-> **灵活调整**：如果你已经懂 Python，第1周可以压缩到2天；如果你想赶比赛，第6~8周可以加速合并。
+> **灵活调整**：如果你已经懂 Python，第1周可以压缩到 2 天；第8周如果想两个都学，可以延长到第9周。
 
 ### 一句话总结
 

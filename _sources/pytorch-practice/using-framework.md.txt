@@ -165,9 +165,9 @@ python -c "from src.models import ModelRegistry; print(ModelRegistry.list_availa
 
 | 模型 | 参数量 | 你已经在哪学过 | 特点 |
 |------|--------|--------------|------|
-| `lenet` | ~62K | {doc}`../neural-network-basics/le-net` | 经典 5 层，MNIST 标准 |
+| `lenet` | ~62K | {doc}`../cnn-expedition/practice-peak/le-net` | 经典 5 层，MNIST 标准 |
 | `mynet` | ~122K | — | 不对称卷积 + SiLU + BN，默认模型 |
-| `alexnet` | ~2.5M | {doc}`../neural-network-basics/cnn-basics` | 适配小输入的 AlexNet |
+| `alexnet` | ~2.5M | {doc}`../cnn-expedition/practice-peak/cnn-basics` | 适配小输入的 AlexNet |
 
 **Vision Transformer**（用于更大数据集）
 
@@ -491,7 +491,7 @@ python train.py --fork exp1 --dataset cifar10 --model lenet \
 
 ### 度量学习（Siamese + Triplet Loss）
 
-{doc}`../neural-network-basics/neural-training-basics`中讨论过度量学习。框架原生支持：
+{doc}`../cnn-expedition/practice-peak/neural-training-basics`中讨论过度量学习。框架原生支持：
 
 ```bash
 python train.py --dataset balanced_triplet_mnist --model siamese \
@@ -570,7 +570,7 @@ graph LR
 
 ## 下一步
 
-你在{doc}`../cnn-ablation-study/index`中将用框架做真正的对比实验——每个消融变体对应一个 `--config` 文件，`runs/expN/` 自动记录结果，ExperimentManager 保障实验可复现。
+你在{doc}`../cnn-expedition/ablation-study/index`中将用框架做真正的对比实验——每个消融变体对应一个 `--config` 文件，`runs/expN/` 自动记录结果，ExperimentManager 保障实验可复现。
 
 {doc}`the-end`中列出了更多学习资源。
 
