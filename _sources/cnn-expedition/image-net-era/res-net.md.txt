@@ -129,6 +129,12 @@ $$\frac{\partial \mathcal{L}}{\partial h_i} \approx \frac{\partial \mathcal{L}}{
 
 **数值验证**
 
+```{admonition} 注意
+:class: note
+
+以下为假设每层梯度因子 = 0.9 的数值模拟，用于直观对比数量级差异——并非实测数据。
+```
+
 假设残差函数的梯度 $\frac{\partial F}{\partial h} \sim \mathcal{N}(0, 0.01)$（均值为0，方差0.01）：
 
 | 网络深度 | 普通网络梯度 | ResNet 梯度 | 改善倍数 |

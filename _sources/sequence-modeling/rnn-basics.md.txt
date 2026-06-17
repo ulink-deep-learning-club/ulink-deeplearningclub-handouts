@@ -369,7 +369,8 @@ loss.backward()
 # 由于 {ref}`gradient-vanishing`，如果权重初始化不当或序列过长
 # 靠近输入层的梯度几乎为0
 print(f"W_ih grad norm: {rnn.weight_ih_l0.grad.norm():.10f}")
-# 典型输出：~1e-6 或更小（序列越长，范数越小）
+# 典型输出：随机初始化下结果不一，梯度小时可达 1e-6 或更小
+# 关键理解趋势：序列越长，范数越小——而非依赖具体数值
 ```
 
 ```{admonition} 本节小结

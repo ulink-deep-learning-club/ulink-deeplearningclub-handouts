@@ -263,8 +263,6 @@ print(f"EfficientNet-B0: {params:,} 参数")
 
 ---
 
-[^tan2019]: Mingxing Tan, Quoc V. Le, "EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks", ICML 2019.
-
 ```{only} not latex
 
 ~~~{rubric} 参考文献

@@ -493,13 +493,14 @@ def prepare_mnist_data(batch_size=64, val_split=0.1, num_workers=2):
         generator=torch.Generator().manual_seed(42)
     )
     
-    # 4. 分别应用 transform（注意：random_split 之后才 apply transform）
-    # 因为 transform 已经在 Dataset 初始化时应用了，
-    # 所以这里我们预先在 full_train 上应用了 transform（略）
-    # 
-    # 实际做法：用 Subset + 重写 __getitem__，或提前 apply
-    # 这里简化为：在初始化 Dataset 时直接传 transform
-    # 详见下面的"最佳实践"完整示例
+    # 4. 分别应用 transform
+    # 注意：random_split 之后，每个子集需要独立设置 transform。
+    # 简化做法是提前在原始 Dataset 初始化时就传入 transform，
+    # 但 train 和 val 需要不同的 transform（训练集增强，验证集不增强），
+    # 因此实际工程中常用 Subset + 自定义 Dataset wrapper。
+    #
+    # 为简洁起见，这里省略 Subset wrapper 的实现细节——
+    # 框架中已封装好此逻辑，直接调用 prepare_mnist_data() 即可。
     
     # 5. 创建 DataLoader
     train_loader = DataLoader(

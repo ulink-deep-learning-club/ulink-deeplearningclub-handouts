@@ -410,8 +410,8 @@
         <span class="c1"># 输入：1x28x28（MNIST标准尺寸）</span>
         
         <span class="c1"># C1：卷积层，1x28x28 -&gt; 6x24x24</span>
-        <span class="c1"># 使用5x5卷积核（比{cnn-basics}中的3x3更大，感受野更强）</span>
-        <span class="c1"># 参数量：6 × (5×5×1 + 1) = 156（{ref}`cnn-basics`中的参数共享机制）</span>
+        <span class="c1"># 使用5x5卷积核（比{doc}`cnn-basics`中的3×3更大，感受野更强）</span>
+        <span class="c1"># 参数量：6 × (5×5×1 + 1) = 156（{doc}`cnn-basics`中的参数共享机制）</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># 早期使用Tanh，现代多用ReLU（见{ref}`activation-functions`）</span>
         
@@ -432,7 +432,7 @@
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         
         <span class="c1"># 展平：16通道 × 5×5 = 400维 → 全连接层的输入</span>
-        <span class="c1"># 对比{cnn-basics}：这里的展平维度由前面的卷积/池化决定</span>
+        <span class="c1"># 对比{doc}`cnn-basics`：这里的展平维度由前面的卷积/池化决定</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         
         <span class="c1"># 全连接层：400 -&gt; 120 -&gt; 84 -&gt; 10</span>
@@ -487,7 +487,7 @@
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         
         <span class="c1"># 展平：400维向量</span>
-        <span class="c1"># 对比{cnn-basics}的SimpleCNN（3136维），LeNet更紧凑</span>
+        <span class="c1"># 对比{doc}`cnn-basics`的SimpleCNN（3136维），LeNet更紧凑</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         
         <span class="c1"># 全连接层：400 -&gt; 120 -&gt; 84 -&gt; 10</span>
@@ -549,12 +549,8 @@
 <ul class="simple">
 <li><p>参数减少74%，准确率反而提升1%！</p></li>
 <li><p>这正是<a class="reference internal" href="introduction.html#inductive-bias"><span class="std std-ref">归纳偏置</span></a>的力量——好的先验让模型用更少参数学到更好规律</p></li>
-<li><p>{cnn-basics}中的参数效率公式在此得到验证：</p></li>
+<li><p><a class="reference internal" href="cnn-basics.html"><span class="doc">卷积：发现装备</span></a>中的参数效率在此得到验证：用1/4的参数达到更高准确率</p></li>
 </ul>
-<div class="math notranslate nohighlight">
-\[
-\text{参数效率} = \frac{\text{模型表达能力}}{\text{参数量}} \Rightarrow \text{LeNet} \gg \text{全连接}
-\]</div>
 </section>
 <section id="id8">
 <h2>特征图的语义演化：从低层到高层<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
@@ -588,21 +584,16 @@
 <li><p><strong>不变性表示：</strong> 对位置、大小、旋转具有一定的不变性</p></li>
 </ul>
 </div>
-<div class="example admonition">
-<p class="admonition-title">语义演化的数学解释</p>
-<p>特征图的语义演化可以通过特征复杂度来量化：</p>
-<div class="math notranslate nohighlight">
-\[
-\text{特征复杂度} = \frac{\text{高层特征响应}}{\text{低层特征响应}} \times \text{空间不变性程度}
-\]</div>
-<p>随着网络深度增加：</p>
+<div class="note admonition">
+<p class="admonition-title">语义演化的直观理解</p>
+<p>特征图的语义演化不需要复杂的量化公式——它可以直接从维度变化中读出：</p>
 <ul class="simple">
 <li><p>低层：高空间分辨率，低语义复杂度</p></li>
 <li><p>中层：中等空间分辨率，中等语义复杂度</p></li>
 <li><p>高层：低空间分辨率，高语义复杂度</p></li>
 </ul>
 </div>
-<div class="warning admonition">
+<div class="note admonition">
 <p class="admonition-title">为什么这种分层特征提取有效？</p>
 <p>这种从低层到高层的语义演化之所以有效，是因为：</p>
 <ol class="arabic simple">
@@ -621,7 +612,7 @@
 <h2>LeNet的启示与历史意义<a class="headerlink" href="#lenet" title="Link to this heading">#</a></h2>
 <section id="id9">
 <h3>理论到实践的跨越<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
-<p>LeNet-5的成功证明了<a class="reference internal" href="cnn-basics.html#cnn-basics"><span class="std std-ref">卷积：发现装备</span></a>和<a class="reference internal" href="introduction.html#inductive-bias"><span class="std std-ref">归纳偏置</span></a>的核心观点：</p>
+<p>LeNet-5的成功证明了<a class="reference internal" href="cnn-basics.html"><span class="doc">卷积：发现装备</span></a>和<a class="reference internal" href="introduction.html#inductive-bias"><span class="std std-ref">归纳偏置</span></a>的核心观点：</p>
 <div class="table colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -679,7 +670,7 @@
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -687,6 +678,11 @@
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">ea7e106</code>
+                2026-06-16 - <strong>Heyan Zhu</strong>: fix: cross-ref syntax, formulas, code, and structure across 5 chapters
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">dc35df2</code>
                 2026-06-14 - <strong>Heyan Zhu</strong>: refactor: unify into two-chapter mountain-climbing narrative

@@ -160,7 +160,7 @@ def conv_dw(in_channels, out_channels, stride):
     """深度可分离卷积块
     
     两个操作：
-    1. Depthwise: 3×3 逐通道卷积——空间混合（{ref}`cnn-basics`）
+    1. Depthwise: 3×3 逐通道卷积——空间混合（见 cnn-basics）
     2. Pointwise: 1×1 卷积——通道混合
     
     参数量：3×3×in + in×out（vs 标准卷积的 3×3×in×out）

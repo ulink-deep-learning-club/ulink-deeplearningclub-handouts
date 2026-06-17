@@ -165,8 +165,8 @@ class LeNet5(nn.Module):
         # 输入：1x28x28（MNIST标准尺寸）
         
         # C1：卷积层，1x28x28 -> 6x24x24
-        # 使用5x5卷积核（比{cnn-basics}中的3x3更大，感受野更强）
-        # 参数量：6 × (5×5×1 + 1) = 156（{ref}`cnn-basics`中的参数共享机制）
+        # 使用5x5卷积核（比{doc}`cnn-basics`中的3×3更大，感受野更强）
+        # 参数量：6 × (5×5×1 + 1) = 156（{doc}`cnn-basics`中的参数共享机制）
         x = self.conv1(x)
         x = torch.tanh(x)  # 早期使用Tanh，现代多用ReLU（见{ref}`activation-functions`）
         
@@ -187,7 +187,7 @@ class LeNet5(nn.Module):
         x = self.pool2(x)
         
         # 展平：16通道 × 5×5 = 400维 → 全连接层的输入
-        # 对比{cnn-basics}：这里的展平维度由前面的卷积/池化决定
+        # 对比{doc}`cnn-basics`：这里的展平维度由前面的卷积/池化决定
         x = x.view(x.size(0), -1)
         
         # 全连接层：400 -> 120 -> 84 -> 10
@@ -242,7 +242,7 @@ class LeNetMNIST(nn.Module):
         x = self.pool2(x)
         
         # 展平：400维向量
-        # 对比{cnn-basics}的SimpleCNN（3136维），LeNet更紧凑
+        # 对比{doc}`cnn-basics`的SimpleCNN（3136维），LeNet更紧凑
         x = x.view(x.size(0), -1)
         
         # 全连接层：400 -> 120 -> 84 -> 10
@@ -282,11 +282,7 @@ LeNet的参数分布：
 
 - 参数减少74%，准确率反而提升1%！
 - 这正是{ref}`inductive-bias`的力量——好的先验让模型用更少参数学到更好规律
-- {cnn-basics}中的参数效率公式在此得到验证：
-
-$$
-\text{参数效率} = \frac{\text{模型表达能力}}{\text{参数量}} \Rightarrow \text{LeNet} \gg \text{全连接}
-$$
+- {doc}`cnn-basics`中的参数效率在此得到验证：用1/4的参数达到更高准确率
 
 ## 特征图的语义演化：从低层到高层
 
@@ -323,23 +319,17 @@ $$
 - **不变性表示：** 对位置、大小、旋转具有一定的不变性
 ```
 
-```{admonition} 语义演化的数学解释
-:class: example
+```{admonition} 语义演化的直观理解
+:class: note
 
-特征图的语义演化可以通过特征复杂度来量化：
-
-$$
-\text{特征复杂度} = \frac{\text{高层特征响应}}{\text{低层特征响应}} \times \text{空间不变性程度}
-$$
-
-随着网络深度增加：
+特征图的语义演化不需要复杂的量化公式——它可以直接从维度变化中读出：
 - 低层：高空间分辨率，低语义复杂度
 - 中层：中等空间分辨率，中等语义复杂度
 - 高层：低空间分辨率，高语义复杂度
 ```
 
 ```{admonition} 为什么这种分层特征提取有效？
-:class: warning
+:class: note
 
 这种从低层到高层的语义演化之所以有效，是因为：
 
@@ -396,7 +386,7 @@ $$
 
 ### 理论到实践的跨越
 
-LeNet-5的成功证明了{ref}`cnn-basics`和{ref}`inductive-bias`的核心观点：
+LeNet-5的成功证明了{doc}`cnn-basics`和{ref}`inductive-bias`的核心观点：
 
 | 理论概念 | LeNet实践 | 效果 |
 | ---------- | ---------- | ---------- |

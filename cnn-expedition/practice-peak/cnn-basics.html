@@ -6,12 +6,12 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="cnn-expedition/practice-peak/cnn-basics.html" />
 <meta property="og:site_name" content="Deep Learning Club Handouts" />
-<meta property="og:description" content="发现装备——局部感受野 + 权值共享，顺应山体结构。 全连接用的是攀岩的思路——每一块岩石亲手检查，不靠地形判断。结果：235,000 个参数，爬一座 28×28 的小山还吃力。 CNN 换了登山的视角。它相信：相邻的岩石是连在一起的，同一段岩壁在不同位置结构相似。这两个信念—— 局部感受野 和 权值共享 ——就是冰镐和绳索。 参数效率：攀岩 vs 登山:\text{参数效率} = \fra..." />
+<meta property="og:description" content="发现装备——局部感受野 + 权值共享，顺应山体结构。 全连接：赤手空拳 中我们用全连接网络爬了一座 28×28 的小山——攀岩的思路，每一块岩石亲手检查，不靠地形判断。结果：235,000 个参数，爬到山顶还吃力。 CNN 的设计来自对图像本质的 两个洞察 。这两个洞察分别引出了 CNN 的两个核心归纳偏置，合在一起就是卷积操作本身。 洞察一：只看邻居——局部感受野: 在照片里找猫 。你不会..." />
 <meta property="og:image:width" content="1146" />
 <meta property="og:image:height" content="600" />
-<meta property="og:image" content="_images/social_previews/summary_cnn-expedition_practice-peak_cnn-basics_6ffab002.png" />
-<meta property="og:image:alt" content="发现装备——局部感受野 + 权值共享，顺应山体结构。 全连接用的是攀岩的思路——每一块岩石亲手检查，不靠地形判断。结果：235,000 个参数，爬一座 28×28 的小山还吃力。 CNN 换了登山的视角。它相信：相邻的岩石是连在一起的，同一段岩壁在不同位置结构相似。这两个信念—— 局部感受野 和 权值共享 ——就是冰镐和绳索。 参数效率：攀岩 vs 登山:\text{参数效率} = \fra..." />
-<meta name="description" content="发现装备——局部感受野 + 权值共享，顺应山体结构。 全连接用的是攀岩的思路——每一块岩石亲手检查，不靠地形判断。结果：235,000 个参数，爬一座 28×28 的小山还吃力。 CNN 换了登山的视角。它相信：相邻的岩石是连在一起的，同一段岩壁在不同位置结构相似。这两个信念—— 局部感受野 和 权值共享 ——就是冰镐和绳索。 参数效率：攀岩 vs 登山:\text{参数效率} = \fra..." />
+<meta property="og:image" content="_images/social_previews/summary_cnn-expedition_practice-peak_cnn-basics_38d2baac.png" />
+<meta property="og:image:alt" content="发现装备——局部感受野 + 权值共享，顺应山体结构。 全连接：赤手空拳 中我们用全连接网络爬了一座 28×28 的小山——攀岩的思路，每一块岩石亲手检查，不靠地形判断。结果：235,000 个参数，爬到山顶还吃力。 CNN 的设计来自对图像本质的 两个洞察 。这两个洞察分别引出了 CNN 的两个核心归纳偏置，合在一起就是卷积操作本身。 洞察一：只看邻居——局部感受野: 在照片里找猫 。你不会..." />
+<meta name="description" content="发现装备——局部感受野 + 权值共享，顺应山体结构。 全连接：赤手空拳 中我们用全连接网络爬了一座 28×28 的小山——攀岩的思路，每一块岩石亲手检查，不靠地形判断。结果：235,000 个参数，爬到山顶还吃力。 CNN 的设计来自对图像本质的 两个洞察 。这两个洞察分别引出了 CNN 的两个核心归纳偏置，合在一起就是卷积操作本身。 洞察一：只看邻居——局部感受野: 在照片里找猫 。你不会..." />
 <meta name="twitter:card" content="summary_large_image" />
 <title>卷积：发现装备 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../../genindex.html"><link rel="search" title="搜索" href="../../search.html"><link rel="next" title="数据准备：打包行囊" href="dataset-preparation.html"><link rel="prev" title="全连接：赤手空拳" href="fc-layer-basics.html"><script data-cfasync="false">(function(){
     const m = localStorage.getItem("breeze-mode") || "auto";
@@ -283,14 +283,44 @@
 <blockquote>
 <div><p>发现装备——局部感受野 + 权值共享，顺应山体结构。</p>
 </div></blockquote>
-<p>全连接用的是攀岩的思路——每一块岩石亲手检查，不靠地形判断。结果：235,000 个参数，爬一座 28×28 的小山还吃力。</p>
-<p>CNN 换了登山的视角。它相信：相邻的岩石是连在一起的，同一段岩壁在不同位置结构相似。这两个信念——<strong>局部感受野</strong>和<strong>权值共享</strong>——就是冰镐和绳索。</p>
-<section id="vs">
-<h2>参数效率：攀岩 vs 登山<a class="headerlink" href="#vs" title="Link to this heading">#</a></h2>
-<div class="math notranslate nohighlight">
-\[
-\text{参数效率} = \frac{\text{模型表达能力}}{\text{参数量}}
-\]</div>
+<p><a class="reference internal" href="fc-layer-basics.html"><span class="doc">全连接：赤手空拳</span></a> 中我们用全连接网络爬了一座 28×28 的小山——攀岩的思路，每一块岩石亲手检查，不靠地形判断。结果：235,000 个参数，爬到山顶还吃力。</p>
+<p>CNN 的设计来自对图像本质的<strong>两个洞察</strong>。这两个洞察分别引出了 CNN 的两个核心归纳偏置，合在一起就是卷积操作本身。</p>
+<section id="id2">
+<h2>洞察一：只看邻居——局部感受野<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p><strong>在照片里找猫</strong>。你不会同时盯着整张照片的每个像素——你的视线会<strong>聚焦在一个小区域</strong>，看这里有没有猫耳朵的形状。然后移到下一个区域。你的判断基于局部特征，而非同时处理全部信息。</p>
+<p>全连接网络却恰恰相反：每个神经元同时连接全部 784 个像素，相当于<strong>每次判断都要看整张图</strong>。这不仅浪费（每个连接都是一个参数），还让网络难以学到&quot;边缘&quot;、&quot;纹理&quot;这类天然是局部属性的特征。</p>
+<p>CNN 的第一个洞察：<strong>一个像素的含义主要由其周围像素决定</strong>。因此，每个神经元只连接输入的一个小窗口——比如 <span class="math notranslate nohighlight">\(3 \times 3\)</span>，只看相邻 9 个像素。这就是<strong>局部感受野（Local Receptive Field）</strong>。</p>
+<div class="note admonition">
+<p class="admonition-title">局部感受野的直观对比</p>
+<ul class="simple">
+<li><p>全连接：每个神经元看全部 784 像素 → 第一层 <span class="math notranslate nohighlight">\(784 \times 128 = 100{,}352\)</span> 参数（假设 128 个神经元）</p></li>
+<li><p>局部感受野：每个神经元只看 <span class="math notranslate nohighlight">\(3 \times 3 = 9\)</span> 像素 → 第一层 320 参数</p></li>
+<li><p><strong>减少 99.7% 的参数</strong>，却能更好地捕获边缘、纹理等局部特征</p></li>
+</ul>
+</div>
+</section>
+<section id="id3">
+<h2>洞察二：同一把尺子量遍全图——权值共享<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<p><strong>在地图上找十字路口</strong>。你不会为每个位置发明一个不同的&quot;十字检测规则&quot;——你会用一个<strong>统一的规则</strong>（“两条路垂直相交”），然后拿着它检查每个位置。左上角用这规则，右下角也用同一个规则。</p>
+<p>全连接网络的做法又反了：检测&quot;左上角有横线&quot;的权重和检测&quot;右下角有横线&quot;的权重是<strong>两组不同的参数</strong>。网络必须浪费大量参数反复学习同一个模式在不同位置的样子。</p>
+<p>CNN 的第二个洞察：<strong>同一个视觉模式可以出现在图像的任何位置，检测它的规则应该共享</strong>。因此，同一个卷积核在所有位置使用相同的权重——这就是<strong>权值共享（Weight Sharing）</strong>。</p>
+<div class="note admonition">
+<p class="admonition-title">权值共享的直观理解</p>
+<p>一个检测&quot;竖线&quot;的卷积核滑过整张图——不管竖线出现在左边还是右边，同一个核都能检测到。网络不需要为每个位置分别学习&quot;什么是竖线&quot;。</p>
+</div>
+</section>
+<section id="id4">
+<h2>卷积：两个洞察的统一实现<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p><strong>局部感受野</strong>回答了&quot;怎么看&quot;：每次只看一小块。<strong>权值共享</strong>回答了&quot;用什么看&quot;：同一个工具反复用。</p>
+<p>将两者结合，就得到了卷积操作：<strong>用滑动窗口（局部感受野）在图像上移动，在每个位置用相同权重（权值共享）计算点积</strong>。32 个卷积核就是 32 个不同的&quot;检测器&quot;——一个检测横线、一个检测竖线、一个检测弧线……它们各自滑过全图，各自寻找自己关注的特征。</p>
+<p>这正是我们在 <a class="reference internal" href="introduction.html#inductive-bias"><span class="std std-ref">归纳偏置</span></a> 中讨论的核心概念——CNN 将&quot;图像是二维的&quot;、“相邻像素相关”、&quot;平移不变&quot;这些先验知识<strong>内置到架构中</strong>。</p>
+</section>
+<section id="id5">
+<h2>参数效率：两个洞察的量化回报<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<div class="note admonition">
+<p class="admonition-title">参数效率</p>
+<p>参数效率可以粗略理解为 <strong>准确率 / 参数量</strong>——用更少的参数达到相同或更高的准确率，意味着更高的参数效率。这不是严格的数学公式，而是一个<strong>设计哲学</strong>：在引入合理归纳偏置的前提下，用尽量少的参数完成任务。</p>
+</div>
 <div class="table colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -317,47 +347,53 @@
 </tbody>
 </table>
 </div>
-<p><strong>关键问题</strong>：CNN如何用<strong>1/4的参数</strong>达到更好的效果？</p>
-<p>答案就在它的<strong>归纳偏置</strong>设计中：</p>
+<p><strong>关键问题</strong>：CNN 如何用 <strong>1/4 的参数</strong>达到更好的效果？</p>
+<p>答案就在那两个洞察里：</p>
 <ol class="arabic simple">
-<li><p><strong>局部感受野</strong>：3×3卷积核只看相邻9个像素，而非全部784个</p></li>
+<li><p><strong>局部感受野</strong>：<span class="math notranslate nohighlight">\(3 \times 3\)</span> 卷积核只看相邻 9 个像素，而非全部 784 个</p></li>
 <li><p><strong>权值共享</strong>：同一个卷积核滑过整张图像，参数重复使用</p></li>
 </ol>
-<p>这正是我们在<a class="reference internal" href="introduction.html#inductive-bias"><span class="std std-ref">归纳偏置</span></a>中讨论的核心概念——CNN将&quot;图像是二维的&quot;、&quot;相邻像素相关&quot;这些先验知识<strong>内置到架构中</strong>。</p>
 </section>
 <section id="receptive-field">
-<span id="id2"></span><h2>感受野<a class="headerlink" href="#receptive-field" title="Link to this heading">#</a></h2>
+<span id="id6"></span><h2>感受野<a class="headerlink" href="#receptive-field" title="Link to this heading">#</a></h2>
 <p><strong>感受野（Receptive Field）</strong> 是理解 CNN 最重要的概念之一。它定义为<strong>输出特征图上的一个神经元对应到输入图像上的区域大小</strong>。简单说：一个神经元&quot;看到&quot;了输入图像上多大一个区域。</p>
 <ul class="simple">
 <li><p>第1层卷积：<span class="math notranslate nohighlight">\(3 \times 3\)</span> 卷积核，感受野 = <span class="math notranslate nohighlight">\(3 \times 3\)</span>（只看相邻像素）</p></li>
 <li><p>第2层卷积：堆叠两个 <span class="math notranslate nohighlight">\(3 \times 3\)</span>，感受野 = <span class="math notranslate nohighlight">\(5 \times 5\)</span>（看到更广的区域）</p></li>
 <li><p>第3层卷积：堆叠三个 <span class="math notranslate nohighlight">\(3 \times 3\)</span>，感受野 = <span class="math notranslate nohighlight">\(7 \times 7\)</span></p></li>
 </ul>
-<p><strong>递推公式</strong>：感受野 = 前一层感受野 + (卷积核大小 - 1) × 累积步长</p>
-<p>感受野随着网络深度线性增长。这也是为什么需要深层网络——<strong>层数越多，每个神经元能捕获的上下文信息越丰富</strong>。但标准 CNN 有一个限制：训练完成后，<strong>感受野对所有输入是固定的</strong>——无论输入是猫还是汽车，每个神经元都看到同样大小的区域。</p>
+<p><strong>递推公式</strong>：</p>
+<div class="math notranslate nohighlight">
+\[
+RF_l = RF_{l-1} + (K_l - 1) \times \prod_{i=1}^{l-1} s_i
+\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(RF_l\)</span> 是第 <span class="math notranslate nohighlight">\(l\)</span> 层的感受野大小，<span class="math notranslate nohighlight">\(K_l\)</span> 是卷积核大小，<span class="math notranslate nohighlight">\(s_i\)</span> 是第 <span class="math notranslate nohighlight">\(i\)</span> 层的步长。</p>
+<p>感受野随着网络深度线性增长。这也是为什么需要深层网络——<strong>层数越多，每个神经元能捕获的上下文信息越丰富</strong>。注意，感受野完全由网络架构（卷积核大小、步长、层数）决定，训练不会改变它。</p>
 </section>
-<section id="id3">
-<h2>卷积操作的基本原理<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
-<p>卷积操作是CNN的核心，它通过滑动窗口的方式在输入图像上应用（通过点积）滤波器（卷积核）来提取特征。这种思想最早由LeCun等人在1989年提出 <span id="id4">[<a class="reference internal" href="#id82" title="Yann LeCun, Bernhard Boser, John S Denker, Donnie Henderson, Richard E Howard, Wayne Hubbard, and Lawrence D Jackel. Backpropagation applied to handwritten zip code recognition. Neural Computation, 1(4):541–551, 1989.">LBD+89</a>]</span>，并在后续的LeNet-5工作中 <span id="id5">[<a class="reference internal" href="le-net.html#id73" title="Yann LeCun, Léon Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 86(11):2278–2324, 1998.">LBBH98</a>]</span> 得到完善。</p>
-<figure class="align-center" id="id126">
+<section id="id7">
+<h2>卷积操作的基本原理<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<p>卷积操作是CNN的核心，它通过滑动窗口的方式在输入图像上应用（通过点积）滤波器（卷积核）来提取特征。这种思想最早由LeCun等人在1989年提出 <span id="id8">[<a class="reference internal" href="#id87" title="Yann LeCun, Bernhard Boser, John S Denker, Donnie Henderson, Richard E Howard, Wayne Hubbard, and Lawrence D Jackel. Backpropagation applied to handwritten zip code recognition. Neural Computation, 1(4):541–551, 1989.">LBD+89</a>]</span>，并在后续的LeNet-5工作中 <span id="id9">[<a class="reference internal" href="le-net.html#id73" title="Yann LeCun, Léon Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 86(11):2278–2324, 1998.">LBBH98</a>]</span> 得到完善。</p>
+<figure class="align-center" id="id131">
 <a class="reference internal image-reference" href="../../_images/conv-process.png"><img alt="../../_images/conv-process.png" src="../../_images/conv-process.png" style="width: 40%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">卷积操作示意图</span><a class="headerlink" href="#id126" title="Link to this image">#</a></p>
+<p><span class="caption-text">卷积操作示意图</span><a class="headerlink" href="#id131" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <div class="admonition note">
 <p class="admonition-title">备注</p>
 <p><strong>卷积操作的数学定义</strong></p>
+<p>数学上严格定义的卷积包含核的翻转：</p>
 <div class="math notranslate nohighlight">
 \[
 (f * g)[m,n] = \sum_{i=-\infty}^{\infty}\sum_{j=-\infty}^{\infty} f[i,j] \cdot g[m-i, n-j]
 \]</div>
-<p>在离散图像处理中，卷积操作可以表示为：</p>
+<p>但在深度学习中，我们实际使用的是<strong>互相关（cross-correlation）</strong>，省略了翻转步骤：</p>
 <div class="math notranslate nohighlight">
 \[
 Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 \]</div>
+<p>由于卷积核的数值是通过训练学习的，翻转与否对结果没有影响——网络会自动学到合适的核值。因此，本文后续提到的&quot;卷积&quot;均指互相关形式。</p>
 <p>其中：</p>
 <ul class="simple">
 <li><p><span class="math notranslate nohighlight">\(X\)</span>：输入特征图</p></li>
@@ -366,12 +402,12 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 <li><p><span class="math notranslate nohighlight">\(k\)</span>：卷积核大小</p></li>
 </ul>
 </div>
-<section id="id6">
-<h3>直觉：卷积核为什么能提取特征？<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<section id="id10">
+<h3>直觉：卷积核为什么能提取特征？<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
 <p>卷积核提取特征的原理其实很直观：<strong>点积 = 相似度度量</strong>。</p>
 <p>回想一下两个向量的点积：<span class="math notranslate nohighlight">\(\mathbf{a} \cdot \mathbf{b} = \sum_i a_i b_i\)</span>。当两个向量方向一致时，点积最大；方向相反时，点积为负。换句话说，<strong>点积衡量了两个向量的相似程度</strong>。</p>
 <p>卷积操作就是反复做点积：</p>
-<div class="figure" id="id127" style="text-align: center"><p><img  src="../../_images/tikz-0ae465dd7e723e27764bae08945e5a36503f86e2.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id132" style="text-align: center"><p><img  src="../../_images/tikz-0ae465dd7e723e27764bae08945e5a36503f86e2.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">卷积核=模式匹配器</span></p>
 </div><p>这个 3×3 的卷积核左边全是 -1、中间是 0、右边全是 1——它检测的是<strong>垂直边缘</strong>：</p>
 <ul class="simple">
@@ -417,8 +453,8 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 <p>简单来说，卷积操作就是<strong>拿着一个个&quot;模板&quot;（卷积核）在图像上滑动，在每个位置计算模板和该区域的相似度</strong>。相似的区域得到高响应，不相似的得到低响应。32 个卷积核就是 32 个不同的模板，各自关注不同的模式。</p>
 </section>
 </section>
-<section id="id7">
-<h2>特征图尺寸计算<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<section id="feature-map-size">
+<span id="id11"></span><h2>特征图尺寸计算<a class="headerlink" href="#feature-map-size" title="Link to this heading">#</a></h2>
 <p>对于输入尺寸为 <span class="math notranslate nohighlight">\(W \times H\)</span>，卷积核大小为 <span class="math notranslate nohighlight">\(K \times K\)</span>，步长为 <span class="math notranslate nohighlight">\(S\)</span>，填充为 <span class="math notranslate nohighlight">\(P\)</span> 的情况，输出特征图的尺寸为：</p>
 <div class="math notranslate nohighlight">
 \[W_{out} = \left\lfloor \frac{W - K + 2P}{S} \right\rfloor + 1\]</div>
@@ -439,14 +475,15 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 </ul>
 </div>
 </section>
-<section id="id8">
-<h2>参数共享机制<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<section id="parameter-sharing">
+<span id="id12"></span><h2>参数共享机制<a class="headerlink" href="#parameter-sharing" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="#cnn-basics"><span class="std std-ref">洞察二</span></a> 中我们建立了权值共享的直觉：同一个检测规则在所有位置反复使用。下面用数学语言精确描述这一机制。</p>
 <p>卷积层的一个重要特性是参数共享。同一个卷积核在图像的不同位置重复使用，这大大减少了参数数量。</p>
-<figure class="align-center" id="id128">
+<figure class="align-center" id="id133">
 <a class="reference internal image-reference" href="../../_images/conv-param-share.png"><img alt="../../_images/conv-param-share.png" src="../../_images/conv-param-share.png" style="width: 80%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">参数共享机制示意图</span><a class="headerlink" href="#id128" title="Link to this image">#</a></p>
+<p><span class="caption-text">参数共享机制示意图</span><a class="headerlink" href="#id133" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <p>对于 <span class="math notranslate nohighlight">\(C_{\text{out}}\)</span> 个输出通道，每个通道使用独立的卷积核：</p>
@@ -458,8 +495,9 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 \[\text{Parameters} = 32 \times (3 \times 3 \times 1 + 1) = 32 \times 10 = 320\]</div>
 <p>相比全连接层的数万参数，卷积层的参数数量显著减少了99%以上。</p>
 </section>
-<section id="id9">
-<h2>卷积层的优势<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
+<section id="conv-advantages">
+<span id="id13"></span><h2>卷积层的优势<a class="headerlink" href="#conv-advantages" title="Link to this heading">#</a></h2>
+<p>回到找猫和十字路口的例子：局部连接让你每次聚焦一个小区域（洞察一），权值共享让你用同一个检测器扫遍全图（洞察二），平移不变性正是两者的自然推论。</p>
 <div class="note admonition">
 <p class="admonition-title">卷积层的核心优势</p>
 <ol class="arabic simple">
@@ -471,9 +509,9 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 </div>
 </section>
 <section id="pooling">
-<span id="id10"></span><h2>池化层<a class="headerlink" href="#pooling" title="Link to this heading">#</a></h2>
-<section id="id11">
-<h3>直觉理解<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<span id="id14"></span><h2>池化层<a class="headerlink" href="#pooling" title="Link to this heading">#</a></h2>
+<section id="id15">
+<h3>直觉理解<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
 <p><a class="reference internal" href="#receptive-field"><span class="std std-ref">感受野</span></a>告诉我们，卷积层通过堆叠来逐步扩大感受野。但有一个问题：如果只用卷积堆叠，特征图的空间尺寸始终不变（比如28×28），后面的全连接层要处理的参数量会非常庞大。</p>
 <p><strong>我们需要一种&quot;压缩&quot;机制</strong>——在保留关键特征的同时，减小空间尺寸。</p>
 <p>池化层就是CNN的&quot;压缩包&quot;：</p>
@@ -482,9 +520,9 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 <li><p><strong>平均池化（Average Pooling）</strong>：保留整体信息，平滑噪声。就像取平均成绩，反映整体水平</p></li>
 </ul>
 </section>
-<section id="id12">
-<h3>图解：池化怎么压缩特征图<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
-<div class="figure" id="id129" style="text-align: center"><p><img  src="../../_images/tikz-e8073b9f67e1721e0055c8f3e506b7ae54bab417.svg" alt="Figure made with TikZ" /></p>
+<section id="id16">
+<h3>图解：池化怎么压缩特征图<a class="headerlink" href="#id16" title="Link to this heading">#</a></h3>
+<div class="figure" id="id134" style="text-align: center"><p><img  src="../../_images/tikz-e8073b9f67e1721e0055c8f3e506b7ae54bab417.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">2×2池化操作示意</span></p>
 </div><p><strong>Max Pooling</strong>：每个2×2窗口只保留最大值——这代表该区域最强的特征响应。原来4×4=16个数字，压缩后只剩4个。</p>
 <p><strong>Avg Pooling</strong>：每个2×2窗口取平均值——保留了该区域的整体信息强度。</p>
@@ -502,8 +540,8 @@ Y[i,j] = \sum_{u=0}^{k-1}\sum_{v=0}^{k-1} X[i+u, j+v] \cdot K[u,v] + b
 <p>想象你在一张照片里找猫。Max Pooling的操作是：把照片分成2×2的小格子，每个格子里只保留<strong>最像猫的证据</strong>（最高响应），丢掉其他像素。这样无论猫出现在格子的哪个位置，你都能找到它——这就是<strong>平移不变性</strong>的直觉来源。</p>
 </div>
 </section>
-<section id="id13">
-<h3>数学定义<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<section id="id17">
+<h3>数学定义<a class="headerlink" href="#id17" title="Link to this heading">#</a></h3>
 <p>对于输入特征图 <span class="math notranslate nohighlight">\(X \in \mathbb{R}^{C \times H \times W}\)</span>，池化操作在每个通道上独立进行，不改变通道数：</p>
 <p><strong>最大池化</strong>：</p>
 <div class="math notranslate nohighlight">
@@ -526,8 +564,8 @@ Y[c, i, j] = \frac{1}{|\mathcal{R}_{ij}|} \sum_{(m,n) \in \mathcal{R}_{ij}} X[c,
 </ul>
 </div>
 </section>
-<section id="id14">
-<h3>池化层尺寸计算<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
+<section id="id18">
+<h3>池化层尺寸计算<a class="headerlink" href="#id18" title="Link to this heading">#</a></h3>
 <p>池化层的尺寸计算公式与卷积层一致：</p>
 <div class="math notranslate nohighlight">
 \[
@@ -562,8 +600,8 @@ W_{\text{out}} = \left\lfloor \frac{W_{\text{in}} - K + 2P}{S} \right\rfloor + 1
 </pre></div>
 </div>
 </section>
-<section id="id15">
-<h3>池化选型指南<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<section id="id19">
+<h3>池化选型指南<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
 <div class="table colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -608,19 +646,19 @@ W_{\text{out}} = \left\lfloor \frac{W_{\text{in}} - K + 2P}{S} \right\rfloor + 1
 <p>这种设计体现了CNN的另一种归纳偏置：<strong>特征的空间位置信息在深层已不重要，重要的是每个通道的整体激活强度</strong>——这与<a class="reference internal" href="introduction.html#inductive-bias"><span class="std std-ref">归纳偏置</span></a>中讨论的&quot;层次特征提取&quot;一脉相承。</p>
 </div>
 </section>
-<section id="id16">
-<h3>反向传播中的梯度流动<a class="headerlink" href="#id16" title="Link to this heading">#</a></h3>
+<section id="id20">
+<h3>反向传播中的梯度流动<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
 <p>池化层没有可学习参数，但梯度仍然需要通过它回传。反向传播的规则很简单：</p>
 <ul class="simple">
 <li><p><strong>Max Pooling</strong>：梯度只回传给最大值所在位置，其他位置梯度为0</p></li>
 <li><p><strong>Average Pooling</strong>：梯度均匀回传给窗口内的所有位置</p></li>
 </ul>
-<div class="figure" id="id130" style="text-align: center"><p><img  src="../../_images/tikz-8b90635e46906aba11054090e44ccb75c176658e.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id135" style="text-align: center"><p><img  src="../../_images/tikz-8b90635e46906aba11054090e44ccb75c176658e.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Max Pooling 反向传播示意</span></p>
 </div><p>这个机制在后面讨论<a class="reference internal" href="../../math-fundamentals/back-propagation.html#gradient-vanishing"><span class="std std-ref">梯度消失（Vanishing Gradient）</span></a>时会再次出现——Max Pooling的梯度&quot;门控&quot;特性，某种程度上帮助缓解了梯度在深层网络中的稀释问题。</p>
 </section>
-<section id="id17">
-<h3>验证实验<a class="headerlink" href="#id17" title="Link to this heading">#</a></h3>
+<section id="id21">
+<h3>验证实验<a class="headerlink" href="#id21" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 
@@ -639,6 +677,8 @@ W_{\text{out}} = \left\lfloor \frac{W_{\text{in}} - K + 2P}{S} \right\rfloor + 1
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">pool</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;再池化: </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>             <span class="c1"># [1, 32, 7, 7]   —— 继续减半</span>
+
+<span class="c1"># 注：实际CNN中，两次池化之间会有卷积层增加通道数（见下方SimpleCNN）</span>
 
 <span class="c1"># 参数量对比：有无池化</span>
 <span class="c1"># 无池化：fc_input = 32 × 28 × 28 = 25,088 → fc1(25088, 128) = 3,211,264 参数</span>
@@ -680,7 +720,7 @@ W_{\text{out}} = \left\lfloor \frac{W_{\text{in}} - K + 2P}{S} \right\rfloor + 1
         <span class="c1"># 第一个卷积块：28x28 -&gt; 14x14</span>
         <span class="c1"># conv1: 输入1通道，输出32通道，3x3卷积核，参数量32*(3*3*1+1)=320</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>        <span class="c1"># {ref}`computational-graph`中的卷积节点</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>          <span class="c1"># 批归一化 {cite}`ioffe2015batch`，稳定训练</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>          <span class="c1"># 批归一化，缓解内部协变量偏移，加速收敛 {cite}`ioffe2015batch`</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>            <span class="c1"># 非线性激活（见{ref}`activation-functions`）</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>         <span class="c1"># 下采样：28x28 -&gt; 14x14</span>
         
@@ -775,7 +815,7 @@ W_{\text{out}} = \left\lfloor \frac{W_{\text{in}} - K + 2P}{S} \right\rfloor + 1
 </tbody>
 </table>
 </div>
-<div class="figure" id="id131" style="text-align: center"><p><img  src="../../_images/tikz-9dfb9b54f95e09d8b87eb7077a45e5c1b53e8eae.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id136" style="text-align: center"><p><img  src="../../_images/tikz-9dfb9b54f95e09d8b87eb7077a45e5c1b53e8eae.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">CNN分层特征提取示意</span></p>
 </div><p><strong>分层学习的启示</strong>：</p>
 <ul class="simple">
@@ -783,12 +823,49 @@ W_{\text{out}} = \left\lfloor \frac{W_{\text{in}} - K + 2P}{S} \right\rfloor + 1
 <li><p>这与人类视觉系统类似：视网膜→边缘检测→形状识别→物体认知</p></li>
 <li><p>全连接网络没有这种层次结构，必须同时学习所有复杂度</p></li>
 </ul>
+<section id="id22">
+<h3>如何&quot;看到&quot;特征图<a class="headerlink" href="#id22" title="Link to this heading">#</a></h3>
+<p>在前面的 <code class="docutils literal notranslate"><span class="pre">SimpleCNN</span></code> 中，我们可以用 PyTorch 的 hook 机制提取中间层的特征图：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="c1"># 注册 hook 捕获 conv1 的输出</span>
+<span class="n">features</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_activation</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">hook</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+        <span class="n">features</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">hook</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">SimpleCNN</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">conv1</span><span class="o">.</span><span class="n">register_forward_hook</span><span class="p">(</span><span class="n">get_activation</span><span class="p">(</span><span class="s1">&#39;conv1&#39;</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">conv2</span><span class="o">.</span><span class="n">register_forward_hook</span><span class="p">(</span><span class="n">get_activation</span><span class="p">(</span><span class="s1">&#39;conv2&#39;</span><span class="p">))</span>
+
+<span class="c1"># 前向传播</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">28</span><span class="p">,</span> <span class="mi">28</span><span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="c1"># 查看特征图形状</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Conv1 特征图: </span><span class="si">{</span><span class="n">features</span><span class="p">[</span><span class="s1">&#39;conv1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># [1, 32, 28, 28] —— 32 个边缘检测器</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Conv2 特征图: </span><span class="si">{</span><span class="n">features</span><span class="p">[</span><span class="s1">&#39;conv2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># [1, 64, 14, 14] —— 64 个笔画检测器</span>
+
+<span class="c1"># 可视化前 8 个通道的 Conv1 特征图</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">axes</span><span class="o">.</span><span class="n">flat</span><span class="p">):</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">features</span><span class="p">[</span><span class="s1">&#39;conv1&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Channel </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">&#39;Conv1 特征图（32 通道中的前 8 个）&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>运行这段代码，你会看到：前几个通道捕获<strong>不同方向的边缘</strong>，后面通道捕获<strong>纹理和颜色梯度</strong>——这正是 <a class="reference internal" href="introduction.html#inductive-bias"><span class="std std-ref">归纳偏置</span></a> 中层次特征提取的直观证据。</p>
 </section>
-<section id="id18">
-<h2>CNN的优缺点<a class="headerlink" href="#id18" title="Link to this heading">#</a></h2>
-<div class="table colwidths-given docutils container" id="id132">
-<table class="docutils align-default" id="id132">
-<caption><span class="caption-text">卷积神经网络优缺点对比</span><a class="headerlink" href="#id132" title="Link to this table">#</a></caption>
+</section>
+<section id="id23">
+<h2>CNN的优缺点<a class="headerlink" href="#id23" title="Link to this heading">#</a></h2>
+<div class="table colwidths-given docutils container" id="id137">
+<table class="docutils align-default" id="id137">
+<caption><span class="caption-text">卷积神经网络优缺点对比</span><a class="headerlink" href="#id137" title="Link to this table">#</a></caption>
 <colgroup>
 <col style="width: 50.0%" />
 <col style="width: 50.0%" />
@@ -800,24 +877,24 @@ W_{\text{out}} = \left\lfloor \frac{W_{\text{in}} - K + 2P}{S} \right\rfloor + 1
 </thead>
 <tbody>
 <tr class="row-even"><td><p>保留空间结构信息</p></td>
-<td><p>实现相对复杂</p></td>
+<td><p>感受野固定，无法自适应调整关注区域</p></td>
 </tr>
 <tr class="row-odd"><td><p>参数数量少</p></td>
-<td><p>超参数选择敏感</p></td>
+<td><p>空间信息随池化逐层丢失</p></td>
 </tr>
 <tr class="row-even"><td><p>平移不变性</p></td>
-<td><p>计算复杂度高</p></td>
+<td><p>对小物体不友好（深层感受野大，小物体特征被稀释）</p></td>
 </tr>
 <tr class="row-odd"><td><p>局部连接</p></td>
-<td><p>需要更多内存</p></td>
+<td><p>卷积核大小固定，难以捕获长距离依赖</p></td>
 </tr>
 <tr class="row-even"><td><p>分层特征提取</p></td>
-<td><p>训练时间较长</p></td>
+<td><p>对旋转/缩放等变换敏感（需数据增强弥补）</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<div class="warning admonition">
+<div class="tip admonition">
 <p class="admonition-title">从全连接到卷积的演进</p>
 <p>卷积神经网络的设计直接针对全连接网络的局限性：</p>
 <ol class="arabic simple">
@@ -826,20 +903,20 @@ W_{\text{out}} = \left\lfloor \frac{W_{\text{in}} - K + 2P}{S} \right\rfloor + 1
 <li><p><strong>平移不变性差</strong> → 平移不变性提高泛化能力</p></li>
 <li><p><strong>计算效率低</strong> → 分层特征提取提高计算效率</p></li>
 </ol>
-<p>这种演进体现了深度学习架构设计中的<a class="reference internal" href="introduction.html#inductive-bias"><span class="std std-ref">归纳偏置</span></a>思想：通过引入适合任务结构的先验知识，让模型更高效地学习。</p>
+<p>这种演进体现了深度学习架构设计中的<a class="reference internal" href="introduction.html#inductive-bias"><span class="std std-ref">归纳偏置</span></a>思想：通过引入适合任务结构的先验知识，让模型更高效地学习。从找猫（局部感受野）到找十字路口（权值共享），CNN 的设计始终遵循一个原则：<strong>架构应该顺应数据的结构</strong>。</p>
 </div>
 <hr class="docutils" />
 <p>装备有了。但出发前还有一件事——<a class="reference internal" href="dataset-preparation.html"><span class="doc">数据准备：打包行囊</span></a>：打包行囊。数据不会自己飞到 GPU 上。</p>
 <hr class="docutils" />
 <h2 class="rubric">参考文献</h2>
-<div class="docutils container" id="id19">
+<div class="docutils container" id="id24">
 <div role="list" class="citation-list">
-<div class="citation" id="id82" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">LBD+89</a><span class="fn-bracket">]</span></span>
+<div class="citation" id="id87" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id8">LBD+89</a><span class="fn-bracket">]</span></span>
 <p>Yann LeCun, Bernhard Boser, John S Denker, Donnie Henderson, Richard E Howard, Wayne Hubbard, and Lawrence D Jackel. Backpropagation applied to handwritten zip code recognition. <em>Neural Computation</em>, 1(4):541–551, 1989.</p>
 </div>
-<div class="citation" id="id81" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">LBBH98</a><span class="fn-bracket">]</span></span>
+<div class="citation" id="id86" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id9">LBBH98</a><span class="fn-bracket">]</span></span>
 <p>Yann LeCun, Léon Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document recognition. <em>Proceedings of the IEEE</em>, 86(11):2278–2324, 1998.</p>
 </div>
 </div>
@@ -851,7 +928,7 @@ W_{\text{out}} = \left\lfloor \frac{W_{\text{in}} - K + 2P}{S} \right\rfloor + 1
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
-            <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+            <div title="Heyan Zhu (Anson2251) (2 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
         </div>
@@ -859,6 +936,11 @@ W_{\text{out}} = \left\lfloor \frac{W_{\text{in}} - K + 2P}{S} \right\rfloor + 1
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">ea7e106</code>
+                2026-06-16 - <strong>Heyan Zhu</strong>: fix: cross-ref syntax, formulas, code, and structure across 5 chapters
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">dc35df2</code>
                 2026-06-14 - <strong>Heyan Zhu</strong>: refactor: unify into two-chapter mountain-climbing narrative
@@ -927,30 +1009,36 @@ W_{\text{out}} = \left\lfloor \frac{W_{\text{in}} - K + 2P}{S} \right\rfloor + 1
   
     <nav class="bz-sidebar-toc" aria-label="Table of contents">
   <p>On this page</p><ul>
-<li><a class="reference internal" href="#vs">参数效率：攀岩 vs 登山</a></li>
+<li><a class="reference internal" href="#id2">洞察一：只看邻居——局部感受野</a></li>
+<li><a class="reference internal" href="#id3">洞察二：同一把尺子量遍全图——权值共享</a></li>
+<li><a class="reference internal" href="#id4">卷积：两个洞察的统一实现</a></li>
+<li><a class="reference internal" href="#id5">参数效率：两个洞察的量化回报</a></li>
 <li><a class="reference internal" href="#receptive-field">感受野</a></li>
-<li><a class="reference internal" href="#id3">卷积操作的基本原理</a><ul>
-<li><a class="reference internal" href="#id6">直觉：卷积核为什么能提取特征？</a></li>
+<li><a class="reference internal" href="#id7">卷积操作的基本原理</a><ul>
+<li><a class="reference internal" href="#id10">直觉：卷积核为什么能提取特征？</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id7">特征图尺寸计算</a></li>
-<li><a class="reference internal" href="#id8">参数共享机制</a></li>
-<li><a class="reference internal" href="#id9">卷积层的优势</a></li>
+<li><a class="reference internal" href="#feature-map-size">特征图尺寸计算</a></li>
+<li><a class="reference internal" href="#parameter-sharing">参数共享机制</a></li>
+<li><a class="reference internal" href="#conv-advantages">卷积层的优势</a></li>
 <li><a class="reference internal" href="#pooling">池化层</a><ul>
-<li><a class="reference internal" href="#id11">直觉理解</a></li>
-<li><a class="reference internal" href="#id12">图解：池化怎么压缩特征图</a></li>
+<li><a class="reference internal" href="#id15">直觉理解</a></li>
+<li><a class="reference internal" href="#id16">图解：池化怎么压缩特征图</a></li>
 <li><a class="reference internal" href="#max-pooling">为什么Max Pooling更常用？</a></li>
-<li><a class="reference internal" href="#id13">数学定义</a></li>
-<li><a class="reference internal" href="#id14">池化层尺寸计算</a></li>
+<li><a class="reference internal" href="#id17">数学定义</a></li>
+<li><a class="reference internal" href="#id18">池化层尺寸计算</a></li>
 <li><a class="reference internal" href="#pytorch">PyTorch实现</a></li>
-<li><a class="reference internal" href="#id15">池化选型指南</a></li>
-<li><a class="reference internal" href="#id16">反向传播中的梯度流动</a></li>
-<li><a class="reference internal" href="#id17">验证实验</a></li>
+<li><a class="reference internal" href="#id19">池化选型指南</a></li>
+<li><a class="reference internal" href="#id20">反向传播中的梯度流动</a></li>
+<li><a class="reference internal" href="#id21">验证实验</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#pytorchcnn">PyTorch实现CNN</a></li>
-<li><a class="reference internal" href="#cnn">特征图：CNN的"眼睛"</a></li>
-<li><a class="reference internal" href="#id18">CNN的优缺点</a></li>
+<li><a class="reference internal" href="#cnn">特征图：CNN的"眼睛"</a><ul>
+<li><a class="reference internal" href="#id22">如何"看到"特征图</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id23">CNN的优缺点</a></li>
 </ul></nav>
   
 

@@ -256,8 +256,6 @@ AlexNet 证明了 ImageNet 能爬。但它用 11×11 的大卷积核一次性看
 
 ---
 
-[^krizhevsky2012]: Alex Krizhevsky, Ilya Sutskever, Geoffrey Hinton, "ImageNet Classification with Deep Convolutional Neural Networks", NeurIPS 2012.
-
 ```{only} not latex
 
 ~~~{rubric} 参考文献
