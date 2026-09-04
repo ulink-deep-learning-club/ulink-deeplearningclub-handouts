@@ -176,6 +176,7 @@ extensions = [
     'myst_parser',
     'sphinx_design',
     'sphinxcontrib.tikz',
+    'tikz_fallback',
     'sphinxcontrib.mermaid',
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
