@@ -210,7 +210,7 @@ source .venv/bin/activate
 bash scripts/build-i18n-site.sh
 ```
 
-完成英文翻译、文本图片审查和人工语言审校前，脚本只构建英文预览而不会将其放入发布目录。发布负责人通过 `docs/i18n/AGENT_GUIDE.md` 的完整性检查后，使用 `I18N_RELEASE_READY=1` 运行同一命令；此时中文位于站点根目录，英文位于 `en/`，每种语言各有独立 PDF。
+完成并经人工语言审校的英语章节，会按 `docs/i18n/release-manifest.json` 中登记的目录逐章发布到 `en/`。未完成的英语 URL 自动回退到对应中文页面；完整英文 PDF 只在全书翻译完成后生成。详细流程见 `docs/i18n/AGENT_GUIDE.md`。
 
 ### 构建 PDF
 

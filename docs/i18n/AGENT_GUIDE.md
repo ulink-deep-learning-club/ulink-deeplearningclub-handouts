@@ -48,12 +48,32 @@ python scripts/check-i18n.py
 sphinx-build -W --keep-going -D language=en -b html source build/i18n/en-preview
 ```
 
-Before enabling the public language switcher, all 107 document catalogs must
-exist, have no fuzzy or untranslated messages, and pass:
+## Chapter-by-chapter release
+
+An English page is public only when its source-relative prefix appears in
+`docs/i18n/release-manifest.json`. Release an entire navigational chapter at a
+time, for example `math-fundamentals` or `pytorch-practice`; do not release a
+parent index until every page it links to is complete. The build verifies every
+catalog in a listed prefix before publishing it. Unreleased `/en/...` URLs are
+redirected to the matching Chinese page, never shown as mixed-language content.
+
+After translation and human review of a chapter, add its prefix to the manifest
+and verify the staged site:
+
+```bash
+python scripts/check-i18n.py --require-complete --prefix math-fundamentals
+bash scripts/build-i18n-site.sh --html-only
+```
+
+The English switch appears only on Chinese pages in released prefixes. It is
+always available on a released English page to return to Chinese.
+
+Before publishing a full English PDF, all 107 document catalogs must exist,
+have no fuzzy or untranslated messages, and pass:
 
 ```bash
 python scripts/check-i18n.py --require-complete
-I18N_RELEASE_READY=1 scripts/build-i18n-site.sh
+bash scripts/build-i18n-site.sh
 ```
 
 Inspect the rendered homepage and one page from every top-level section in both
@@ -63,6 +83,5 @@ each image containing Chinese text. The configured Sphinx figure substitution
 selects the English sibling automatically. The current baseline is recorded in
 [the raster asset audit](asset-audit.md).
 
-Only then set `I18N_RELEASE_READY=1` in the deployment workflow. This makes the
-header switcher visible; until then, the hidden English preview must not be
-linked from production.
+The bilingual build publishes approved chapter prefixes on every deployment;
+the English PDF appears only after whole-course completion.

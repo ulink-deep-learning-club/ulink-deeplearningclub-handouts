@@ -35,6 +35,10 @@ def run(*args: str) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--require-complete", action="store_true")
+    parser.add_argument(
+        "--prefix", action="append", default=[],
+        help="Validate only a source-relative document prefix; may be repeated.",
+    )
     args = parser.parse_args()
 
     if shutil.which("msgfmt") is None or shutil.which("msgattrib") is None:
@@ -43,6 +47,17 @@ def main() -> int:
 
     errors: list[str] = []
     documents = sorted(SOURCE.rglob("*.md"))
+    if args.prefix:
+        documents = [
+            document for document in documents
+            if any(
+                (relative := document.relative_to(SOURCE).with_suffix("").as_posix()) == prefix
+                or relative.startswith(f"{prefix}/")
+                for prefix in args.prefix
+            )
+        ]
+        if not documents:
+            errors.append(f"no documents match prefix(es): {', '.join(args.prefix)}")
     for document in documents:
         catalog = catalog_for(document)
         if not catalog.exists():

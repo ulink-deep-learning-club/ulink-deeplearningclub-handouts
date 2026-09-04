@@ -12,6 +12,7 @@ import logging
 import platform
 import shutil
 import posixpath
+import json
 
 def list_file_with_extension(directory: Path, extension: str) -> list[Path]:
     """
@@ -111,10 +112,10 @@ author = 'UCS Deep Learning Club'
 release = '0.0.1'
 html_title = "Deep Learning Club Handouts"
 
-# The public English edition is deliberately gated until every catalog entry
-# and language-specific visual has passed editorial review. Set this to True
-# only in the release that satisfies docs/i18n/AGENT_GUIDE.md.
-I18N_RELEASE_READY = os.getenv("I18N_RELEASE_READY", "0") == "1"
+# English pages become public chapter by chapter. The reviewed prefix list is
+# maintained outside the source tree so the publishing script and templates use
+# the same release decision.
+I18N_RELEASE_MANIFEST = Path(__file__).resolve().parents[1] / "docs" / "i18n" / "release-manifest.json"
 SITE_BASEURL = "https://ulink-deep-learning-club.github.io/ulink-deeplearningclub-handouts/"
 
 # conf.py
@@ -330,6 +331,23 @@ def _page_path(language_code: str, pagename: str) -> str:
     return f"{prefix}{pagename}.html"
 
 
+def _released_english_prefixes() -> tuple[str, ...]:
+    try:
+        manifest = json.loads(I18N_RELEASE_MANIFEST.read_text(encoding="utf-8"))
+        prefixes = manifest["released_prefixes"]
+        if not all(isinstance(prefix, str) and prefix for prefix in prefixes):
+            raise ValueError("released_prefixes must contain non-empty strings")
+        return tuple(prefixes)
+    except (OSError, ValueError, KeyError, json.JSONDecodeError) as error:
+        logger.warning("Invalid English release manifest: %s", error)
+        return ()
+
+
+def _english_page_is_released(pagename: str) -> bool:
+    return any(pagename == prefix or pagename.startswith(f"{prefix}/")
+               for prefix in _released_english_prefixes())
+
+
 def _configure_language(app, config):
     """Apply options that depend on the final -D language override."""
     if config.language == "en":
@@ -354,7 +372,9 @@ def _add_language_switch_context(app, pagename, templatename, context, doctree):
     target_language = 'zh_CN' if language_code == 'en' else 'en'
     current_path = _page_path(language_code, pagename)
     target_path = _page_path(target_language, pagename)
-    context['language_switcher_enabled'] = I18N_RELEASE_READY
+    context['language_switcher_enabled'] = (
+        language_code == 'en' or _english_page_is_released(pagename)
+    )
     context['language_switch_label'] = '中文' if language_code == 'en' else 'English'
     context['language_switch_url'] = posixpath.relpath(
         target_path, start=posixpath.dirname(current_path)

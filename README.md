@@ -11,7 +11,7 @@
 
 中文 Markdown 是唯一的内容源；英语版本由 Sphinx gettext 翻译目录生成。英语内容通过完整性审查后，在线站点会在每页页头提供语言切换，并在 `/en/` 下发布与中文完全对应的页面；英文 PDF 位于 `/en/deep-learning-club-handouts.pdf`。现有中文链接及 PDF 文件名保持不变。
 
-翻译贡献者请遵循 [本地化工作指南](docs/i18n/AGENT_GUIDE.md) 和 [术语表](docs/i18n/glossary.md)。在全书英语翻译、文本图片和人工语言审校完成前，英语预览不会部署或在公开站点显示。
+翻译贡献者请遵循 [本地化工作指南](docs/i18n/AGENT_GUIDE.md) 和 [术语表](docs/i18n/glossary.md)。完成并审校的英语章节会逐章发布到 `/en/`；未完成页面会安全地回退到对应中文页面。全书完成后才发布英文 PDF。
 
 ## 项目结构
 
