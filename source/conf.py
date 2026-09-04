@@ -13,6 +13,11 @@ import platform
 import shutil
 import posixpath
 import json
+from urllib.parse import urlsplit
+
+from bs4 import BeautifulSoup
+from docutils import nodes
+from markupsafe import Markup
 
 def list_file_with_extension(directory: Path, extension: str) -> list[Path]:
     """
@@ -349,6 +354,18 @@ def _english_page_is_released(pagename: str) -> bool:
                for prefix in _released_english_prefixes())
 
 
+ENGLISH_NAVIGATION_TITLES = {
+    'cnn-expedition/index': 'CNN Expedition: Thirty Years of Architectures',
+    'pytorch-practice/index': 'PyTorch Practice: Turning Theory into Code',
+    'model-serving/index': 'Model Deployment and Serving',
+    'transfer-learning/index': 'Transfer Learning and Fine-Tuning',
+    'unet-image-segmentation/index': 'U-Net Image Segmentation',
+    'sequence-modeling/index': 'Sequence Modeling: RNN to Transformer to Mamba',
+    'appendix/index': 'Appendix',
+    'postscript': 'Postscript',
+}
+
+
 def _configure_language(app, config):
     """Apply options that depend on the final -D language override."""
     if config.language == "en":
@@ -358,6 +375,7 @@ def _configure_language(app, config):
             ('index', 'deep-learning-club-handouts.tex', 'Deep Learning Club Handouts',
              'UCS Deep Learning Club', 'manual'),
         ]
+
     else:
         config.html_title = "Deep Learning Club 学习教程"
         config.html_baseurl = SITE_BASEURL
@@ -365,6 +383,47 @@ def _configure_language(app, config):
             ('index', 'deeplearningclubhandouts.tex', 'Deep Learning Club 学习教程',
              'UCS Deep Learning Club', 'manual'),
         ]
+
+    # TikZ node labels are not gettext messages.  Keep both labels in the
+    # canonical source and select the rendered one here so diagrams do not
+    # remain in Chinese in the English edition.
+    localized_label = r'\newcommand{\localizedlabel}[2]{#2}' if config.language == "en" else r'\newcommand{\localizedlabel}[2]{#1}'
+    config.tikz_latex_preamble += f"\n{localized_label}\n"
+
+    # MyST does not extract Markdown tables nested in directive bodies into
+    # gettext catalogs. These substitutions keep such structural content in
+    # the canonical Chinese source while rendering it in the active language.
+    backprop_table_labels = {
+        "zh_CN": {
+            "bp_table_concept": "概念",
+            "bp_table_notation": "数学表示",
+            "bp_table_input_dimension": "输入维度",
+            "bp_table_output_dimension": "输出维度",
+            "bp_table_matrix_shape": "矩阵形状",
+            "bp_table_scalar_derivative": "**标量导数**",
+            "bp_table_gradient": "**梯度**",
+            "bp_table_jacobian": "**Jacobian 矩阵**",
+            "bp_table_row_vector": "行向量",
+            "bp_table_matrix": "**M×N 矩阵**",
+            "bp_computational_efficiency": "1. 计算效率",
+            "bp_modular_design": "2. 模块化设计",
+        },
+        "en": {
+            "bp_table_concept": "Concept",
+            "bp_table_notation": "Mathematical notation",
+            "bp_table_input_dimension": "Input dimension",
+            "bp_table_output_dimension": "Output dimension",
+            "bp_table_matrix_shape": "Matrix shape",
+            "bp_table_scalar_derivative": "**Scalar derivative**",
+            "bp_table_gradient": "**Gradient**",
+            "bp_table_jacobian": "**Jacobian matrix**",
+            "bp_table_row_vector": "row vector",
+            "bp_table_matrix": "**M×N matrix**",
+            "bp_computational_efficiency": "1. Computational Efficiency",
+            "bp_modular_design": "2. Modular Design",
+        },
+    }
+    config.myst_substitutions.update(backprop_table_labels["en" if config.language == "en" else "zh_CN"])
 
 
 def _add_language_switch_context(app, pagename, templatename, context, doctree):
@@ -384,9 +443,114 @@ def _add_language_switch_context(app, pagename, templatename, context, doctree):
     context['language_current_label'] = 'English' if language_code == 'en' else '中文'
     context['language_current_lang'] = 'en' if language_code == 'en' else 'zh-CN'
     context['language_switch_lang'] = 'zh-CN' if language_code == 'en' else 'en'
-    context['language_menu_label'] = 'Language' if language_code == 'en' else '语言'
+    # Keep the control name stable across editions. The choices below it still
+    # use their native names (English and 中文).
+    context['language_menu_label'] = 'Language'
+
+    def localized_toctree(content: str | None) -> Markup:
+        """Describe unreleased chapters without presenting them as English pages."""
+        if language_code != 'en' or not content:
+            return Markup(content or '')
+
+        soup = BeautifulSoup(content, 'html.parser')
+        current_dir = posixpath.dirname(pagename)
+        for item in soup.select('li.toctree-l1'):
+            link = item.find('a', href=True)
+            if not link:
+                continue
+            target = urlsplit(link['href']).path
+            target_docname = posixpath.normpath(
+                posixpath.join(current_dir, target)
+            ).removesuffix('.html')
+            if _english_page_is_released(target_docname):
+                continue
+
+            english_title = ENGLISH_NAVIGATION_TITLES.get(target_docname)
+            if not english_title:
+                # Only top-level entries are transformed here. If a new one is
+                # added without a label, hiding it is safer than leaking an
+                # untranslated title into the English interface.
+                item.decompose()
+                continue
+
+            link.clear()
+            link.append(english_title)
+            link['href'] = posixpath.relpath(
+                _page_path('zh_CN', target_docname),
+                start=posixpath.dirname(_page_path('en', pagename)),
+            )
+            link['hreflang'] = 'zh-CN'
+            link['title'] = 'English translation unavailable; open the Chinese edition'
+            link['aria-label'] = f'{english_title}. English translation unavailable; open the Chinese edition'
+            item['class'] = [*item.get('class', []), 'i18n-unavailable']
+            # Do not expose untranslated child-page titles below this English
+            # catalog entry. The top-level label still tells readers what the
+            # course contains and offers the Chinese edition intentionally.
+            for child in list(item.find_all(['details', 'ul'], recursive=False)):
+                child.decompose()
+            badge = soup.new_tag('span', attrs={
+                'class': 'i18n-unavailable-badge',
+                'aria-hidden': 'true',
+            })
+            badge.string = 'Chinese only'
+            link.append(badge)
+
+        # Sphinx omits the current top-level leaf from the generated toctree.
+        # Without this, the preface vanishes precisely while it is being read.
+        if pagename == 'preface':
+            root = soup.find('ul')
+            if root and not root.select_one('li > a[href="#"]'):
+                item = soup.new_tag('li', attrs={'class': 'toctree-l1 current'})
+                link = soup.new_tag('a', attrs={
+                    'class': 'current reference internal',
+                    'href': '#',
+                    'aria-current': 'page',
+                })
+                link.string = 'Preface: About Deep Learning'
+                item.append(link)
+                root.insert(0, item)
+        return Markup(str(soup))
+
+    context['localized_toctree'] = localized_toctree
+
+
+UNRELEASED_REFERENCE_LABELS = {
+    'cnn-expedition/image-net-era/res-net': 'ResNet (Chinese)',
+    'unet-image-segmentation/u-net': 'U-Net (Chinese)',
+    'sequence-modeling/rnn-basics': 'RNN Basics (Chinese)',
+    'cnn-expedition/practice-peak/neural-training-basics': 'Neural Training Basics (Chinese)',
+}
+
+
+def _localize_unreleased_references(app, doctree, docname):
+    """Keep English pages from displaying untranslated cross-reference titles."""
+    if app.config.language != 'en' or docname != 'math-fundamentals/back-propagation':
+        return
+
+    for reference in doctree.findall(nodes.reference):
+        # BibTeX citations can be linked to anchors in another document; they
+        # are not document cross-references and must keep their citation key.
+        if reference.get('refdomain') == 'cite' or reference.get('reftitle'):
+            continue
+        target_docname = reference.get('refdocname')
+        if not target_docname and reference.get('refuri'):
+            target_path = urlsplit(reference['refuri']).path
+            target_docname = posixpath.normpath(
+                posixpath.join(posixpath.dirname(docname), target_path)
+            ).removesuffix('.html')
+        label = UNRELEASED_REFERENCE_LABELS.get(target_docname)
+        if not label or _english_page_is_released(target_docname):
+            continue
+        reference.clear()
+        reference += nodes.Text(label)
+        target_path = _page_path('zh_CN', target_docname)
+        current_path = _page_path('en', docname)
+        reference['refuri'] = posixpath.relpath(
+            target_path, start=posixpath.dirname(current_path)
+        )
 
 
 def setup(app):
     app.connect('config-inited', _configure_language)
     app.connect('html-page-context', _add_language_switch_context)
+    app.connect('doctree-resolved', _localize_unreleased_references)

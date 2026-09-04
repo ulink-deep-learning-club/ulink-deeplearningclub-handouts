@@ -32,6 +32,23 @@ editing the affected English entries.
   a new recurring translation.
 - Do not mark an entry translated by copying its Chinese `msgid` into `msgstr`.
 
+### Rendered-content exceptions
+
+Catalog completeness is necessary but not sufficient. Some rendered text does
+not become a gettext message—for example, Markdown tables nested inside
+directive bodies, TikZ node labels, and UI emitted by custom Sphinx
+extensions. Before declaring an English page complete, inspect its rendered
+HTML and look for Chinese text outside the intentional Chinese language-option
+label. For source content that gettext cannot extract, ask the localization
+reviewer to add a language-aware substitution or renderer; do not copy the
+English text into the canonical Chinese Markdown. Custom extension UI must use
+`app.config.language` and render English when it is `en`.
+
+Cross-references to unreleased English chapters are another exception: their
+automatic titles may remain Chinese even when the surrounding translation is
+complete. A released English page must either omit such navigation or present
+an English label that clearly directs the reader to the Chinese page.
+
 ## Ownership and review
 
 Work in disjoint catalog domains: one agent owns one top-level section at a

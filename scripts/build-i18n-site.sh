@@ -69,6 +69,7 @@ python3 "$ROOT_DIR/scripts/check-language-menu.py" \
   --source "$SOURCE_DIR" \
   --site "$SITE_DIR" \
   --manifest "$MANIFEST"
+python3 "$ROOT_DIR/scripts/check-english-navigation.py" --site "$SITE_DIR"
 
 if [[ "$HTML_ONLY" == "0" ]]; then
   "$SPHINX_BUILD" -W --keep-going -D language=zh_CN -b latex "$SOURCE_DIR" "$ZH_BUILD/latex"

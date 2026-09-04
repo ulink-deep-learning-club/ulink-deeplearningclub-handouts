@@ -195,13 +195,17 @@ def get_file_commit_log(file_path: Path):
 
 # --- Sphinx integration ---
 
-def generate_html(contributors, logs, pagename: str):
+def generate_html(contributors, logs, pagename: str, language_code: str):
     if not contributors:
         return ""
 
-    html = """
+    is_english = language_code == "en"
+    heading = "Contributors and Revision History" if is_english else "贡献者与修订历史"
+    details_label = "View detailed revision history" if is_english else "查看详细修订记录"
+
+    html = f"""
     <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
-        <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
+        <p style="font-weight: bold; margin-bottom: 10px;">{heading}</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     """
 
@@ -220,9 +224,9 @@ def generate_html(contributors, logs, pagename: str):
     html += "</div>"
 
     # commit history
-    html += """
+    html += f"""
         <details>
-            <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
+            <summary style="cursor: pointer; font-size: 0.9em;">{details_label}</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     """
 
@@ -319,7 +323,9 @@ def html_page_context(app, pagename, _, context, doctree):
     # sort desc
     sorted_contributors = sorted(contributors_map.values(), key=lambda x: x['commits'], reverse=True)
 
-    contributors_html = generate_html(sorted_contributors, logs, pagename)
+    contributors_html = generate_html(
+        sorted_contributors, logs, pagename, app.config.language
+    )
 
     # inject to Template Context
     context['git_contributors'] = contributors_html

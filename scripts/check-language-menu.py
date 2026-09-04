@@ -24,6 +24,11 @@ def check_page(path: Path, should_have_menu: bool, failures: list[str]) -> None:
         failures.append(f"{path}: contains the retired language-switch button")
     if should_have_menu and menu_count != 1:
         failures.append(f"{path}: expected one shared language menu, found {menu_count}")
+    if should_have_menu and (
+        "<summary>Language</summary>" not in html
+        or '<ul aria-label="Language">' not in html
+    ):
+        failures.append(f"{path}: language menu must always be labelled Language")
     if not should_have_menu and menu_count:
         failures.append(f"{path}: unexpected language menu")
 

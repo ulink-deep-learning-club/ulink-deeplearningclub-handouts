@@ -15,13 +15,19 @@ def html_visit_tikz(translator, node):
     libs = translator.builder.config.tikz_tikzlibraries + ',' + node['libs']
     libs = libs.replace(' ', '').replace('\t', '').strip(', ')
 
+    unavailable_message = (
+        'This diagram is unavailable in the local preview (LaTeX and pdf2svg are required).'
+        if translator.builder.config.language == 'en'
+        else '该图在本地预览中不可用（需要 LaTeX 和 pdf2svg）。'
+    )
+
     try:
         filename = render_tikz(translator, node, libs, node['stringsubst'])
     except TikzExtError as exc:
         translator.document.reporter.warning(str(exc), line=node.line)
         translator.body.append(
             '<div class="figure tikz-unavailable" role="note">'
-            '<p>该图在本地预览中不可用（需要 LaTeX 和 pdf2svg）。</p>'
+            f'<p>{unavailable_message}</p>'
         )
         return
 
@@ -30,7 +36,7 @@ def html_visit_tikz(translator, node):
     if filename is None:
         translator.body.append(
             '<div class="figure tikz-unavailable" role="note">'
-            '<p>该图在本地预览中不可用（需要 LaTeX 和 pdf2svg）。</p>'
+            f'<p>{unavailable_message}</p>'
         )
         return
 

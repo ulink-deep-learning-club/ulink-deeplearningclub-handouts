@@ -23,13 +23,13 @@
     \draw[->, blue, very thick] (0, 3.2) -- (3, 3.2);
     \draw[->, blue, very thick] (3, 3.2) -- (6, 3.2);
     \draw[->, blue, very thick] (6, 3.2) -- (9, 3.2);
-    \node[blue] at (4.5, 3.7) {前向传播：计算预测};
+    \node[blue] at (4.5, 3.7) {\localizedlabel{前向传播：计算预测}{Forward propagation: compute predictions}};
     
     % 反向传播箭头（红色）
     \draw[->, red, very thick] (9, 1.8) -- (6, 1.8);
     \draw[->, red, very thick] (6, 1.8) -- (3, 1.8);
     \draw[->, red, very thick] (3, 1.8) -- (0, 1.8);
-    \node[red] at (4.5, 1.3) {反向传播：回传梯度};
+    \node[red] at (4.5, 1.3) {\localizedlabel{反向传播：回传梯度}{Backpropagation: propagate gradients}};
     
     % 节点
     \node[circle, draw, fill=blue!20, minimum size=0.8cm] at (0, 2.5) {$x$};
@@ -71,11 +71,11 @@ $$\frac{\partial z}{\partial x} = \frac{\partial z}{\partial g} \cdot \frac{\par
 ```{admonition} 从标量导数到 Jacobian
 :class: note
 
-| 概念 | 数学表示 | 输入维度 | 输出维度 | 矩阵形状 |
+| {{ bp_table_concept }} | {{ bp_table_notation }} | {{ bp_table_input_dimension }} | {{ bp_table_output_dimension }} | {{ bp_table_matrix_shape }} |
 |------|---------|---------|---------|---------|
-| **标量导数** | $\frac{df}{dx}$ | 1 | 1 | 1×1 |
-| **梯度** | $\nabla f = [\frac{\partial f}{\partial x_1}, \frac{\partial f}{\partial x_2}, ...]$ | N | 1 | 1×N 行向量 |
-| **Jacobian 矩阵** | $\frac{\partial \mathbf{h}}{\partial \mathbf{x}}$ | N | M | **M×N 矩阵** |
+| {{ bp_table_scalar_derivative }} | $\frac{df}{dx}$ | 1 | 1 | 1×1 |
+| {{ bp_table_gradient }} | $\nabla f = [\frac{\partial f}{\partial x_1}, \frac{\partial f}{\partial x_2}, ...]$ | N | 1 | 1×N {{ bp_table_row_vector }} |
+| {{ bp_table_jacobian }} | $\frac{\partial \mathbf{h}}{\partial \mathbf{x}}$ | N | M | {{ bp_table_matrix }} |
 
 每个元素 $(i,j)$ 的意思："第 $j$ 个输入变一点点，第 $i$ 个输出变多少"。
 
@@ -232,17 +232,17 @@ print(f"∂f/∂y = {y.grad}")  # 输出: 8.0
     % 输入层
     \foreach \i in {1,2,3}
         \node[circle, draw=blue!50, fill=blue!20, minimum size=0.6cm] (in\i) at (0,\i) {};
-    \node at (-1.2, 2) {输入};
+    \node at (-1.2, 2) {\localizedlabel{输入}{Input}};
 
     % 隐藏层
     \foreach \i in {1,2,3,4}
         \node[circle, draw=orange!50, fill=orange!20, minimum size=0.6cm] (hid\i) at (3,\i-0.5) {};
-    \node at (3, 4.5) {隐藏层};
+    \node at (3, 4.5) {\localizedlabel{隐藏层}{Hidden layer}};
 
     % 输出层
     \foreach \i in {1,2}
         \node[circle, draw=green!50, fill=green!20, minimum size=0.6cm] (out\i) at (6,\i+0.5) {};
-    \node at (7.2, 2) {输出};
+    \node at (7.2, 2) {\localizedlabel{输出}{Output}};
 
     % 前向连接（蓝色）
     \foreach \i in {1,2,3}
@@ -256,7 +256,7 @@ print(f"∂f/∂y = {y.grad}")  # 输出: 8.0
     % 反向梯度流（红色箭头）
     \draw[->, red, thick] (5, 0.8) -- (4.5, 0.4);
     \draw[->, red, thick] (5, 3.2) -- (4.5, 3.4);
-    \node[red, font=\small] at (7, 3.5) {损失};
+    \node[red, font=\small] at (7, 3.5) {\localizedlabel{损失}{Loss}};
     \node[red, font=\small] at (7, 3) {$\nabla L$};
 \end{tikzpicture}
 ```
@@ -282,13 +282,13 @@ print(f"∂f/∂y = {y.grad}")  # 输出: 8.0
 
 ## 反向传播的优势
 
-### 1. 计算效率
+### {{ bp_computational_efficiency }}
 
 {ref}`back-propagation`的时间复杂度是 $O(n)$，其中 $n$ 是{ref}`computational-graph`中边的数量。相比之下，数值差分需要 $O(n \times p)$，其中 $p$ 是参数数量。
 
 **关键**：通过复用中间计算结果，避免重复求导。
 
-### 2. 模块化设计
+### {{ bp_modular_design }}
 
 每个操作只需要定义：
 
