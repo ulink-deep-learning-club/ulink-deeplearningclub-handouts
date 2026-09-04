@@ -368,7 +368,7 @@ def _configure_language(app, config):
 
 
 def _add_language_switch_context(app, pagename, templatename, context, doctree):
-    """Expose a same-page, relative language-switch URL to the header template."""
+    """Expose same-page language menu data to the header template."""
     language_code = app.config.language
     target_language = 'zh_CN' if language_code == 'en' else 'en'
     current_path = _page_path(language_code, pagename)
@@ -381,6 +381,10 @@ def _add_language_switch_context(app, pagename, templatename, context, doctree):
         target_path, start=posixpath.dirname(current_path)
     )
     context['language_code'] = language_code
+    context['language_current_label'] = 'English' if language_code == 'en' else '中文'
+    context['language_current_lang'] = 'en' if language_code == 'en' else 'zh-CN'
+    context['language_switch_lang'] = 'zh-CN' if language_code == 'en' else 'en'
+    context['language_menu_label'] = 'Language' if language_code == 'en' else '语言'
 
 
 def setup(app):
