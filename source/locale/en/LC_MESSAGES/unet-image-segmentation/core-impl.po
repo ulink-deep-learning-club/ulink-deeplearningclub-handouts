@@ -1,0 +1,311 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, UCS Deep Learning Club and its contributors, licensed
+# under CC BY-SA 4.0
+# This file is distributed under the same license as the Deep Learning Club
+# Handouts package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Deep Learning Club Handouts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 16:17+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../../source/unet-image-segmentation/core-impl.md:2
+msgid "完整实现"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:4
+#, python-brace-format
+msgid "{ref}`unet-arch` 中我们看了 U-Net 的四个核心组件。现在把它们组装成一个完整的 U-Net。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:6
+msgid "完整 U-Net 类"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:8
+msgid ""
+"class UNet(nn.Module):\n"
+"    \"\"\"完整 U-Net\n"
+"    \n"
+"    参数:\n"
+"        n_channels: 输入通道数（灰度=1，RGB=3）\n"
+"        n_classes:  分割类别数\n"
+"    \n"
+"    前向传播维度变化（输入 572×572 为例）:\n"
+"    编码器:  inc:    1×572×572  →  64×568×568\n"
+"            down1:  64×568×568 → 128×280×280\n"
+"            down2: 128×280×280 → 256×136×136\n"
+"            down3: 256×136×136 → 512×64×64\n"
+"            down4: 512×64×64   → 1024×28×28\n"
+"    解码器:  up1: 1024×28×28 + skip → 512×52×52\n"
+"            up2:  512×52×52 + skip → 256×100×100\n"
+"            up3:  256×100×100 + skip → 128×196×196\n"
+"            up4:  128×196×196 + skip → 64×388×388\n"
+"    输出:    outc: 64×388×388 → 2×388×388\n"
+"    \"\"\"\n"
+"    def __init__(self, n_channels, n_classes):\n"
+"        super().__init__()\n"
+"        self.n_channels = n_channels\n"
+"        self.n_classes = n_classes\n"
+"        \n"
+"        # 编码器（1 → 64 → 128 → 256 → 512 → 1024）\n"
+"        self.inc = DoubleConv(n_channels, 64)\n"
+"        self.down1 = DownSample(64, 128)\n"
+"        self.down2 = DownSample(128, 256)\n"
+"        self.down3 = DownSample(256, 512)\n"
+"        self.down4 = DownSample(512, 1024)\n"
+"        \n"
+"        # 解码器（1024 → 512 → 256 → 128 → 64）\n"
+"        self.up1 = UpSample(1024, 512)\n"
+"        self.up2 = UpSample(512, 256)\n"
+"        self.up3 = UpSample(256, 128)\n"
+"        self.up4 = UpSample(128, 64)\n"
+"        \n"
+"        # 输出层\n"
+"        self.outc = OutConv(64, n_classes)\n"
+"    \n"
+"    def forward(self, x):\n"
+"        # 编码器\n"
+"        x1 = self.inc(x)\n"
+"        x2 = self.down1(x1)\n"
+"        x3 = self.down2(x2)\n"
+"        x4 = self.down3(x3)\n"
+"        x5 = self.down4(x4)\n"
+"        # 解码器（拼接对应编码器特征）\n"
+"        x = self.up1(x5, x4)\n"
+"        x = self.up2(x, x3)\n"
+"        x = self.up3(x, x2)\n"
+"        x = self.up4(x, x1)\n"
+"        logits = self.outc(x)\n"
+"        return logits\n"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:65
+msgid "这就是完整的 U-Net 前向传播——简单、对称、优雅。没有复杂的控制流，就是**一条 U 形通道**。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:67
+msgid "完整 U-Net 的参数量估算"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:70
+msgid "以灰度输入（n_channels=1），二分类（n_classes=2）为例："
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:71
+msgid "编码器：$\\approx 31$M 参数"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:72
+msgid "解码器：$\\approx 24$M 参数"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:73
+msgid "总计：约 **55M** 参数"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:75
+#, python-brace-format
+msgid ""
+"作为对比，{doc}`../cnn-expedition/practice-peak/le-net` 的 LeNet-5 约 60K "
+"参数。U-Net 比它大了近 1000 倍——因为通道多（1024 vs 120）、有解码器、有跳跃连接的双卷积。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:78
+msgid "模型初始化"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:80
+#, python-brace-format
+msgid ""
+"def init_weights(model, init_type='kaiming'):\n"
+"    \"\"\"Kaiming 初始化 {cite}`he2015delving`（适合 ReLU 激活）\"\"\"\n"
+"    for m in model.modules():\n"
+"        if isinstance(m, nn.Conv2d):\n"
+"            nn.init.kaiming_normal_(m.weight, mode='fan_out', "
+"nonlinearity='relu')\n"
+"            if m.bias is not None:\n"
+"                nn.init.constant_(m.bias, 0)\n"
+"        elif isinstance(m, nn.BatchNorm2d):\n"
+"            nn.init.constant_(m.weight, 1)\n"
+"            nn.init.constant_(m.bias, 0)\n"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:93
+msgid "训练配置"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:95
+#, python-brace-format
+msgid ""
+"def setup_training(model, device='cuda'):\n"
+"    model = model.to(device)\n"
+"    # 损失函数：交叉熵 + Dice 组合（{ref}`unet-loss`详细讨论）\n"
+"    criterion = CombinedLoss(weight_ce=0.5, weight_dice=0.5)\n"
+"    # Adam 优化器\n"
+"    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)\n"
+"    # 验证损失不再下降时减半学习率\n"
+"    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(\n"
+"        optimizer, mode='min', factor=0.5, patience=10\n"
+"    )\n"
+"    return model, criterion, optimizer, scheduler\n"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:109
+msgid "评估指标"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:111
+msgid "Dice 系数不只是损失函数，也是最常用的评估指标。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:113
+#, python-brace-format
+msgid ""
+"def calculate_metrics(pred, target, threshold=0.5):\n"
+"    \"\"\"计算 Dice 和 IoU\"\"\"\n"
+"    pred_bin = (pred > threshold).float()  # 概率转二值\n"
+"    target_bin = (target > threshold).float()\n"
+"    \n"
+"    tp = (pred_bin * target_bin).sum().item()\n"
+"    fp = (pred_bin * (1 - target_bin)).sum().item()\n"
+"    fn = ((1 - pred_bin) * target_bin).sum().item()\n"
+"    \n"
+"    dice = (2 * tp) / (2 * tp + fp + fn + 1e-8)\n"
+"    iou  = tp / (tp + fp + fn + 1e-8)\n"
+"    return {'dice': dice, 'iou': iou}\n"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:128
+msgid "推理示例"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:130
+msgid ""
+"def predict(model, image, device='cuda'):\n"
+"    \"\"\"对单张图像做分割预测\"\"\"\n"
+"    model.eval()\n"
+"    \n"
+"    if len(image.shape) == 3:           # (C, H, W) → (1, C, H, W)\n"
+"        image = image.unsqueeze(0)\n"
+"    image = image.to(device)\n"
+"    \n"
+"    with torch.no_grad():\n"
+"        output = model(image)\n"
+"        if model.n_classes > 1:\n"
+"            prediction = torch.argmax(output, dim=1)    # 取概率最大的类别\n"
+"        else:\n"
+"            prediction = (torch.sigmoid(output) > 0.5).float()\n"
+"    \n"
+"    return prediction.cpu().squeeze()\n"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:149
+msgid "参数量统计"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:151
+#, python-brace-format
+msgid ""
+"# 统计模型参数量\n"
+"model = UNet(n_channels=1, n_classes=2)\n"
+"total = sum(p.numel() for p in model.parameters())\n"
+"trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)"
+"\n"
+"print(f'总参数: {total:,}')\n"
+"print(f'可训练: {trainable:,}')\n"
+"# 输出: 总参数: 31,031,554\n"
+"#       可训练: 31,031,554\n"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:162
+msgid "端到端 Walkthrough：一张细胞图像走完 U-Net"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:164
+msgid "理论看了这么多，不如拿一张真实的细胞图像追踪完整流程。假设输入是 572×572 的灰度图（单通道）。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:166
+msgid "编码器阶段"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:169
+msgid "编码器各层输出维度与内容"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:201
+msgid "每经过一个下采样块，空间减半、通道加倍、感受野扩大。一路走来，网络从\"看到像素的边缘\"变成\"理解这是细胞核\"。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:203
+msgid "解码器阶段"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:206
+msgid "解码器各层：上采样+跳跃连接"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:233
+msgid "数值示例：看一个像素如何被分类"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:235
+msgid "想象图像左上角有一个细胞核边缘的像素："
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:237
+msgid "**输入层**：这个像素的灰度值是 142（0-255 范围）"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:238
+msgid "**inc 层**：3×3 卷积核检测到它左右两侧的像素差异大 → 判断为\"边缘\"，激活值变高"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:239
+msgid "**down1 层**：池化后它被合并到 2×2 区域的最大值中，丢失了精确坐标，但保留了\"这里有边缘\"的信息"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:240
+msgid ""
+"**down2 → "
+"down4**：随着下采样，它从\"一个像素的边缘\"变成了\"一块区域的纹理\"→\"一个局部的形状\"→\"一个细胞核的组成部分\""
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:241
+msgid "**最底部**：1024 维的特征向量说\"这是一个细胞核区域\""
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:242
+msgid "**解码器上采样**：一步步恢复分辨率，每次拼接编码器对应层的特征，补充精确位置"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:243
+msgid "**输出层**：这个像素的 2 个输出值经过 softmax：[0.12, 0.88] → 预测为\"细胞\"（第 1 类）"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:245
+msgid ""
+"整个过程，这个像素的身份从\"142 灰度值\"变成了\"细胞核像素\"。U-Net 的对称结构确保了 **语义理解（编码器）** 和 "
+"**空间精度（跳跃连接）** 在这个过程中都得到了保留。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/core-impl.md:247
+#, python-brace-format
+msgid ""
+"这就是一个可用版 U-Net。但光有模型还不够——医学图像通常只有几十张标注数据。下一节 {doc}`practice` "
+"我们看看如何用**数据增强**在有限数据上训练出好模型。"
+msgstr ""
+

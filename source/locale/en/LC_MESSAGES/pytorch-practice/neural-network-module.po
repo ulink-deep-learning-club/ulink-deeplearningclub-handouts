@@ -1,0 +1,573 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, UCS Deep Learning Club and its contributors, licensed
+# under CC BY-SA 4.0
+# This file is distributed under the same license as the Deep Learning Club
+# Handouts package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Deep Learning Club Handouts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 16:17+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../../source/pytorch-practice/neural-network-module.md:2
+msgid "神经网络模块：搭建计算图"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:4
+#, python-brace-format
+msgid ""
+"在 {doc}`../cnn-expedition/practice-peak/fc-layer-basics` 和 {doc}`../cnn-"
+"expedition/practice-peak/cnn-basics` 中，我们学习了全连接层和卷积层的数学原理："
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:6
+msgid "**全连接层**：$y = Wx + b$，每个输入连接所有输出"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:7
+msgid "**卷积层**：局部感受野 + 权值共享，检测空间特征"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:9
+msgid ""
+"本章将学习如何用 PyTorch 的 `nn.Module` "
+"把这些数学公式变成可运行的代码。你会发现，每个层类（`nn.Linear`、`nn.Conv2d`）都直接对应一个数学运算。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:11
+msgid "从数学公式到 PyTorch 层"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:13
+msgid "全连接层：nn.Linear"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:15
+#, python-brace-format
+msgid "回顾 {doc}`../cnn-expedition/practice-peak/fc-layer-basics`："
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:17
+#, python-brace-format
+msgid ""
+"\n"
+"y_j = \\sum_{i=1}^{n} W_{ji} x_i + b_j\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:21
+#: ../../../source/pytorch-practice/neural-network-module.md:97
+msgid "**PyTorch 实现**："
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:23
+#, python-brace-format
+msgid ""
+"import torch\n"
+"import torch.nn as nn\n"
+"\n"
+"# 输入：784维（如展平后的28×28图像）\n"
+"# 输出：256维（隐藏层）\n"
+"fc = nn.Linear(in_features=784, out_features=256)\n"
+"\n"
+"# 查看参数\n"
+"print(f\"权重形状: {fc.weight.shape}\")  # torch.Size([256, 784])\n"
+"print(f\"偏置形状: {fc.bias.shape}\")    # torch.Size([256])\n"
+"\n"
+"# 前向传播\n"
+"x = torch.randn(64, 784)  # batch=64\n"
+"y = fc(x)                 # y = x @ W^T + b\n"
+"print(f\"输出形状: {y.shape}\")  # torch.Size([64, 256])\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:41
+#: ../../../source/pytorch-practice/neural-network-module.md:121
+msgid "参数量计算"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:44
+msgid "全连接层参数量 = 输入维度 × 输出维度 + 输出维度（偏置）"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:46
+msgid "权重：$784 \\times 256 = 200,704$"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:47
+msgid "偏置：$256$"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:48
+msgid "**总计：200,960 参数**"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:50
+#, python-brace-format
+msgid "这与 {doc}`../cnn-expedition/practice-peak/fc-layer-basics` 中的计算一致。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:53
+msgid "**全连接层的可视化**："
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:57
+msgid "全连接层结构示意图"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:89
+msgid "卷积层：nn.Conv2d"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:91
+#, python-brace-format
+msgid "回顾 {doc}`../cnn-expedition/practice-peak/cnn-basics`："
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:93
+#, python-brace-format
+msgid ""
+"\n"
+"Y[i,j] = \\sum_{u=0}^{k-1}\\sum_{v=0}^{k-1} X[i+u, j+v] \\cdot K[u,v]\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:99
+#, python-brace-format
+msgid ""
+"# 输入：3通道图像，输出：32个特征图\n"
+"# 卷积核：5×5，步长：1，填充：0\n"
+"conv = nn.Conv2d(\n"
+"    in_channels=3,      # 输入通道（RGB）\n"
+"    out_channels=32,    # 输出通道（32个卷积核）\n"
+"    kernel_size=5,      # 卷积核大小\n"
+"    stride=1,           # 步长\n"
+"    padding=0           # 填充\n"
+")\n"
+"\n"
+"# 查看参数\n"
+"print(f\"卷积核形状: {conv.weight.shape}\")  # torch.Size([32, 3, 5, 5])\n"
+"print(f\"偏置形状: {conv.bias.shape}\")      # torch.Size([32])\n"
+"\n"
+"# 前向传播\n"
+"x = torch.randn(64, 3, 32, 32)  # batch=64, 3通道, 32×32图像\n"
+"y = conv(x)                      # 卷积运算\n"
+"print(f\"输出形状: {y.shape}\")     # torch.Size([64, 32, 28, 28])\n"
+"# (32 - 5 + 0) / 1 + 1 = 28\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:124
+msgid "卷积层参数量 = 输出通道 × 输入通道 × 卷积核高 × 卷积核宽 + 输出通道（偏置）"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:126
+msgid "卷积核：$32 \\times 3 \\times 5 \\times 5 = 2,400$"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:127
+msgid "偏置：$32$"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:128
+msgid "**总计：2,432 参数**"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:130
+#, python-brace-format
+msgid ""
+"对比全连接层（200,960 参数），卷积层参数量少了 **82 倍**！这就是 {ref}`inductive-bias` "
+"的威力——利用空间局部性减少参数。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:133
+msgid "**卷积层的可视化**："
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:141
+msgid ""
+"卷积运算示意图：同一个卷积核（蓝色 3×3 "
+"权重矩阵）在输入图像上滑动，每次计算点积得到一个输出值。相同的权重被**共享**用于检测图像不同位置的特征。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:144
+msgid "nn.Module：构建网络的基石"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:146
+msgid "什么是 nn.Module？"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:148
+msgid "`nn.Module` 是 PyTorch 中所有神经网络组件的**基类**。它提供了："
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:150
+msgid "参数管理（自动注册可学习参数）"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:151
+msgid "前向传播定义（`forward` 方法）"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:152
+msgid "设备转移（`.to('cuda')`）"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:154
+msgid "自定义网络类"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:156
+msgid "**模板**："
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:158
+#, python-brace-format
+msgid ""
+"import torch.nn as nn\n"
+"\n"
+"class MyNetwork(nn.Module):\n"
+"    def __init__(self):\n"
+"        super(MyNetwork, self).__init__()\n"
+"        \n"
+"        # 1. 定义层（在__init__中创建）\n"
+"        self.fc1 = nn.Linear(784, 256)\n"
+"        self.relu = nn.ReLU()\n"
+"        self.dropout = nn.Dropout(0.2)\n"
+"        self.fc2 = nn.Linear(256, 10)\n"
+"        \n"
+"    def forward(self, x):\n"
+"        # 2. 定义前向传播（数据如何流动）\n"
+"        x = self.fc1(x)      # 线性变换\n"
+"        x = self.relu(x)     # 激活函数（见{ref}`activation-functions`）\n"
+"        x = self.dropout(x)  # 正则化（见{doc}`neural-training-basics`）\n"
+"        x = self.fc2(x)      # 输出层\n"
+"        return x\n"
+"\n"
+"# 创建实例\n"
+"model = MyNetwork()\n"
+"print(model)\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:184
+msgid "完整示例：实现 LeNet-5"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:186
+#, python-brace-format
+msgid "让我们用 PyTorch 实现 {doc}`../cnn-expedition/practice-peak/le-net` 中的经典架构："
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:188
+#, python-brace-format
+msgid ""
+"class LeNet5(nn.Module):\n"
+"    \"\"\"\n"
+"    LeNet-5 的 PyTorch 实现\n"
+"    对应 {doc}`../cnn-expedition/practice-peak/le-net` 中的架构分析\n"
+"    \"\"\"\n"
+"    def __init__(self, num_classes=10):\n"
+"        super(LeNet5, self).__init__()\n"
+"        \n"
+"        # C1: 卷积层，1→6通道，5×5卷积核，输出28×28\n"
+"        # 参数量: 6×1×5×5 + 6 = 156\n"
+"        self.c1 = nn.Conv2d(1, 6, kernel_size=5, padding=2)\n"
+"        \n"
+"        # S2: 2×2平均池化，输出14×14\n"
+"        self.s2 = nn.AvgPool2d(kernel_size=2, stride=2)\n"
+"        \n"
+"        # C3: 卷积层，6→16通道，5×5卷积核，输出10×10\n"
+"        # 参数量: 16×6×5×5 + 16 = 2,416\n"
+"        self.c3 = nn.Conv2d(6, 16, kernel_size=5)\n"
+"        \n"
+"        # S4: 2×2平均池化，输出5×5\n"
+"        self.s4 = nn.AvgPool2d(kernel_size=2, stride=2)\n"
+"        \n"
+"        # C5: 卷积层（实为全连接），16→120，输出1×1\n"
+"        # 参数量: 120×16×5×5 + 120 = 48,120\n"
+"        self.c5 = nn.Conv2d(16, 120, kernel_size=5)\n"
+"        \n"
+"        # F6: 全连接层，120→84\n"
+"        # 参数量: 120×84 + 84 = 10,164\n"
+"        self.f6 = nn.Linear(120, 84)\n"
+"        \n"
+"        # 输出层，84→10（类别数）\n"
+"        # 参数量: 84×10 + 10 = 850\n"
+"        self.output = nn.Linear(84, num_classes)\n"
+"        \n"
+"    def forward(self, x):\n"
+"        # C1: [batch, 1, 28, 28] → [batch, 6, 28, 28]\n"
+"        x = torch.tanh(self.c1(x))\n"
+"        \n"
+"        # S2: [batch, 6, 28, 28] → [batch, 6, 14, 14]\n"
+"        x = self.s2(x)\n"
+"        \n"
+"        # C3: [batch, 6, 14, 14] → [batch, 16, 10, 10]\n"
+"        x = torch.tanh(self.c3(x))\n"
+"        \n"
+"        # S4: [batch, 16, 10, 10] → [batch, 16, 5, 5]\n"
+"        x = self.s4(x)\n"
+"        \n"
+"        # C5: [batch, 16, 5, 5] → [batch, 120, 1, 1]\n"
+"        x = torch.tanh(self.c5(x))\n"
+"        \n"
+"        # 展平: [batch, 120, 1, 1] → [batch, 120]\n"
+"        x = x.view(x.size(0), -1)\n"
+"        \n"
+"        # F6: [batch, 120] → [batch, 84]\n"
+"        x = torch.tanh(self.f6(x))\n"
+"        \n"
+"        # 输出: [batch, 84] → [batch, 10]\n"
+"        x = self.output(x)\n"
+"        return x\n"
+"\n"
+"# 验证参数量\n"
+"model = LeNet5()\n"
+"total_params = sum(p.numel() for p in model.parameters())\n"
+"print(f\"总参数量: {total_params:,}\")  # 61,706（与论文一致！）\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:255
+msgid "维度追踪技巧"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:258
+msgid "写 `forward` 时，建议在每个操作后注释输出形状："
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:260
+msgid ""
+"def forward(self, x):\n"
+"    x = self.conv1(x)    # [64, 3, 32, 32] → [64, 32, 28, 28]\n"
+"    x = self.pool(x)     # [64, 32, 28, 28] → [64, 32, 14, 14]\n"
+"    x = self.conv2(x)    # [64, 32, 14, 14] → [64, 64, 10, 10]\n"
+"    # ...\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:268
+msgid "这样出错时可以快速定位维度不匹配的位置。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:271
+msgid "容器：组织多个层"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:273
+msgid "nn.Sequential：顺序执行"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:275
+msgid "当层按顺序连接时，用 `nn.Sequential` 简化代码："
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:277
+msgid ""
+"# 方式1：逐个添加\n"
+"model = nn.Sequential(\n"
+"    nn.Linear(784, 256),\n"
+"    nn.ReLU(),\n"
+"    nn.Dropout(0.2),\n"
+"    nn.Linear(256, 10)\n"
+")\n"
+"\n"
+"# 方式2：带名称（便于访问）\n"
+"from collections import OrderedDict\n"
+"\n"
+"model = nn.Sequential(OrderedDict([\n"
+"    ('fc1', nn.Linear(784, 256)),\n"
+"    ('relu1', nn.ReLU()),\n"
+"    ('dropout', nn.Dropout(0.2)),\n"
+"    ('fc2', nn.Linear(256, 10))\n"
+"]))\n"
+"\n"
+"# 访问特定层\n"
+"print(model.fc1)  # 或 model[0]\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:300
+msgid "nn.ModuleList：动态层数"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:302
+msgid "当层数不固定（如根据配置决定深度）时使用："
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:304
+msgid ""
+"class DynamicNet(nn.Module):\n"
+"    def __init__(self, layer_sizes):\n"
+"        super(DynamicNet, self).__init__()\n"
+"        \n"
+"        self.layers = nn.ModuleList()\n"
+"        for i in range(len(layer_sizes) - 1):\n"
+"            self.layers.append(nn.Linear(layer_sizes[i], "
+"layer_sizes[i+1]))\n"
+"            if i < len(layer_sizes) - 2:  # 最后一层不加激活\n"
+"                self.layers.append(nn.ReLU())\n"
+"    \n"
+"    def forward(self, x):\n"
+"        for layer in self.layers:\n"
+"            x = layer(x)\n"
+"        return x\n"
+"\n"
+"# 使用\n"
+"model = DynamicNet([784, 256, 128, 64, 10])\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:324
+msgid "参数管理"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:326
+msgid "查看和访问参数"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:328
+#, python-brace-format
+msgid ""
+"model = LeNet5()\n"
+"\n"
+"# 查看所有参数\n"
+"for name, param in model.named_parameters():\n"
+"    print(f\"{name}: {param.shape} ({param.numel()} 参数)\")\n"
+"\n"
+"# 输出示例：\n"
+"# c1.weight: torch.Size([6, 1, 5, 5]) (150 参数)\n"
+"# c1.bias: torch.Size([6]) (6 参数)\n"
+"# c3.weight: torch.Size([16, 6, 5, 5]) (2400 参数)\n"
+"# ...\n"
+"\n"
+"# 只查看可训练参数\n"
+"trainable_params = sum(p.numel() for p in model.parameters() if "
+"p.requires_grad)\n"
+"print(f\"可训练参数量: {trainable_params:,}\")\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:346
+msgid "参数初始化"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:348
+msgid "良好的初始化对训练很重要:"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:350
+msgid ""
+"def initialize_weights(m):\n"
+"    \"\"\"自定义初始化\"\"\"\n"
+"    if isinstance(m, nn.Linear):\n"
+"        # Xavier 初始化（适合 tanh/sigmoid）\n"
+"        nn.init.xavier_uniform_(m.weight)\n"
+"        nn.init.zeros_(m.bias)\n"
+"    elif isinstance(m, nn.Conv2d):\n"
+"        # He 初始化（适合 ReLU）\n"
+"        nn.init.kaiming_normal_(m.weight, mode='fan_out', "
+"nonlinearity='relu')\n"
+"        nn.init.zeros_(m.bias)\n"
+"\n"
+"# 应用到整个模型\n"
+"model.apply(initialize_weights)\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:366
+msgid "冻结参数"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:368
+msgid "迁移学习中，常常需要冻结预训练层的参数："
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:370
+#, python-brace-format
+msgid ""
+"# 冻结卷积层，只训练全连接层\n"
+"for param in model.c1.parameters():\n"
+"    param.requires_grad = False\n"
+"\n"
+"for param in model.c3.parameters():\n"
+"    param.requires_grad = False\n"
+"\n"
+"# 验证\n"
+"for name, param in model.named_parameters():\n"
+"    print(f\"{name}: requires_grad={param.requires_grad}\")\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:383
+msgid "常见层详解"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:385
+msgid "激活函数层"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:387
+msgid ""
+"# ReLU（最常用）\n"
+"relu = nn.ReLU()  # max(0, x)\n"
+"\n"
+"# Sigmoid（二分类输出）\n"
+"sigmoid = nn.Sigmoid()  # 1 / (1 + exp(-x))\n"
+"\n"
+"# Tanh（早期网络）\n"
+"tanh = nn.Tanh()\n"
+"\n"
+"# Softmax（多分类输出）\n"
+"softmax = nn.Softmax(dim=1)  # 沿类别维度\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:401
+msgid "归一化层"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:403
+msgid ""
+"# BatchNorm（最常用）\n"
+"bn = nn.BatchNorm2d(num_features=64)  # 对64个通道分别归一化\n"
+"\n"
+"# LayerNorm（适合序列数据）\n"
+"ln = nn.LayerNorm(normalized_shape=[64, 28, 28])\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:411
+msgid "正则化层"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:413
+msgid ""
+"# Dropout（防止过拟合）\n"
+"dropout = nn.Dropout(p=0.5)  # 50%概率丢弃\n"
+"\n"
+"# 注意：训练时生效，推理时自动关闭（model.eval()）\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:420
+msgid "下一步"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:422
+msgid "现在你已经学会了如何搭建网络架构。接下来："
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:424
+#, python-brace-format
+msgid "**{doc}`auto-grad`**：理解 `.backward()` 如何自动计算梯度（对应 {ref}`back-propagation`）"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:425
+#, python-brace-format
+msgid "**{doc}`optimiser`**：用优化器更新参数（对应 {ref}`gradient-descent`）"
+msgstr ""
+
+#: ../../../source/pytorch-practice/neural-network-module.md:427
+msgid "**核心认知**：`nn.Module` 的本质是**封装了参数的数学运算**——每个层类都实现了特定的前向传播公式，并自动处理反向传播的梯度计算。"
+msgstr ""
+

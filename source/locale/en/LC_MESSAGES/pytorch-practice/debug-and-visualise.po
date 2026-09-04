@@ -1,0 +1,701 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, UCS Deep Learning Club and its contributors, licensed
+# under CC BY-SA 4.0
+# This file is distributed under the same license as the Deep Learning Club
+# Handouts package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Deep Learning Club Handouts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 16:17+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:2
+msgid "调试与可视化技巧"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:4
+#, python-brace-format
+msgid ""
+"在{doc}`train-"
+"workflow`中，我们搭建了一个完整的训练流程。但当你开始训练自己的模型时，可能会遇到各种问题：损失不下降、准确率上不去、模型不收敛..."
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:6
+msgid "**本章就是深度学习开发的\"急救手册\"**——教你诊断问题、可视化训练过程、定位bug。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:8
+msgid "为什么需要调试技巧？"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:10
+msgid "深度学习代码有几个特点让调试变得困难："
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:12
+msgid "**错误延迟暴露**：数据预处理的问题可能在训练10个epoch后才显现"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:13
+msgid "**梯度流动不可见**：神经网络是黑盒，中间状态难以观察"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:14
+msgid "**数值问题隐蔽**：梯度爆炸/消失不会报错，只会让模型学不好"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:15
+msgid "**随机性干扰**：同样的代码运行多次结果可能不同"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:17
+msgid "**好消息**：PyTorch 提供了丰富的工具帮我们\"透视\"训练过程。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:21
+msgid "梯度检查：诊断训练的\"生命线\""
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:23
+msgid "梯度范数监控"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:25
+#, python-brace-format
+msgid "{ref}`gradient-descent`告诉我们，梯度是参数更新的基础。如果梯度有问题，训练必然失败。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:27
+#, python-brace-format
+msgid ""
+"def check_gradients(model, print_details=False):\n"
+"    \"\"\"\n"
+"    检查模型梯度状态\n"
+"    \n"
+"    参数:\n"
+"        model: PyTorch模型\n"
+"        print_details: 是否打印每层梯度详情\n"
+"    \n"
+"    返回:\n"
+"        total_norm: 全局梯度范数\n"
+"    \"\"\"\n"
+"    total_norm = 0.0\n"
+"    grad_stats = {}\n"
+"    \n"
+"    for name, param in model.named_parameters():\n"
+"        if param.grad is not None:\n"
+"            # 计算该层梯度的L2范数\n"
+"            param_norm = param.grad.data.norm(2)\n"
+"            total_norm += param_norm.item() ** 2\n"
+"            \n"
+"            # 收集统计信息\n"
+"            grad_stats[name] = {\n"
+"                'mean': param.grad.mean().item(),\n"
+"                'std': param.grad.std().item(),\n"
+"                'max': param.grad.max().item(),\n"
+"                'min': param.grad.min().item(),\n"
+"            }\n"
+"            \n"
+"            # 检查数值异常\n"
+"            if torch.isnan(param.grad).any():\n"
+"                print(f\"❌ 错误: {name} 包含NaN梯度！\")\n"
+"                print(f\"   该层参数形状: {param.shape}\")\n"
+"                print(f\"   建议: 检查前向传播是否有除以0或log(0)\")\n"
+"                \n"
+"            if torch.isinf(param.grad).any():\n"
+"                print(f\"❌ 错误: {name} 包含Inf梯度！\")\n"
+"                print(f\"   建议: 使用梯度裁剪 (gradient clipping)\")\n"
+"    \n"
+"    total_norm = total_norm ** 0.5\n"
+"    \n"
+"    # 判断梯度状态\n"
+"    if total_norm < 1e-6:\n"
+"        print(f\"⚠️ 警告: 梯度范数过小 ({total_norm:.2e})，可能出现梯度消失\")\n"
+"        print(f\"   建议: 检查激活函数、网络深度，或使用残差连接\")\n"
+"    elif total_norm > 100:\n"
+"        print(f\"⚠️ 警告: 梯度范数过大 ({total_norm:.2f})，可能出现梯度爆炸\")\n"
+"        print(f\"   建议: 使用梯度裁剪或减小学习率\")\n"
+"    else:\n"
+"        print(f\"✅ 梯度范数正常: {total_norm:.4f}\")\n"
+"    \n"
+"    if print_details:\n"
+"        print(\"\\n各层梯度统计:\")\n"
+"        for name, stats in grad_stats.items():\n"
+"            print(f\"  {name}: mean={stats['mean']:.4f}, "
+"std={stats['std']:.4f}\")\n"
+"    \n"
+"    return total_norm\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:86
+msgid "**使用场景**：在每个epoch或每隔几个batch调用，监控梯度健康状态。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:88
+msgid "梯度爆炸与消失的检测"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:90
+#, python-brace-format
+msgid "{ref}`back-propagation`中提到梯度消失/爆炸是深层网络的常见问题。如何在代码中检测？"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:92
+#, python-brace-format
+msgid ""
+"class GradientMonitor:\n"
+"    \"\"\"梯度监控器：记录训练过程中的梯度变化\"\"\"\n"
+"    \n"
+"    def __init__(self, model):\n"
+"        self.model = model\n"
+"        self.history = []  # 记录每个step的梯度信息\n"
+"        \n"
+"        # 注册hook，捕获每层的梯度\n"
+"        self.hooks = []\n"
+"        for name, param in model.named_parameters():\n"
+"            if param.requires_grad:\n"
+"                hook = param.register_hook(\n"
+"                    lambda grad, name=name: self._log_gradient(grad, "
+"name)\n"
+"                )\n"
+"                self.hooks.append(hook)\n"
+"    \n"
+"    def _log_gradient(self, grad, name):\n"
+"        \"\"\"记录梯度信息\"\"\"\n"
+"        if grad is not None:\n"
+"            self.history.append({\n"
+"                'name': name,\n"
+"                'step': len(self.history),\n"
+"                'mean': grad.abs().mean().item(),\n"
+"                'max': grad.abs().max().item(),\n"
+"            })\n"
+"    \n"
+"    def plot_gradient_flow(self):\n"
+"        \"\"\"可视化梯度在各层的流动\"\"\"\n"
+"        import matplotlib.pyplot as plt\n"
+"        \n"
+"        # 按层分组计算平均梯度\n"
+"        layer_grads = {}\n"
+"        for record in self.history:\n"
+"            layer = record['name'].split('.')[0]  # 提取层名\n"
+"            if layer not in layer_grads:\n"
+"                layer_grads[layer] = []\n"
+"            layer_grads[layer].append(record['mean'])\n"
+"        \n"
+"        # 绘图\n"
+"        plt.figure(figsize=(12, 6))\n"
+"        for layer, grads in layer_grads.items():\n"
+"            plt.plot(grads, label=layer, alpha=0.7)\n"
+"        \n"
+"        plt.xlabel('Training Step')\n"
+"        plt.ylabel('Mean Gradient')\n"
+"        plt.title('Gradient Flow Across Layers')\n"
+"        plt.legend()\n"
+"        plt.yscale('log')  # 对数尺度更容易看出差异\n"
+"        plt.grid(True, alpha=0.3)\n"
+"        plt.show()\n"
+"        \n"
+"        # 诊断建议\n"
+"        first_layer_grad = list(layer_grads.values())[0]\n"
+"        last_layer_grad = list(layer_grads.values())[-1]\n"
+"        \n"
+"        ratio = np.mean(first_layer_grad) / (np.mean(last_layer_grad) + "
+"1e-10)\n"
+"        \n"
+"        if ratio > 100:\n"
+"            print(f\"⚠️ 检测到梯度消失: 第一层梯度是最后一层的 {ratio:.1f} 倍\")\n"
+"            print(f\"   建议: 使用BatchNorm、残差连接或更小的学习率\")\n"
+"        elif ratio < 0.01:\n"
+"            print(f\"⚠️ 检测到梯度爆炸: 最后一层梯度是第一层的 {1/ratio:.1f} 倍\")\n"
+"            print(f\"   建议: 使用梯度裁剪或权重衰减\")\n"
+"    \n"
+"    def remove_hooks(self):\n"
+"        \"\"\"移除所有hook，释放内存\"\"\"\n"
+"        for hook in self.hooks:\n"
+"            hook.remove()\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:163
+msgid "**核心洞察**：通过可视化梯度在各层的流动，可以快速判断是否存在梯度消失/爆炸问题。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:167
+msgid "训练过程可视化：TensorBoard"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:169
+msgid "TensorBoard 是 TensorFlow 团队开发的可视化工具，但 PyTorch 也完全支持。它能让我们\"看到\"训练过程中发生的一切。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:171
+msgid "基础设置"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:173
+#, python-brace-format, python-format
+msgid ""
+"from torch.utils.tensorboard import SummaryWriter\n"
+"import datetime\n"
+"\n"
+"# 创建writer，日志目录包含时间戳，方便区分不同实验\n"
+"log_dir = "
+"f'runs/mnist_experiment_{datetime.datetime.now().strftime(\"%Y%m%d-%H%M%S\")}'"
+"\n"
+"writer = SummaryWriter(log_dir)\n"
+"\n"
+"print(f\"TensorBoard日志目录: {log_dir}\")\n"
+"print(f\"启动TensorBoard: tensorboard --logdir={log_dir}\")\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:185
+msgid "记录训练指标"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:187
+msgid ""
+"def train_with_logging(model, device, train_loader, optimizer, epoch):\n"
+"    \"\"\"带TensorBoard日志记录的训练函数\"\"\"\n"
+"    model.train()\n"
+"    running_loss = 0.0\n"
+"    correct = 0\n"
+"    total = 0\n"
+"    \n"
+"    for batch_idx, (data, target) in enumerate(train_loader):\n"
+"        data, target = data.to(device), target.to(device)\n"
+"        \n"
+"        optimizer.zero_grad()\n"
+"        output = model(data)\n"
+"        loss = criterion(output, target)\n"
+"        loss.backward()\n"
+"        optimizer.step()\n"
+"        \n"
+"        # 累计统计\n"
+"        running_loss += loss.item()\n"
+"        _, predicted = output.max(1)\n"
+"        total += target.size(0)\n"
+"        correct += predicted.eq(target).sum().item()\n"
+"        \n"
+"        # 每100个batch记录一次\n"
+"        if batch_idx % 100 == 99:\n"
+"            step = epoch * len(train_loader) + batch_idx\n"
+"            \n"
+"            # 记录损失和准确率\n"
+"            writer.add_scalar('Training/Loss', running_loss / 100, step)\n"
+"            writer.add_scalar('Training/Accuracy', 100. * correct / "
+"total, step)\n"
+"            \n"
+"            # 记录学习率\n"
+"            current_lr = optimizer.param_groups[0]['lr']\n"
+"            writer.add_scalar('Training/Learning_Rate', current_lr, step)"
+"\n"
+"            \n"
+"            running_loss = 0.0\n"
+"            correct = 0\n"
+"            total = 0\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:227
+msgid "记录模型结构和参数分布"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:229
+#, python-brace-format
+msgid ""
+"# 记录模型计算图\n"
+"sample_data = next(iter(train_loader))[0].to(device)\n"
+"writer.add_graph(model, sample_data)\n"
+"\n"
+"# 每5个epoch记录参数和梯度的直方图\n"
+"def log_histograms(model, epoch):\n"
+"    \"\"\"记录参数分布，帮助诊断问题\"\"\"\n"
+"    for name, param in model.named_parameters():\n"
+"        # 记录参数分布\n"
+"        writer.add_histogram(f'Parameters/{name}', param, epoch)\n"
+"        \n"
+"        # 记录梯度分布\n"
+"        if param.grad is not None:\n"
+"            writer.add_histogram(f'Gradients/{name}', param.grad, epoch)\n"
+"            \n"
+"            # 计算并记录梯度/参数比值（重要诊断指标）\n"
+"            ratio = (param.grad.abs() / (param.abs() + 1e-8)).mean()\n"
+"            writer.add_scalar(f'GradParamRatio/{name}', ratio, epoch)\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:250
+msgid "**梯度/参数比值的意义**："
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:251
+msgid "比值太小（<0.001）：学习率可能太小，参数更新缓慢"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:252
+msgid "比值适中（0.001~0.1）：健康状态"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:253
+msgid "比值太大（>1）：学习率可能太大，参数震荡"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:255
+msgid "可视化训练数据"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:257
+#, python-brace-format
+msgid ""
+"def visualize_data(writer, train_loader, num_images=64):\n"
+"    \"\"\"可视化训练数据，检查预处理是否正确\"\"\"\n"
+"    images, labels = next(iter(train_loader))\n"
+"    \n"
+"    # 创建网格图像\n"
+"    img_grid = torchvision.utils.make_grid(\n"
+"        images[:num_images], \n"
+"        nrow=8, \n"
+"        normalize=True,\n"
+"        value_range=(0, 1)\n"
+"    )\n"
+"    \n"
+"    writer.add_image('Training_Data', img_grid, 0)\n"
+"    \n"
+"    # 记录类别分布\n"
+"    class_counts = torch.bincount(labels, minlength=10)\n"
+"    for i, count in enumerate(class_counts):\n"
+"        writer.add_scalar(f'Class_Distribution/class_{i}', count, 0)\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:278
+msgid "嵌入可视化（高维数据投影）"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:280
+msgid ""
+"def visualize_embeddings(model, device, test_loader, writer):\n"
+"    \"\"\"\n"
+"    可视化模型学到的特征表示\n"
+"    将高维特征投影到3D空间，看不同类别是否分开\n"
+"    \"\"\"\n"
+"    model.eval()\n"
+"    embeddings = []\n"
+"    labels = []\n"
+"    images_list = []\n"
+"    \n"
+"    with torch.no_grad():\n"
+"        for data, target in test_loader:\n"
+"            data = data.to(device)\n"
+"            # 提取倒数第二层的特征\n"
+"            features = model.features(data)  # 假设模型有features方法\n"
+"            embeddings.append(features.cpu())\n"
+"            labels.append(target)\n"
+"            images_list.append(data.cpu())\n"
+"            \n"
+"            if len(embeddings) >= 100:  # 只取100个batch\n"
+"                break\n"
+"    \n"
+"    embeddings = torch.cat(embeddings, dim=0)\n"
+"    labels = torch.cat(labels, dim=0)\n"
+"    images_list = torch.cat(images_list, dim=0)\n"
+"    \n"
+"    writer.add_embedding(\n"
+"        embeddings[:1000],  # 最多1000个点\n"
+"        metadata=labels[:1000].tolist(),\n"
+"        label_img=images_list[:1000],\n"
+"        global_step=0,\n"
+"        tag='Feature_Embeddings'\n"
+"    )\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:318
+msgid "常见训练问题诊断"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:320
+msgid "问题1：损失不下降"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:322
+msgid "**症状**：训练了多个epoch，损失几乎不变。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:324
+#, python-brace-format
+msgid ""
+"def diagnose_no_decrease_loss(model, loader, device):\n"
+"    \"\"\"诊断损失不下降的原因\"\"\"\n"
+"    \n"
+"    print(\"=\" * 50)\n"
+"    print(\"🔍 诊断损失不下降...\")\n"
+"    print(\"=\" * 50)\n"
+"    \n"
+"    # 1. 检查数据\n"
+"    data, target = next(iter(loader))\n"
+"    print(f\"\\n1. 数据检查:\")\n"
+"    print(f\"   输入范围: [{data.min():.2f}, {data.max():.2f}]\")\n"
+"    print(f\"   标签唯一值: {target.unique()}\")\n"
+"    \n"
+"    if data.max() > 10:\n"
+"        print(\"   ⚠️ 警告: 输入未归一化，建议除以255或标准化\")\n"
+"    \n"
+"    # 2. 检查模型输出\n"
+"    model.eval()\n"
+"    with torch.no_grad():\n"
+"        output = model(data.to(device))\n"
+"        print(f\"\\n2. 模型输出检查:\")\n"
+"        print(f\"   输出形状: {output.shape}\")\n"
+"        print(f\"   输出范围: [{output.min():.2f}, {output.max():.2f}]\")\n"
+"        \n"
+"        if torch.allclose(output, output[0]):\n"
+"            print(\"   ❌ 错误: 所有输出相同，模型未学习！\")\n"
+"            print(\"   可能原因: 权重初始化问题或学习率太小\")\n"
+"    \n"
+"    # 3. 检查梯度\n"
+"    model.train()\n"
+"    optimizer = torch.optim.SGD(model.parameters(), lr=0.01)\n"
+"    output = model(data.to(device))\n"
+"    loss = nn.CrossEntropyLoss()(output, target.to(device))\n"
+"    loss.backward()\n"
+"    \n"
+"    print(f\"\\n3. 梯度检查:\")\n"
+"    has_grad = False\n"
+"    for name, param in model.named_parameters():\n"
+"        if param.grad is not None and param.grad.abs().sum() > 0:\n"
+"            has_grad = True\n"
+"            print(f\"   ✅ {name}: 梯度范数={param.grad.norm():.4f}\")\n"
+"        elif param.grad is None:\n"
+"            print(f\"   ⚠️ {name}: 无梯度！\")\n"
+"    \n"
+"    if not has_grad:\n"
+"        print(\"   ❌ 所有参数都没有梯度！\")\n"
+"        print(\"   检查: forward中是否使用了requires_grad=False的输入\")\n"
+"    \n"
+"    # 4. 学习率检查\n"
+"    print(f\"\\n4. 学习率检查:\")\n"
+"    test_lr = [1e-5, 1e-3, 1e-1]\n"
+"    for lr in test_lr:\n"
+"        print(f\"   学习率={lr}: \", end=\"\")\n"
+"        # 简化的参数更新测试\n"
+"        param = list(model.parameters())[0].clone()\n"
+"        grad = list(model.parameters())[0].grad\n"
+"        if grad is not None:\n"
+"            param_update = (grad * lr).abs().mean()\n"
+"            print(f\"平均更新量={param_update:.2e}\")\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:386
+msgid "**常见原因和解决方案**："
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md
+msgid "原因"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md
+msgid "检查方法"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md
+msgid "解决方案"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md
+msgid "学习率太小"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md
+msgid "观察参数更新量"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md
+msgid "增大到0.001~0.01"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md
+msgid "梯度消失"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md
+msgid "检查深层梯度范数"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md
+msgid "加BatchNorm、换ReLU"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md
+msgid "数据未归一化"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md
+msgid "检查输入范围"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md
+msgid "标准化到[0,1]或[-1,1]"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md
+msgid "标签错误"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md
+msgid "检查target值"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md
+msgid "确保标签从0开始"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md
+msgid "权重初始化问题"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md
+msgid "检查初始输出"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md
+msgid "使用Xavier/He初始化"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:396
+msgid "问题2：过拟合"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:398
+msgid "**症状**：训练准确率很高，验证准确率很低。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:400
+#, python-brace-format
+msgid ""
+"def diagnose_overfitting(train_acc_history, val_acc_history):\n"
+"    \"\"\"诊断过拟合程度\"\"\"\n"
+"    \n"
+"    train_acc = np.array(train_acc_history)\n"
+"    val_acc = np.array(val_acc_history)\n"
+"    \n"
+"    # 计算gap\n"
+"    gap = train_acc - val_acc\n"
+"    \n"
+"    print(f\"\\n📊 过拟合诊断报告:\")\n"
+"    print(f\"   最终训练准确率: {train_acc[-1]:.2f}%\")\n"
+"    print(f\"   最终验证准确率: {val_acc[-1]:.2f}%\")\n"
+"    print(f\"   准确率差距: {gap[-1]:.2f}%\")\n"
+"    \n"
+"    if gap[-1] < 3:\n"
+"        print(f\"   ✅ 状态良好，无明显过拟合\")\n"
+"    elif gap[-1] < 10:\n"
+"        print(f\"   ⚠️ 轻度过拟合，建议增加正则化\")\n"
+"        print(f\"      - 添加Dropout (rate=0.2~0.5)\")\n"
+"        print(f\"      - 增加weight_decay (1e-4~1e-3)\")\n"
+"    else:\n"
+"        print(f\"   ❌ 严重过拟合，必须采取措施！\")\n"
+"        print(f\"      - 收集更多训练数据\")\n"
+"        print(f\"      - 使用更强的数据增强\")\n"
+"        print(f\"      - 减小模型容量\")\n"
+"    \n"
+"    # 检查验证集准确率是否下降\n"
+"    if len(val_acc) > 5:\n"
+"        recent_trend = val_acc[-1] - val_acc[-5]\n"
+"        if recent_trend < -2:\n"
+"            print(f\"   ⚠️ 验证准确率下降 {abs(recent_trend):.1f}%，建议早停\")\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:434
+#, python-brace-format
+msgid "**参考**：{ref}`regularization`中详细讨论了各种正则化技术。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:436
+msgid "问题3：学习率不当"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:438
+#, python-brace-format
+msgid ""
+"def find_lr(model, train_loader, optimizer, criterion, device, \n"
+"            start_lr=1e-7, end_lr=10, num_iter=100):\n"
+"    \"\"\"\n"
+"    学习率范围测试 (Learning Rate Range Test)\n"
+"    参考: Cyclical Learning Rates for Training Neural Networks\n"
+"    \"\"\"\n"
+"    \n"
+"    model.train()\n"
+"    lrs = []\n"
+"    losses = []\n"
+"    \n"
+"    # 指数增长学习率\n"
+"    lr_mult = (end_lr / start_lr) ** (1 / num_iter)\n"
+"    lr = start_lr\n"
+"    \n"
+"    for param_group in optimizer.param_groups:\n"
+"        param_group['lr'] = lr\n"
+"    \n"
+"    for batch_idx, (data, target) in enumerate(train_loader):\n"
+"        if batch_idx >= num_iter:\n"
+"            break\n"
+"            \n"
+"        data, target = data.to(device), target.to(device)\n"
+"        \n"
+"        optimizer.zero_grad()\n"
+"        output = model(data)\n"
+"        loss = criterion(output, target)\n"
+"        loss.backward()\n"
+"        optimizer.step()\n"
+"        \n"
+"        lrs.append(lr)\n"
+"        losses.append(loss.item())\n"
+"        \n"
+"        # 更新学习率\n"
+"        lr *= lr_mult\n"
+"        for param_group in optimizer.param_groups:\n"
+"            param_group['lr'] = lr\n"
+"    \n"
+"    # 绘图\n"
+"    plt.figure(figsize=(10, 6))\n"
+"    plt.plot(lrs, losses)\n"
+"    plt.xscale('log')\n"
+"    plt.xlabel('Learning Rate')\n"
+"    plt.ylabel('Loss')\n"
+"    plt.title('Learning Rate Range Test')\n"
+"    plt.axvline(x=lrs[np.argmin(losses)], color='r', linestyle='--', \n"
+"                label=f'Min Loss @ lr={lrs[np.argmin(losses)]:.2e}')\n"
+"    plt.legend()\n"
+"    plt.show()\n"
+"    \n"
+"    # 建议最优学习率\n"
+"    min_idx = np.argmin(losses)\n"
+"    suggested_lr = lrs[max(0, min_idx - 1)]  # 取最小损失前一个点\n"
+"    print(f\"建议学习率: {suggested_lr:.2e}\")\n"
+"    \n"
+"    return suggested_lr\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:499
+msgid "下一步"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:501
+msgid "掌握了调试和可视化技巧后，你已经具备了独立训练神经网络的能力。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/debug-and-visualise.md:503
+#, python-brace-format
+msgid ""
+"{doc}`best-practices`中，我们将学习工程最佳实践——如何让代码更规范、更易复现、更易于协作。这些技巧来自于{doc"
+"}`../cnn-expedition/model-architecture-"
+"design/part5-efficiency`中的效率优化思想，是走向专业深度学习开发的必经之路。"
+msgstr ""
+

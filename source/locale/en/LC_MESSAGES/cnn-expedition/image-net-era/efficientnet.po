@@ -1,0 +1,566 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, UCS Deep Learning Club and its contributors, licensed
+# under CC BY-SA 4.0
+# This file is distributed under the same license as the Deep Learning Club
+# Handouts package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Deep Learning Club Handouts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 16:17+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:2
+msgid "EfficientNet：每一分钱，花在刀刃上"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:4
+#, python-brace-format
+msgid "{doc}`mobilenet` 教会了我们一件事：**极致省钱，也能爬。** 深度可分离卷积把参数量砍到 1/9，一个人一把冰镐就能出发。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:6
+msgid ""
+"但大多数攀登者的处境不在两个极端——既不是 Google 的无限预算，也不是嵌入式芯片的极限抠门。你有一笔预算：几个 GPU，几天的训练时间，几百"
+" MB 的模型限制。**怎么把这笔钱花在刀刃上？**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:8
+msgid "**关键问题**：深度、宽度、分辨率——三个旋钮，应该按什么比例一起拧？"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:10
+msgid "历史背景：三个旋钮，各自为政"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:12
+msgid "在 EfficientNet 之前，人们已经知道扩大模型可以提升性能："
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:14
+msgid "**更深**（ResNet-152 → ResNet-1000）：更多层 = 更强的表达能力"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:15
+msgid "**更宽**（MobileNet 的 $\\alpha$ 参数）：更多通道 = 更丰富的特征"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:16
+msgid "**更大分辨率**（224×224 → 380×380 → 600×600）：更精细的输入 = 更细节的信息"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:18
+msgid "但问题是——**大家都是凭感觉调的。** 有人加深度，有人加宽度，有人加大分辨率。没有一个系统性的原则告诉你在给定预算下，三者怎么组合最优。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:20
+#, python-brace-format
+msgid ""
+"2019 年，Mingxing Tan 和 Google 团队提出了 **EfficientNet** "
+"{cite}`tan2019efficientnet`。核心洞察只有一个，但它统一了三年的零散经验："
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:22
+msgid "**深度、宽度、分辨率不是独立的。它们应该按一个复合比例同时缩放。**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:24
+msgid "复合缩放：为什么一起拧才对？"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:26
+msgid "直觉"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:29
+msgid "想象你要建一个更大的登山营地："
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:31
+msgid "**更宽** = 多雇人（更细的分工：有人专门探路，有人专门做饭）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:32
+msgid "**更深** = 建更多补给站（更深的补给线：大本营 → C1 → C2 → C3）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:33
+msgid "**更大分辨率** = 更精细的地图（能看到更小的冰裂缝）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:35
+msgid ""
+"如果你只加人不建补给站——人挤在低海拔，到了高海拔没人能送物资。 如果你只建补给站不加人——空有路线，人手不够。 "
+"如果你只换精细地图不加人也不建站——看到了冰裂缝但没人能处理。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:39
+msgid "**三者必须按比例一起加。**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:42
+msgid "数学上，EfficientNet 用了一个复合系数 $\\phi$："
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:44
+#, python-brace-format
+msgid ""
+"\n"
+"\\begin{aligned}\n"
+"d &= \\alpha^\\phi \\quad &\\text{（深度：补给站数量）} \\\\\n"
+"w &= \\beta^\\phi \\quad &\\text{（宽度：每站人数）} \\\\\n"
+"r &= \\gamma^\\phi \\quad &\\text{（分辨率：地图精细度）}\n"
+"\\end{aligned}\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:52
+msgid ""
+"其中 $\\alpha \\cdot \\beta^2 \\cdot \\gamma^2 \\approx 2$——意味着每增大 $\\phi$ "
+"一个单位，总计算量翻倍。而 $\\alpha, \\beta, \\gamma$ "
+"的具体值是通过在**小模型上的网格搜索**找到的：$\\alpha=1.2, \\beta=1.1, \\gamma=1.15$。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "为什么比例是搜索出来的，不是推导出来的？"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:57
+msgid ""
+"公平地说，$\\alpha=1.2, \\beta=1.1, \\gamma=1.15$ 这三个数字没有任何理论必然性。它们是在一个 8 卡 "
+"GPU 上对小基线模型做网格搜索找到的最优组合。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:59
+msgid ""
+"但这不是 EfficientNet 的\"弱点\"——这恰恰是它的务实之处。就像登山者不会从理论推导出\"氧气瓶应该带 3.2 升而不是 3.1 "
+"升\"——你在低海拔试了不同组合，选最好的，然后在大山上按比例放大。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:62
+msgid "架构家族：从 B0 到 B7"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:64
+msgid ""
+"基于复合缩放，EfficientNet 推出了一个模型家族。基线模型 EfficientNet-B0 是通过 **NAS（神经架构搜索）** "
+"找到的，然后通过增大 $\\phi$ 得到 B1 到 B7："
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "模型"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "$\\phi$"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "参数"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "Top-1 准确率"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "相比 ResNet-50"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "EfficientNet-B0"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "0"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "5.3M"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "77.1%"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "4.5× 更小，同准确率"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "EfficientNet-B1"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "1"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "7.8M"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "79.1%"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "—"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "EfficientNet-B3"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "3"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "12M"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "81.6%"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "EfficientNet-B5"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "5"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "30M"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "83.6%"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "EfficientNet-B7"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "7"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "66M"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "**84.3%**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:54
+msgid "当时 SOTA，比 ResNet-152 还高"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:74
+msgid "登山者的选择"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:85
+msgid "MobileNet vs EfficientNet：省钱的两条路"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:74
+msgid "MobileNet"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:74
+msgid "EfficientNet"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:74
+msgid "回答的问题"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:74
+msgid "几乎没钱，怎么爬？"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:74
+msgid "有一笔预算，怎么花？"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:74
+msgid "核心操作"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:74
+msgid "**拆开**卷积（深度可分离）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:74
+msgid "**按比例缩放**三个维度"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:74
+msgid "哲学"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:74
+msgid "极致瘦身——先砍到骨头，再往上加"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:74
+msgid "系统优化——不瘦身，而是聪明地胖"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:74
+msgid "就像登山"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:74
+msgid "一个人、一把冰镐"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:74
+msgid "有限团队、精细分工、每分钱花在刀刃上"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:94
+msgid "二者并不矛盾"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:97
+msgid ""
+"事实上，EfficientNet 的基线架构本身就用到了深度可分离卷积——MobileNet 的\"拆开\"思想。EfficientNet "
+"的创新不在于\"怎么省\"，而在于 **\"省完之后，多出来的预算怎么分配\"**。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:99
+msgid "MobileNet 回答的是\"怎么省到极致\"。EfficientNet 回答的是\"省出了预算之后，往哪个方向花最值\"。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:102
+msgid "代码实践"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:104
+#, python-brace-format
+msgid ""
+"import torch\n"
+"import torch.nn as nn\n"
+"import math\n"
+"\n"
+"\n"
+"class MBConvBlock(nn.Module):\n"
+"    \"\"\"Mobile Inverted Bottleneck Conv Block（EfficientNet 的基本构建块）\n"
+"    \n"
+"    这是 MobileNetV2 的倒置残差块 + SE 注意力（{doc}`se-net`）：\n"
+"    1. 1×1 扩展（升维——先给更多\"呼吸空间\"）\n"
+"    2. Depthwise 3×3（空间混合）\n"
+"    3. SE 注意力（自适应通道加权）\n"
+"    4. 1×1 压缩（降维——回到原来的通道数）\n"
+"    5. 残差连接（如果 shape 匹配）\n"
+"    \n"
+"    为什么叫\"倒置\"？因为传统 bottleneck 是先压缩再扩展，这里反过来：先扩展再压缩。\n"
+"    \"\"\"\n"
+"    def __init__(self, in_channels, out_channels, kernel_size, \n"
+"                 stride, expand_ratio, se_ratio=0.25):\n"
+"        super().__init__()\n"
+"        \n"
+"        # 是否使用残差连接\n"
+"        self.use_residual = (stride == 1 and in_channels == out_channels)"
+"\n"
+"        \n"
+"        # 扩展后的通道数\n"
+"        expanded_channels = in_channels * expand_ratio\n"
+"        \n"
+"        # 1. 1×1 扩展（如果有扩展）\n"
+"        self.expand_conv = nn.Sequential(\n"
+"            nn.Conv2d(in_channels, expanded_channels, 1, bias=False),\n"
+"            nn.BatchNorm2d(expanded_channels),\n"
+"            nn.SiLU()  # Swish 激活——比 ReLU 更平滑，EfficientNet 的默认选择\n"
+"        ) if expand_ratio != 1 else nn.Identity()\n"
+"        \n"
+"        # 2. Depthwise 3×3 卷积——{ref}`mobilenet` 的核心思想\n"
+"        self.depthwise_conv = nn.Sequential(\n"
+"            nn.Conv2d(expanded_channels, expanded_channels, kernel_size,\n"
+"                     stride, padding=kernel_size//2, \n"
+"                     groups=expanded_channels, bias=False),\n"
+"            nn.BatchNorm2d(expanded_channels),\n"
+"            nn.SiLU()\n"
+"        )\n"
+"        \n"
+"        # 3. SE 注意力模块——{doc}`se-net`\n"
+"        se_channels = max(1, int(in_channels * se_ratio))\n"
+"        self.se = nn.Sequential(\n"
+"            nn.AdaptiveAvgPool2d(1),\n"
+"            nn.Conv2d(expanded_channels, se_channels, 1),\n"
+"            nn.SiLU(),\n"
+"            nn.Conv2d(se_channels, expanded_channels, 1),\n"
+"            nn.Sigmoid()\n"
+"        )\n"
+"        \n"
+"        # 4. 1×1 压缩\n"
+"        self.project_conv = nn.Sequential(\n"
+"            nn.Conv2d(expanded_channels, out_channels, 1, bias=False),\n"
+"            nn.BatchNorm2d(out_channels)\n"
+"        )\n"
+"    \n"
+"    def forward(self, x):\n"
+"        residual = x\n"
+"        x = self.expand_conv(x)\n"
+"        x = self.depthwise_conv(x)\n"
+"        x = x * self.se(x)  # SE 注意力重标定\n"
+"        x = self.project_conv(x)\n"
+"        \n"
+"        if self.use_residual:\n"
+"            x = x + residual  # 残差连接——{ref}`res-net` 的补给站\n"
+"        return x\n"
+"\n"
+"\n"
+"def efficientnet_b0(num_classes=1000):\n"
+"    \"\"\"EfficientNet-B0 的简化实现\n"
+"    \n"
+"    架构原理：\n"
+"    - 基于 MBConv 块的倒置残差结构\n"
+"    - 复合缩放：如果要做 B1-B7，只需按比例调整深度/宽度/分辨率\n"
+"    \n"
+"    参数量：约 5.3M\n"
+"    Top-1 准确率：77.1%（ImageNet）\n"
+"    \"\"\"\n"
+"    return nn.Sequential(\n"
+"        # Stem: 标准卷积，快速降采样\n"
+"        nn.Conv2d(3, 32, 3, stride=2, padding=1, bias=False),\n"
+"        nn.BatchNorm2d(32),\n"
+"        nn.SiLU(),\n"
+"        \n"
+"        # Stage 1: 112×112\n"
+"        MBConvBlock(32, 16, 3, stride=1, expand_ratio=1),\n"
+"        \n"
+"        # Stage 2: 112→56\n"
+"        MBConvBlock(16, 24, 3, stride=2, expand_ratio=6),\n"
+"        MBConvBlock(24, 24, 3, stride=1, expand_ratio=6),\n"
+"        \n"
+"        # Stage 3: 56→28\n"
+"        MBConvBlock(24, 40, 5, stride=2, expand_ratio=6),\n"
+"        MBConvBlock(40, 40, 5, stride=1, expand_ratio=6),\n"
+"        \n"
+"        # Stage 4: 28→14\n"
+"        MBConvBlock(40, 80, 3, stride=2, expand_ratio=6),\n"
+"        MBConvBlock(80, 80, 3, stride=1, expand_ratio=6),\n"
+"        MBConvBlock(80, 80, 3, stride=1, expand_ratio=6),\n"
+"        \n"
+"        # Stage 5: 14×14\n"
+"        MBConvBlock(80, 112, 5, stride=1, expand_ratio=6),\n"
+"        MBConvBlock(112, 112, 5, stride=1, expand_ratio=6),\n"
+"        MBConvBlock(112, 112, 5, stride=1, expand_ratio=6),\n"
+"        \n"
+"        # Stage 6: 14→7\n"
+"        MBConvBlock(112, 192, 5, stride=2, expand_ratio=6),\n"
+"        MBConvBlock(192, 192, 5, stride=1, expand_ratio=6),\n"
+"        MBConvBlock(192, 192, 5, stride=1, expand_ratio=6),\n"
+"        MBConvBlock(192, 192, 5, stride=1, expand_ratio=6),\n"
+"        \n"
+"        # Stage 7: 7×7\n"
+"        MBConvBlock(192, 320, 3, stride=1, expand_ratio=6),\n"
+"        \n"
+"        # Head\n"
+"        nn.Conv2d(320, 1280, 1, bias=False),\n"
+"        nn.BatchNorm2d(1280),\n"
+"        nn.SiLU(),\n"
+"        nn.AdaptiveAvgPool2d(1),\n"
+"        nn.Flatten(),\n"
+"        nn.Dropout(0.2),\n"
+"        nn.Linear(1280, num_classes),\n"
+"    )\n"
+"\n"
+"\n"
+"# 参数量验证\n"
+"model = efficientnet_b0()\n"
+"params = sum(p.numel() for p in model.parameters())\n"
+"print(f\"EfficientNet-B0: {params:,} 参数\")\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:241
+msgid "总结"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:94
+msgid "维度"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:94
+msgid "内容"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:94
+msgid "**核心洞察**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:94
+msgid "深度、宽度、分辨率不是独立的——复合缩放，按比例一起拧"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:94
+msgid "**哲学**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:94
+msgid "在给定计算预算下，将每一分钱系统性地分配到三个维度"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:94
+msgid "**三系数**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:94
+msgid "$\\alpha=1.2$（深度）、$\\beta=1.1$（宽度）、$\\gamma=1.15$（分辨率）——小模型网格搜索得出"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:94
+msgid "**历史意义**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:94
+msgid "统一了 ResNet（深度派）、MobileNet（宽度派）、高分辨率方法的经验"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:250
+msgid ""
+"**登山者笔记**：MobileNet 告诉你一个人怎么爬。EfficientNet "
+"告诉你有团队怎么爬。但底层道理是一样的——**不是\"更多就一定更好\"，而是\"更多要加在对的地方\"。**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:254
+msgid "下一步"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:256
+msgid "两座山都翻越了。从 1989 年 LeNet 的练习峰首登，到 2019 年 EfficientNet 的复合缩放——三十年架构演化，一言以蔽之："
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:258
+msgid "**好的设计，是把山的形状刻进装备里。**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:260
+msgid "但登山者不会在山顶停留。八年的路走完了——回头看，每一件装备都在回答同一个问题。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:262
+#, python-brace-format
+msgid "{doc}`the-end`——坐下来，写登山笔记。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/efficientnet.md:268
+msgid "参考文献"
+msgstr ""
+

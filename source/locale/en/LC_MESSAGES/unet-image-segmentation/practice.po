@@ -1,0 +1,653 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, UCS Deep Learning Club and its contributors, licensed
+# under CC BY-SA 4.0
+# This file is distributed under the same license as the Deep Learning Club
+# Handouts package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Deep Learning Club Handouts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 16:17+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../../source/unet-image-segmentation/practice.md:2
+msgid "数据增强与训练技巧"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:4
+msgid "问题：数据不够怎么办？"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:6
+msgid ""
+"U-Net 发表时的关键成就之一：**用 30 张训练图像**在 ISBI 细胞分割挑战赛上达到 "
+"SOTA。深度学习的常识是\"数据越多越好\"，但医学图像标注极其昂贵——标注一张细胞分割图可能需要专家数十分钟。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:8
+msgid "U-Net 的答案：**数据增强 + 网络设计的数据效率**。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:10
+msgid "数据增强"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:12
+msgid "数据增强（Data Augmentation）通过对现有训练样本施加随机变换来生成\"新\"样本，是解决小数据问题的首要武器。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:14
+msgid "分割增强的特殊要求"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:16
+msgid ""
+"分类任务的增强只作用于图像。分割任务中，**图像和掩码必须做完全相同的几何变换**——如果图像旋转了 30°，掩码也必须旋转 "
+"30°，否则模型学到的对应关系是错误的。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:19
+msgid "图像与掩码同步变换"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:58
+#, python-brace-format
+msgid ""
+"import albumentations as A\n"
+"from albumentations.pytorch import ToTensorV2\n"
+"\n"
+"def get_train_transforms():\n"
+"    \"\"\"训练阶段数据增强：图像和掩码同步变换\"\"\"\n"
+"    return A.Compose([\n"
+"        # 几何变换（图像+掩码同步）\n"
+"        A.RandomRotate90(p=0.5),\n"
+"        A.Flip(p=0.5),\n"
+"        A.ElasticTransform(\n"
+"            sigma=50, alpha=1, alpha_affine=50, p=0.3\n"
+"        ),\n"
+"        # 强度变换（只应用于图像）\n"
+"        A.RandomBrightnessContrast(p=0.2),\n"
+"        A.GaussNoise(p=0.2),\n"
+"        # 标准化\n"
+"        A.Normalize(mean=[0.485], std=[0.229]),\n"
+"        ToTensorV2(),\n"
+"    ], additional_targets={'mask': 'image'})\n"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:80
+msgid "弹性变形：U-Net 的秘密武器"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "弹性变形的直觉"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:85
+msgid "想象一张果冻塑料膜，你用手指戳它——图像会局部扭曲，但整体内容不变。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:87
+msgid "弹性变形就是模拟这种效果：生成一个随机位移场，然后根据位移场插值图像。这对生物医学图像特别有用——细胞、组织本来就会有自然形变，弹性变形生成的\"假样本\"看起来仍然合理。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:90
+msgid ""
+"医学图像中细胞、组织的形态天然存在弹性形变（不同的患者、不同的切片角度）。弹性变形恰好模拟了这种变化——这让模型学到了 "
+"**\"细胞可以长成各种形状\"** ，而不是死记硬背训练集中的特定形态。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:92
+msgid "其他训练技巧"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:94
+msgid "学习率调度与搜索"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:96
+msgid "找到合适的学习率是训练 U-Net 的第一步。推荐使用**学习率搜索**："
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:98
+msgid ""
+"# 学习率搜索：从 1e-6 到 1 指数增长，每个 batch 记录 loss\n"
+"def lr_finder(model, train_loader, criterion, start_lr=1e-6, end_lr=1.0):"
+"\n"
+"    model.train()\n"
+"    optimizer = torch.optim.Adam(model.parameters(), lr=start_lr)\n"
+"    lrs, losses = [], []\n"
+"    lr = start_lr\n"
+"    for images, masks in train_loader:\n"
+"        optimizer.param_groups[0]['lr'] = lr\n"
+"        optimizer.zero_grad()\n"
+"        loss = criterion(model(images), masks)\n"
+"        loss.backward()\n"
+"        optimizer.step()\n"
+"        lrs.append(lr)\n"
+"        losses.append(loss.item())\n"
+"        lr *= (end_lr / start_lr) ** (1 / len(train_loader))\n"
+"    return lrs, losses\n"
+"# 画出 lr vs loss 曲线，选 loss 下降最快的 lr\n"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:118
+#, python-brace-format
+msgid ""
+"典型的学习率选择：U-Net + Adam {cite}`kingma2014adam` 组合，推荐 $10^{-4}$ 到 $3 \\times"
+" 10^{-4}$。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:120
+msgid "学习率调度"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:122
+msgid ""
+"# 选项1：验证损失不再下降时减半\n"
+"scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(\n"
+"    optimizer, mode='min', factor=0.5, patience=10\n"
+")\n"
+"\n"
+"# 选项2：余弦退火——学习率周期性变化\n"
+"scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(\n"
+"    optimizer, T_max=100, eta_min=1e-6\n"
+")\n"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:134
+msgid "早停"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:136
+msgid "当验证集 Dice 系数连续 N 个 epoch 没有提升时停止训练，防止过拟合。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:138
+msgid ""
+"class EarlyStopping:\n"
+"    def __init__(self, patience=20, mode='max'):\n"
+"        self.patience = patience\n"
+"        self.mode = mode\n"
+"        self.counter = 0\n"
+"        self.best_score = None\n"
+"        self.early_stop = False\n"
+"    \n"
+"    def __call__(self, score):\n"
+"        if self.best_score is None:\n"
+"            self.best_score = score\n"
+"        elif (self.mode == 'max' and score < self.best_score) or \\\n"
+"             (self.mode == 'min' and score > self.best_score):\n"
+"            self.counter += 1\n"
+"            if self.counter >= self.patience:\n"
+"                self.early_stop = True\n"
+"        else:\n"
+"            self.best_score = score\n"
+"            self.counter = 0\n"
+"        return self.early_stop\n"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:161
+msgid "混合精度训练"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:163
+msgid ""
+"from torch.cuda.amp import autocast, GradScaler\n"
+"\n"
+"scaler = GradScaler()\n"
+"\n"
+"for images, masks in train_loader:\n"
+"    optimizer.zero_grad()\n"
+"    with autocast():\n"
+"        outputs = model(images)\n"
+"        loss = criterion(outputs, masks)\n"
+"    scaler.scale(loss).backward()\n"
+"    scaler.step(optimizer)\n"
+"    scaler.update()\n"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:178
+msgid "通过自动混合精度，训练速度可提升 2-3 倍，内存减少约 40%。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:180
+msgid "常见失败模式与诊断"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:182
+msgid "U-Net 训练中遇到问题时，可以用下面的系统排查法定位根因。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+#: ../../../source/unet-image-segmentation/practice.md:184
+msgid "损失不下降"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "症状"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "可能原因"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "如何验证"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "解决方案"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "损失卡在某个值不动"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "学习率太小"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "画出 lr finder 曲线"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "增大 lr 或使用查找得到的最优值"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "损失徘徊不变，Dice≈0"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "模型未收敛"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "检查梯度范数是否为 0"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "确认输入正常、权重已初始化"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "损失缓慢下降但非常慢"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "比较收敛速度与基准"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "尝试 lr×10"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "损失先降后停"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "陷入局部最优"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "用 SGD+momentum 试试"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "切换优化器或重启训练"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+#: ../../../source/unet-image-segmentation/practice.md:193
+msgid "损失震荡"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "损失大幅波动"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "学习率太大"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "损失曲线呈锯齿状"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "减小 lr ×0.1"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "偶尔出现 loss spike"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "批次中有异常样本"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "检查数据是否有 NaN"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "梯度裁剪，检查数据预处理"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "Dice 在 0 和 0.9 之间反复"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "Dice 梯度不稳定"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "单独用 Dice 损失训练"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "使用 CE + Dice 组合损失"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:201
+msgid "过拟合"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "训练 Dice↑, 验证 Dice↓"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "模型记住了训练集"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "差距 > 0.05 即过拟合"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "增加数据增强，加 Dropout，早停"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "训练 Dice ≈ 1.0, 验证低"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "数据太少 + 增强不足"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "验证集多样本表现方差大"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "强化弹性变形，增加旋转/翻转"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "分割结果只预测背景"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "类别极度不平衡"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "检查验证集类别比例"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "使用加权损失或 Dice 损失"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:209
+msgid "小目标分割失败"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "小目标完全漏检"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "Dice 对小目标贡献太小"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "逐类计算 Dice，小类偏低"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "用焦点损失 + Dice"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "小目标形状不对"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "下采样丢失了细节"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "检查感受野是否覆盖目标"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "减少下采样次数，或使用 dilation"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "小目标位置偏移"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "空间精度不够"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "检查跳跃连接是否有效"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "尝试 Attention U-Net"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:217
+msgid "消融实验建议"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:219
+msgid "当你改进 U-Net 时，需要知道**哪些改动真正有效**。推荐做以下消融实验建立基准："
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "实验"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "比较对象"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "能回答的问题"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "U-Net vs 去掉跳跃连接"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "完整 U-Net vs 无 skip"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "跳跃连接贡献了多少 Dice？"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "CE 损失 vs Dice 损失 vs CE+Dice"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "三种损失函数"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "哪种损失最适合你的数据？"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "有/无弹性变形"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "两种增强策略"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "弹性变形带来了多少提升？"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "不同深度（3层 vs 4层 vs 5层）"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "三种深度配置"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "多深是够？过深是否过拟合？"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "不同初始通道数(32/64/128)"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "三种宽度配置"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "更宽是否更好？代价是什么？"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:229
+msgid "每次只改一个变量，记录 Dice、IoU、参数量、训练时间。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:231
+msgid "实践检查清单"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "问题"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "增大 lr 或使用学习率搜索"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "学习率太大 / Dice 梯度不稳定"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "减小 lr，使用 CE+Dice 组合损失"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "过拟合（验证集指标下降）"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "数据太少"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "加强数据增强，早停"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "小目标分割差"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "Dice 对极小区域不敏感"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "用焦点损失，TTA"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "训练慢 / 内存不够"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "模型太大 / 批次太大"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:82
+msgid "混合精度，梯度累积"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:241
+msgid "测试时增强（TTA）"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:243
+msgid "推理时对同一张图做多个版本的增强（旋转、翻转），取平均预测。**免费提升 1-3% Dice**："
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:245
+msgid ""
+"def tta_predict(model, image):\n"
+"    predictions = []\n"
+"    for transform in tta_transforms:\n"
+"        aug_image = transform(image=image)['image']\n"
+"        with torch.no_grad():\n"
+"            pred = torch.sigmoid(model(aug_image.unsqueeze(0)))\n"
+"            predictions.append(pred.cpu())\n"
+"    return torch.stack(predictions).mean(dim=0)\n"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:256
+msgid "小结"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:258
+msgid "U-Net 在小数据场景成功的关键公式："
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:260
+#, python-brace-format
+msgid ""
+"\\text{成功} = \\text{U 形架构（数据效率高）} + \\text{弹性变形（针对医学数据）} + "
+"\\text{组合损失（稳定优化）}"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:262
+#, python-brace-format
+msgid "下一节 {doc}`the-end` 我们看看 U-Net 的应用领域、有哪些变体，以及它的局限性在哪里。"
+msgstr ""
+
+#: ../../../source/unet-image-segmentation/practice.md:268
+msgid "参考文献"
+msgstr ""
+

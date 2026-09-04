@@ -1,0 +1,786 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, UCS Deep Learning Club and its contributors, licensed
+# under CC BY-SA 4.0
+# This file is distributed under the same license as the Deep Learning Club
+# Handouts package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Deep Learning Club Handouts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 16:17+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:3
+msgid "实验对比：登山日志"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:5
+msgid "登山日志——赤手空拳 vs 冰镐绳索，数据说话。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:7
+msgid "登顶了。现在回头看。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:9
+#, python-brace-format
+msgid ""
+"{doc}`introduction` 中我们讨论了 **归纳偏置** {cite}`mitchell1980need`——CNN "
+"通过局部感受野和权值共享引入\"空间结构\"的先验，全连接网络没有。{doc}`fc-layer-basics` 和 {doc}`cnn-"
+"basics` 展示了两种架构的实现，{doc}`le-net` 完成了练习峰首登。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:11
+msgid "但理论优雅不等于实际有效。**山不会听你嘴硬，山只看数据。** 本节用实验回答一个简单问题：赤手空拳 vs 冰镐绳索——到底差多少？"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:13
+msgid "实验设计"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:15
+msgid "对比对象"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md
+msgid "模型"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md
+msgid "来源"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md
+msgid "核心特点"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md
+msgid "预期优势"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "全连接网络"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md
+#, python-brace-format
+msgid "{doc}`fc-layer-basics`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md
+msgid "展平图像为向量，全连接层堆叠"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md
+msgid "实现简单，通用性强"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "LeNet-5"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md
+#, python-brace-format
+msgid "{doc}`le-net`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md
+msgid "卷积+池化+全连接的经典架构"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md
+msgid "参数共享，空间归纳偏置"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:22
+msgid "实验设置"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:24
+#, python-brace-format
+msgid "基于{doc}`neural-training-basics`中的训练原则："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:26
+msgid "**数据**：MNIST数据集（60,000训练 / 10,000测试）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:27
+msgid "**优化器**：Adam，学习率0.001"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:28
+msgid "**批次大小**：64"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:29
+msgid "**训练轮数**：10 epochs"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:30
+msgid "**硬件**：单GPU（或CPU）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:31
+msgid "**正则化**：仅使用早停法（控制变量，专注架构对比）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:33
+msgid ""
+"import torch\n"
+"import torch.nn as nn\n"
+"import torch.optim as optim\n"
+"from torch.utils.data import DataLoader\n"
+"from torchvision import datasets, transforms\n"
+"\n"
+"# 数据加载（无数据增强，公平对比架构本身）\n"
+"transform = transforms.Compose([\n"
+"    transforms.ToTensor(),\n"
+"    transforms.Normalize((0.1307,), (0.3081,))\n"
+"])\n"
+"\n"
+"train_dataset = datasets.MNIST('./data', train=True, download=True, "
+"transform=transform)\n"
+"test_dataset = datasets.MNIST('./data', train=False, transform=transform)"
+"\n"
+"\n"
+"train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)\n"
+"test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)\n"
+"\n"
+"# 损失函数：多分类交叉熵（见neural-training-basics）\n"
+"criterion = nn.CrossEntropyLoss()\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:58
+msgid "参数效率对比"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:60
+msgid "理论计算"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:62
+#, python-brace-format
+msgid "回顾{doc}`fc-layer-basics`中的参数计算："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:64
+msgid "**全连接网络**："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:66
+msgid ""
+"Layer 1: 784 × 256 + 256 = 200,960\n"
+"Layer 2: 256 × 128 + 128 = 32,896\n"
+"Layer 3: 128 × 10 + 10 = 1,290\n"
+"Total: 235,146 参数\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:73
+#, python-brace-format
+msgid "**LeNet-5**（来自{doc}`le-net`）："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:75
+msgid ""
+"C1: 6个5×5卷积核 = 156\n"
+"C3: 16个5×5卷积核 = 2,416\n"
+"FC1: 16×5×5 → 120 = 48,120\n"
+"FC2: 120 → 84 = 10,164\n"
+"FC3: 84 → 10 = 850\n"
+"Total: 61,706 参数\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:84
+msgid "**参数比例**：61,706 / 235,146 = **26.2%**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:86
+#, python-brace-format
+msgid "CNN仅用**1/4的参数**，却能完成相同的任务。这就是{doc}`introduction`中讨论的**归纳偏置**的威力——通过架构设计引入先验知识，大幅提升参数效率。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:90
+msgid "性能对比结果"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:92
+msgid "训练过程"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:95
+msgid "训练曲线对比（示意图）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:145
+msgid "从训练曲线可以观察到："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:147
+msgid "**收敛速度**：CNN更快达到高准确率（归纳偏置提供了好的初始化）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:148
+msgid "**过拟合程度**：全连接的测试-训练差距更大（缺乏正则化时更容易过拟合）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:149
+msgid "**最终性能**：CNN测试准确率更高"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:151
+msgid "最终性能对比"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "指标"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "差异分析"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "**参数量**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "235,146"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "61,706"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "CNN减少74%"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "**训练准确率**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "98.5%"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "99.2%"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "CNN学习更快"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "**测试准确率**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "97.8%"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "98.9%"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "**CNN提升1.1%**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "**训练时间**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "45分钟"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "30分钟"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "CNN快33%"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "**模型大小**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "940KB"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "247KB"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:94
+msgid "CNN更小"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:161
+msgid "关键发现"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:164
+msgid "**参数效率**：CNN用26%的参数达到更好的性能"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:165
+msgid "**泛化能力**：CNN测试-训练差距更小（0.3% vs 0.7%），过拟合更轻"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:166
+msgid "**计算效率**：卷积操作虽然涉及更多计算，但并行度高，实际训练更快"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:167
+msgid "**准确率提升**：1.1%的提升在手写识别中意味着每1000个数字少错11个"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:172
+msgid "为什么CNN表现更好？"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:174
+msgid "信息处理方式的差异"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:176
+msgid "首先，让我们直观对比两种架构如何处理输入图像："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:178
+msgid "全连接网络：展平为向量"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:196
+msgid "全连接网络的问题"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:198
+msgid "**空间结构丢失**：28×28的二维关系变成784维的一维向量"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:199
+msgid "**局部性破坏**：相邻像素在向量中可能相距很远"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:200
+msgid "**归纳偏置弱**：必须从零学习\"哪些像素相关\""
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:203
+msgid "CNN：保留空间结构的分层处理"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:206
+msgid "CNN的分层特征提取"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "CNN的优势"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:237
+msgid "**分层特征提取**：浅层学边缘，中层学形状，高层学语义"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:238
+msgid "**空间结构保留**：卷积操作保持二维关系"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:239
+msgid "**归纳偏置强**：内置\"相邻像素相关\"的先验知识"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:242
+msgid "CNN的归纳偏置：三个核心假设"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:244
+#, python-brace-format
+msgid "{doc}`introduction`介绍了归纳偏置的概念——学习算法对解空间的先验假设。CNN在图像任务上的优势，正源于它的三个关键归纳偏置："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:246
+msgid "1. 局部性（Locality）：相邻像素更相关"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:248
+msgid "**直觉**：看一张图片时，你不会先看左上角的像素，再看右下角的像素，然后把它们关联起来。你会先看一个局部区域——比如一个边缘、一个角点。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:250
+msgid "**数学体现**：卷积核只覆盖3×3或5×5的局部区域，而非整张图像。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:252
+msgid "**为什么有效**：物理世界中，物体的局部结构（边缘、纹理、形状）是识别的基础。CNN强制模型先学习局部特征，再组合成复杂模式，而不是试图直接建立像素到类别的全局映射。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:254
+msgid "2. 平移不变性（Translation Invariance）：特征位置不重要"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:256
+msgid "**直觉**：一只猫在图片左上角还是右下角，它都是猫。识别\"猫\"的特征（尖耳朵、胡须）不应该依赖于它们在图像中的具体位置。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:258
+msgid "**数学体现**：同一个卷积核滑过整张图像，无论特征出现在哪里，都用相同的权重检测。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:260
+msgid ""
+"**为什么有效**：全连接网络需要为每个位置的每个特征单独学习（784个位置 × 多种特征 = "
+"灾难）。CNN只需学习一次\"横线\"的特征，就能在任何位置检测它——参数量从\"位置数×特征数\"降到\"特征数\"。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:262
+msgid "3. 组合性（Compositionality）：复杂模式由简单特征组合"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:264
+msgid "**直觉**：识别\"数字8\"不需要直接学习8的形状。你可以先学习\"圆圈\"，然后发现\"8 = 上圆圈 + 下圆圈\"。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:266
+msgid "**数学体现**：CNN的分层结构——浅层检测边缘和纹理，中层组合成形状，高层组合成完整对象。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:268
+msgid "**为什么有效**：这种层次化的特征学习让CNN能够："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:270
+msgid "用少量基础特征（边缘、角点）组合出无限复杂模式"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:271
+msgid "在高层使用更抽象、更鲁棒的表示"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:272
+msgid "实现特征复用——学到\"圆圈\"后，\"6\"、\"8\"、\"9\"都能用"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:274
+msgid "从错误案例分析"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:276
+msgid "观察两种模型在测试集上的错误样本，可以验证归纳偏置的作用："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:278
+msgid "**全连接网络的典型错误**："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:280
+msgid "数字\"7\"带横线时被错认为\"1\"（未学习到\"横线\"这一局部特征，缺乏局部性归纳偏置）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:281
+msgid "旋转的数字识别率低（没有平移不变性，每个位置需单独学习）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:282
+msgid "笔画断裂的数字容易出错（缺乏对局部结构的鲁棒性，无法组合底层特征）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:284
+msgid "**CNN的典型错误**："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:286
+msgid "极度扭曲的数字（人类也难识别，超越了合理的变化范围）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:287
+msgid "与训练集分布差异大的样本（这是所有模型的共同局限）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:289
+msgid "归纳偏置的实践验证"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:291
+#, python-brace-format
+msgid "{doc}`introduction`中提出的归纳偏置假设，在实验中得到了验证："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "归纳偏置"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "理论预期"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "实验验证"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "**局部性**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "用更少参数学习局部特征"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "第一层卷积核确实学到边缘、纹理"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "**平移不变性**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "识别位置无关"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "数字在任何位置都能正确识别"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "**参数共享**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "减少参数量"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "参数量减少74%，性能反而提升"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:301
+msgid "架构选择指南"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:303
+msgid "基于实验结果，选择架构时可参考："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "场景"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "推荐架构"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "理由"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "**图像分类**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "CNN"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "空间归纳偏置匹配任务结构"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "**序列数据**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "RNN/Transformer"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+#, python-brace-format
+msgid "需要时间/顺序归纳偏置（详见 {ref}`sequence-modeling`）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "**表格数据**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "全连接"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "无明确空间结构，通用性更重要"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "**小数据集**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "CNN + 强正则化"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "好的先验减少数据需求"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "**快速原型**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:235
+msgid "实现简单，调试快"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "重要提醒"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:316
+msgid "架构选择不是非此即彼。现代深度学习常将两者结合："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:317
+msgid "CNN提取空间特征"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:318
+msgid "全连接层做最终分类（如LeNet的最后几层）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:319
+#, python-brace-format
+msgid "Transformer处理全局关系（详见 {ref}`transformer`）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:321
+msgid "关键在于理解**归纳偏置与任务匹配**的原则，而非死记架构名称。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:326
+msgid "总结"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:328
+#, python-brace-format
+msgid "本次实验用数据验证了{doc}`introduction`中的理论分析："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "对比维度"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "结论"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "**参数效率**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "低（235K参数）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "**高**（62K参数）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "归纳偏置减少74%参数"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "**训练速度**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "较慢"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "**较快**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "更好的初始化加速收敛"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "**泛化性能**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "易过拟合"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "**更稳定**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "测试准确率差距小"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "**最终准确率**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "**98.9%**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:313
+msgid "归纳偏置带来1.1%提升"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:337
+msgid "**核心启示**："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:339
+msgid "好的**归纳偏置**（先验知识）比单纯的参数量更重要"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:340
+msgid "**架构设计**是深度学习的关键技能，直接影响性能和效率"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:341
+msgid "**实验验证**是检验理论的唯一标准，数据比直觉更可靠"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:345
+msgid "练习峰，登顶。数据说话，没有悬念。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:347
+#, python-brace-format
+msgid "{doc}`the-end`——坐下来，写登山日志。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/exp-cmp.md:353
+msgid "参考文献"
+msgstr ""
+

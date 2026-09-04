@@ -59,18 +59,14 @@ jobs:
       - name: Prepare Sphinx
         run: |
             uv venv
-            uv sync
+            uv sync --locked
 
-      - name: Build HTML Pages
+      - name: Build bilingual documentation
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
             source .venv/bin/activate
-            make html
-
-      - name: Build PDF Documents
-        run: |
-            source .venv/bin/activate
-            make latexpdf
-            mv build/latex/deeplearningclubhandouts.pdf ./build/html # Move PDF to HTML folder for uploading
+            bash scripts/build-i18n-site.sh
 
       - name: Apply git lfs
         run: |
@@ -81,4 +77,4 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@4.1.0
         with:
           branch: gh-pages
-          folder: build/html
+          folder: build/i18n/site

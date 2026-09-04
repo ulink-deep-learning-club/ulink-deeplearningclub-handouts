@@ -1,0 +1,906 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, UCS Deep Learning Club and its contributors, licensed
+# under CC BY-SA 4.0
+# This file is distributed under the same license as the Deep Learning Club
+# Handouts package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Deep Learning Club Handouts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 16:17+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../../source/math-fundamentals/back-propagation.md:3
+msgid "反向传播算法"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:5
+msgid "反向传播的本质：信用分配"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:7
+msgid "神经网络训练时，我们根据最终损失来调整参数。核心问题是：**损失是由很多参数共同造成的，每个参数该\"背多少锅\"？**"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:9
+#, python-brace-format
+msgid ""
+"反向传播（Backpropagation）{cite}`rumelhart1986learning` 就是解决这个 "
+"\"**信用分配问题**\"的高效算法。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:11
+msgid "类比：团队项目的责任分摊"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:14
+msgid "想象一个团队项目失败了（损失很大），需要找出每个人的责任："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:16
+msgid "**前向传播**：项目执行过程，每个人完成自己的任务"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:17
+msgid "**反向传播**：从失败结果倒推，计算每个人对失败的责任（梯度）"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:18
+msgid "**链式法则**：如果A的工作影响了B，B的责任要按贡献度传递给A"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:21
+msgid "反向传播：梯度从输出流回输入"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:49
+msgid "链式法则：梯度的传递机制"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:51
+#, python-brace-format
+msgid ""
+"{ref}`back-propagation`的核心是**链式法则**（Chain "
+"Rule），这是微积分中复合函数求导的基本法则。想象你改变了输入 $x$ 一点点，这个变化会层层传递，最终影响损失 "
+"$L$。链式法则告诉我们：**总的影响是各层影响的乘积**。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:53
+#, python-brace-format
+msgid ""
+"回顾 {doc}`computational-graph` "
+"中讨论的**计算图**概念：神经网络可以被看作是一个由许多简单操作（加法、乘法、激活函数等）组成的图。反向传播正是沿着这个图的边，将梯度从输出传递回输入。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:55
+msgid "对于复合函数 $z = f(g(x))$，如果 $x$ 变化了 $\\Delta x$："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:57
+#, python-brace-format
+msgid "首先影响 $g$：$\\Delta g \\approx \\frac{\\partial g}{\\partial x} \\Delta x$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:58
+#, python-brace-format
+msgid "然后影响 $z$：$\\Delta z \\approx \\frac{\\partial z}{\\partial g} \\Delta g$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:59
+#, python-brace-format
+msgid ""
+"综合起来：$\\Delta z \\approx \\frac{\\partial z}{\\partial g} \\cdot "
+"\\frac{\\partial g}{\\partial x} \\cdot \\Delta x$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:61
+msgid "所以："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:63
+#, python-brace-format
+msgid ""
+"\\frac{\\partial z}{\\partial x} = \\frac{\\partial z}{\\partial g} "
+"\\cdot \\frac{\\partial g}{\\partial x}"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:65
+#, python-brace-format
+msgid ""
+"**直觉**：影响会**层层叠加**——就像多米诺骨牌，第一块倒下的角度（$\\frac{\\partial g}{\\partial "
+"x}$）乘以第二块倒下的角度（$\\frac{\\partial z}{\\partial g}$），就是最后一块倒下的总角度。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:67
+msgid "从标量到向量：Jacobian 矩阵"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:69
+msgid ""
+"上述链式法则适用于**标量函数**。但在神经网络中，每一层的输入和输出都是**向量**（几百甚至几千个神经元的值），而不是单个数字。所以我们需要一个推广版的导数——**Jacobian"
+" 矩阵**。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "从标量导数到 Jacobian"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:80
+msgid "每个元素 $(i,j)$ 的意思：\"第 $j$ 个输入变一点点，第 $i$ 个输出变多少\"。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:82
+#, python-brace-format
+msgid "形状：$(\\text{输出维度}) \\times (\\text{输入维度})$。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:87
+msgid "定义：Jacobian 矩阵"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:89
+#, python-brace-format
+msgid ""
+"对于向量值函数 $\\mathbf{f}: \\mathbb{R}^n \\rightarrow \\mathbb{R}^m$，其 "
+"Jacobian 矩阵 $\\mathbf{J} \\in \\mathbb{R}^{m \\times n}$ 定义为："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:91
+msgid ""
+"\n"
+"\\mathbf{J} = \\frac{\\partial \\mathbf{f}}{\\partial \\mathbf{x}} = "
+"\\begin{bmatrix}\n"
+"\\frac{\\partial f_1}{\\partial x_1} & \\frac{\\partial f_1}{\\partial "
+"x_2} & \\cdots & \\frac{\\partial f_1}{\\partial x_n} \\\\\n"
+"\\frac{\\partial f_2}{\\partial x_1} & \\frac{\\partial f_2}{\\partial "
+"x_2} & \\cdots & \\frac{\\partial f_2}{\\partial x_n} \\\\\n"
+"\\vdots & \\vdots & \\ddots & \\vdots \\\\\n"
+"\\frac{\\partial f_m}{\\partial x_1} & \\frac{\\partial f_m}{\\partial "
+"x_2} & \\cdots & \\frac{\\partial f_m}{\\partial x_n}\n"
+"\\end{bmatrix}"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:99
+#, python-brace-format
+msgid ""
+"每个元素 $J_{ij} = \\frac{\\partial f_i}{\\partial x_j}$ 的含义是：**第 $j$ "
+"个输入变化一点点，第 $i$ 个输出变化多少**。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:101
+#, python-brace-format
+msgid "**维度规则**：Jacobian 的形状是 $(\\text{输出维度}) \\times (\\text{输入维度})$。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:103
+msgid "**神经网络中的例子**："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:105
+#, python-brace-format
+msgid "一个全连接层 $\\mathbf{h} = W\\mathbf{x} + \\mathbf{b}$："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:106
+#, python-brace-format
+msgid "输入 $\\mathbf{x} \\in \\mathbb{R}^{100}$（100维）"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:107
+#, python-brace-format
+msgid "输出 $\\mathbf{h} \\in \\mathbb{R}^{64}$（64维）"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:108
+#, python-brace-format
+msgid "权重 $W \\in \\mathbb{R}^{64 \\times 100}$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:110
+msgid ""
+"其 Jacobian $\\frac{\\partial \\mathbf{h}}{\\partial \\mathbf{x}} = "
+"W$，正好是一个 $64 \\times 100$ 的矩阵。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:113
+msgid "多层网络的 Jacobian 连乘与梯度消失"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:115
+msgid "对于深层网络，损失 $L$ 对第 $l$ 层参数的梯度等于**每一层 Jacobian 的连乘**："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:117
+msgid ""
+"\n"
+"\\frac{\\partial L}{\\partial \\mathbf{h}_l} = "
+"\\underbrace{\\frac{\\partial L}{\\partial "
+"\\mathbf{h}_L}}_{\\text{输出层梯度}} \\cdot \\underbrace{\\frac{\\partial "
+"\\mathbf{h}_L}{\\partial \\mathbf{h}_{L-1}} \\cdot \\frac{\\partial "
+"\\mathbf{h}_{L-1}}{\\partial \\mathbf{h}_{L-2}} \\cdots \\frac{\\partial "
+"\\mathbf{h}_{l+1}}{\\partial \\mathbf{h}_l}}_{\\text{L-l 个 Jacobian "
+"矩阵相乘}}\n"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:121
+msgid "**关键洞察**：Jacobian 矩阵的连乘是梯度消失/爆炸的数学根源。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:123
+msgid "**如何理解 Jacobian 对梯度的影响？**"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:125
+msgid ""
+"想象 Jacobian 矩阵是一个\"放大器\"——它把输入的梯度变换成输出的梯度。我们用 $\\gamma$ 表示这个**放大倍数"
+"**[^gamma-def]："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:128
+msgid "如果 $\\gamma < 1$：梯度被\"缩小\"了"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:129
+msgid "如果 $\\gamma = 1$：梯度大小不变"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:130
+msgid "如果 $\\gamma > 1$：梯度被\"放大\"了"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:132
+msgid ""
+"对于简单的标量（单个数字），$\\gamma$ 就是导数的绝对值 $\\left|\\dfrac{\\partial "
+"h_{k+1}}{\\partial h_k}\\right|$。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:134
+msgid ""
+"对于向量（多个数字组成的层），这个放大倍数可以用**行列式**（determinant）来理解——行列式的绝对值告诉我们：经过这个线性变换后，空间的体积被放大或缩小了多少倍。虽然"
+" Jacobian 不一定是方阵，但核心直觉是一样的：每层都会对梯度进行\"缩放\"。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:136
+msgid "假设每层 Jacobian 的放大倍数为 $\\gamma$，经过 $n$ 层连乘后，梯度的总体放大倍数为 $\\gamma^n$："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "层数 $n$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "$\\gamma = 0.9$ (消失)"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "$\\gamma = 1.0$ (稳定)"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "$\\gamma = 1.1$ (爆炸)"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "10 层"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+#, python-brace-format
+msgid "$0.9^{10} \\approx 0.35$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "$1.0$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+#, python-brace-format
+msgid "$1.1^{10} \\approx 2.6$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "50 层"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+#, python-brace-format
+msgid "$0.9^{50} \\approx 0.005$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+#, python-brace-format
+msgid "$1.1^{50} \\approx 117$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "100 层"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+#, python-brace-format
+msgid "$0.9^{100} \\approx 2.6 \\times 10^{-5}$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+#, python-brace-format
+msgid "$1.1^{100} \\approx 13,780$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:144
+msgid "**梯度消失**（$\\gamma < 1$）："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:145
+msgid "当 $\\gamma < 1$ 时，梯度呈**指数级衰减**"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:146
+msgid "50层后衰减到 0.5%，几乎收不到梯度信号"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:147
+msgid "浅层参数无法更新，网络退化为\"浅层网络\""
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:149
+msgid "**梯度爆炸**（$\\gamma > 1$）："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:150
+msgid "当 $\\gamma > 1$ 时，梯度呈**指数级增长**"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:151
+msgid "100层后放大 13,780 倍，数值溢出"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:152
+msgid "参数更新剧烈，损失震荡发散甚至变成 NaN"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:154
+msgid "**实际神经网络中的 $\\gamma$ 值**："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "激活函数/技术"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "典型 $\\gamma$ 值"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "可训练深度"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "原因"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "Sigmoid"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "$\\leq 0.25$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "< 10 层"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "最大梯度在 0 处也只有 0.25"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "Tanh"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "$\\leq 1.0$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "< 15 层"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "比 Sigmoid 稍好，但仍会饱和"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "ReLU"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "$\\approx 0.5$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "20-30 层"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+#, python-brace-format
+msgid "负区间梯度为 0，正区间为 1（见 {doc}`activation-functions`）"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "BatchNorm"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "$\\approx 1.0$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "50+ 层"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "标准化梯度分布，稳定数值"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "跳跃连接"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+msgid "100+ 层"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:71
+#, python-brace-format
+msgid "提供梯度捷径，减少连乘长度（见 {doc}`../cnn-expedition/image-net-era/res-net`）"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:164
+msgid "**关键结论**："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:165
+msgid "只有当 $\\gamma \\approx 1$ 时，深层网络才能稳定训练"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:166
+msgid "从 Sigmoid → ReLU → BatchNorm → ResNet，每次突破都是让 $\\gamma$ 更接近 1"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:168
+msgid "这就是为什么深层网络训练困难，以及残差连接和跳跃连接能缓解这个问题的数学原理。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:170
+msgid "与后面内容的衔接"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:173
+msgid "下面\"常见问题\"部分会从更直观的角度解释梯度消失和爆炸，包括："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:174
+msgid "具体场景（什么时候会发生）"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:175
+msgid "后果（对训练的影响）"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:176
+msgid "解决方案（如何应对）"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:178
+msgid "两部分内容互补：这里侧重**数学原理**（Jacobian 连乘），后面侧重**实践指导**。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:181
+msgid "示例：简单计算图"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:183
+msgid "考虑 $f(x, y) = (x + y) \\times y$，设 $x=2, y=3$："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:185
+msgid "**前向传播**："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:187
+msgid "$a = x + y = 2 + 3 = 5$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:188
+msgid "$f = a \\times y = 5 \\times 3 = 15$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:190
+msgid "**反向传播**（假设损失对 $f$ 的梯度为1）："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:192
+#, python-brace-format
+msgid "$\\frac{\\partial f}{\\partial f} = 1$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:193
+#, python-brace-format
+msgid "$\\frac{\\partial f}{\\partial a} = y = 3$（乘法规则）"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:194
+#, python-brace-format
+msgid "$\\frac{\\partial f}{\\partial y} = a = 5$（乘法规则）"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:195
+#, python-brace-format
+msgid ""
+"$\\frac{\\partial f}{\\partial x} = \\frac{\\partial f}{\\partial a} "
+"\\cdot \\frac{\\partial a}{\\partial x} = 3 \\times 1 = 3$（链式法则）"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:196
+#, python-brace-format
+msgid "$\\frac{\\partial f}{\\partial y}$ 有两条路径：$= 5 + 3 = 8$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:198
+msgid "PyTorch中的自动微分"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:200
+msgid "PyTorch通过`autograd`自动完成反向传播："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:202
+#, python-brace-format
+msgid ""
+"import torch\n"
+"\n"
+"# 创建张量，启用梯度跟踪\n"
+"x = torch.tensor(2.0, requires_grad=True)\n"
+"y = torch.tensor(3.0, requires_grad=True)\n"
+"\n"
+"# 前向传播\n"
+"a = x + y      # a = 5\n"
+"f = a * y      # f = 15\n"
+"\n"
+"# 反向传播\n"
+"f.backward()\n"
+"\n"
+"print(f\"∂f/∂x = {x.grad}\")  # 输出: 3.0\n"
+"print(f\"∂f/∂y = {y.grad}\")  # 输出: 8.0\n"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:220
+msgid "**关键机制**："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:222
+#, python-brace-format
+msgid "`requires_grad=True`：告诉PyTorch需要跟踪这个张量的{ref}`computational-graph`"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:223
+#, python-brace-format
+msgid "PyTorch自动构建**动态计算图**（参见{ref}`computational-graph`）"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:224
+#, python-brace-format
+msgid "`.backward()`：自动执行{ref}`back-propagation`计算所有叶节点的梯度"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:226
+msgid "神经网络中的反向传播"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:228
+msgid "对于多层神经网络，反向传播从输出层逐层回传："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:231
+msgid "神经网络反向传播示意"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:264
+msgid "**流程**："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:266
+msgid "**前向传播**：数据从输入层 → 隐藏层 → 输出层，计算预测和损失"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:267
+msgid "**反向传播**：梯度从输出层 ← 隐藏层 ← 输入层，计算每个参数的梯度"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:268
+msgid "**参数更新**：使用梯度下降更新权重"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:270
+msgid "常见操作的梯度"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:272
+#, python-brace-format
+msgid "{ref}`back-propagation`的实现依赖于定义每个基本操作的梯度规则。下面是神经网络中常用操作的梯度："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:230
+msgid "操作"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:230
+msgid "前向"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:230
+msgid "反向梯度"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:230
+msgid "加法 $z = x + y$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:230
+msgid "$z = x + y$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:230
+#, python-brace-format
+msgid ""
+"$\\frac{\\partial L}{\\partial x} = \\frac{\\partial L}{\\partial z}$, "
+"$\\frac{\\partial L}{\\partial y} = \\frac{\\partial L}{\\partial z}$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:230
+msgid "乘法 $z = x \\times y$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:230
+msgid "$z = x \\times y$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:230
+#, python-brace-format
+msgid ""
+"$\\frac{\\partial L}{\\partial x} = \\frac{\\partial L}{\\partial z} "
+"\\cdot y$, $\\frac{\\partial L}{\\partial y} = \\frac{\\partial "
+"L}{\\partial z} \\cdot x$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:230
+msgid "ReLU $z = \\max(0, x)$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:230
+msgid "$z = \\max(0, x)$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:230
+#, python-brace-format
+msgid ""
+"$\\frac{\\partial L}{\\partial x} = \\frac{\\partial L}{\\partial z}$ (if"
+" $x>0$), else 0"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:230
+msgid "Sigmoid $z = \\sigma(x)$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:230
+msgid "$z = \\sigma(x)$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:230
+#, python-brace-format
+msgid ""
+"$\\frac{\\partial L}{\\partial x} = \\frac{\\partial L}{\\partial z} "
+"\\cdot z(1-z)$"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:281
+#, python-brace-format
+msgid "更多激活函数的梯度定义，参见 {doc}`activation-functions`。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:283
+msgid "反向传播的优势"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:285
+msgid "1. 计算效率"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:287
+#, python-brace-format
+msgid ""
+"{ref}`back-propagation`的时间复杂度是 $O(n)$，其中 $n$ 是{ref}`computational-"
+"graph`中边的数量。相比之下，数值差分需要 $O(n \\times p)$，其中 $p$ 是参数数量。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:289
+msgid "**关键**：通过复用中间计算结果，避免重复求导。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:291
+msgid "2. 模块化设计"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:293
+msgid "每个操作只需要定义："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:295
+msgid "前向：如何计算输出"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:296
+msgid "反向：如何计算梯度"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:298
+msgid "这使得添加新操作变得简单。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:300
+msgid "常见问题"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:303
+msgid "梯度消失（Vanishing Gradient）"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:305
+msgid "想象一个100层的神经网络。当你训练时，发现靠近输出层的参数更新正常，但靠近输入层的参数几乎不动——就像前面几十层\"冻住\"了一样。这就是**梯度消失**。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:307
+msgid "为什么会发生？回顾链式法则：梯度是**各层影响的乘积**。如果每一层的梯度都小于1（比如Sigmoid在饱和区的梯度只有0.01），100层连乘后："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:309
+#, python-brace-format
+msgid "0.01 \\times 0.01 \\times ... \\times 0.01 \\quad (100次) = 10^{-200}"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:311
+msgid "这个数小到计算机都当成0处理了！具体场景是：使用Sigmoid/Tanh激活函数时，输入值很大或很小会让函数进入\"饱和区\"，梯度接近0；网络层数越深，问题越严重。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:313
+msgid "**后果**：前面的层学不到东西，模型退化成\"浅层网络\"——只有后面几层在学习。对于图像数据，前面的层本应学习边缘、纹理等基础特征，但这些特征学不到。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:315
+#: ../../../source/math-fundamentals/back-propagation.md:335
+msgid "**解决方案**："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:316
+#, python-brace-format
+msgid "**ReLU激活函数**：正区间的梯度恒为1，不会衰减（见 {doc}`activation-functions`）"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:317
+msgid "**批归一化（BatchNorm）**：控制每层的数值范围，避免进入饱和区"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:318
+#, python-brace-format
+msgid ""
+"**残差连接（ResNet）**：让梯度有\"捷径\"可以直达前面层（见 {doc}`../cnn-expedition/image-net-"
+"era/res-net` 中的数学推导）"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:319
+#, python-brace-format
+msgid ""
+"**跳跃连接（U-Net）**：在编码器-解码器架构中保留梯度路径（见 {doc}`../unet-image-"
+"segmentation/u-net`）"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:323
+msgid "梯度爆炸（Exploding Gradient）"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:325
+msgid "训练过程中，损失突然变成NaN（不是数字），或者参数变得极其巨大（比如从0.1变成1000000），模型完全失控。这就是**梯度爆炸**。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:327
+msgid "为什么会发生？和梯度消失相反，如果每层的梯度都大于1（比如权重初始化过大，梯度为2），100层连乘后："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:329
+#, python-brace-format
+msgid "2 \\times 2 \\times ... \\times 2 \\quad (100次) = 2^{100} \\approx 10^{30}"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:331
+#, python-brace-format
+msgid ""
+"这是一个天文数字！参数会被更新得极其剧烈，完全偏离最优解。常见于权重初始化不当，或循环神经网络（RNN，详见 {ref}`rnn-"
+"problems`）处理长序列时的梯度爆炸。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:333
+msgid "**后果**：参数更新过大跳出最优解区域，损失函数震荡发散，甚至数值溢出（NaN）导致训练彻底失败。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:336
+msgid "**梯度裁剪**：设定梯度上限，超过就截断"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:337
+msgid "**权重正则化（L2正则）**：惩罚过大的权重"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:338
+msgid "**更好的初始化**：如Xavier初始化、He初始化，控制初始梯度规模"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:339
+msgid "**更小的学习率**：让参数更新更温和"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:341
+msgid "总结"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:343
+msgid "反向传播是深度学习的核心算法："
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:345
+msgid "**信用分配**：将最终损失\"分摊\"给每个参数"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:346
+#, python-brace-format
+msgid "**链式法则**：梯度从输出层逐层回传（基于 {doc}`computational-graph` 的结构）"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:347
+msgid "**高效计算**：复用中间结果，时间与网络规模线性相关"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:349
+#, python-brace-format
+msgid "反向传播计算出的梯度用于更新模型参数。下一节 {doc}`gradient-descent` 将详细介绍如何利用这些梯度进行参数优化。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:351
+#, python-brace-format
+msgid ""
+"关于反向传播在实际神经网络训练中的应用，参见 {doc}`../cnn-expedition/practice-peak/neural-"
+"training-basics`。"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:357
+msgid "参考文献"
+msgstr ""
+
+#: ../../../source/math-fundamentals/back-propagation.md:126
+msgid ""
+"这里是简化的版本，实际应为 **最大奇异值**（maximum singular value）。对向量（多层梯度）而言，局部放大倍数由 "
+"Jacobian 矩阵 $\\frac{\\partial h_{k+1}}{\\partial h_k}$ "
+"的最大奇异值给出，它决定了梯度模长经过这一层映射后被放大或缩小的最大倍数。"
+msgstr ""
+

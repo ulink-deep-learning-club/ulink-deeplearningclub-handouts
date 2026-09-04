@@ -1,0 +1,436 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, UCS Deep Learning Club and its contributors, licensed
+# under CC BY-SA 4.0
+# This file is distributed under the same license as the Deep Learning Club
+# Handouts package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Deep Learning Club Handouts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 16:17+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:2
+msgid "SE-Net：学会聚焦"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:4
+#, python-brace-format
+msgid "{doc}`res-net` 建好了补给站，解决了高原反应。但还有一个更深的问题："
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:6
+msgid ""
+"**CNN 对所有特征一视同仁。** "
+"无论这个通道编码的是\"狗耳朵\"还是\"背景噪声\"，卷积核给的权重一样。就像登山者盯着每一块岩石——包括那些根本不值得抓的碎石。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:8
+msgid "登山老手不会这样。他们知道什么时候聚焦裂缝，什么时候忽略光滑的岩面。**不是所有特征都值得抓。**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:10
+#, python-brace-format
+msgid ""
+"SE-Net（Squeeze-and-Excitation Networks）{cite}`hu2018squeeze` 给 CNN "
+"装上了\"可学习的放大镜\"——让网络自己判断\"哪些通道重要\"，然后动态分配权重。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:12
+msgid "它的核心洞察只有三行代码：**压缩 → 激励 → 缩放**。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:14
+msgid "想想你在管理一个团队：你有很多个员工（通道），每个员工都有不同的专长。但你的资源有限，需要决定谁更重要。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:16
+msgid "SE-Net的三步直觉"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:19
+msgid "**压缩（Squeeze）**：你让每个员工交一份\"工作总结\"——用一句话概括他这周做了什么。对应到网络：把每个通道的整个特征图压缩成一个数字（全局平均池化）。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:20
+msgid "**激励（Excite）**：你看了所有总结，判断谁的工作更重要——给每个员工分配一个\"重要性分数\"。对应到网络：用两个全连接层学习通道间的依赖关系，输出每个通道的权重。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:21
+msgid "**缩放（Scale）**：按重要性分配资源——重要员工获得更多支持，不重要员工减少资源。对应到网络：把权重乘回原始特征图，重要通道被增强，不重要通道被抑制。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:24
+msgid "**关键洞察**：SE-Net 不改变网络的结构（通道数不变），而是改变\"流经每个通道的信息量\"——就像调节音量旋钮，而不是换音箱。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:30
+msgid "SE-Net 模块结构：Squeeze → Excite → Scale"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:33
+msgid "三步详解"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:35
+msgid "1. Squeeze：压缩"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:37
+#, python-brace-format
+msgid ""
+"输入是一个特征图 $X \\in \\mathbb{R}^{C \\times H \\times W}$（$C$ 个通道，每个 $H "
+"\\times W$）。Squeeze 操作把每个通道压缩成单个数字："
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:39
+#, python-brace-format
+msgid "z_c = \\frac{1}{H \\times W} \\sum_{i=1}^H \\sum_{j=1}^W x_c(i,j)"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:43
+msgid ""
+"这其实就是全局平均池化（Global Average "
+"Pooling）。为什么用平均？因为我们想获取每个通道的\"全局统计信息\"——不只看局部响应，而是看整个特征图的平均激活强度。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:46
+msgid "**直觉**：如果一个通道的平均激活值很高，说明该通道编码的特征在整张图片中都很\"活跃\"，可能很重要。反之，平均激活值低的通道可能对当前任务贡献不大。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:49
+msgid "2. Excitation：学习权重"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:51
+#, python-brace-format
+msgid "有了每个通道的\"工作总结\"$z \\in \\mathbb{R}^C$，接下来要学习通道间的依赖关系："
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:53
+msgid "s = \\sigma(W_2 \\cdot \\delta(W_1 \\cdot z))"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:57
+msgid "其中："
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:59
+#, python-brace-format
+msgid "$W_1 \\in \\mathbb{R}^{C/r \\times C}$：降维层，先把 $C$ 维压缩到 $C/r$ 维"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:60
+msgid "$\\delta$：ReLU 激活函数"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:61
+#, python-brace-format
+msgid "$W_2 \\in \\mathbb{R}^{C \\times C/r}$：升维层，恢复回 $C$ 维"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:62
+msgid "$\\sigma$：Sigmoid 激活函数，输出 $(0,1)$ 之间的权重"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:64
+msgid "**为什么用瓶颈结构（先降维再升维）？**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:66
+msgid "瓶颈结构的设计动机"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:69
+msgid ""
+"**减少参数量**：直接学习 $C \\times C$ 的变换需要 $C^2$ 个参数。用瓶颈结构只需要 $2C^2/r$ 个参数，当 "
+"$r=16$ 时减少了 8 倍。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:70
+msgid "**引入非线性**：降维→ReLU→升维的结构比单层线性变换有更强的表达能力。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:71
+msgid "**学习通道间关系**：瓶颈迫使信息通过一个低维\"瓶颈\"，这迫使网络学到通道间的紧凑表示。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:73
+msgid "压缩比 $r$ 控制瓶颈的宽度：$r$ 越大参数越少，但表达能力也越弱。通常取 $r=16$。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:76
+msgid "3. Scale：加权"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:78
+msgid "把学习到的权重 $s_c \\in (0,1)$ 乘回原始特征图的对应通道："
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:80
+#, python-brace-format
+msgid "\\tilde{x}_c = s_c \\cdot x_c"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:84
+msgid "这就是一个逐通道的缩放操作。权重接近 1 的通道被保留甚至增强，权重接近 0 的通道被抑制。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:86
+msgid "SE-ResNet 集成"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:88
+msgid "SE 模块通常插入到残差块中、残差连接之前："
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:90
+msgid "SE-ResNet基础块实现"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:90
+#, python-brace-format
+msgid ""
+"import torch\n"
+"import torch.nn as nn\n"
+"from .se_block import SEBlock\n"
+"\n"
+"\n"
+"class SEBasicBlock(nn.Module):\n"
+"    \"\"\"\n"
+"    带有 SE 模块的 ResNet 基础块\n"
+"\n"
+"    SE 模块插入在第二个卷积之后、残差连接之前:\n"
+"    Conv1 → BN → ReLU → Conv2 → BN → SE → + → ReLU\n"
+"                                     ↑\n"
+"                             残差连接 ─┘\n"
+"\n"
+"    输入: (B, C, H, W)\n"
+"    输出: (B, planes*expansion, H/stride, W/stride)\n"
+"    \"\"\"\n"
+"    expansion = 1\n"
+"\n"
+"    def __init__(self, inplanes, planes, stride=1, downsample=None, "
+"reduction=16):\n"
+"        super(SEBasicBlock, self).__init__()\n"
+"\n"
+"        self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=3,\n"
+"                               stride=stride, padding=1, bias=False)\n"
+"        self.bn1 = nn.BatchNorm2d(planes)\n"
+"\n"
+"        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3,\n"
+"                               stride=1, padding=1, bias=False)\n"
+"        self.bn2 = nn.BatchNorm2d(planes)\n"
+"\n"
+"        # SE 模块: 在第二个卷积后, 残差连接前\n"
+"        self.se = SEBlock(planes, reduction)\n"
+"\n"
+"        self.downsample = downsample\n"
+"        self.stride = stride\n"
+"        self.relu = nn.ReLU(inplace=True)\n"
+"\n"
+"    def forward(self, x):\n"
+"        identity = x\n"
+"\n"
+"        out = self.conv1(x)\n"
+"        out = self.bn1(out)\n"
+"        out = self.relu(out)\n"
+"\n"
+"        out = self.conv2(out)\n"
+"        out = self.bn2(out)\n"
+"\n"
+"        # 注意力: 在特征融合前重新校准通道重要性\n"
+"        out = self.se(out)\n"
+"\n"
+"        # 残差连接\n"
+"        if self.downsample is not None:\n"
+"            identity = self.downsample(x)\n"
+"\n"
+"        out += identity\n"
+"        out = self.relu(out)\n"
+"\n"
+"        return out\n"
+"\n"
+"if __name__ == \"__main__\":\n"
+"    x = torch.randn(2, 64, 32, 32)\n"
+"    block = SEBasicBlock(64, 64)\n"
+"    y = block(x)\n"
+"    print(f\"Input shape: {x.shape}\")\n"
+"    print(f\"Output shape: {y.shape}\")\n"
+"    print(f\"Block params: {sum(p.numel() for p in "
+"block.parameters())}\")\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:100
+msgid "SE-ResNet：在残差块中插入SE模块"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:104
+msgid "参数量与计算开销"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:106
+msgid "SE 模块的参数量为："
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:108
+#, python-brace-format
+msgid ""
+"\\text{Params} = \\frac{C}{r} \\times C + C \\times \\frac{C}{r} = "
+"\\frac{2C^2}{r}"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:112
+msgid ""
+"当 $C=256, r=16$ 时，参数数量为 $2 \\times 256^2 / 16 = 8,192$——相对于 ResNet-50 的 "
+"2500 万参数可以忽略不计。计算开销增加也小于 1%。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:114
+msgid "SE-Net的关键贡献"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:117
+msgid "仅增加约 **1%** 计算量，提升 **1-2%** 准确率"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:118
+msgid "即插即用：可集成到任何CNN架构中（ResNet、MobileNet、Inception等）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:119
+msgid "在 ImageNet 上，SE-ResNet-50 达到 **77.62%** Top-1 准确率，比基线提升 **+1.47%**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:122
+msgid "PyTorch 实现"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:124
+msgid "SE模块的PyTorch实现"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:124
+#, python-brace-format
+msgid ""
+"import torch\n"
+"import torch.nn as nn\n"
+"\n"
+"class SEBlock(nn.Module):\n"
+"    \"\"\"\n"
+"    Squeeze-and-Excitation 模块\n"
+"\n"
+"    三步核心操作：\n"
+"    1. Squeeze: 全局平均池化, 将 C×H×W 压缩为 C×1×1\n"
+"    2. Excitation: 两个全连接层学习通道权重 (瓶颈结构)\n"
+"    3. Scale: 权重乘回原始特征图\n"
+"\n"
+"    参数量: 2 * C * (C/r) = 2C²/r\n"
+"    输入: (B, C, H, W)\n"
+"    输出: (B, C, H, W)\n"
+"    \"\"\"\n"
+"    def __init__(self, channels, reduction=16):\n"
+"        super(SEBlock, self).__init__()\n"
+"\n"
+"        # Squeeze: 全局平均池化, 每个通道压缩为一个标量\n"
+"        # 输入 (B, C, H, W) → 输出 (B, C, 1, 1)\n"
+"        self.avg_pool = nn.AdaptiveAvgPool2d(1)\n"
+"\n"
+"        # Excitation: 瓶颈结构, 压缩比 r=16 减少参数量\n"
+"        # C → C/r → C, 参数: C*(C/r) + (C/r)*C = 2C²/r\n"
+"        self.fc = nn.Sequential(\n"
+"            nn.Linear(channels, channels // reduction, bias=False),  # 降维"
+"\n"
+"            nn.ReLU(inplace=True),                                   # "
+"非线性\n"
+"            nn.Linear(channels // reduction, channels, bias=False),  # 升维"
+"\n"
+"            nn.Sigmoid()                                             # 输出"
+" (0,1) 权重\n"
+"        )\n"
+"\n"
+"    def forward(self, x):\n"
+"        b, c, _, _ = x.size()\n"
+"\n"
+"        # Squeeze: (B, C, H, W) → (B, C, 1, 1) → (B, C)\n"
+"        y = self.avg_pool(x).view(b, c)\n"
+"\n"
+"        # Excitation: (B, C) → (B, C/r) → (B, C) → (B, C, 1, 1)\n"
+"        y = self.fc(y).view(b, c, 1, 1)\n"
+"\n"
+"        # Scale: 逐通道乘法, 广播到 H×W\n"
+"        # 每个通道乘以对应的标量权重\n"
+"        return x * y.expand_as(x)\n"
+"\n"
+"if __name__ == \"__main__\":\n"
+"    x = torch.randn(2, 64, 32, 32)\n"
+"    se = SEBlock(64, reduction=16)\n"
+"    y = se(x)\n"
+"    print(f\"Input shape: {x.shape}\")\n"
+"    print(f\"Output shape: {y.shape}\")\n"
+"    print(f\"SEBlock parameters: {sum(p.numel() for p in "
+"se.parameters())}  (2*64²/16 = 512)\")\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:130
+msgid "**代码要点**："
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:132
+msgid "`AdaptiveAvgPool2d((1, 1))` 实现 Squeeze：把任意尺寸的特征图压缩到 $1 \\times 1$"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:133
+msgid "`Linear` 层的输入输出维度由压缩比 $r$ 控制"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:134
+msgid "Sigmoid 保证输出在 $(0,1)$ 范围内"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:135
+msgid "`x * self.scale` 实现逐通道加权"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:137
+msgid "本章小结"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:139
+msgid "SE-Net 通过 **Squeeze → Excitation → Scale** 三步实现通道注意力"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:140
+msgid "核心是让网络学习\"每个通道的重要性权重\"，然后据此重新校准特征"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:141
+msgid "结构简单、计算开销小、即插即用"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:143
+msgid ""
+"通道注意力解决了\"什么特征重要\"。但还有一个问题：**同一个特征，出现在画面的不同位置，意义完全不同。** "
+"\"耳朵\"在画面中央是猫，在角落是噪声。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:145
+#, python-brace-format
+msgid "{doc}`cbam`——走。不只选频道，还要调区域。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/image-net-era/se-net.md:151
+msgid "参考文献"
+msgstr ""
+

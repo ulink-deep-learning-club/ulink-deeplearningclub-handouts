@@ -1,0 +1,1108 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, UCS Deep Learning Club and its contributors, licensed
+# under CC BY-SA 4.0
+# This file is distributed under the same license as the Deep Learning Club
+# Handouts package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Deep Learning Club Handouts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 16:17+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:2
+msgid "训练基础：登山纪律"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:4
+msgid "登山纪律——装备好也会摔，监控损失曲线，控制学习率。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:6
+#, python-brace-format
+msgid ""
+"行囊备好。但登山者的第一条铁律：**先学纪律，再学攀登。** "
+"纪律是什么？监控损失曲线——知道模型在变好还是变坏；选对学习率——步子太大摔跤，太小爬不动；知道什么时候停——练过头就是死记硬背。这些比架构本身更能决定一次攀登的成败。{doc"
+"}`fc-layer-basics` 和 {doc}`cnn-basics` "
+"教会了你搭架构——但知道\"建什么\"不等于知道\"怎么训练\"。本节从 {ref}`gradient-descent` 和 {ref"
+"}`back-propagation` 的理论出发，掌握让神经网络真正\"学会\"的实战技巧。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:8
+msgid "训练的本质：从数据到能力"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:10
+msgid "想象你在教小孩认数字。你不会只给他看一遍卡片就指望他记住，而是需要："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:12
+msgid "**反复练习**：同一组卡片看很多遍（多轮训练）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:13
+msgid "**及时反馈**：猜对了表扬，猜错了纠正（计算损失）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:14
+msgid "**循序渐进**：从简单到复杂，调整学习节奏（学习率调度）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:15
+msgid "**防止死记**：确保他理解数字的本质，不只是记住卡片（防止过拟合）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:17
+#, python-brace-format
+msgid "神经网络训练完全遵循同样的逻辑。{ref}`gradient-descent`告诉我们沿着梯度方向更新参数，但实践中还有大量细节需要把握。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:21
+msgid "核心训练概念"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:23
+msgid "在深入之前，我们需要统一几个基本概念："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:25
+msgid "**Epoch（轮次）**：完整遍历整个训练数据集一次。就像把整副卡片从头到尾看一遍。MNIST有60,000张训练图片，一个epoch就是看完全部60,000张。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:27
+msgid ""
+"**Batch（批次）**：一次更新参数时使用的样本集合。如果一次看一张就更新，效率太低；如果看完60,000张才更新，内存可能不够。**Batch"
+" Size**就是每批的样本数，常用32、64、128等2的幂次。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:29
+msgid "**Iteration（迭代）**：完成一个批次的训练。一个epoch包含的迭代次数 = 总样本数 ÷ Batch Size。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:31
+msgid "MNIST训练示例"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:34
+msgid "总训练样本：60,000张"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:35
+msgid "Batch Size：64"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:36
+msgid "每epoch的迭代次数：60,000 ÷ 64 ≈ 938次"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:37
+msgid "训练10个epoch：总共迭代9,380次，更新参数9,380次"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:42
+msgid "损失函数的选择"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:44
+#, python-brace-format
+msgid "{ref}`loss-functions`中我们讨论了不同任务的损失函数设计。在实战中，选择主要取决于**任务类型**："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:31
+msgid "任务类型"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:31
+msgid "推荐损失函数"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:31
+msgid "为什么"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:31
+msgid "回归"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:31
+msgid "MSE / MAE"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:31
+msgid "直接衡量数值偏差"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:31
+msgid "二分类"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:31
+msgid "BCE Loss"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:31
+msgid "衡量概率校准程度"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:31
+msgid "多分类"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:31
+msgid "CrossEntropy"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:31
+msgid "结合Softmax，梯度更稳定"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:52
+msgid "MNIST的交叉熵"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:55
+msgid "MNIST是10类分类，使用**交叉熵损失**："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:57
+#, python-brace-format
+msgid ""
+"\n"
+"\\mathcal{L} = -\\sum_{c=1}^{10} y_c \\log(p_c)\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:61
+msgid "$y_c$：真实标签的one-hot编码（目标类别为1，其余为0）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:62
+msgid "$p_c$：Softmax输出的概率"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:64
+#, python-brace-format
+msgid ""
+"**为什么不用MSE？** 分类任务的输出是概率分布，交叉熵对这种\"分布间的差异\"更敏感，且避免了梯度消失问题（见{ref}`back-"
+"propagation`）。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:69
+msgid "过拟合与欠拟合：学习的两种失败"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:71
+msgid "训练神经网络就像准备考试——有两种典型的失败模式："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:73
+msgid "欠拟合：学得太少"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:75
+msgid "想象一个学生只翻了翻课本，没做练习题就去考试："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:77
+msgid "训练时表现就不好（训练损失高）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:78
+msgid "考试时更差（验证损失也高）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:79
+msgid "**原因**：模型太简单，没能捕捉数据的基本规律"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:80
+msgid "**解决**：增加网络深度、训练更长时间、降低正则化强度"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:82
+msgid "过拟合：死记硬背"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:84
+msgid "另一个学生把所有练习题都背下来了："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:86
+msgid "做练习题时几乎全对（训练损失很低）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:87
+msgid "遇到新题就不会（验证损失高，差距大）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:88
+msgid "**原因**：模型记住了训练数据的噪声，而非学习通用规律"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:89
+msgid "**解决**：使用正则化、早停、数据增强、降低模型复杂度"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:92
+msgid "模型复杂度与泛化性能"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:119
+msgid "图中的\"最佳点\"是我们追求的目标：足够复杂的模型捕捉规律，但不至于过拟合。找到这个点需要**验证集**——用训练集学习，用验证集调参，最后用测试集评估。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:123
+msgid "数据划分：训练集、验证集、测试集"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:125
+msgid "为什么需要三组数据？"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:127
+msgid "**训练集**：学习参数（权重和偏置）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:128
+msgid "**验证集**：选择超参数（学习率、网络结构、正则化强度）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:129
+msgid "**测试集**：最终评估（只能用一次！）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:131
+msgid "测试集的禁忌"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:134
+msgid "测试集只能用于最终报告，绝不能用来调参或选择模型。否则就像考试时偷看答案——分数虚高，真实能力被高估。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:137
+msgid ""
+"MNIST的标准划分：60,000训练 + "
+"10,000测试。实践中，我们会从训练集中分出10%（6,000张）作为验证集，剩下54,000张真正用于训练。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:142
+msgid "正则化：防止死记硬背的四种方法"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:144
+msgid "正则化的核心思想：**限制模型的\"记忆能力\"，逼迫它学习\"理解能力\"**。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:146
+msgid "为什么需要限制？想象一个拥有超强记忆力的学生——他可以背下所有练习题答案，考试时遇到原题全对，但稍微变化就不会。神经网络也有这种\"过强记忆\"的能力，特别是参数量大时。正则化就是防止这种\"死记硬背\"。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:150
+msgid "1. L2正则化（权重衰减）：强制\"粗笔画\""
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:152
+msgid "核心洞察：权重大小决定决策边界的\"粗细\""
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:155
+msgid "想象用画笔画画："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:156
+msgid "**细笔画**（大权重）：可以画出非常锐利、复杂的边界，精确勾勒每个训练样本的细节——就像用0.5mm的针管笔，能画出极细的线条"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:157
+msgid "**粗笔画**（小权重）：只能画出平滑、模糊的轮廓，捕捉大体形状——就像用毛笔，线条自然柔和"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:159
+msgid "神经网络的决策边界也是由权重决定的。大权重让边界变得\"尖锐\"，可以\"钻牛角尖\"去拟合每个训练点；小权重让边界保持\"平滑\"，只能学习通用的模式。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:162
+msgid "为什么L2惩罚能实现这一点？"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:164
+msgid "L2正则化在损失函数中加入权重的平方和："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:166
+msgid ""
+"\n"
+"\\mathcal{L}_{\\text{total}} = \\mathcal{L}_{\\text{original}} + "
+"\\frac{\\lambda}{2} \\sum_{i} w_i^2\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:170
+msgid "**关键洞察**：平方惩罚对大权重的\"惩罚力度\"远大于小权重。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:152
+msgid "权重值"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:152
+msgid "原始损失惩罚"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:152
+msgid "平方惩罚"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:152
+msgid "相对增加"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:152
+msgid "0.1"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:152
+msgid "1"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:152
+msgid "0.01"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:152
+msgid "1%"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:152
+msgid "1.0"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:152
+msgid "0.5"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:152
+msgid "50%"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:152
+msgid "10.0"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:152
+msgid "50"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:152
+msgid "5000%"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:178
+msgid "**结果**：优化器会发现，与其让少数权重变得很大（承担巨额平方惩罚），不如让所有权重都保持较小。这就像税收——平方税率对大收入者更严厉，促使财富分布更均匀。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:180
+msgid ""
+"# PyTorch中的L2正则化（weight_decay）\n"
+"optimizer = torch.optim.Adam(\n"
+"    model.parameters(),\n"
+"    lr=0.001,\n"
+"    weight_decay=1e-4  # λ = 0.0001\n"
+")\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:189
+msgid ""
+"**为什么有效？** "
+"小权重的网络更\"保守\"，不会为了拟合某个训练样本的噪声而剧烈调整输出。它必须找到更通用的规律，才能在保持权重小的同时降低原始损失。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:193
+msgid "2. Dropout：随机\"罢工\"迫使协作"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:195
+#, python-brace-format
+msgid ""
+"Dropout 由 Srivastava 等人在 2014 年提出 "
+"{cite}`srivastava2014dropout`，是防止神经网络过拟合的有效方法。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:197
+msgid "核心洞察：随机\"点名\"防止依赖\"学霸\""
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:200
+msgid "想象一个班级有50人，老师提问时总是叫同一个\"学霸\"回答："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:201
+msgid "学霸越来越厉害（某些神经元权重变得极大）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:202
+msgid "其他同学从不思考（其他神经元权重趋于0）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:203
+msgid "结果：班级极度依赖学霸，一旦学霸生病（过拟合到新数据），全班表现崩盘"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:205
+msgid "Dropout就像**随机点名**：每次提问随机抽一半同学，学霸也可能被抽中休息。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:206
+msgid "**后果**：每个人都必须准备好回答问题"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:207
+msgid "**结果**：知识必须在全班**分布式存储**，形成**冗余表示**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:210
+msgid "为什么冗余表示能防止过拟合？"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:212
+msgid "过拟合的本质是\"记忆\"——模型记住了训练数据的具体特征（包括噪声）。如果知识只存储在少数几个神经元中，这些神经元就会\"死记硬背\"训练样本。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:214
+msgid "Dropout 迫使知识分散存储："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:216
+msgid "识别\"横线\"的特征不是由某1个神经元专门负责，而是由10个神经元共同分担"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:217
+msgid "即使其中5个被\"dropout\"了，剩下5个还能大致识别横线"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:218
+msgid "每个神经元都不能\"偷懒\"记忆特定样本，必须学习通用特征"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:220
+msgid ""
+"class Net(nn.Module):\n"
+"    def __init__(self):\n"
+"        super().__init__()\n"
+"        self.fc1 = nn.Linear(784, 256)\n"
+"        self.dropout = nn.Dropout(0.5)  # 50%的dropout\n"
+"        self.fc2 = nn.Linear(256, 10)\n"
+"        \n"
+"    def forward(self, x):\n"
+"        x = F.relu(self.fc1(x))\n"
+"        x = self.dropout(x)  # 训练时随机丢弃，测试时自动关闭\n"
+"        return self.fc2(x)\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:234
+msgid ""
+"**测试时为什么关闭Dropout？** 训练时的随机丢弃相当于训练了多个\"子网络\"（2^N种可能的组合）。测试时我们使用完整网络，相当于 "
+"**集成（ensemble）** 了所有这些子网络的预测，取平均——这通常比任何单个子网络更稳定。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:239
+msgid "3. 早停法：在\"最佳点\"刹车"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:241
+msgid "核心洞察：训练就像在山谷中行走，不要越过谷底"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:244
+msgid "想象你在一个山谷中（损失函数的Loss Landscape），从高处往低处走（梯度下降）："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:246
+msgid "**初期**：你在宽阔的山谷顶部，大步流星地向谷底走去——训练损失和验证损失都在下降，方向基本一致。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:248
+msgid "**中期**：你接近谷底，步伐变小，损失下降变慢——但仍朝着正确的方向微调。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:250
+msgid "**后期**：如果你继续走，可能会**越过谷底**，走上另一侧山坡——训练损失还在下降（因为你更贴合训练数据），但验证损失开始上升（因为你开始\"钻牛角尖\"，拟合了训练集的噪声）。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:254
+msgid "早停法：在谷底停止，不要越过"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:281
+msgid "为什么验证损失上升意味着过拟合？"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:283
+msgid "训练损失只衡量模型在**训练数据**上的表现。当你训练太久，模型开始\"记住\"训练数据中的噪声——那些只存在于训练集、不存在于真实世界的随机波动。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:285
+msgid "验证集是**独立的**数据，不包含训练集的噪声。所以当模型开始拟合训练噪声时，它在验证集上的表现反而会变差。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:287
+msgid "**早停法的本质**：在\"学习真实规律\"和\"记忆训练噪声\"的临界点停止训练。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:289
+msgid "工程实现：框架中的早停"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:292
+#, python-brace-format
+msgid ""
+"社团框架将早停封装为一行参数——`--patience 5` 表示验证损失连续 5 轮不下降即停止训练。详见{ref}`framework-"
+"experiments`。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:297
+msgid "4. 数据增强：免费的\"新数据\""
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "核心洞察：更多数据帮助区分\"本质\"与\"偶然\""
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:302
+msgid "想象你要学会\"识别圆形\"："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:303
+msgid "只看过1个圆 → 你可能以为\"红色、半径5cm、在画面中央\"才是圆的本质特征"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:304
+msgid "看过100个圆（不同颜色、不同大小、不同位置）→ 你意识到\"到中心点距离相等\"才是本质，颜色和大小只是偶然特征"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:306
+msgid "**过拟合的本质是\"将偶然当成必然\"**——把训练数据中的特定属性（如\"这个位置的像素总是白色\"）当成了类别的本质特征。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:308
+msgid "数据增强通过创造**人工变体**，让模型看到更多样的样本："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "原始样本"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "增强变体"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "学到的规律"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "数字\"3\"在中央"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "数字\"3\"向左移2像素"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "位置不重要，形状才重要"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "数字\"3\"正常大小"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "数字\"3\"放大10%"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "大小不重要，比例才重要"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "数字\"3\"竖直"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "数字\"3\"轻微旋转"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "方向不重要，拓扑结构才重要"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:317
+msgid ""
+"train_transform = transforms.Compose([\n"
+"    transforms.RandomRotation(10),      # ±10度旋转\n"
+"    transforms.RandomAffine(0, translate=(0.1, 0.1)),  # ±10%平移\n"
+"    transforms.ToTensor(),\n"
+"    transforms.Normalize((0.1307,), (0.3081,))\n"
+"])\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:326
+msgid "为什么有效？"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:328
+msgid "数据增强迫使模型学习**不变性**（invariance）——哪些特征在变换下保持不变。模型发现："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:330
+msgid "无论\"3\"在什么位置，它都是\"3\""
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:331
+msgid "无论\"3\"多大，它都是\"3\""
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:332
+msgid "无论\"3\"是否倾斜，它都是\"3\""
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:334
+msgid "因此，模型必须抓住**本质特征**（形状、拓扑结构），而不能依赖**偶然特征**（位置、大小、角度）。这些偶然特征在不同样本间变化，无法作为可靠的分类依据。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:338
+msgid "如何选择正则化方法？"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:340
+#, python-brace-format
+msgid ""
+"{doc}`fc-layer-basics`中我们讨论了全连接网络的参数量爆炸问题，{doc}`cnn-"
+"basics`中则看到CNN如何通过归纳偏置减少参数。但无论架构如何，**正则化都是必需的**——它是防止模型\"死记硬背\"的最后防线。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "方法"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "使用场景"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "实现难度"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "早停法"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "**总是使用**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "⭐ 最简单"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "L2正则化"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "几乎所有情况"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "⭐ 添加一个参数"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "Dropout"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "深层网络、过拟合严重时"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "⭐⭐ 需调整比例"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "数据增强"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "图像、语音等数据"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "⭐⭐ 需设计变换"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:349
+msgid "**初学者路径**："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:351
+msgid "**第一步**：只用早停法（零成本，必做）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:352
+msgid "**第二步**：加上L2正则化（weight_decay=1e-4）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:353
+msgid "**第三步**：添加Dropout（0.3-0.5）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:354
+msgid "**第四步**：尝试数据增强"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:358
+msgid "批量大小与学习率"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:360
+msgid "批量大小的权衡"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "批量大小"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "优点"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "缺点"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "小（32-64）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "泛化性好，内存占用低"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "梯度噪声大，训练不稳定"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "大（256+）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "梯度准确，可并行加速"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:299
+msgid "可能陷入尖锐局部最优，内存需求大"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:367
+msgid "**直觉**：小批量就像用少量样本\"试探\"方向，虽然每次方向不太准，但不容易被困住；大批量像精准测量，但可能错过更好的路径。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:369
+#, python-brace-format
+msgid "这与{ref}`gradient-descent`中讨论的\"噪声帮助逃离局部最优\"原理一致——适度的梯度噪声反而有助于找到更好的解。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:371
+msgid "学习率调度"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:373
+#, python-brace-format
+msgid ""
+"固定学习率不一定是最佳选择。回顾{ref}`gradient-"
+"descent`中的\"下山\"类比——刚开始你可能希望大步快走，接近谷底时需要小步微调。常见策略："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:375
+msgid "**预热（Warmup）**：刚开始用较小学习率，逐渐增加——避免初期震荡（防止\"一脚踩空\"）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:376
+msgid "**衰减（Decay）**：训练后期逐渐减小学习率——精细化调整（在谷底附近小心探索）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:377
+msgid "**余弦退火（Cosine Annealing）**：周期性变化——帮助逃离局部最优（周期性地\"震荡\"寻找更好的山谷）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:379
+msgid ""
+"# 余弦退火调度\n"
+"scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(\n"
+"    optimizer, T_max=100  # 100个epoch为一个周期\n"
+")\n"
+"\n"
+"# 训练循环中\n"
+"for epoch in range(num_epochs):\n"
+"    train(...)  # 训练\n"
+"    scheduler.step()  # 更新学习率\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:391
+msgid "工程实现：框架中的调度器"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:394
+#, python-brace-format
+msgid ""
+"社团框架内置 5 种调度器（Step / Cosine / Plateau / Exponential / None），CLI 参数 "
+"`--scheduler cosine --scheduler-t-max 50` 即可启用。详见{ref}`framework-config`。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:399
+msgid "训练监控指标"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:401
+msgid "有效的训练需要实时监控："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:391
+msgid "指标"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:391
+msgid "正常趋势"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:391
+msgid "异常信号"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:391
+msgid "训练损失"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:391
+msgid "逐渐下降"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:391
+msgid "不降或震荡"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:391
+msgid "验证损失"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:391
+msgid "先降后平"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:391
+msgid "上升（过拟合）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:391
+msgid "训练准确率"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:391
+msgid "逐渐提高"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:391
+msgid "停滞在低位（欠拟合）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:391
+msgid "验证准确率"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:391
+msgid "跟踪训练准确率"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:391
+msgid "与训练差距大（过拟合）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:410
+msgid "**关键观察**："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:412
+msgid "训练损失 $<$ 验证损失：正常现象"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:413
+msgid "训练损失 $\\ll$ 验证损失：严重过拟合，加强正则化"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:414
+msgid "两者都高：欠拟合，增加模型容量或训练时间"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:416
+msgid "回顾本节讨论的**过拟合与欠拟合**现象——这些监控指标就是诊断工具，帮助你在训练过程中实时判断模型状态。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "工程实现：框架中的自动监控"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:421
+#, python-brace-format
+msgid ""
+"社团框架每轮自动记录损失、准确率、学习率、训练速度，训练结束后自动绘制 4 "
+"面板训练曲线图（`runs/expN/training_curves.png`），无需手动记录和绘图。详见{ref}`framework-"
+"experiments`。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:426
+msgid "总结：训练检查清单"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:428
+msgid "开始训练前，确认以下事项："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "检查项"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "建议"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "框架实现"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "参考章节"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "数据划分"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "训练/验证/测试 = 70%/15%/15% 或类似比例"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "数据集类内置划分"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "本节\"数据划分\"部分"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "损失函数"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "分类用CrossEntropy，回归用MSE"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "模型自带 `get_criterion()`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+#, python-brace-format
+msgid "{ref}`loss-functions`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "优化器"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+#, python-brace-format
+msgid "Adam {cite}`kingma2014adam` 是默认首选，学习率0.001"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "`--optimizer adamw`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+#, python-brace-format
+msgid "{ref}`gradient-descent`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "正则化"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "至少使用早停法和L2正则化"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "`--patience` + `--weight-decay`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "本节\"正则化\"部分"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "从64或128开始，根据内存调整"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "`--batch-size 64`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "本节\"批量大小\"部分"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "监控指标"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "同时关注训练和验证的表现"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "自动记录并绘制曲线"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:418
+msgid "本节\"训练监控指标\"部分"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:439
+#, python-brace-format
+msgid ""
+"本节将{ref}`gradient-descent`和{ref}`back-propagation`的理论转化为实践——从选择{ref"
+"}`loss-functions`、设计正则化策略，到监控训练过程。现在你已经掌握了让神经网络\"学会\"而不是\"记住\"的完整工具箱。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:443
+#, python-brace-format
+msgid "纪律在手。装备在身。该冲顶了——{doc}`le-net`：第一个真正爬上去的 CNN 架构。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/neural-training-basics.md:449
+msgid "参考文献"
+msgstr ""
+

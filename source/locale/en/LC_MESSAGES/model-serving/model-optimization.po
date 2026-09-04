@@ -1,0 +1,2315 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, UCS Deep Learning Club and its contributors, licensed
+# under CC BY-SA 4.0
+# This file is distributed under the same license as the Deep Learning Club
+# Handouts package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Deep Learning Club Handouts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 16:21+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../../source/model-serving/model-optimization.md:2
+msgid "模型优化：量化与剪枝"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:4
+#, python-brace-format
+msgid ""
+"{ref}`onnx-"
+"export`中我们把PyTorch模型导出成了ONNX格式，有了一个标准化的模型文件。但在真正部署之前，还有一个关键问题要解决：**这个模型够\"轻\"吗？**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:6
+msgid ""
+"一个典型的ResNet-50模型，用FP32存储需要约100MB的磁盘空间，推理一次需要约4 "
+"billion次浮点运算。如果要在手机上跑，100MB的下载包太大；如果要在服务器上同时处理100个请求，显存可能不够；如果推理延迟超过100ms，用户体验就会变差。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:8
+msgid "量化（Quantization）和剪枝（Pruning）是两种最核心的模型优化技术，目标都是\"**用更少的资源，达到接近原始的效果**\"。量化降低参数的表示精度（从32位浮点降到8位整数），剪枝直接删除不重要的参数（让权重矩阵变稀疏）。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:10
+msgid "学习目标"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:13
+msgid "完成本节后，你将能够："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:14
+msgid "理解量化的原理：对称量化 vs 非对称量化、动态量化 vs 静态量化"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:15
+msgid "使用 PyTorch 的量化 API 对模型进行 INT8 量化"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:16
+msgid "使用 ONNX Runtime 对导出的 ONNX 模型进行量化"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:17
+msgid "理解剪枝的原理：非结构化剪枝 vs 结构化剪枝"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:18
+msgid "使用 PyTorch 的剪枝 API 实现基于幅度的剪枝（Magnitude-based Pruning）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:19
+msgid "评估量化和剪枝对模型大小、推理速度和准确率的影响"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:22
+msgid "为什么需要模型优化？"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:24
+#, python-brace-format
+msgid ""
+"{ref}`model-serving-"
+"intro`中我们讨论了模型从训练到生产面临的挑战——格式兼容性、架构选择、运维复杂度。但还有一个贯穿始终的挑战没有展开：**性能约束**。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "不同部署场景的性能要求"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:29
+msgid "**部署场景**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:30
+msgid "**模型大小限制**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:31
+msgid "**延迟要求**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:32
+msgid "**典型硬件**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:33
+msgid "云端服务器"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:34
+msgid "< 1 GB"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:35
+msgid "< 100 ms"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:36
+msgid "GPU (V100/A100)"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:37
+msgid "边缘设备"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:38
+msgid "< 100 MB"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:39
+msgid "< 10 ms"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:40
+msgid "CPU / NPU"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:41
+msgid "移动端"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:42
+msgid "< 50 MB"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:43
+msgid "< 30 ms"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:44
+msgid "CPU / 手机GPU"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:45
+msgid "浏览器"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:46
+msgid "< 10 MB"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:47
+msgid "< 50 ms"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:48
+msgid "WebGPU / WASM"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:49
+msgid "嵌入式/IoT"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:50
+msgid "< 1 MB"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:51
+msgid "< 5 ms"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:52
+msgid "MCU / 低功耗CPU"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:55
+msgid "从云端到嵌入式，资源的限制越来越严格。模型优化就是让同一个模型适配不同部署场景的核心手段。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:57
+msgid "量化：用更少的比特存更多的信息"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:59
+#: ../../../source/model-serving/model-optimization.md:718
+msgid "直觉理解"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:61
+msgid "**量化的直觉**：你有一个精确到小数点后6位的温度计（32位浮点），但气象预报只需要精确到小数点后1位（8位整数）。把32位精度降到8位，数据量减少4倍，但对\"今天会不会下雨\"的判断几乎没影响。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:63
+msgid "**信息流动直觉**：神经网络权重本身就是统计分布——大部分权重集中在某个范围内，极端值很少。32位浮点的很多比特位其实一直在存\"零\"，属于浪费。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:65
+msgid "**操作直觉**：量化不是简单截断小数，而是\"**重新分配表示范围**\"——把浮点的连续值映射到整数的离散格点上。就像把一张连续色调的照片转成256色调色板，大部分场景下肉眼看不出区别。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:67
+msgid "直观理解：量化的类比"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+#: ../../../source/model-serving/model-optimization.md:667
+msgid "类比"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "32位浮点（FP32）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "8位整数（INT8）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "代价"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "尺子"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "刻度精确到微米"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "刻度精确到毫米"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "做家具够用，做芯片不够"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "调色板"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "1600万色（真彩色）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "256色"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "大部分照片看不出差别"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "音量"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "连续旋钮"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "256档调节"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "人耳分辨不出中间档位"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:75
+msgid "**一句话总结**：量化就是用精度换效率——用可接受的微小精度损失，换取 4× 的模型压缩和 2-4× 的推理加速。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:77
+msgid "为什么可以压缩：FP32 的低位是噪声"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:79
+msgid "量化的前提是一个根本性问题：**减少精度为什么不会严重损害模型？** 答案藏在浮点数的表示方式和神经网络的训练本质中。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:81
+msgid "浮点数的结构：Sign + Exponent + Mantissa"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:83
+msgid "IEEE 754 标准定义的浮点数由三部分组成："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:85
+msgid ""
+"x_{\\text{float}} = (-1)^{\\text{sign}} \\times 2^{\\text{exponent} - "
+"\\text{bias}} \\times (1.\\text{mantissa})"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "组件"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "含义"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "Sign（符号位）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "正负号"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "温度计上的 +/−"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "Exponent（指数位）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "数值的量级（$2^e$）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "科学计数法中的 10 的幂"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "Mantissa（尾数位）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "量级内的精细值"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "科学计数法中的小数部分"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:93
+msgid "为方便描述不同格式，业界使用 **ExMy 表示法**：E 后的数字表示指数位数，M 后的数字表示尾数位数（不含符号位）。例如："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "格式"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "ExMy 表示"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "结构（Sign-Exp-Mant）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+msgid "总位数"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+#: ../../../source/model-serving/model-optimization.md:280
+#: ../../../source/model-serving/model-optimization.md:676
+msgid "FP32"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+#: ../../../source/model-serving/model-optimization.md:281
+msgid "E8M23"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+#: ../../../source/model-serving/model-optimization.md:282
+msgid "1-8-23"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+#: ../../../source/model-serving/model-optimization.md:283
+msgid "32"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+#: ../../../source/model-serving/model-optimization.md:301
+#: ../../../source/model-serving/model-optimization.md:682
+msgid "FP16"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+#: ../../../source/model-serving/model-optimization.md:302
+msgid "E5M10"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+#: ../../../source/model-serving/model-optimization.md:303
+msgid "1-5-10"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+#: ../../../source/model-serving/model-optimization.md:297
+#: ../../../source/model-serving/model-optimization.md:304
+msgid "16"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+#: ../../../source/model-serving/model-optimization.md:294
+msgid "BF16"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+#: ../../../source/model-serving/model-optimization.md:295
+msgid "E8M7"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:26
+#: ../../../source/model-serving/model-optimization.md:296
+msgid "1-8-7"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:101
+msgid ""
+"指数控制\"能表示多大的数\"，尾数控制\"能表示多精细的差别\"。FP32 有 23 位尾数，相当于十进制约 7 位有效数字——这意味着它能区分"
+" 1.0000001 和 1.0000002 这种微小差异。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:103
+msgid "SGD 的噪声掩盖了低位的精度"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:105
+#, python-brace-format
+msgid ""
+"神经网络训练的核心是随机梯度下降（SGD，{ref}`gradient-descent`）。SGD "
+"的每一步更新本身就是**有噪声的**——梯度是从一个小批量（Mini-batch）估算出来的，不是全量数据的精确梯度。这个噪声的量级通常在 "
+"$10^{-3}$ 到 $10^{-4}$ 左右。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:107
+#, python-brace-format
+msgid ""
+"**关键洞察**：FP32 尾数的最后几位编码的变化量级大约是 $10^{-7}$——这个精度比 SGD 的噪声还要小 3-4 "
+"个数量级。换句话说，即使你保留了这几位，下一个 SGD 步骤也会把它覆盖掉。**这几位本质上在存\"噪声\"，不是\"信息\"。**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:110
+msgid "FP32 的 32 位布局：信号与噪声"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:194
+msgid ""
+"**信息流动直觉**：把 FP32 的 23 位尾数想象成一根 23 厘米的尺子来量一个物体。SGD 告诉我们\"这个物体的大小每次会抖动 ±1 "
+"厘米\"——那最后 5 厘米的刻度根本用不上，因为每次量的结果在厘米级就变了。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:196
+msgid "权重的统计分布"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:198
+msgid "神经网络权重的值通常服从某种类正态分布——大部分权重集中在均值附近，极端值很少。这意味着："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:200
+msgid "**指数位**用来覆盖分布的宽度（最大值和最小值之间的范围）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:201
+msgid "**尾数位**用来分辨分布内部的细微差异"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:203
+#, python-brace-format
+msgid ""
+"但在实际推断中，把一个权重从 0.5000001 变成 0.5000000，对模型输出的影响微乎其微——{ref}`model-serving-"
+"intro`中讨论的\"用户拍照识数\"场景下，用户根本感知不到这个差异。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:205
+msgid "实验证据"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:208
+#, python-brace-format
+msgid ""
+"Hubara、Courbariaux 等人的 QNN 实验表明{cite}`hubara2018qnn`，在 MNIST 上将权重从 FP32 "
+"直接量化为低精度（1-8 位），准确率可与 32 位原版媲美——INT8 "
+"量化的误差远小于直觉预期。丢失了数位\"信息\"，准确率几乎未跌。这些被丢弃的位中绝大部分是噪声。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:211
+#: ../../../source/model-serving/model-optimization.md:769
+msgid "数学表达"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:213
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "对称量化"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:215
+msgid "对称量化将浮点值线性映射到关于零点对称的整数范围。最常见的 INT8 对称量化："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:217
+msgid ""
+"\n"
+"x_{\\text{int}} = "
+"\\text{round}\\left(\\frac{x_{\\text{float}}}{s}\\right)\n"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:221
+msgid "其中 $s$（scale）是缩放因子，由权重绝对值的最大值决定："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:223
+msgid ""
+"\n"
+"s = \\frac{\\max(|x_{\\text{float}}|)}{127}\n"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:227
+msgid "INT8 的表示范围是 $[-128, 127]$，但对称量化关于0对称，实际使用 $[-127, 127]$。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:229
+msgid "反量化（Dequantization）："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:231
+msgid ""
+"\n"
+"\\hat{x}_{\\text{float}} = x_{\\text{int}} \\cdot s\n"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:235
+msgid ""
+"$\\hat{x}_{\\text{float}}$ 是原始值的近似——量化误差就是 $|x_{\\text{float}} - "
+"\\hat{x}_{\\text{float}}|$。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:237
+msgid "非对称量化"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:239
+msgid "非对称量化引入零点（zero-point）来处理偏移分布："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:241
+msgid ""
+"\n"
+"\\begin{aligned}\n"
+"s &= \\frac{\\max(x_{\\text{float}}) - \\min(x_{\\text{float}})}{255} "
+"\\\\[4pt]\n"
+"z &= \\text{round}\\left(-\\frac{\\min(x_{\\text{float}})}{s}\\right) "
+"\\\\[4pt]\n"
+"x_{\\text{int}} &= "
+"\\text{round}\\left(\\frac{x_{\\text{float}}}{s}\\right) + z\n"
+"\\end{aligned}\n"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:249
+msgid "非对称量化更灵活，特别适合 ReLU 激活函数（输出都是非负值，不存在对称分布）。代价是多存储一个零点参数 $z$。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:251
+msgid "矩阵乘法的量化加速"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:253
+msgid "量化的真正威力在于：INT8 矩阵乘法比 FP32 快得多，而且某些硬件上 INT8 吞吐量是 FP32 的 4 倍。量化后的矩阵乘法："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:255
+msgid ""
+"\n"
+"\\begin{aligned}\n"
+"Y_{\\text{float}} &= W_{\\text{float}} \\cdot X_{\\text{float}} \\\\\n"
+"&\\approx s_W \\cdot s_X \\cdot (W_{\\text{int}} \\cdot X_{\\text{int}})\n"
+"\\end{aligned}\n"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:262
+msgid ""
+"核心计算 $W_{\\text{int}} \\cdot X_{\\text{int}}$ 是整数运算，可以使用更快的 INT8 指令（如 x86"
+" 的 VNNI、ARM 的 SDOT）。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:264
+msgid "浮点格式全景：FP8 与 MXFP4"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:266
+msgid ""
+"理解了浮点数的 ExMy 结构和\"低位是噪声\"的原理后，自然的问题就是：**我们能降到多低？** 业界已经在 INT8 "
+"之外探索出了更低精度、但仍保留浮点特性的新格式。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:268
+msgid "格式对比表"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:270
+msgid "深度学习浮点格式一览（按位数递减）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:273
+msgid "**格式**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:274
+msgid "**ExMy 表示**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:275
+msgid "**结构**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:276
+msgid "**总位数**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:277
+msgid "**动态范围**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:278
+msgid "**精度（有效十进制位）**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:279
+msgid "**典型用途**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:284
+#: ../../../source/model-serving/model-optimization.md:291
+#: ../../../source/model-serving/model-optimization.md:298
+#, python-brace-format
+msgid "$\\sim 10^{\\pm 38}$"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:285
+msgid "~7 位"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:286
+msgid "训练（主权重副本）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:287
+msgid "TF32"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:288
+msgid "E8M10"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:289
+msgid "1-8-10"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:290
+msgid "19（存于 32）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:292
+#: ../../../source/model-serving/model-optimization.md:306
+msgid "~3 位"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:293
+msgid "NVIDIA Ampere 训练加速"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:299
+msgid "~2 位"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:300
+msgid "大模型训练（与 FP32 同范围）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:305
+#: ../../../source/model-serving/model-optimization.md:312
+#, python-brace-format
+msgid "$\\sim 10^{\\pm 5}$"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:307
+msgid "混合精度训练"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:308
+msgid "FP8 E5M2"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:309
+msgid "E5M2"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:310
+msgid "1-5-2"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:311
+#: ../../../source/model-serving/model-optimization.md:318
+msgid "8"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:313
+#: ../../../source/model-serving/model-optimization.md:327
+msgid "~0.5 位"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:314
+msgid "梯度（需宽动态范围）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:315
+msgid "FP8 E4M3"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:316
+msgid "E4M3"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:317
+msgid "1-4-3"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:319
+#, python-brace-format
+msgid "$\\sim 10^{\\pm 2}$"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:320
+msgid "~1 位"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:321
+msgid "权重与前向传播（需精度）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:322
+msgid "MXFP6 E3M2"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:323
+msgid "E3M2 + 共享 E8"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:324
+msgid "1-3-2"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:325
+msgid "6（+共享尺度）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:326
+#: ../../../source/model-serving/model-optimization.md:333
+msgid "共享尺度扩展"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:328
+msgid "实验性格式"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:329
+msgid "MXFP4 E2M1"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:330
+msgid "E2M1 + 共享 E8"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:331
+msgid "1-2-1"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:332
+msgid "**4**（+共享尺度）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:334
+msgid "~0.25 位"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:335
+msgid "NVIDIA Blackwell 原生支持"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:338
+msgid "FP8：浮点量化的新标准"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:340
+msgid "FP8 由 NVIDIA、Arm 和 Intel 于 2022 年联合提出（OCP 标准），包含两种互补的编码："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:342
+msgid ""
+"**E4M3**（4 位指数 + 3 位尾数）：精度优先。可表示 256 "
+"个离散值（$2^8$），每个量化等级之间的步长更细。适合存储**权重**和**激活**的前向传播。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:343
+msgid ""
+"**E5M2**（5 位指数 + 2 位尾数）：范围优先。与 FP16 拥有相同的指数范围（$\\pm 5$ 个数量级），但尾数只有 2 "
+"位。适合存储**梯度**——梯度可以非常小（需要宽范围），但对精度不敏感。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:345
+msgid "FP8 为什么比 INT8 好？"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:348
+msgid ""
+"INT8 的量化格点是**均匀分布**的——相邻两个值之间的步长恒定。但神经网络中的权重和激活通常在零附近很密集、在尾部很稀疏。FP8 "
+"的**对数分布**（指数控制步长）天然匹配这种分布：零附近格点密集（精度高），尾部格点稀疏（范围大）。这就是为什么 FP8 在相同 8 "
+"位下通常优于 INT8。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:351
+msgid "MXFP4：4 位的极致压缩"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:353
+msgid ""
+"MX 代表微缩放（Microscaling），是 OCP 在 2023 年发布的另一套标准。MXFP4 的核心思想是**块级共享指数（Block "
+"Floating Point）**："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:355
+msgid "每 32 个元素共享一个 8 位缩放因子（E8M0 格式，只有指数没有尾数）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:356
+msgid "每个元素本身只需 4 位（E2M1：1 位符号 + 2 位指数 + 1 位尾数）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:357
+#, python-brace-format
+msgid "最终每个元素的有效位数为 $4 + \\frac{8}{32} = 4.25$ 位"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:360
+msgid "MXFP4 块结构：32 元素共享一个缩放因子"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:462
+msgid ""
+"**操作直觉**：想象 32 个学生考试，老师不单独给每个人打分，而是先宣布\"这次全班平均分 85\"（共享 "
+"scale），然后每个人的成绩只记录\"比平均高还是低\"和偏离的等级（E2M1）。信息压缩了，但排名和相对关系保留了。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:464
+msgid ""
+"MXFP4 的重要性在于：NVIDIA Blackwell（B200/GB200）架构在 2024 年首次提供了**原生 MXFP4 "
+"硬件支持**，推理吞吐量可达 FP16 的 4 倍。这意味着 4 位推理不再是实验性技术，而是可以大规模部署的生产方案。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:466
+msgid "INT8 量化 vs FP8 vs MXFP4 选择指南"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:469
+msgid "**场景**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:470
+msgid "**推荐格式**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:471
+msgid "**理由**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:472
+msgid "通用 CPU 推理、不需要 GPU"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:473
+msgid "INT8"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:474
+msgid "所有 CPU 都支持 INT8 SIMD 指令"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:475
+msgid "GPU 推理、精度敏感"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:476
+#: ../../../source/model-serving/model-optimization.md:688
+msgid "FP8 (E4M3)"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:477
+msgid "对数分布比 INT8 保真度更高"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:478
+msgid "GPU 推理、极致吞吐"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:479
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "MXFP4"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:480
+msgid "4× 吞吐于 FP16，适合 LLM 大批量推理"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:481
+msgid "训练中的前向/反向"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:482
+msgid "FP8 (E4M3 + E5M2)"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:483
+msgid "两种编码分别优化前向和梯度"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:484
+msgid "移动端 / 边缘设备"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:485
+msgid "INT8 或 FP8"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:486
+msgid "看芯片 NPU 支持哪种"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:489
+msgid "量化的分类"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:491
+msgid "训练后量化 vs 量化感知训练"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:493
+msgid "PTQ vs QAT 对比"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:496
+#: ../../../source/model-serving/model-optimization.md:745
+msgid "**维度**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:497
+msgid "**训练后量化（PTQ）**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:498
+msgid "**量化感知训练（QAT）**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:499
+msgid "操作时机"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:500
+msgid "训练完成后"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:501
+msgid "训练过程中"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:502
+msgid "数据需求"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:503
+msgid "少量校准数据（几百张）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:504
+msgid "完整训练数据"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:505
+msgid "计算开销"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:506
+msgid "低（几分钟）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:507
+msgid "高（完整训练）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:508
+msgid "精度损失"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:509
+msgid "较大（1-3%）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:510
+msgid "较小（< 0.5%）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:511
+msgid "适用场景"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:512
+msgid "快速部署，对精度不敏感"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:513
+msgid "精度敏感的模型"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:516
+msgid ""
+"**PTQ（训练后量化，Post-Training "
+"Quantization）**：最简单的方式。模型训练完成后，用少量校准数据统计各层的数值范围，然后直接将权重和激活量化为 "
+"INT8。适合大多数分类模型。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:518
+msgid ""
+"**QAT（量化感知训练，Quantization-Aware Training）**：在训练时模拟量化效果（前向传播用 INT8 "
+"计算，反向传播仍用 FP32 更新权重）。模型在训练中就\"学会适应\"量化带来的精度损失。适合对精度要求高的场景或难以量化的模型（如某些 "
+"Transformer）。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:520
+#: ../../../source/model-serving/model-optimization.md:522
+msgid "动态量化 vs 静态量化"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:525
+msgid "**特性**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:526
+msgid "**动态量化**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:527
+msgid "**静态量化**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:528
+msgid "权重量化"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:529
+#: ../../../source/model-serving/model-optimization.md:530
+msgid "INT8（离线完成）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:531
+msgid "激活量化"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:532
+msgid "每次推理时动态计算 scale"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:533
+msgid "离线校准，固定 scale"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:534
+msgid "推理速度"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:535
+msgid "提升有限（激活未量化）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:536
+msgid "提升显著"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:537
+#: ../../../source/model-serving/model-optimization.md:760
+msgid "实现难度"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:538
+msgid "简单，几乎无需改动"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:539
+msgid "需要校准数据集"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:540
+msgid "适用层"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:541
+msgid "Linear, LSTM"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:542
+msgid "Conv2d, Linear（校准后）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:545
+msgid ""
+"动态量化是最容易上手的量化方式——`torch.quantization.quantize_dynamic` "
+"一行代码即可。但它只量化权重，激活在推理时才量化，所以加速效果有限（通常 1.5-2×）。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:547
+msgid ""
+"静态量化需要校准过程——用代表性数据跑一遍模型，统计每层激活的数值范围，确定固定的 scale 和 zero-"
+"point。校准完成后，推理时权重和激活都是 INT8，加速效果最好（可达 4×）。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:549
+msgid "代码实践：PyTorch 量化"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:551
+msgid "动态量化（最简单）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:553
+#, python-brace-format
+msgid ""
+"import torch\n"
+"import torch.quantization\n"
+"\n"
+"# 加载训练好的模型\n"
+"# LeNet 来自 {doc}`../cnn-expedition/practice-peak/le-net`\n"
+"model = LeNetMNIST()\n"
+"model.load_state_dict(torch.load(\"lenet_mnist.pth\"))\n"
+"model.eval()\n"
+"\n"
+"# 动态量化：一行代码\n"
+"# qconfig_spec 指定哪些层需要量化\n"
+"# dtype 指定量化目标类型（qint8 即 INT8）\n"
+"model_int8 = torch.quantization.quantize_dynamic(\n"
+"    model,                          # 原始 FP32 模型\n"
+"    {torch.nn.Linear, torch.nn.Conv2d},  # 量化的层类型\n"
+"    dtype=torch.qint8               # 量化精度：INT8\n"
+")\n"
+"\n"
+"# 对比模型大小\n"
+"import os\n"
+"torch.save(model.state_dict(), \"lenet_fp32.pth\")\n"
+"torch.save(model_int8.state_dict(), \"lenet_int8.pth\")\n"
+"\n"
+"fp32_size = os.path.getsize(\"lenet_fp32.pth\")  # 约 240 KB\n"
+"int8_size = os.path.getsize(\"lenet_int8.pth\")  # 约 60 KB\n"
+"print(f\"压缩比: {fp32_size / int8_size:.1f}×\")  # ~4×\n"
+"# 参数量计算：LeNet 约 61,706 个参数 × 4字节 = ~240KB → INT8 后 ~60KB\n"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:583
+msgid "静态量化（效果最好）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:585
+msgid "静态量化需要三个步骤：准备、校准、转换。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:587
+msgid ""
+"import torch\n"
+"import torch.quantization\n"
+"\n"
+"# 第一步：准备模型\n"
+"# 在需要量化的层前后插入 Observer 和 QuantStub/DeQuantStub\n"
+"model = LeNetMNIST()\n"
+"model.load_state_dict(torch.load(\"lenet_mnist.pth\"))\n"
+"model.eval()\n"
+"\n"
+"# 设置量化配置：激活用非对称量化，权重用对称量化（PyTorch 推荐）\n"
+"model.qconfig = torch.quantization.get_default_qconfig('qnnpack')\n"
+"# 'qnnpack' 是面向移动端的量化后端，也支持 x86\n"
+"# 备选：'fbgemm'（x86 高性能后端）\n"
+"\n"
+"# 插入量化和反量化桩（Stub）\n"
+"model_prepared = torch.quantization.prepare(model)\n"
+"\n"
+"# 第二步：校准（Calibration）\n"
+"# 用代表性数据跑前向传播，观察每层的数值范围\n"
+"calibration_loader = torch.utils.data.DataLoader(\n"
+"    calibration_dataset,  # 几百张校准图片即可\n"
+"    batch_size=32\n"
+")\n"
+"\n"
+"with torch.no_grad():\n"
+"    for images, _ in calibration_loader:\n"
+"        model_prepared(images)  # Observer 自动记录各层数值范围\n"
+"\n"
+"# 第三步：转换\n"
+"# 将 Observer 记录的统计信息固化，完成量化\n"
+"model_static_int8 = torch.quantization.convert(model_prepared)\n"
+"\n"
+"# 静态量化后的模型，Conv2d 和 Linear 层的计算都是 INT8\n"
+"# 推理时间大约是 FP32 的 1/3 ~ 1/4\n"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:624
+msgid "静态量化的校准数据选择"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:627
+#, python-brace-format
+msgid ""
+"校准数据的分布必须和生产环境的数据分布一致。如果校准数据全是数字\"1\"的图片，但生产环境要识别\"0-9\"的所有数字，量化的 scale "
+"就会严重失准。这和{doc}`../cnn-expedition/ablation-study/experiment-"
+"design`中\"测试集不能用于训练\"的原则相通——校准数据应该来自独立的校准集。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:630
+msgid "用 ONNX Runtime 量化已导出的模型"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:632
+#, python-brace-format
+msgid "{doc}`onnx-export`中导出的 ONNX 模型也可以直接量化，不需要回到 PyTorch："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:634
+#, python-brace-format
+msgid ""
+"import onnx\n"
+"from onnxruntime.quantization import quantize_dynamic, QuantType\n"
+"\n"
+"# 加载导出的 ONNX 模型（来自 {ref}`onnx-export`）\n"
+"onnx_model_path = \"lenet_mnist.onnx\"\n"
+"quantized_model_path = \"lenet_mnist_int8.onnx\"\n"
+"\n"
+"# ONNX Runtime 动态量化\n"
+"quantize_dynamic(\n"
+"    model_input=onnx_model_path,\n"
+"    model_output=quantized_model_path,\n"
+"    weight_type=QuantType.QInt8,      # 权重量化为 INT8\n"
+"    per_channel=True,                  # 逐通道量化（精度更高）\n"
+"    optimize_model=True,               # 同时做图优化（算子融合等）\n"
+")\n"
+"\n"
+"# 验证量化后的模型\n"
+"import onnxruntime as ort\n"
+"\n"
+"session_fp32 = ort.InferenceSession(onnx_model_path)\n"
+"session_int8 = ort.InferenceSession(quantized_model_path)\n"
+"\n"
+"# 对比模型文件大小\n"
+"import os\n"
+"print(f\"FP32: {os.path.getsize(onnx_model_path) / 1024:.1f} KB\")\n"
+"print(f\"INT8: {os.path.getsize(quantized_model_path) / 1024:.1f} KB\")\n"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:663
+msgid ""
+"ONNX Runtime 量化的优势是可以直接处理 ONNX 格式，不依赖 PyTorch。如果你已经有了一个 ONNX "
+"模型（不管它是从什么框架导出的），一行代码就能量化。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:665
+msgid "量化效果一览"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:667
+msgid "LeNet-MNIST 量化效果对比"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:670
+msgid "**精度**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:671
+#: ../../../source/model-serving/model-optimization.md:974
+#: ../../../source/model-serving/model-optimization.md:1031
+msgid "**模型大小**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:672
+msgid "**压缩比**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:673
+#: ../../../source/model-serving/model-optimization.md:1032
+msgid "**推理时间**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:674
+msgid "**加速比**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:675
+#: ../../../source/model-serving/model-optimization.md:976
+#: ../../../source/model-serving/model-optimization.md:1033
+msgid "**准确率**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:677
+#: ../../../source/model-serving/model-optimization.md:979
+#: ../../../source/model-serving/model-optimization.md:1036
+msgid "240 KB"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:678
+#: ../../../source/model-serving/model-optimization.md:680
+msgid "1.0×"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:679
+#: ../../../source/model-serving/model-optimization.md:980
+#: ../../../source/model-serving/model-optimization.md:1037
+msgid "2.3 ms"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:681
+#: ../../../source/model-serving/model-optimization.md:687
+#: ../../../source/model-serving/model-optimization.md:981
+#: ../../../source/model-serving/model-optimization.md:1038
+msgid "99.1%"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:683
+#: ../../../source/model-serving/model-optimization.md:989
+#: ../../../source/model-serving/model-optimization.md:1046
+msgid "120 KB"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:684
+msgid "2.0×"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:685
+msgid "1.5 ms"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:686
+msgid "1.5×"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:689
+#: ../../../source/model-serving/model-optimization.md:695
+#: ../../../source/model-serving/model-optimization.md:701
+#: ../../../source/model-serving/model-optimization.md:1041
+msgid "60 KB"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:690
+#: ../../../source/model-serving/model-optimization.md:696
+#: ../../../source/model-serving/model-optimization.md:702
+msgid "4.0×"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:691
+msgid "0.9 ms"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:692
+msgid "2.6×"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:693
+msgid "98.9%"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:694
+msgid "INT8（动态量化）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:697
+msgid "1.2 ms"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:698
+msgid "1.9×"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:699
+msgid "98.8%"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:700
+msgid "INT8（静态量化）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:703
+#: ../../../source/model-serving/model-optimization.md:1042
+msgid "0.8 ms"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:704
+msgid "2.9×"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:705
+#: ../../../source/model-serving/model-optimization.md:1001
+#: ../../../source/model-serving/model-optimization.md:1043
+msgid "98.5%"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:706
+msgid "MXFP4 (E2M1)"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:707
+msgid "30 KB"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:708
+msgid "8.0×"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:709
+msgid "0.5 ms"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:710
+msgid "4.6×"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:711
+msgid "97.8%"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:714
+msgid ""
+"对于 LeNet 这种小模型，量化的绝对收益有限（毫秒级），但对于 ResNet-50 或 Transformer "
+"这类大模型，量化可以将推理延迟从 50ms 降到 15ms（FP8）甚至 "
+"8ms（MXFP4）。格式选择的核心权衡：**位数越低，压缩和加速越好，但精度损失越大**——FP8 在 4× 压缩下几乎无损，MXFP4 在 "
+"8× 压缩下仍有 97.8% 的可用精度。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:716
+msgid "剪枝：删除不重要的连接"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:720
+msgid "**剪枝的直觉**：人脑在发育过程中会经历\"突触修剪\"——多余的神经连接被移除，保留最有效的连接。神经网络的剪枝也是同样的道理：**删除那些对输出贡献几乎为零的权重**。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:722
+#, python-brace-format
+msgid ""
+"**信息流动直觉**：如果你有一个全连接层，权重矩阵中有很多接近零的值。这些接近零的权重对前向传播的贡献微乎其微——$0.0001 \\times"
+" \\text{输入}$ 几乎不改变结果。删除它们，模型的\"信息高速公路\"更简洁。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:724
+msgid "**对比直觉**："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:667
+msgid "量化"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:667
+msgid "剪枝"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:667
+msgid "做什么"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:667
+msgid "降低每个权重的精度"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:667
+msgid "删除不重要的权重"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:667
+msgid "把高清照片存为压缩格式"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:667
+msgid "把不重要的人从合影中裁掉"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:667
+msgid "数据结构"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:667
+msgid "仍为稠密矩阵"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:667
+msgid "变为稀疏矩阵"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:667
+msgid "加速条件"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:667
+msgid "硬件支持 INT8"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:667
+msgid "需要稀疏矩阵运算支持"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:667
+msgid "模型大小"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:667
+msgid "固定压缩比（4×）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:667
+msgid "取决于稀疏度"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:734
+msgid "直观理解：剪枝的类比"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:736
+msgid ""
+"**种树类比**：你种了一片树林，有些树长得很好，有些很瘦弱。为了让整片树林更健康，你定期修剪掉弱小的树（基于幅度的剪枝，Magnitude-"
+"based Pruning），让阳光和养分集中给强壮的树。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:738
+msgid ""
+"**修剪盆景类比**：盆景师不是随便剪，而是有计划地剪——剪掉弱枝、病枝和多余的分叉（结构化剪枝），保留主干和优美的形态。这和结构化剪枝（Structured"
+" Pruning）的思路一致：不是零散地删权重，而是整通道、整滤波器地删。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:740
+msgid "非结构化剪枝 vs 结构化剪枝"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:742
+msgid "两种剪枝方式对比"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:746
+msgid "**非结构化剪枝**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:747
+msgid "**结构化剪枝**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:748
+msgid "粒度"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:749
+msgid "单个权重"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:750
+msgid "整通道 / 整滤波器 / 整神经元"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:751
+msgid "稀疏模式"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:752
+msgid "随机分布"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:753
+msgid "规则分布"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:754
+msgid "真实加速"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:755
+msgid "难（需要稀疏矩阵库）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:756
+msgid "容易（直接缩小矩阵）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:757
+msgid "精度保持"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:758
+msgid "好（细粒度裁剪）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:759
+msgid "差于非结构化（粗粒度裁剪）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:761
+msgid "低"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:762
+msgid "较高"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:765
+msgid ""
+"**非结构化剪枝**把权重矩阵中绝对值最小的那些元素置零。得到的矩阵是稀疏的——大部分元素为零，但非零元素的位置是不规则的。这种稀疏矩阵在通用硬件上不一定会加速（CPU/GPU"
+" 的稠密矩阵乘法有高度优化的 SIMD 指令，稀疏矩阵反而可能更慢）。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:767
+msgid "**结构化剪枝**成片地删除——可能是整个卷积滤波器、整个通道、或全连接层的整行。删除后，矩阵维度直接缩小，没有稀疏问题，在任何硬件上都能加速。但代价是精度损失更大，因为你是批量地删而不是精细地挑。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:771
+msgid "基于幅度的非结构化剪枝（Magnitude-based）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:773
+msgid "给定权重矩阵 $W$ 和剪枝比例 $p$（比如 30% 的权重被剪掉）："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:775
+#, python-brace-format
+msgid "计算剪枝阈值：$t = \\text{percentile}(|W|, p)$"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:776
+#, python-brace-format
+msgid ""
+"生成掩码（Mask）：$M_{ij} = \\begin{cases} 0 & \\text{if } |W_{ij}| < t \\\\ 1 &"
+" \\text{otherwise} \\end{cases}$"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:777
+msgid "应用掩码：$W' = W \\odot M$（$\\odot$ 表示逐元素相乘）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:779
+msgid ""
+"剪枝后的权重矩阵稀疏度约 $p$。被置零的权重在后续微调中有时会\"重新长出\"（梯度更新让它们从零变回非零），所以通常需要多轮迭代：剪枝 → "
+"微调 → 再剪枝 → 再微调。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:781
+msgid "结构化剪枝（Structured Pruning，以滤波器剪枝为例）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:783
+msgid "对于卷积层，每个输出通道由一个滤波器定义。滤波器剪枝的思路是：**删除那些输出激活最\"不活跃\"的滤波器**。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:785
+msgid "评估滤波器重要性的常用指标是 $\\ell_1$ 范数（L1-norm）："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:787
+#, python-brace-format
+msgid ""
+"\n"
+"\\text{importance}(F_k) = \\sum_{c, i, j} |F_k[c, i, j]|\n"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:791
+msgid ""
+"$F_k$ 是第 $k$ 个滤波器，$c, i, j$ 遍历其所有元素。$\\ell_1$ "
+"范数（L1-norm）越小，该滤波器产生的输出越小，对后续层的影响越小——可以被安全删除。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:793
+msgid "什么是 L1 范数，为什么用它？"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:796
+msgid "**L1 范数**：向量（或张量）所有元素绝对值之和。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:798
+#, python-brace-format
+msgid "\\|\\mathbf{x}\\|_1 = \\sum_{i} |x_i|"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:800
+#, python-brace-format
+msgid "与之对比，L2 范数是平方和的平方根：$\\|\\mathbf{x}\\|_2 = \\sqrt{\\sum_i x_i^2}$。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:802
+msgid "**为什么剪枝用 L1 而非 L2？**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:811
+msgid ""
+"L1 范数的核心优势在于它与激活幅度的**线性关系**：如果滤波器 $F_k$ 的所有权重都缩小 10 倍，其 L1 范数也缩小 10 "
+"倍，该滤波器产生的输出也大约缩小 10 倍。L2 范数缩小 100 倍（平方效应），会过度放大差异。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:813
+msgid "**直觉类比**：评估一个员工的贡献，看的是他\"实际产出\"（L1：绝对值求和），而不是\"产出平方\"（L2）——后者会把一个偶尔加班的人捧上天，而忽略掉那些稳定输出但不出彩的人。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:816
+msgid "删除滤波器 $F_k$ 后："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:817
+msgid "当前层的输出通道数减少 1"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:818
+msgid "下一层对应位置的输入通道也需要同步删除"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:819
+#, python-brace-format
+msgid "残差连接（{doc}`../cnn-expedition/image-net-era/res-net`）的各分支维度必须保持一致，需要额外处理"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:821
+msgid "这就是为什么结构化剪枝比非结构化剪枝复杂——它涉及到网络结构层面的连锁修改。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:823
+msgid "代码实践：PyTorch 剪枝"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:825
+msgid "非结构化剪枝（Magnitude-based）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:827
+msgid "PyTorch 内置了剪枝工具，可以对单个层进行剪枝："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:829
+#, python-brace-format
+msgid ""
+"import torch\n"
+"import torch.nn.utils.prune as prune\n"
+"\n"
+"# 加载训练好的模型\n"
+"model = LeNetMNIST()\n"
+"model.load_state_dict(torch.load(\"lenet_mnist.pth\"))\n"
+"\n"
+"# 对第一个卷积层做非结构化剪枝\n"
+"# 删除 30% 绝对值最小的权重\n"
+"prune.l1_unstructured(\n"
+"    model.conv1,    # 要剪枝的层\n"
+"    name=\"weight\",  # 剪枝目标（权重）\n"
+"    amount=0.3      # 剪枝比例：30%\n"
+")\n"
+"\n"
+"# 剪枝后的效果\n"
+"# model.conv1.weight 中原先 30% 的值被置零\n"
+"# 稀疏度 = 零的个数 / 总参数数\n"
+"sparsity = (model.conv1.weight == 0).float().mean().item()\n"
+"print(f\"conv1 稀疏度: {sparsity:.1%}\")  # 约 30%\n"
+"\n"
+"# 对全连接层也进行剪枝\n"
+"prune.l1_unstructured(model.fc1, name=\"weight\", amount=0.3)\n"
+"prune.l1_unstructured(model.fc2, name=\"weight\", amount=0.3)\n"
+"\n"
+"# 剪枝后的 mask 存储在 weight_mask 属性中\n"
+"# 前向传播时自动应用 mask，被剪掉的权重不参与计算\n"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:859
+msgid "剪枝 mask 是持久的"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:862
+msgid ""
+"`prune.l1_unstructured` 会将原始权重保存在 `weight_orig` 中，同时创建一个 `weight_mask`。调用"
+" `model.parameters()` 时会自动应用 mask。如果想永久移除剪枝（固化结果），使用 "
+"`prune.remove(model.conv1, 'weight')`。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:865
+msgid "全局剪枝（跨层统一比例）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:867
+msgid ""
+"上面的代码是逐层剪枝——每个层独立删 "
+"30%。但不同层对剪枝的敏感度差异很大：浅层卷积通常比深层全连接对剪枝更敏感。全局剪枝让所有层的权重一起参与排序："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:869
+msgid ""
+"# 全局非结构化剪枝：从整个模型的权重中挑选最不重要的\n"
+"parameters_to_prune = [\n"
+"    (model.conv1, 'weight'),\n"
+"    (model.conv2, 'weight'),\n"
+"    (model.fc1, 'weight'),\n"
+"    (model.fc2, 'weight'),\n"
+"]\n"
+"\n"
+"prune.global_unstructured(\n"
+"    parameters_to_prune,\n"
+"    pruning_method=prune.L1Unstructured,\n"
+"    amount=0.3,  # 全局 30% 的权重被剪掉（各层分配不同）\n"
+")\n"
+"\n"
+"# 全局剪枝会自动在各层间分配剪枝比例\n"
+"# 对剪枝敏感的层会被剪得更少，不敏感的更多\n"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:888
+msgid "迭代剪枝（更实用）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:890
+msgid "一次性剪掉大量权重通常会严重损害精度。实践中更好的做法是迭代剪枝："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:892
+#, python-brace-format
+msgid ""
+"def iterative_prune(model, train_loader, target_sparsity=0.5,\n"
+"                    pruning_steps=5, fine_tune_epochs=1):\n"
+"    \"\"\"\n"
+"    迭代剪枝：每次剪一点 + 微调恢复，循环往复\n"
+"\n"
+"    参数说明：\n"
+"    - target_sparsity: 最终目标稀疏度（50% 的权重被剪掉）\n"
+"    - pruning_steps: 分几次迭代到达目标\n"
+"    - fine_tune_epochs: 每次剪枝后微调几个 epoch\n"
+"    \"\"\"\n"
+"    import torch.nn.utils.prune as prune\n"
+"\n"
+"    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)\n"
+"\n"
+"    # 计算每次迭代的剪枝比例\n"
+"    # 例如 50% 目标分 5 步：每次剪 (1 - (1-0.5)^(1/5)) ≈ 13%\n"
+"    per_step_amount = 1 - (1 - target_sparsity) ** (1 / pruning_steps)\n"
+"    current_sparsity = 0.0\n"
+"\n"
+"    for step in range(pruning_steps):\n"
+"        # 计算这一步还需要剪的比例\n"
+"        remaining = 1 - current_sparsity\n"
+"        step_amount = per_step_amount * remaining\n"
+"\n"
+"        # 剪枝\n"
+"        for name, module in model.named_modules():\n"
+"            if isinstance(module, (torch.nn.Conv2d, torch.nn.Linear)):\n"
+"                prune.l1_unstructured(module, name=\"weight\", "
+"amount=step_amount)\n"
+"\n"
+"        current_sparsity += step_amount * (1 - current_sparsity)\n"
+"\n"
+"        # 微调：让剩余权重适应新的稀疏结构\n"
+"        model.train()\n"
+"        for epoch in range(fine_tune_epochs):\n"
+"            for images, labels in train_loader:\n"
+"                optimizer.zero_grad()\n"
+"                loss = torch.nn.functional.cross_entropy(model(images), "
+"labels)\n"
+"                loss.backward()\n"
+"                optimizer.step()\n"
+"\n"
+"        print(f\"Step {step+1}/{pruning_steps}: \"\n"
+"              f\"sparsity={current_sparsity:.1%}\")\n"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:937
+msgid "迭代剪枝为什么有效"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:940
+msgid ""
+"一次性剪 50% 等于\"休克疗法\"——模型突然少了半个大脑。迭代剪枝每次只剪 "
+"~13%，然后给模型一个\"恢复期\"（微调），让剩余权重重新分配功能。这和人类学习新技能的过程类似——不是一次性丢掉旧习惯，而是逐步替换。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:943
+msgid "结构化剪枝（整通道/整神经元删除）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:945
+msgid "PyTorch 也支持结构化剪枝，删除整个通道："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:947
+msgid ""
+"# 对 conv1 做结构化剪枝：按通道的 L1 范数（L1-norm）排序，删掉 20% 最不重要的通道\n"
+"prune.ln_structured(\n"
+"    model.conv1,\n"
+"    name=\"weight\",\n"
+"    amount=0.2,       # 删除 20% 的通道\n"
+"    n=1,              # 用 L1 范数（L1-norm）评估重要性\n"
+"    dim=0             # dim=0 表示按输出通道剪\n"
+")\n"
+"\n"
+"# 结构化剪枝后，conv1.weight 的形状会变化\n"
+"# 例如 [32, 1, 3, 3] → [26, 1, 3, 3]（删了 6 个输出通道）\n"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:961
+msgid "结构化剪枝的连锁反应"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:964
+msgid ""
+"删除一个卷积层的输出通道，必须同步修改下一层对应的输入通道。PyTorch 的 `ln_structured` "
+"只处理当前层，你需要手动或通过自定义工具处理层间依赖。这也是为什么结构化剪枝在实践中的门槛更高。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:967
+msgid "剪枝效果一览"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:969
+msgid "LeNet-MNIST 剪枝效果对比"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:972
+msgid "**剪枝方式**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:973
+msgid "**稀疏度**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:975
+msgid "**推理速度**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:977
+msgid "原始模型"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:978
+msgid "0%"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:982
+#: ../../../source/model-serving/model-optimization.md:987
+#: ../../../source/model-serving/model-optimization.md:992
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "非结构化剪枝"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:983
+msgid "30%"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:984
+msgid "168 KB（存储节省 30%）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:985
+msgid "2.1 ms（稀疏加速有限）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:986
+msgid "99.0%"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:988
+msgid "50%"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:990
+#: ../../../source/model-serving/model-optimization.md:1047
+msgid "2.0 ms"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:991
+#: ../../../source/model-serving/model-optimization.md:1048
+msgid "98.7%"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:993
+msgid "70%"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:994
+msgid "72 KB"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:995
+msgid "1.9 ms"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:996
+msgid "98.0%"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:997
+msgid "结构化剪枝（通道）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:998
+msgid "20% 通道"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:999
+msgid "178 KB"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1000
+msgid "1.8 ms（矩阵缩小，真实加速）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1004
+msgid "量化与剪枝组合"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1006
+msgid "量化和剪枝不是互斥的——它们可以叠加使用，效果通常是相乘的："
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1026
+msgid "组合优化效果（LeNet-MNIST）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1030
+msgid "**优化策略**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1034
+msgid "**综合收益**"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1035
+msgid "原始（FP32 稠密）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1039
+msgid "基准"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1040
+msgid "量化（INT8 静态）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1044
+msgid "压缩 4×，加速 2.9×"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1045
+msgid "剪枝（50% 稀疏）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1049
+msgid "压缩 2×，加速 1.2×"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1050
+msgid "先剪枝再量化"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1051
+msgid "~30 KB"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1052
+msgid "~0.6 ms"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1053
+msgid "98.2%"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1054
+msgid "压缩 8×，加速 3.8×"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1057
+msgid ""
+"常见的实践路径是：**先剪枝（去掉冗余权重）→ 再微调（恢复精度）→ "
+"最后量化（降低位宽）**。剪枝后的稀疏模型在量化时可能得到更好的量化范围（因为去掉了离群权重）。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1059
+msgid "历史背景"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1061
+msgid "量化和剪枝都不是新概念。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1063
+#, python-brace-format
+msgid ""
+"**剪枝**的思想可以追溯到 1990 年 Yann LeCun 等人的经典论文 \"Optimal Brain "
+"Damage\"{cite}`lecun1990obd`，他们提出可以通过删除不重要的权重来压缩神经网络。2015 年 Han "
+"等人{cite}`han2015deep`将剪枝、量化和 Huffman 编码组合，实现了 AlexNet 和 VGG-16 的 35-49× "
+"压缩。2018 年 Frankle 和 Carbin "
+"提出的\"彩票假说\"{cite}`frankle2018lottery`进一步揭示了剪枝的深层原理——大网络中包含着一个可以独立训练的小子网络（\"中奖彩票\"），剪枝就是找到这张彩票的过程。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1065
+msgid ""
+"**量化**的发展受益于硬件生态的推动。2018 年 NVIDIA Turing 架构首次引入 INT8 Tensor Core，让 INT8 "
+"推理在 GPU 上成为可能。2020 年后，手机 NPU（如 Apple Neural Engine、Qualcomm Hexagon）普遍支持 "
+"INT8 甚至 INT4，量化成为边缘部署的标配。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "量化是当下更主流的工程选择"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1070
+msgid ""
+"在实际工程中，量化的使用远远多于剪枝。原因很简单：量化有标准化的硬件支持（INT8 Tensor "
+"Core、NPU），且实现简单、效果好、不需要复杂的迭代流程。而剪枝需要稀疏计算支持才能获得真正的加速，这在通用硬件上至今不够成熟。如果你只能选一个优化手段，选量化。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1073
+msgid "总结"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "概念"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "实践"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "效果"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "浮点数结构"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "ExMy 表示法（E8M23 → E2M1）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "指数控制范围，尾数控制精度"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "FP32 低位噪声"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "SGD 噪声 > 尾数低位精度"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "丢弃 ~10 位尾数不影响模型"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "FP8 量化"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "E4M3（权重/激活）+ E5M2（梯度）"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "对数分布比 INT8 均匀分布更保真"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "E2M1 + 共享 E8M0 缩放因子"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "4 位极致压缩，Blackwell 原生支持"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "`torch.quantization.quantize_dynamic`"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "4× 压缩，对精度影响小"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "静态量化"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "`prepare → calibrate → convert`"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "4× 压缩 + 3× 推理加速"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "ONNX 量化"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "`onnxruntime.quantization.quantize_dynamic`"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "跨框架，不依赖 PyTorch"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "`prune.l1_unstructured`"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "压缩比可控，加速有限"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "结构化剪枝"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "`prune.ln_structured`"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "真实加速，但精度损失较大"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "迭代剪枝"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "循环剪枝 + 微调"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "高稀疏度下仍保持高精度"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "组合优化"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "先剪枝 → 再量化"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1067
+msgid "压缩比叠加，收益最大"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1089
+msgid "启示"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1091
+#, python-brace-format
+msgid ""
+"**FP32 的低位是噪声**：SGD 的随机噪声（$10^{-4}$）远大于 FP32 "
+"尾数低位的精度（$10^{-7}$），这为压缩提供了理论基础。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1092
+msgid ""
+"**量化是性价比之王**：INT8 量化实现简单，硬件支持广泛，4× 压缩率和 2-4× 加速比几乎是\"免费午餐\"。FP8 "
+"的对数分布在同位数下比 INT8 更保真，MXFP4 在 Blackwell 时代为极致吞吐提供了新选择。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1093
+#, python-brace-format
+msgid ""
+"**剪枝需要迭代**：一次性剪太多会严重损害精度，迭代剪枝 + 微调是更稳健的选择。{doc}`../cnn-expedition"
+"/ablation-study/experiment-"
+"design`中的\"控制变量\"思维在这里再次适用：每次只改变剪枝比例，跟踪精度和速度的变化。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1094
+msgid "**先剪枝再量化**：两者组合使用时，推荐的顺序是剪枝 → 微调 → 量化，剪枝去掉的离群权重有助于后续量化获得更好的 scale 范围。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1096
+msgid "下一步"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1098
+#, python-brace-format
+msgid ""
+"模型优化完成后，我们有了一个\"又轻又快\"的 ONNX "
+"模型。接下来需要设计一套服务架构，让这个模型能够高效地响应外部请求——同时处理多个用户、控制延迟、管理模型版本。{doc}`serving-"
+"architecture`将深入同步推理、异步推理、简单模式和分布式模式的设计考量。"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1100
+msgid "从\"把模型做小\"进化到\"让模型服务跑起来\"！"
+msgstr ""
+
+#: ../../../source/model-serving/model-optimization.md:1106
+msgid "参考文献"
+msgstr ""
+
+#~ msgid "残差连接（{ref}`residual-connections`）的各分支维度必须保持一致，需要额外处理"
+#~ msgstr ""
+

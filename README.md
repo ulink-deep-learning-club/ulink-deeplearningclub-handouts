@@ -7,6 +7,12 @@
 - 在线文档：[ulink-deep-learning-club.github.io/ulink-deeplearningclub-handouts](https://ulink-deep-learning-club.github.io/ulink-deeplearningclub-handouts/)
 - PDF 版本：[deeplearningclubhandouts.pdf](https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/blob/gh-pages/deeplearningclubhandouts.pdf)
 
+## 双语版本
+
+中文 Markdown 是唯一的内容源；英语版本由 Sphinx gettext 翻译目录生成。英语内容通过完整性审查后，在线站点会在每页页头提供语言切换，并在 `/en/` 下发布与中文完全对应的页面；英文 PDF 位于 `/en/deep-learning-club-handouts.pdf`。现有中文链接及 PDF 文件名保持不变。
+
+翻译贡献者请遵循 [本地化工作指南](docs/i18n/AGENT_GUIDE.md) 和 [术语表](docs/i18n/glossary.md)。在全书英语翻译、文本图片和人工语言审校完成前，英语预览不会部署或在公开站点显示。
+
 ## 项目结构
 
 ```
@@ -43,6 +49,9 @@ uv sync
 source .venv/bin/activate
 make html
 
+# 构建隔离的中英版本；中文发布根目录，英文发布到 /en/
+bash scripts/build-i18n-site.sh
+
 # 预览
 cd build/html
 python -m http.server 8000
@@ -64,7 +73,7 @@ python -m http.server 8000
 1. **先开 Issue**：讨论你希望做的修改（内容增删、结构变更、错误修复等），确保方向一致后再动手
 2. Fork 本仓库，创建功能分支（如 `feat/lstm-section`）
 3. 修改完成后提交 PR 到 `main` 分支，描述改动内容和原因
-4. PR 合并后 GitHub Actions 自动构建部署到 gh-pages
+4. PR 合并后 GitHub Actions 自动构建部署到 gh-pages；翻译变更还必须更新对应 `.po` 目录并通过本地化检查
 
 ### 写作约定
 

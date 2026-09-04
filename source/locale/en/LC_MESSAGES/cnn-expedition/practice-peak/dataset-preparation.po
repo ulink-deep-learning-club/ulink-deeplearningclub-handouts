@@ -1,0 +1,1245 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, UCS Deep Learning Club and its contributors, licensed
+# under CC BY-SA 4.0
+# This file is distributed under the same license as the Deep Learning Club
+# Handouts package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Deep Learning Club Handouts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 16:17+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:2
+msgid "数据准备：打包行囊"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:4
+msgid "打包行囊——数据怎么从硬盘飞到 GPU？"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:6
+#, python-brace-format
+msgid ""
+"装备有了。出发前最后一件事：**打包行囊。** 数据不会自己变成张量。{doc}`cnn-basics` 教会了 CNN "
+"如何提取特征，但数据从哪里来、怎么从硬盘飞到 GPU——这是登山前必须解决的。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:8
+msgid "本节回答这个问题，打造一条完整的数据流水线：从原始数据 → 预处理 → Dataset → DataLoader → GPU。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:11
+msgid "数据流水线概览"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:21
+msgid ""
+"从右往左看：**PyTorch 不需要你知道文件存在哪里，它只需要一个能`按索引返回(图片, 标签)`的对象**——这就是 "
+"Dataset。DataLoader 负责在这个对象上自动打包成 batch、打乱顺序、多进程预加载。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:23
+msgid "第一步：数据从哪里来"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:25
+msgid "内置数据集（最省心）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:27
+msgid ""
+"对于 MNIST、CIFAR-10、ImageNet 等经典基准数据集，PyTorch 通过 `torchvision.datasets` "
+"一行代码下载并准备好："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:29
+msgid ""
+"import torchvision\n"
+"\n"
+"# 下载 MNIST（第一次自动下载，之后复用本地缓存）\n"
+"train_data = torchvision.datasets.MNIST(\n"
+"    root='./data',      # 本地缓存目录\n"
+"    train=True,         # 训练集\n"
+"    download=True       # 第一次运行时设为 True\n"
+")\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:40
+msgid "常用内置数据集"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:52
+msgid "自定义数据集（真实项目）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:54
+msgid "真实场景中你的数据通常是以文件夹形式组织的："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:56
+msgid ""
+"data/\n"
+"├── train/\n"
+"│   ├── cat/        # 按类别分文件夹\n"
+"│   │   ├── cat_001.jpg\n"
+"│   │   ├── cat_002.jpg\n"
+"│   │   └── ...\n"
+"│   ├── dog/\n"
+"│   └── ...\n"
+"└── test/\n"
+"    ├── cat/\n"
+"    ├── dog/\n"
+"    └── ...\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:71
+msgid "对于这种结构，`torchvision.datasets.ImageFolder` 直接读取："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:73
+#, python-brace-format
+msgid ""
+"from torchvision.datasets import ImageFolder\n"
+"\n"
+"# 自动按文件夹名分配标签：cat→0, dog→1, ...\n"
+"dataset = ImageFolder(root='data/train')\n"
+"print(dataset.classes)      # ['cat', 'dog', ...]\n"
+"print(dataset.class_to_idx) # {'cat': 0, 'dog': 1, ...}\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:83
+msgid ""
+"ImageFolder 要求数据按**文件夹名 = 类别名**组织。如果你的数据是 CSV/JSON/X光片等非图像格式，就需要自己写 "
+"Dataset 类（见第六步）。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:86
+msgid "第二步：Transform——从图像到张量"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:88
+msgid "原始图像是 JPEG/PNG 文件（像素值 0\\~255），不能直接喂给神经网络，需要**三步标准处理**："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:97
+msgid "ToTensor：格式转换 + 归一化"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:99
+msgid ""
+"transforms.ToTensor()  # 做了两件事：\n"
+"                      # 1. PIL Image (H×W×C) → Tensor (C×H×W)\n"
+"                      # 2. [0, 255] → [0.0, 1.0]\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:105
+msgid "Normalize：标准化"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:107
+msgid "图像数据中，像素强度差异很大（背景暗、文字亮）。标准化让每个通道的均值为 0、方差为 1，**帮助梯度下降更稳定地收敛**。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:109
+msgid ""
+"from torchvision import transforms\n"
+"\n"
+"transform = transforms.Compose([\n"
+"    transforms.ToTensor(),\n"
+"    # (x - mean) / std，mean 和 std 是数据集的统计值\n"
+"    # MNIST 是灰度图，所以只有 1 个通道\n"
+"    transforms.Normalize((0.1307,), (0.3081,))\n"
+"])\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:120
+msgid ""
+"这里的 `(0.1307,)` 和 `(0.3081,)` 是从整个 MNIST "
+"训练集计算出来的**全局均值和标准差**。它们的作用是让模型输入具有统一的数值范围，不受亮度、对比度的影响。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:122
+msgid "**对于彩色图像**（如 CIFAR-10）每个通道分别标准化："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:124
+msgid ""
+"# CIFAR-10 的 RGB 三通道统计值\n"
+"transform = transforms.Compose([\n"
+"    transforms.ToTensor(),\n"
+"    transforms.Normalize(\n"
+"        mean=(0.4914, 0.4822, 0.4465),  # R/G/B 各通道均值\n"
+"        std=(0.2023, 0.1994, 0.2010)    # R/G/B 各通道标准差\n"
+"    )\n"
+"])\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:135
+msgid "训练集与验证集的 transform 不同"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:137
+msgid "这是实践中最常犯的错误之一：**验证集和测试集不能做数据增强**，只能用标准的 ToTensor + Normalize。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:139
+msgid ""
+"# 训练集 transform：可做数据增强\n"
+"train_transform = transforms.Compose([\n"
+"    transforms.RandomRotation(10),        # 随机旋转 ±10°\n"
+"    transforms.RandomAffine(0, translate=(0.1, 0.1)),  # 随机平移 ±10%\n"
+"    transforms.ToTensor(),\n"
+"    transforms.Normalize((0.1307,), (0.3081,))\n"
+"])\n"
+"\n"
+"# 验证/测试集 transform：只做标准化\n"
+"val_transform = transforms.Compose([\n"
+"    transforms.ToTensor(),\n"
+"    transforms.Normalize((0.1307,), (0.3081,))\n"
+"])\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "为什么验证集不能做数据增强？"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:158
+msgid "数据增强（旋转、平移、翻转）本质上是在**制造\"假样本\"**来扩增训练数据。但在验证时，我们需要**评估模型在真实数据上的表现**——如果验证集也被增强了，评估结果就不反映真实性能了。就像你平时用模拟题练习（数据增强），但考试时题目必须是原题（无增强）。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:161
+msgid "常见数据增强操作一览"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "操作"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "transforms 类"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "典型参数"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "效果"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "随机旋转"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "`RandomRotation`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "`degrees=10`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "小幅旋转，增加旋转不变性"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "随机平移"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "`RandomAffine`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "`translate=(0.1, 0.1)`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "小幅平移，增加平移不变性"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "随机翻转"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "`RandomHorizontalFlip`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "`p=0.5`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "水平镜像，增加翻转不变性"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "随机裁剪"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "`RandomCrop` / `RandomResizedCrop`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "`size=224`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "局部特征，增加尺度不变性"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "色彩抖动"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "`ColorJitter`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "`brightness=0.2`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "调整亮度/对比度，增加光照不变性"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:172
+msgid "Albumentations：更强大的图像增强库"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:174
+#, python-brace-format
+msgid ""
+"上面表格中的操作可以应付 MNIST/CIFAR "
+"等基础任务，但在真实项目中（特别是竞赛和生产环境），你可能需要**更强、更快、更丰富的增强策略**——这就是 {doc"
+"}`../../../pytorch-practice/train-workflow` 中提到的 {doc}`../../../pytorch-"
+"practice/best-practices` 里会再次讨论的 Albumentations。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:176
+msgid "为什么用 Albumentations？"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "对比维度"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "torchvision.transforms"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "Albumentations"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "**增强种类**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "~20种"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "**~70种**，涵盖像素级、空间级、噪声模拟"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "**速度**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "一般"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "**快 2~5 倍**（基于 OpenCV 实现）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "**API 一致性**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "每个类参数风格不同"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "统一的 `always_apply` / `p=0.5` 概率控制"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "**边界框/掩码同步增强**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "❌ 不支持"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "✅ 目标检测/分割的标注同步变换"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "**pip install**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "随 torchvision 自带"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "`pip install albumentations` 单独安装"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:186
+msgid "安装"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:188
+msgid "pip install albumentations\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:192
+msgid "基本用法"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:194
+msgid "Albumentations 的 API 与 `transforms.Compose` 类似，但参数更一致，并且所有操作都支持统一的概率控制："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:196
+msgid ""
+"import albumentations as A\n"
+"from albumentations.pytorch import ToTensorV2\n"
+"\n"
+"# 训练集增强\n"
+"# 注意每个操作都有 p=... 指定概率，默认 p=1\n"
+"# A.Compose 按顺序应用，与 torchvision 的 transforms.Compose 相同\n"
+"train_transform = A.Compose([\n"
+"    A.HorizontalFlip(p=0.5),               # 50% 概率翻转\n"
+"    A.Rotate(limit=15, p=0.8),             # 80% 概率旋转 ±15°\n"
+"    A.RandomBrightnessContrast(p=0.5),     # 50% 概率调整亮度对比度\n"
+"    A.Normalize(mean=(0.1307,), std=(0.3081,)),\n"
+"    ToTensorV2(),\n"
+"])\n"
+"\n"
+"# 验证集：只做标准化（与 torchvision 一致）\n"
+"val_transform = A.Compose([\n"
+"    A.Normalize(mean=(0.1307,), std=(0.3081,)),\n"
+"    ToTensorV2(),\n"
+"])\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:218
+msgid "与 PyTorch Dataset 集成"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:220
+msgid "Albumentations 的输入输出格式与 torchvision 不同，需要在 Dataset 的 `__getitem__` 中做适配："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:222
+msgid ""
+"from torch.utils.data import Dataset\n"
+"import cv2\n"
+"\n"
+"class AlbumentationsDataset(Dataset):\n"
+"    \"\"\"支持 Albumentations 增强的 Dataset\"\"\"\n"
+"    \n"
+"    def __init__(self, image_paths, labels, transform=None):\n"
+"        self.image_paths = image_paths\n"
+"        self.labels = labels\n"
+"        self.transform = transform\n"
+"    \n"
+"    def __len__(self):\n"
+"        return len(self.image_paths)\n"
+"    \n"
+"    def __getitem__(self, idx):\n"
+"        # 1. 读取图像（Albumentations 需要 numpy 数组格式）\n"
+"        image = cv2.imread(self.image_paths[idx])\n"
+"        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)\n"
+"        label = self.labels[idx]\n"
+"        \n"
+"        # 2. 应用增强（传入 dict，返回 dict）\n"
+"        if self.transform:\n"
+"            augmented = self.transform(image=image)\n"
+"            image = augmented['image']\n"
+"        \n"
+"        return image, label\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:251
+msgid "Albumentations 的独家增强操作"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:253
+msgid "以下是一些 torchvision 没有、但在竞赛中非常常用的增强："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "类"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "**网格失真**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "`A.GridDistortion`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "模拟镜头畸变，增加几何鲁棒性"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "**光学畸变**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "`A.OpticalDistortion`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "模拟鱼眼镜头效果"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "**Cutout / CoarseDropout**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "`A.CoarseDropout`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "随机遮罩部分区域，防止过拟合到特定纹理"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "**像素级噪声**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "`A.GaussNoise`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "模拟传感器噪声，增加抗噪能力"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "**锐化/模糊**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "`A.Sharpen` / `A.Blur` / `A.MotionBlur`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "模拟对焦不准或运动模糊"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "**通道偏移**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "`A.ChannelShuffle`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "随机打乱颜色通道，增加色彩鲁棒性"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:264
+msgid "何时用 torchvision，何时用 Albumentations？"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "场景"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "推荐"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "理由"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "MNIST/CIFAR 学习入门"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "torchvision"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "零额外依赖，够用"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "ImageNet 级分类"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "torchvision 或 Albumentations"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "两者均可"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "**目标检测 / 语义分割**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "**Albumentations**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "标注（边界框、掩码）同步变换是关键能力"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "**比赛 / 生产调优**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "70+ 增强策略，精细控制，可反复组合"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "自定义数据加载逻辑"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "两者结合"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:155
+msgid "torchvision 处理基础，Albumentations 扩展增强"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:274
+msgid "数据增强哲学：适度优于过度"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:277
+msgid "数据增强不是越多越好。过多的增强（如同时做旋转+畸变+Cutout+噪声）可能导致："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:278
+msgid "**样本失真**：增强后的图像人类都认不出，模型更不可能学会"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:279
+msgid "**训练不稳定**：输入分布变化过大，梯度难以收敛"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:280
+msgid "**性价比递减**：前 3~5 种增强效果最显著，超过 8 种几乎没有额外收益"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:282
+msgid "一个实用的起点是：**旋转 + 翻转 + 颜色抖动 + Cutout**，根据任务逐步追加。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:285
+msgid "第三步：Dataset——数据结构的统一接口"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:287
+msgid "**Dataset 是 PyTorch 数据系统的核心抽象**。它定义了一个简单的协议：\"给我一个索引，返回一个 (数据, 标签) 对\"。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:289
+msgid ""
+"from torch.utils.data import Dataset\n"
+"\n"
+"# 任何 Dataset 都只需要实现两个方法\n"
+"class MyDataset(Dataset):\n"
+"    def __len__(self):\n"
+"        \"\"\"返回数据集总大小\"\"\"\n"
+"        pass\n"
+"    \n"
+"    def __getitem__(self, idx):\n"
+"        \"\"\"返回第 idx 个样本的 (数据, 标签) \"\"\"\n"
+"        pass\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:303
+msgid "对于内置数据集（如 MNIST），PyTorch 已经实现了这两个方法，你不需要自己写。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:305
+msgid "**Dataset 只负责\"有什么数据\"，不负责\"怎么组织成 batch\"**——那是 DataLoader 的事。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:307
+msgid "Dataset vs DataLoader 的职责边界"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:316
+msgid "第四步：DataLoader——从单样本到批量"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:318
+msgid "有了 Dataset 之后，DataLoader 把它变成一个**可迭代的批量数据源**："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:320
+msgid ""
+"from torch.utils.data import DataLoader\n"
+"\n"
+"train_loader = DataLoader(\n"
+"    train_dataset,\n"
+"    batch_size=64,     # 每批 64 个样本\n"
+"    shuffle=True,      # 每 epoch 打乱顺序\n"
+"    num_workers=2,     # 2 个子进程预加载数据\n"
+"    pin_memory=True    # 加速 GPU 数据传输\n"
+")\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:332
+msgid "关键参数详解"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:334
+msgid "**`batch_size`**：每批打包多少个样本。模型是**每批更新一次参数**，所以 batch size 直接影响："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:336
+msgid "内存占用：batch size × 单个样本大小"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:337
+msgid "梯度稳定性：batch 越大，梯度估计越准确"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:338
+msgid "泛化能力：过大的 batch 可能降低泛化性能"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:340
+msgid "**`shuffle`**：每轮训练前打乱数据。如果不打乱，模型会\"记住\"数据顺序而非真正学习特征。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:342
+msgid "**`num_workers`**：用几个子进程预加载下一批数据。设置为 2\\~8 可以显著加速数据加载，但过大反而增加开销。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:344
+msgid "**`pin_memory`**：将数据固定在 CPU 内存的特定区域，**加速 CPU → GPU 传输**。设为 `True` 几乎总是更好。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:346
+msgid "实际效果演示"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:348
+#, python-brace-format
+msgid ""
+"# 假设 train_dataset 有 60,000 张 MNIST 图片\n"
+"train_loader = DataLoader(\n"
+"    train_dataset,\n"
+"    batch_size=64,\n"
+"    shuffle=True,\n"
+"    num_workers=2\n"
+")\n"
+"\n"
+"# 每次迭代返回一个 batch\n"
+"for batch_idx, (images, labels) in enumerate(train_loader):\n"
+"    # images.shape: [64, 1, 28, 28]  — 64张灰度图\n"
+"    # labels.shape: [64]             — 64个标签\n"
+"    # batch_idx: 0, 1, 2, ..., 937   — 共 938 个 batch\n"
+"    \n"
+"    if batch_idx == 0:\n"
+"        print(f\"image shape: {images.shape}\")  # [64, 1, 28, 28]\n"
+"        print(f\"label shape: {labels.shape}\")   # [64]\n"
+"        print(f\"labels: {labels}\")               # tensor([3, 7, 1, "
+"...])\n"
+"        print(f\"total batches per epoch: {len(train_loader)}\")  # 938\n"
+"        break\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:371
+msgid "GPU 数据传输路径"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:374
+msgid "流式加载机制保证了训练循环不会因为 I/O 而停滞——GPU 在算第 N 批时，CPU 已经在加载第 N+1 批了。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:377
+msgid "第五步：数据集拆分——train / val / test"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:379
+msgid "**模型训练不能只看训练集**，需要三组数据各司其职："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:371
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "数据集"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:371
+msgid "用途"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:371
+msgid "使用频率"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:371
+msgid "核心要求"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:371
+msgid "**训练集**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:371
+msgid "更新模型参数（权重+偏置）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:371
+msgid "每个 epoch 反复使用"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:371
+msgid "数据量大，覆盖多样性"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:371
+msgid "**验证集**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:371
+msgid "选择超参数、检测过拟合"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:371
+msgid "每 epoch 后评估一次"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:371
+msgid "与训练集独立分布，但不可参与训练"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:371
+msgid "**测试集**"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:371
+msgid "最终报告模型性能"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:371
+msgid "只在全部调参完成后用一次"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:371
+msgid "完全隔离，绝不可泄露"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:387
+msgid "最常用：随机拆分（train_test_split）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:389
+msgid "很多内置数据集只给了训练/测试两份，**需要自己从中分出验证集**。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:391
+#, python-brace-format
+msgid ""
+"from torch.utils.data import random_split\n"
+"\n"
+"# MNIST 标准划分：60K 训练 / 10K 测试\n"
+"# 从 60K 训练集中分出 10% 作为验证集\n"
+"train_dataset = torchvision.datasets.MNIST(root='./data', train=True)\n"
+"test_dataset  = torchvision.datasets.MNIST(root='./data', train=False)\n"
+"\n"
+"val_size = int(0.1 * len(train_dataset))  # 6,000 张\n"
+"train_size = len(train_dataset) - val_size  # 54,000 张\n"
+"\n"
+"# random_split 按比例随机拆分，不会破坏类别平衡\n"
+"train_subset, val_subset = random_split(\n"
+"    train_dataset, \n"
+"    [train_size, val_size],\n"
+"    generator=torch.Generator().manual_seed(42)  # 固定种子，确保可复现\n"
+")\n"
+"\n"
+"print(f\"训练集: {len(train_subset)}\")   # 54,000\n"
+"print(f\"验证集: {len(val_subset)}\")     # 6,000\n"
+"print(f\"测试集: {len(test_dataset)}\")   # 10,000\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:414
+msgid "为什么需要固定 random_split 种子？"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:417
+msgid ""
+"不固定种子的话，每次运行程序验证集会不同——今天在 A 组上验证好，明天可能在 B 组上不好，实验结果不可复现。固定 "
+"`manual_seed(42)` 确保每次拆分结果一致。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:420
+msgid "分层拆分（保持类别比例）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:422
+msgid ""
+"`random_split` 是随机抽取，在小数据集上可能破坏类别平衡。如果原始数据分布不均（如猫 90%，狗 "
+"10%），随机抽取的验证集可能恰好没有狗。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:424
+msgid ""
+"from sklearn.model_selection import train_test_split\n"
+"import numpy as np\n"
+"\n"
+"# 获取所有数据的标签\n"
+"labels = [train_dataset[i][1] for i in range(len(train_dataset))]\n"
+"\n"
+"# 分层拆分：按标签比例分配\n"
+"train_idx, val_idx = train_test_split(\n"
+"    np.arange(len(train_dataset)),\n"
+"    test_size=0.1,\n"
+"    stratify=labels,    # 按标签分层\n"
+"    random_state=42\n"
+")\n"
+"\n"
+"from torch.utils.data import Subset\n"
+"train_subset = Subset(train_dataset, train_idx)\n"
+"val_subset   = Subset(train_dataset, val_idx)\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:444
+msgid "scikit-learn vs torch 的选择"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:447
+msgid "数据量大且类别均衡 → `random_split` 就够了（简单、无额外依赖）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:448
+msgid "小数据集或类别不均衡 → `train_test_split(stratify=...)`（需要 sklearn）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:449
+msgid "做交叉验证 → `KFold` / `StratifiedKFold`（也需要 sklearn）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:452
+msgid "完整数据流水线模板"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:454
+msgid "把上述所有步骤组合成一个可复用的函数："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:456
+msgid ""
+"def prepare_mnist_data(batch_size=64, val_split=0.1, num_workers=2):\n"
+"    \"\"\"\n"
+"    返回 train_loader, val_loader, test_loader\n"
+"    \n"
+"    Args:\n"
+"        batch_size: 每批样本数\n"
+"        val_split:  从训练集中分出的验证集比例\n"
+"        num_workers: 并行加载进程数\n"
+"    \"\"\"\n"
+"    # 1. 定义 transform（训练集有增强，验证/测试集无增强）\n"
+"    train_transform = transforms.Compose([\n"
+"        transforms.RandomRotation(10),\n"
+"        transforms.RandomAffine(0, translate=(0.1, 0.1)),\n"
+"        transforms.ToTensor(),\n"
+"        transforms.Normalize((0.1307,), (0.3081,))\n"
+"    ])\n"
+"    \n"
+"    val_transform = transforms.Compose([\n"
+"        transforms.ToTensor(),\n"
+"        transforms.Normalize((0.1307,), (0.3081,))\n"
+"    ])\n"
+"    \n"
+"    # 2. 加载原始数据\n"
+"    full_train = torchvision.datasets.MNIST(\n"
+"        root='./data', train=True, download=True\n"
+"    )\n"
+"    test_dataset = torchvision.datasets.MNIST(\n"
+"        root='./data', train=False, transform=val_transform\n"
+"    )\n"
+"    \n"
+"    # 3. 拆分 train / val\n"
+"    val_size = int(val_split * len(full_train))\n"
+"    train_size = len(full_train) - val_size\n"
+"    \n"
+"    train_dataset, val_dataset = random_split(\n"
+"        full_train, [train_size, val_size],\n"
+"        generator=torch.Generator().manual_seed(42)\n"
+"    )\n"
+"    \n"
+"    # 4. 分别应用 transform\n"
+"    # 注意：random_split 之后，每个子集需要独立设置 transform。\n"
+"    # 简化做法是提前在原始 Dataset 初始化时就传入 transform，\n"
+"    # 但 train 和 val 需要不同的 transform（训练集增强，验证集不增强），\n"
+"    # 因此实际工程中常用 Subset + 自定义 Dataset wrapper。\n"
+"    #\n"
+"    # 为简洁起见，这里省略 Subset wrapper 的实现细节——\n"
+"    # 框架中已封装好此逻辑，直接调用 prepare_mnist_data() 即可。\n"
+"    \n"
+"    # 5. 创建 DataLoader\n"
+"    train_loader = DataLoader(\n"
+"        train_dataset, batch_size=batch_size,\n"
+"        shuffle=True, num_workers=num_workers, pin_memory=True\n"
+"    )\n"
+"    val_loader = DataLoader(\n"
+"        val_dataset, batch_size=batch_size,\n"
+"        shuffle=False, num_workers=num_workers, pin_memory=True\n"
+"    )\n"
+"    test_loader = DataLoader(\n"
+"        test_dataset, batch_size=batch_size,\n"
+"        shuffle=False, num_workers=num_workers, pin_memory=True\n"
+"    )\n"
+"    \n"
+"    return train_loader, val_loader, test_loader\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:522
+msgid "验证集与测试集的严格区分"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:524
+msgid "在训练循环中，验证集和测试集的使用方式截然不同："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:526
+#, python-brace-format
+msgid ""
+"for epoch in range(epochs):\n"
+"    # —— 训练阶段 ——\n"
+"    model.train()\n"
+"    for images, labels in train_loader:\n"
+"        images, labels = images.to(device), labels.to(device)\n"
+"        loss = criterion(model(images), labels)\n"
+"        loss.backward()\n"
+"        optimizer.step()\n"
+"        optimizer.zero_grad()\n"
+"    \n"
+"    # —— 验证阶段 ——\n"
+"    model.eval()\n"
+"    val_loss = 0\n"
+"    with torch.no_grad():  # 验证时不计算梯度\n"
+"        for images, labels in val_loader:\n"
+"            images, labels = images.to(device), labels.to(device)\n"
+"            val_loss += criterion(model(images), labels).item()\n"
+"    print(f\"Epoch {epoch}: val_loss = {val_loss / "
+"len(val_loader):.4f}\")\n"
+"    \n"
+"    # —— 早停：验证集 loss 不再下降时停止训练 ——\n"
+"    if val_loss > best_val_loss:\n"
+"        patience_counter += 1\n"
+"        if patience_counter >= 5:  # 连续 5 个 epoch 没改善\n"
+"            break                   # 停止训练\n"
+"    \n"
+"# —— 最终测试（只用一次！）——\n"
+"model.eval()\n"
+"test_acc = 0\n"
+"with torch.no_grad():\n"
+"    for images, labels in test_loader:\n"
+"        test_acc += (model(images).argmax(1) == labels).sum().item()\n"
+"print(f\"Test accuracy: {test_acc / len(test_loader.dataset):.2%}\")\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:561
+msgid "第六步：自定义 Dataset——处理任意格式的数据"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:563
+msgid ""
+"当 torchvision 和 ImageFolder 都满足不了需求时（比如你需要读取 CSV 文件、医疗 DICOM "
+"图像、自定义二进制格式），就自己写 Dataset 类："
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:565
+msgid ""
+"import os\n"
+"import pandas as pd\n"
+"from PIL import Image\n"
+"from torch.utils.data import Dataset\n"
+"\n"
+"class CustomImageDataset(Dataset):\n"
+"    \"\"\"从 CSV 文件 + 图片文件夹读取数据\"\"\"\n"
+"    \n"
+"    def __init__(self, csv_file, img_dir, transform=None):\n"
+"        \"\"\"\n"
+"        Args:\n"
+"            csv_file: CSV 文件路径，包含 'filename', 'label' 两列\n"
+"            img_dir:  图片所在文件夹\n"
+"            transform: 预处理流水线\n"
+"        \"\"\"\n"
+"        self.labels = pd.read_csv(csv_file)\n"
+"        self.img_dir = img_dir\n"
+"        self.transform = transform\n"
+"    \n"
+"    def __len__(self):\n"
+"        return len(self.labels)\n"
+"    \n"
+"    def __getitem__(self, idx):\n"
+"        \"\"\"返回第 idx 个样本的 (image, label)\"\"\"\n"
+"        # 1. 读取图片\n"
+"        img_name = self.labels.iloc[idx, 0]\n"
+"        img_path = os.path.join(self.img_dir, img_name)\n"
+"        image = Image.open(img_path).convert('RGB')\n"
+"        \n"
+"        # 2. 读取标签\n"
+"        label = self.labels.iloc[idx, 1]\n"
+"        \n"
+"        # 3. 应用预处理\n"
+"        if self.transform:\n"
+"            image = self.transform(image)\n"
+"        \n"
+"        return image, label\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "关键设计原则"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:608
+msgid ""
+"`__getitem__` **在每次被调用时即时读取文件**，而不是在 `__init__` 中一次性把所有图片加载到内存。如果数据集有 "
+"10,000 张图，一次性加载需要数十 GB 内存，按需加载只需要几 MB。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:609
+msgid ""
+"一种常见的优化是**缓存到内存**：如果内存够大且频繁访问，可以在第一次读取后缓存结果。PyTorch 也提供了 `torchdata` "
+"库来处理这类场景。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:612
+msgid "总结"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "步骤"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "组件"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "一句话"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "常见坑"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "数据源"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "`torchvision.datasets`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "下载即用，不用自己找"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "忘记设 `download=True`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "预处理"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "`transforms.Compose`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "图像→张量→标准化"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "验证集误用了数据增强"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "`Dataset` / `ImageFolder`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "按索引返回 (数据, 标签)"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "自定义 Dataset 时忘记 `convert('RGB')`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "拆分"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "`random_split` / `Subset`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "训练 / 验证 / 测试三份"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "忘记固定种子，不可复现"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "批量化"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "`DataLoader`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "自动打包 batch + 并行加载"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:605
+msgid "`num_workers=0` 导致训练速度瓶颈"
+msgstr ""
+
+#: ../../../source/cnn-expedition/practice-peak/dataset-preparation.md:624
+#, python-brace-format
+msgid "行囊打好。但登山还有一条规矩——{doc}`neural-training-basics`：装备再好，不守纪律也会摔。"
+msgstr ""
+

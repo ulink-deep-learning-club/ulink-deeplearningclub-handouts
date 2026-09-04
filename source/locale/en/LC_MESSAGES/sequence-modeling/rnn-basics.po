@@ -1,0 +1,483 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, UCS Deep Learning Club and its contributors, licensed
+# under CC BY-SA 4.0
+# This file is distributed under the same license as the Deep Learning Club
+# Handouts package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Deep Learning Club Handouts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 16:17+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../../source/sequence-modeling/rnn-basics.md:2
+msgid "循环神经网络：让网络拥有\"记忆\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:4
+#, python-brace-format
+msgid ""
+"{doc}`../cnn-expedition/practice-peak/fc-layer-basics` 中的全连接网络和 {doc"
+"}`../cnn-expedition/practice-peak/cnn-basics` 中的 CNN "
+"有一个共同特征：**给定一个输入，产生一个输出，然后\"忘记\"这个输入**。每次前向传播是独立的，网络不记得上一秒看到了什么。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:6
+msgid "这显然不符合我们处理序列的方式。读这句话时，你的大脑记住了前文——\"这\"指代什么，\"显然\"修饰什么——这些理解都依赖于**记忆**。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:8
+msgid "**关键问题**：如何让神经网络在处理序列时拥有记忆？"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:10
+msgid "历史背景"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:12
+#, python-brace-format
+msgid ""
+"1986年，David Rumelhart 和 Geoffrey Hinton 等人发表了反向传播论文 "
+"{cite}`rumelhart1986learning`，为训练多层网络奠定了基础。几乎同时，Michael Jordan "
+"提出了带有循环连接的网络架构 "
+"{cite}`jordan1986serial`——让网络将上一时刻的输出作为当前输入的一部分，从而拥有对过去的\"记忆\"。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:14
+#, python-brace-format
+msgid ""
+"1990年，Jeffrey Elman 在此基础上提出了**简单循环网络（Simple Recurrent Network）** "
+"{cite}`elman1990finding`，其核心结构——一个隐状态 $\\mathbf{h}_t$ 在每一步基于 "
+"$\\mathbf{h}_{t-1}$ 和 $\\mathbf{x}_t$ 更新——成为此后三十年所有循环架构的基石。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:17
+#, python-brace-format
+msgid ""
+"**为什么叫\"循环\"？** 因为网络在时间上的每一步使用**相同的权重** $\\mathbf{W}_h$ 和 "
+"$\\mathbf{W}_x$。这类似于 {ref}`cnn-basics` 中卷积核的权值共享——同一个规则应用到所有位置，只是 CNN "
+"共享空间位置，RNN 共享时间位置。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:20
+msgid "从大脑到RNN：记忆的直觉"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:22
+msgid "你如何理解一句话？"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:24
+msgid "想象你逐字阅读：\"今天天气很好所以我决定去公园散步\"。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:26
+msgid "读到\"今天天气很好\"时，你建立了一个上下文"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:27
+msgid "读到\"所以\"时，你知道接下来是结论"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:28
+msgid "读到\"我决定去\"时，你预期一个动作"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:29
+msgid "读到\"公园散步\"时，你把它和\"天气好\"建立了因果联系"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:31
+msgid "每一步，你的大脑都在**更新一个内部状态**——一个不断演化的、包含前文信息的\"摘要\"。这个摘要不是完整记忆（你不会逐字背诵前文），而是对理解当前词最关键的**压缩表示**。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:33
+msgid "生物学的启发：大脑不\"反复读取\"历史"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:35
+msgid "RNN 的灵感直接来自大脑中一个更根本的事实——**大脑不是每个瞬间把所有历史\"重新读一遍\"**。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:37
+msgid "想想你是怎么理解一段音乐的。听到第三个音符时，你并没有重新播放前两个音符。你对前两个音符的感知已经\"融入\"了当前的神经活动——大脑利用一系列**持续变化的物理状态**来自然携带历史信息："
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:39
+msgid "**神经元膜电位**：一个神经元被激活后，它的膜电位不会瞬间归零，而是逐渐衰减。这个衰减过程本身就在\"记住\"最近发生过什么。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:40
+msgid "**突触短期可塑性**：高频使用一个突触后，它的传递效率会在短时间内改变（增强或抑制）——这是突触层面上的\"工作记忆\"。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:41
+msgid "**钙离子浓度**：当神经元放电时，钙离子流入细胞内，浓度缓慢下降。这个化学梯度编码了过去几百毫秒内的活动强度。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:42
+msgid "**神经递质残留**：突触间隙中的神经递质分子不会瞬间清除，它们的残余浓度携带着\"刚才这里发生了信号传递\"的信息。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:44
+msgid "这些都不是\"显式的记忆存储\"——大脑没有一个单独的\"历史缓冲区\"。历史信息是**物理地、连续地**嵌入在神经元和突触的状态变化中的。每一个瞬间的大脑状态都已经是所有过去输入的**压缩结果**。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:47
+#, python-brace-format
+msgid ""
+"**RNN 的本质**：$\\mathbf{h}_t = \\tanh(\\mathbf{W}_h \\mathbf{h}_{t-1} + "
+"\\mathbf{W}_x \\mathbf{x}_t)$ 就是对这个过程的数学抽象。$\\mathbf{h}_t$ "
+"对应神经元群的膜电位模式——它随时间连续演化，每一步吸收新的输入（$\\mathbf{W}_x "
+"\\mathbf{x}_t$），同时自然地携带上一步的状态（$\\mathbf{W}_h "
+"\\mathbf{h}_{t-1}$）。信息通过时间上连续的状态变化向前传递，而不是反复从静态记忆中读取。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:49
+msgid "这就是\"循环\"二字的生物学含义：**不是重新读取，而是持续继承**。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:52
+msgid "RNN的循环结构"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:54
+#, python-brace-format
+msgid ""
+"RNN做的正是这件事 {cite}`elman1990finding`。它维护一个**隐状态（hidden state）** "
+"$\\mathbf{h}_t$，在处理每一步输入 $\\mathbf{x}_t$ 时："
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:57
+msgid "RNN循环结构：同一模块在时间上展开"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:156
+msgid "两行公式定义了RNN的全部行为："
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:158
+#, python-brace-format
+msgid ""
+"\n"
+"\\mathbf{h}_t = \\tanh(\\mathbf{W}_h \\mathbf{h}_{t-1} + \\mathbf{W}_x "
+"\\mathbf{x}_t + \\mathbf{b})\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:162
+#, python-brace-format
+msgid ""
+"\n"
+"\\mathbf{y}_t = \\mathbf{W}_y \\mathbf{h}_t + \\mathbf{b}_y\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:166
+msgid "其中："
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:167
+#, python-brace-format
+msgid "$\\mathbf{h}_t \\in \\mathbb{R}^d$：时刻 $t$ 的隐状态（网络的\"记忆\"）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:168
+#, python-brace-format
+msgid "$\\mathbf{x}_t \\in \\mathbb{R}^m$：时刻 $t$ 的输入"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:169
+#, python-brace-format
+msgid "$\\mathbf{W}_h \\in \\mathbb{R}^{d \\times d}$：**循环权重**——控制\"如何混合旧记忆和新输入\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:170
+#, python-brace-format
+msgid "$\\mathbf{W}_x \\in \\mathbb{R}^{d \\times m}$：输入投影——将输入映射到隐空间"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:171
+#, python-brace-format
+msgid "$\\mathbf{W}_y \\in \\mathbb{R}^{k \\times d}$：输出投影——从隐状态产生预测"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:174
+#, python-brace-format
+msgid ""
+"**直觉**：$\\mathbf{W}_h \\mathbf{h}_{t-1}$ 是\"提炼旧记忆\"，$\\mathbf{W}_x "
+"\\mathbf{x}_t$ 是\"吸收新信息\"，$\\tanh$ 将两者混合并压缩到 $(-1, 1)$，防止数值发散。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:176
+#, python-brace-format
+msgid ""
+"注意这里用的是 $\\tanh$ 而不是 ReLU。这是因为循环连接会让信号反复通过激活函数——ReLU "
+"的正区间可能让激活值在循环中不断放大直至爆炸，而 $\\tanh$ 天然有界，提供了一种\"自我保护\"机制（{ref}`activation-"
+"functions` 中讨论过各激活函数的特性）。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:180
+msgid "RNN的训练：穿过时间的反向传播（BPTT）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:182
+#, python-brace-format
+msgid "RNN如何学习？答案就在 {ref}`back-propagation` 和 {ref}`computational-graph` 中。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:184
+#, python-brace-format
+msgid ""
+"把RNN在时间上展开：时刻1的处理产生 $\\mathbf{h}_1$，传给时刻2的使用；时刻2产生 "
+"$\\mathbf{h}_2$，传给时刻3……这恰好形成了一个**计算图**——每个时间步是一个节点，$\\mathbf{h}_{t-1} "
+"\\to \\mathbf{h}_t$ 是连接节点的边。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:186
+#, python-brace-format
+msgid ""
+"反向传播在这个展开的图上运行，称为 **BPTT（Backpropagation Through Time）** "
+"{cite}`werbos1990backpropagation`："
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:189
+msgid "BPTT：梯度沿时间反向流动"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:290
+#, python-brace-format
+msgid "损失 $L$ 对 $\\mathbf{h}_1$ 的梯度需要穿越所有中间隐状态："
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:292
+msgid ""
+"\n"
+"\\frac{\\partial L}{\\partial \\mathbf{h}_1} = \\frac{\\partial "
+"L}{\\partial \\mathbf{h}_4} \\cdot \\frac{\\partial "
+"\\mathbf{h}_4}{\\partial \\mathbf{h}_3} \\cdot \\frac{\\partial "
+"\\mathbf{h}_3}{\\partial \\mathbf{h}_2} \\cdot \\frac{\\partial "
+"\\mathbf{h}_2}{\\partial \\mathbf{h}_1}\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:296
+msgid ""
+"这正是 {ref}`gradient-vanishing-math` 中讨论的 **Jacobian 连乘**的序列版本——每个 "
+"$\\frac{\\partial \\mathbf{h}_{t}}{\\partial \\mathbf{h}_{t-1}}$ 是一个 "
+"Jacobian 矩阵，经过 $T$ 步连乘后，梯度呈指数级衰减（或爆炸）。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:299
+msgid ""
+"**RNN训练的根本矛盾**：要学习长程依赖，梯度必须穿越很长的路径。但路径越长，连乘的 Jacobian "
+"越多，梯度消失越严重——网络\"记不住\"太远的信息。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:303
+msgid "RNN的两个核心问题"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:305
+msgid "问题一：长程依赖困难"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:307
+msgid "从信息流动的直觉来理解："
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:309
+#, python-brace-format
+msgid ""
+"$\\mathbf{h}_1$ 的信息要传递到 $\\mathbf{h}_{100}$，需要经过 99 次 "
+"$\\tanh(\\mathbf{W}_h \\cdot)$ 变换"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:310
+msgid "每一次变换都是一次\"有损压缩\"——就像反复复印一份文件，复印100次后，原文已面目全非"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:311
+msgid "原始信号的哪些部分被保留、哪些被丢弃，网络无法直接控制"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:313
+msgid "生活类比"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:316
+msgid "**RNN的传话游戏**：100个人排成一列传一句话，第一个人说\"今天天气很好\"，但每个人传话时只能听到上一个人说的。到第100个人时，可能已经变成\"今天有飞机\"。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:318
+msgid "**注意力机制的传话游戏**：第100个人能同时听到前面99个人说的话，然后自己判断谁说的最关键。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:321
+msgid "问题二：梯度消失"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:323
+#, python-brace-format
+msgid ""
+"{ref}`gradient-vanishing` 中讨论过，假设每层 Jacobian 的\"放大倍数\"为 $\\gamma$，经过 $n$ "
+"层连乘后为 $\\gamma^n$。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:325
+msgid "RNN 中，这个 $n$ 不是网络深度，而是**序列长度**。考虑 $\\tanh$ 的导数："
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:327
+#, python-brace-format
+msgid ""
+"\n"
+"\\frac{d}{dx}\\tanh(x) = 1 - \\tanh^2(x) \\in (0, 1]\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:331
+msgid "在大部分输入区域，$\\tanh$ 的梯度远小于 1（饱和时接近 0）。假设平均 $\\gamma = 0.5$："
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:313
+msgid "序列长度"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:313
+msgid "梯度衰减"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:313
+msgid "能否学到依赖？"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:313
+msgid "10个词"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:313
+#, python-brace-format
+msgid "$0.5^{10} \\approx 0.001$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:313
+msgid "勉强可以"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:313
+msgid "50个词"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:313
+#, python-brace-format
+msgid "$0.5^{50} \\approx 8.9 \\times 10^{-16}$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:313
+msgid "基本不可能"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:313
+msgid "100个词"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:313
+#, python-brace-format
+msgid "$0.5^{100} \\approx 7.9 \\times 10^{-31}$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:313
+msgid "完全不可能"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:339
+msgid "这意味着：**RNN 只能学会几十步以内的依赖关系**。更长的依赖（如段首的主题词与段尾的结论词之间的关联）在训练中几乎收不到梯度信号。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:341
+#, python-brace-format
+msgid ""
+"RNN 用一个隐状态同时承担\"存储记忆\"和\"对外输出\"——这个设计本身就是矛盾的。下一节 {doc}`lstm` "
+"中，我们将看到如何通过**分离两个状态、引入三个门控**来大幅缓解梯度消失——为梯度创建一条不经过 $\\tanh$ 的\"高速公路\"。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:343
+msgid "代码实践：RNN的梯度消失有多严重？"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:345
+#, python-brace-format
+msgid ""
+"import torch\n"
+"import torch.nn as nn\n"
+"\n"
+"# RNN参数: input_size=32（输入特征维度）, hidden_size=64（隐状态维度）\n"
+"# 参数量 = W_h(64×64) + W_x(64×32) + b(64) + W_y(64×32:默认输出维度=输入维度)\n"
+"#        = 4096 + 2048 + 64 + 2048 = 8256\n"
+"rnn = nn.RNN(input_size=32, hidden_size=64, num_layers=1)\n"
+"\n"
+"# 输入：50个时间步的序列 (seq_len=50, batch=1, features=32)\n"
+"# 理论对应 {ref}`rnn-problems` 中的序列长度 vs 梯度衰减表\n"
+"x = torch.randn(50, 1, 32)\n"
+"\n"
+"# 前向传播——沿时间步串行执行（无法并行，{ref}`rnn-problems`）\n"
+"#   output: (50, 1, 64) ——每一步的隐状态 h_1...h_50\n"
+"#   h_n:    ( 1, 1, 64) ——最后一步的隐状态（等于 output[-1]）\n"
+"output, h_n = rnn(x)\n"
+"\n"
+"# 用最后一步的隐状态求和作为损失\n"
+"# 这模拟了\"基于整个序列的最终理解做预测\"的典型RNN用法\n"
+"loss = h_n.sum()\n"
+"loss.backward()\n"
+"\n"
+"# 查看 W_x 的梯度——它接收从第50步一路回传到第1步的信号\n"
+"# 由于 {ref}`gradient-vanishing`，如果权重初始化不当或序列过长\n"
+"# 靠近输入层的梯度几乎为0\n"
+"print(f\"W_ih grad norm: {rnn.weight_ih_l0.grad.norm():.10f}\")\n"
+"# 典型输出：随机初始化下结果不一，梯度小时可达 1e-6 或更小\n"
+"# 关键理解趋势：序列越长，范数越小——而非依赖具体数值\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:376
+msgid "本节小结"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:379
+msgid "RNN 通过循环连接给了神经网络\"记忆\"——隐状态随输入逐步更新"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:380
+msgid "BPTT 是反向传播在时间展开的计算图上的应用，本质是 Jacobian 连乘"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:381
+msgid "RNN 的两个核心问题：**长程依赖困难**（信息经过多次变换后失真）和**梯度消失**（梯度指数级衰减到0）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:382
+msgid "这两个问题源于同一个根源：**信息必须一步步穿过循环连接**"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:383
+msgid "LSTM 缓解了梯度消失，但串行处理的根本限制仍在"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:386
+#, python-brace-format
+msgid ""
+"下一节 {doc}`lstm` 中，我们将看到 LSTM "
+"如何通过门控机制为梯度开辟一条\"高速公路\"——这让我们在处理序列时走得更远，但串行传递的根本矛盾仍然存在。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/rnn-basics.md:392
+msgid "参考文献"
+msgstr ""
+

@@ -92,7 +92,9 @@ def process_mermaid_svgs(build_dir: str = "build/html/_images") -> None:
 # For use as Sphinx extension
 def on_build_finished(app, exception):
     """Sphinx event handler called when build finishes."""
-    if exception is None:
+    # Gettext, LaTeX, and EPUB builders do not generate Mermaid SVG files.
+    # Skipping them keeps strict translation-catalog builds warning-free.
+    if exception is None and app.builder.format == "html":
         build_dir = Path(app.outdir) / "_images"
         process_mermaid_svgs(str(build_dir))
 

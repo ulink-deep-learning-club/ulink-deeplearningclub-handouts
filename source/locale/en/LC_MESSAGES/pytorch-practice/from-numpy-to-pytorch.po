@@ -1,0 +1,563 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, UCS Deep Learning Club and its contributors, licensed
+# under CC BY-SA 4.0
+# This file is distributed under the same license as the Deep Learning Club
+# Handouts package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Deep Learning Club Handouts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 16:17+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:2
+msgid "从 NumPy 到 PyTorch：张量的本质"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:4
+#, python-brace-format
+msgid "还记得 {ref}`computational-graph` 中那个简单的计算图吗？"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:6
+msgid ""
+"\n"
+"z = (x + y) \\times w\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:10
+msgid ""
+"在数学上，$x$、$y$、$w$、$z$ "
+"只是符号。但在代码中，它们需要**存储在内存里**，需要**支持数学运算**，还需要**记录梯度信息**——这就是 **张量（Tensor）** "
+"的作用。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:12
+#, python-brace-format
+msgid ""
+"本章我们将看到：PyTorch 的 `Tensor` 不仅是 NumPy 数组的 GPU 版本，更是 {ref}`computational-"
+"graph` 中节点的**工程实现**。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:14
+msgid "回顾：NumPy 是什么？"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:16
+msgid "如果你熟悉 Python 科学计算，一定用过 NumPy："
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:18
+msgid ""
+"import numpy as np\n"
+"\n"
+"# NumPy 数组：高效存储多维数据\n"
+"x = np.array([[1.0, 2.0], [3.0, 4.0]])\n"
+"y = np.array([[5.0, 6.0], [7.0, 8.0]])\n"
+"\n"
+"# 矩阵乘法：对应数学中的 $Z = X \\cdot Y$\n"
+"z = np.dot(x, y)\n"
+"print(z)\n"
+"# [[19. 22.]\n"
+"#  [43. 50.]]\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:32
+msgid "NumPy 解决了 Python 列表的两个问题："
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:34
+msgid "**存储效率**：连续内存，比 Python 列表快 10-100 倍"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:35
+msgid "**运算效率**：底层 C 实现，向量化操作避免 Python 循环"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:37
+msgid "但这对于深度学习还不够。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:39
+msgid "为什么 NumPy 不够用？"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:41
+msgid "问题 1：没有自动微分"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:43
+#, python-brace-format
+msgid ""
+"在 {ref}`back-propagation` 中，我们需要计算 $\\frac{\\partial L}{\\partial w}$。用 "
+"NumPy，你必须手动推导和实现："
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:45
+msgid ""
+"# NumPy 实现线性回归的梯度\n"
+"# 手动推导：dL/dw = 2 * X^T @ (Xw - y) / n\n"
+"def compute_gradient(X, y, w):\n"
+"    n = len(y)\n"
+"    predictions = X @ w\n"
+"    error = predictions - y\n"
+"    gradient = 2 * X.T @ error / n  # 手动实现的梯度公式\n"
+"    return gradient\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:56
+msgid "**问题**：稍微复杂的网络（比如 LeNet），梯度公式有几十行，非常容易出错。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:58
+msgid "问题 2：不能用 GPU"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:60
+msgid "现代 GPU 有数千个计算核心，比 CPU 快 10-100 倍。但 NumPy 只能在 CPU 上运行。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:62
+msgid ""
+"# 大规模矩阵乘法在 CPU 上可能要几分钟\n"
+"large_matrix = np.random.randn(10000, 10000)\n"
+"result = large_matrix @ large_matrix  # CPU 计算，慢！\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:68
+msgid "问题 3：与深度学习生态脱节"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:70
+msgid "NumPy 是通用科学计算库，没有："
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:72
+msgid "预定义的神经网络层（卷积、池化等）"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:73
+msgid "优化器（SGD、Adam 等）"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:74
+msgid "数据加载和预处理工具"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:76
+msgid "**需要一个新的数据结构**：保持 NumPy 的易用性，同时解决上述问题。这就是 PyTorch 的 `Tensor`。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:78
+msgid "**张量的维度层级**："
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:86
+msgid ""
+"张量维度从标量到高阶张量：0维标量（Scalar）、1维向量（Vector）、2维矩阵（Matrix）、3维张量（Third-order "
+"tensor）。张量的阶数（order）等于索引它的下标数量。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:89
+msgid "PyTorch 张量：NumPy + 自动微分 + GPU"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:91
+msgid "基础用法：和 NumPy 几乎一样"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:93
+msgid ""
+"import torch\n"
+"\n"
+"# 创建张量：语法和 NumPy 几乎相同\n"
+"x = torch.tensor([[1.0, 2.0], [3.0, 4.0]])\n"
+"y = torch.tensor([[5.0, 6.0], [7.0, 8.0]])\n"
+"\n"
+"# 矩阵乘法：语法也类似\n"
+"z = torch.matmul(x, y)\n"
+"print(z)\n"
+"# tensor([[19., 22.],\n"
+"#         [43., 50.]])\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:107
+#, python-brace-format
+msgid ""
+"**关键区别**：`torch.Tensor` 是 {ref}`computational-graph` 中的**节点**，而 "
+"`np.array` 只是数据存储。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:109
+msgid "**张量作为计算图节点**："
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:113
+msgid "张量与计算图节点的对应"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:150
+msgid "关键特性 1：自动微分"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:152
+msgid "这是 PyTorch 张量最核心的特性——**自动记录计算历史**。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:154
+#, python-brace-format
+msgid ""
+"# 创建需要梯度的张量（对应计算图中的参数节点）\n"
+"x = torch.tensor(2.0, requires_grad=True)\n"
+"w = torch.tensor(3.0, requires_grad=True)\n"
+"\n"
+"# 前向计算：z = x * w\n"
+"z = x * w\n"
+"print(f\"z = {z}\")  # z = 6.0\n"
+"\n"
+"# 反向传播：计算梯度\n"
+"z.backward()\n"
+"\n"
+"# 查看梯度\n"
+"print(f\"∂z/∂x = {x.grad}\")  # ∂z/∂x = w = 3.0\n"
+"print(f\"∂z/∂w = {w.grad}\")  # ∂z/∂w = x = 2.0\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:171
+msgid "这对应什么理论？"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:174
+#, python-brace-format
+msgid "这行代码 `z.backward()` 实现了 {ref}`back-propagation` 的全部逻辑："
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:175
+msgid "自动构建计算图"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:176
+msgid "从输出节点回溯"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:177
+msgid "应用链式法则计算每个参数的梯度"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:179
+msgid "在 NumPy 中，这需要几十行代码手动实现。PyTorch 只需要一行。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:182
+msgid "关键特性 2：GPU 加速"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:184
+#, python-brace-format
+msgid ""
+"# 检查是否有 GPU\n"
+"if torch.cuda.is_available():\n"
+"    device = torch.device('cuda')\n"
+"    print(f\"使用 GPU: {torch.cuda.get_device_name(0)}\")\n"
+"else:\n"
+"    device = torch.device('cpu')\n"
+"    print(\"使用 CPU\")\n"
+"\n"
+"# 把张量移到 GPU\n"
+"x_gpu = x.to(device)\n"
+"w_gpu = w.to(device)\n"
+"\n"
+"# 现在在 GPU 上计算\n"
+"z_gpu = x_gpu * w_gpu\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:201
+msgid "性能对比"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:204
+#, python-brace-format
+msgid ""
+"在 {doc}`../cnn-expedition/practice-peak/exp-cmp` 中，我们讨论了训练速度。使用 GPU 通常比 "
+"CPU 快 **10-100 倍**，这让训练大模型（如 ResNet）成为可能。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:207
+msgid "张量的属性：理解计算图节点"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:209
+#, python-brace-format
+msgid "每个 PyTorch 张量都有三个关键属性，对应 {ref}`computational-graph` 中的节点特性："
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:201
+msgid "属性"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:201
+msgid "含义"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:201
+msgid "对应计算图概念"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:201
+msgid "`data`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:201
+msgid "存储的数值"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:201
+msgid "节点的值"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:201
+msgid "`grad`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:201
+msgid "梯度值"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:201
+msgid "损失对该节点的偏导数"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:201
+msgid "`requires_grad`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:201
+msgid "是否需要梯度"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:201
+msgid "是否是参数节点"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:201
+msgid "`is_leaf`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:201
+msgid "是否是叶子节点"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:201
+msgid "是否是输入/参数"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:218
+#, python-brace-format
+msgid ""
+"# 详细查看张量属性\n"
+"x = torch.tensor(2.0, requires_grad=True)\n"
+"print(f\"值: {x.data}\")           # 2.0\n"
+"print(f\"需要梯度: {x.requires_grad}\")  # True\n"
+"print(f\"是否叶子: {x.is_leaf}\")       # True\n"
+"\n"
+"# 经过运算后的张量\n"
+"y = x * 3\n"
+"print(f\"y 是否叶子: {y.is_leaf}\")     # False（中间节点）\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:230
+msgid "完整示例：线性回归的 NumPy vs PyTorch"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:232
+msgid "让我们用同一个问题（线性回归）对比两种实现，看看 PyTorch 如何简化代码："
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:234
+msgid "NumPy 实现（手动梯度）"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:236
+#, python-brace-format
+msgid ""
+"import numpy as np\n"
+"\n"
+"# 数据：y = 2x + 1 + noise\n"
+"np.random.seed(42)\n"
+"X = np.random.randn(100, 1)\n"
+"y = 2 * X + 1 + np.random.randn(100, 1) * 0.1\n"
+"\n"
+"# 参数初始化\n"
+"w = np.zeros((1, 1))\n"
+"b = np.zeros(1)\n"
+"\n"
+"# 训练 100 步\n"
+"lr = 0.1\n"
+"for epoch in range(100):\n"
+"    # 前向传播\n"
+"    y_pred = X @ w + b\n"
+"    \n"
+"    # 计算损失\n"
+"    loss = np.mean((y_pred - y) ** 2)\n"
+"    \n"
+"    # 手动计算梯度（需要推导公式！）\n"
+"    # ∂L/∂w = 2 * X^T @ (y_pred - y) / n\n"
+"    # ∂L/∂b = 2 * mean(y_pred - y)\n"
+"    grad_w = 2 * X.T @ (y_pred - y) / len(X)\n"
+"    grad_b = 2 * np.mean(y_pred - y)\n"
+"    \n"
+"    # 参数更新（梯度下降）\n"
+"    w -= lr * grad_w\n"
+"    b -= lr * grad_b\n"
+"\n"
+"print(f\"学习到的参数: w={w[0,0]:.3f}, b={b[0]:.3f}\")\n"
+"# 应该接近 w=2, b=1\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:271
+msgid "PyTorch 实现（自动微分）"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:273
+#, python-brace-format
+msgid ""
+"import torch\n"
+"\n"
+"# 数据\n"
+"torch.manual_seed(42)\n"
+"X = torch.randn(100, 1)\n"
+"y = 2 * X + 1 + torch.randn(100, 1) * 0.1\n"
+"\n"
+"# 参数：requires_grad=True 表示需要计算梯度\n"
+"w = torch.zeros((1, 1), requires_grad=True)\n"
+"b = torch.zeros(1, requires_grad=True)\n"
+"\n"
+"# 训练\n"
+"lr = 0.1\n"
+"for epoch in range(100):\n"
+"    # 前向传播\n"
+"    y_pred = X @ w + b\n"
+"    \n"
+"    # 计算损失\n"
+"    loss = torch.mean((y_pred - y) ** 2)\n"
+"    \n"
+"    # 反向传播：自动计算所有梯度！\n"
+"    loss.backward()\n"
+"    \n"
+"    # 参数更新\n"
+"    with torch.no_grad():  # 更新时不需要计算梯度\n"
+"        w -= lr * w.grad\n"
+"        b -= lr * b.grad\n"
+"        w.grad.zero_()  # 清空梯度，准备下一轮\n"
+"        b.grad.zero_()\n"
+"\n"
+"print(f\"学习到的参数: w={w.item():.3f}, b={b.item():.3f}\")\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:307
+msgid "对比分析"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:317
+msgid "**核心洞察**：PyTorch 没有改变算法，只是自动化了机械性的梯度计算。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:320
+msgid "常见陷阱"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:322
+msgid "陷阱 1：原地修改张量"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:324
+msgid ""
+"x = torch.tensor([1.0, 2.0], requires_grad=True)\n"
+"\n"
+"# 错误：原地修改会破坏计算图\n"
+"# x += 1  # 这会报错！\n"
+"\n"
+"# 正确：创建新张量\n"
+"x = x + 1  # 这是安全的\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:334
+msgid "陷阱 2：忘记清空梯度"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:336
+msgid ""
+"# 错误：梯度会累加！\n"
+"for epoch in range(100):\n"
+"    loss = compute_loss()\n"
+"    loss.backward()\n"
+"    # 如果不清空，w.grad 会累加所有轮次的梯度\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:344
+msgid "陷阱 3：在梯度计算图中更新参数"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:346
+msgid ""
+"# 错误：这会在计算图中记录参数更新操作\n"
+"w = w - lr * w.grad  # 不要这样做！\n"
+"\n"
+"# 正确：用 torch.no_grad() 上下文\n"
+"with torch.no_grad():\n"
+"    w -= lr * w.grad\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:355
+msgid "下一步"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:357
+#, python-brace-format
+msgid "现在你已经理解了张量是 {ref}`computational-graph` 的代码实现。接下来："
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:359
+#, python-brace-format
+msgid "**{doc}`tensor-ops`**：学习张量的各种操作（reshape、transpose 等），理解它们对应的数据流变换"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:360
+#, python-brace-format
+msgid ""
+"**{doc}`neural-network-module`**：用张量搭建 {doc}`../cnn-expedition/practice-"
+"peak/fc-layer-basics` 和 {doc}`../cnn-expedition/practice-peak/cnn-basics`"
+" 中的网络"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:362
+msgid "**关键认知**：PyTorch 开发的核心流程就是——"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:363
+msgid "用 `torch.Tensor` 存储数据（对应计算图节点）"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:364
+msgid "用张量运算实现前向传播（数据流动）"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:365
+msgid "用 `.backward()` 自动计算梯度（反向传播）"
+msgstr ""
+
+#: ../../../source/pytorch-practice/from-numpy-to-pytorch.md:366
+msgid "用优化器更新参数（梯度下降）"
+msgstr ""
+

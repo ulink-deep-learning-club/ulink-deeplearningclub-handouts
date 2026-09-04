@@ -11,6 +11,7 @@ from pathlib import Path
 import logging
 import platform
 import shutil
+import posixpath
 
 def list_file_with_extension(directory: Path, extension: str) -> list[Path]:
     """
@@ -110,6 +111,12 @@ author = 'UCS Deep Learning Club'
 release = '0.0.1'
 html_title = "Deep Learning Club Handouts"
 
+# The public English edition is deliberately gated until every catalog entry
+# and language-specific visual has passed editorial review. Set this to True
+# only in the release that satisfies docs/i18n/AGENT_GUIDE.md.
+I18N_RELEASE_READY = os.getenv("I18N_RELEASE_READY", "0") == "1"
+SITE_BASEURL = "https://ulink-deep-learning-club.github.io/ulink-deeplearningclub-handouts/"
+
 # conf.py
 
 latex_engine = "lualatex"
@@ -157,7 +164,8 @@ latex_show_urls = 'footnote'
 
 
 html_css_files = [
-    'style-fixes.css'
+    'style-fixes.css',
+    'i18n.css',
 ]
 
 # -- General configuration ---------------------------------------------------
@@ -217,7 +225,13 @@ else:
 
     mermaid_d3_zoom = True
 
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.cache']
+exclude_patterns = [
+    '_build', 'build', 'Thumbs.db', '.DS_Store', '.cache',
+    # These are literalinclude fixtures rendered by the guide, not standalone
+    # documentation pages. Parsing them independently intentionally produces
+    # broken-example warnings.
+    'appendix/sphinx-guide/examples/**',
+]
 
 # TikZ configuration
 tikz_proc_suite = 'pdf2svg'
@@ -254,9 +268,17 @@ myst_enable_extensions = [
 
 # Internationalization
 language = 'zh_CN'
+locale_dirs = ['locale/']
+gettext_compact = False
+gettext_additional_targets = {'literal-block'}
+figure_language_filename = '{root}.{language}{ext}'
 
 templates_path = ['_templates']
-exclude_patterns = ['build', 'Thumbs.db', '.DS_Store']
+
+# Existing chapters deliberately repeat bibliography entries on one page. Keep
+# strict warnings for unresolved references and malformed source while omitting
+# this known, non-rendering bibliography noise.
+suppress_warnings = ['bibtex.duplicate_citation', 'bibtex.duplicate_label']
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
@@ -274,7 +296,7 @@ html_context = {
 
 html_theme_options = {
     "header_start": ["header-brand.html"],
-    "header_end": ["search-button.html", "theme-switcher.html", "external-links.html"],
+    "header_end": ["search-button.html", "language-switcher.html", "theme-switcher.html", "external-links.html"],
     "sidebar_primary": ["sidebar-nav.html"],
     "sidebar_secondary": ["repo-stats.html", "edit-this-page.html", "sidebar-toc.html"],
     "article_header": ["breadcrumbs.html"],
@@ -300,3 +322,46 @@ imgmath_latex_preamble = r'''
 '''
 
 bibtex_bibfiles = ["references.bib"]
+
+
+def _page_path(language_code: str, pagename: str) -> str:
+    """Return the published HTML path for a Sphinx page in one language."""
+    prefix = "en/" if language_code == "en" else ""
+    return f"{prefix}{pagename}.html"
+
+
+def _configure_language(app, config):
+    """Apply options that depend on the final -D language override."""
+    if config.language == "en":
+        config.html_title = "Deep Learning Club Handouts"
+        config.html_baseurl = f"{SITE_BASEURL}en/"
+        config.latex_documents = [
+            ('index', 'deep-learning-club-handouts.tex', 'Deep Learning Club Handouts',
+             'UCS Deep Learning Club', 'manual'),
+        ]
+    else:
+        config.html_title = "Deep Learning Club 学习教程"
+        config.html_baseurl = SITE_BASEURL
+        config.latex_documents = [
+            ('index', 'deeplearningclubhandouts.tex', 'Deep Learning Club 学习教程',
+             'UCS Deep Learning Club', 'manual'),
+        ]
+
+
+def _add_language_switch_context(app, pagename, templatename, context, doctree):
+    """Expose a same-page, relative language-switch URL to the header template."""
+    language_code = app.config.language
+    target_language = 'zh_CN' if language_code == 'en' else 'en'
+    current_path = _page_path(language_code, pagename)
+    target_path = _page_path(target_language, pagename)
+    context['language_switcher_enabled'] = I18N_RELEASE_READY
+    context['language_switch_label'] = '中文' if language_code == 'en' else 'English'
+    context['language_switch_url'] = posixpath.relpath(
+        target_path, start=posixpath.dirname(current_path)
+    )
+    context['language_code'] = language_code
+
+
+def setup(app):
+    app.connect('config-inited', _configure_language)
+    app.connect('html-page-context', _add_language_switch_context)

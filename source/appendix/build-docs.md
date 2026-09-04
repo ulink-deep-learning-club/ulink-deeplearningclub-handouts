@@ -201,6 +201,17 @@ make html
 
 输出在 `build/html/`，直接用浏览器打开 `build/html/index.html` 即可预览。
 
+### 构建中英双语发布目录
+
+中文是本书唯一的 Markdown 内容源，英文文本从 gettext 翻译目录构建。以下命令会分别构建两种语言，并将发布目录组装到 `build/i18n/site/`：
+
+```bash
+source .venv/bin/activate
+bash scripts/build-i18n-site.sh
+```
+
+完成英文翻译、文本图片审查和人工语言审校前，脚本只构建英文预览而不会将其放入发布目录。发布负责人通过 `docs/i18n/AGENT_GUIDE.md` 的完整性检查后，使用 `I18N_RELEASE_READY=1` 运行同一命令；此时中文位于站点根目录，英文位于 `en/`，每种语言各有独立 PDF。
+
 ### 构建 PDF
 
 ```bash

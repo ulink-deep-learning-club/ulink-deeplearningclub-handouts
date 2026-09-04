@@ -1,0 +1,558 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, UCS Deep Learning Club and its contributors, licensed
+# under CC BY-SA 4.0
+# This file is distributed under the same license as the Deep Learning Club
+# Handouts package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Deep Learning Club Handouts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 16:17+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:2
+msgid "从RNN到注意力：一个思想的跳跃"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:4
+#, python-brace-format
+msgid ""
+"{doc}`rnn-basics` 揭示了 RNN 的困境：$\\mathbf{h}_t$ 只能通过 $\\mathbf{h}_{t-1}$ "
+"间接获取前序信息。{doc}`lstm` 用门控机制为梯度开辟了高速公路，但信息仍是串行传递的——经过几十个 $\\mathbf{f}_t "
+"\\odot \\mathbf{c}_{t-1}$ 操作后，$\\mathbf{h}_1$ 的信息在 $\\mathbf{c}_{100}$ "
+"中终究会衰减。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:6
+#, python-brace-format
+msgid ""
+"**关键问题**：如果 $\\mathbf{h}_t$ 能直接看到 $\\mathbf{h}_1, \\mathbf{h}_2, ..., "
+"\\mathbf{h}_{t-1}$ 全部历史，而不只是 $\\mathbf{h}_{t-1}$，会怎么样？"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:9
+msgid "直觉跳跃：从\"传话\"到\"查档案\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:11
+msgid "两个处理模式"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md
+msgid "RNN的传话模式"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md
+msgid "注意力的查档模式"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md
+msgid "信息获取"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md
+msgid "只听上一个人说"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md
+msgid "直接查阅所有前序记录"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md
+msgid "信息质量"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md
+msgid "逐次衰减"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md
+msgid "不受距离影响"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:215
+msgid "并行性"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md
+msgid "串行，$t$ 步等 $t-1$ 步完成"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md
+msgid "所有步骤可同时计算"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:19
+msgid "RNN 就像传话游戏：第100个人想知道第10个人说了什么，只能通过中间90个人的转述。每转述一次，信息就损失一点。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:21
+msgid "注意力的做法完全不同：**第100个人能看到所有人的\"原始发言记录\"，然后自己判断哪些发言对当前理解最重要**。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:24
+#, python-brace-format
+msgid ""
+"**这不是一个全新的想法**。{ref}`inductive-bias` 告诉我们，好的架构把对任务结构的理解内置到设计中。RNN "
+"的归纳偏置是\"时序因果性\"——$t$ 时刻只能依赖 $< t$ "
+"的信息。注意力保留了这一偏置，但改变了信息的传递方式：不再通过循环连接一步步传递，而是直接建立全局连接。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:26
+#, python-brace-format
+msgid ""
+"如果你学过 {ref}`res-net`，会发现这和残差网络的思想完全一致——**用一条捷径绕开衰减路径**。ResNet "
+"的跳跃连接让梯度在**深度方向**绕过非线性层直传；注意力让信息在**时间方向**绕过中间步骤直达。两者的核心洞察是同一个：**不让信号被迫穿过每一次变换，给它一条直接通路**。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:30
+msgid "数学推导：因果注意力的自然诞生"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:32
+msgid ""
+"我们要解决的问题：在时刻 $t$，给定所有前序隐状态 $\\{\\mathbf{h}_1, \\mathbf{h}_2, ..., "
+"\\mathbf{h}_{t-1}\\}$（以及当前输入的信息），如何计算出当前的最佳表示？"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:34
+msgid "步骤一：衡量\"相关性\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:36
+msgid "首先需要一个机制来判断哪些前序状态对当前时刻重要。最自然的方式是用**相似度**："
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:38
+#, python-brace-format
+msgid ""
+"\n"
+"s_{t,i} = \\text{score}(\\mathbf{h}_t, \\mathbf{h}_i), \\quad i < t\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:42
+msgid "最简单的相似度是点积："
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:44
+#, python-brace-format
+msgid ""
+"\n"
+"s_{t,i} = \\mathbf{h}_t \\cdot \\mathbf{h}_i\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:48
+#, python-brace-format
+msgid "如果 $\\mathbf{h}_t$ 和 $\\mathbf{h}_i$ 方向相似，点积大；方向相反，点积小（甚至为负）。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:50
+msgid "步骤二：归一化为权重"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:52
+msgid "将相似度分数用 Softmax 转为概率分布（权重）："
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:54
+msgid ""
+"\n"
+"\\alpha_{t,i} = \\frac{\\exp(s_{t,i})}{\\sum_{j=1}^{t-1} \\exp(s_{t,j})},"
+" \\quad i < t\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:58
+#, python-brace-format
+msgid "$\\alpha_{t,i}$ 表示\"在理解第 $t$ 步时，第 $i$ 步的信息有多重要\"。所有权重之和为 1。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:60
+msgid "步骤三：加权聚合"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:62
+msgid "用这些权重对前序状态加权求和："
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:64
+#, python-brace-format
+msgid ""
+"\n"
+"\\mathbf{c}_t = \\sum_{i=1}^{t-1} \\alpha_{t,i} \\cdot \\mathbf{h}_i\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:68
+#, python-brace-format
+msgid ""
+"$\\mathbf{c}_t$ 称为 **上下文向量（context "
+"vector）**——它是所有前序信息的\"加权摘要\"，权重由当前需求动态决定。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:70
+msgid "这就是因果注意力"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:73
+msgid ""
+"\n"
+"\\text{CausalAttention}(\\mathbf{h}_t, "
+"\\{\\mathbf{h}_1...\\mathbf{h}_{t-1}\\}) = \\sum_{i=1}^{t-1} "
+"\\text{softmax}(\\mathbf{h}_t \\cdot \\mathbf{h}_i) \\cdot \\mathbf{h}_i"
+"\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:77
+msgid "\"因果\"指的是：$t$ 时刻只能看到过去（$i < t$），不能看到未来。这是序列建模的自然约束——你不能用还没说出的话来理解当前词。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:81
+msgid "步骤四：分离\"查询\"和\"被查询\"——引入可学习的投影"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:83
+#, python-brace-format
+msgid "步骤三的公式已经能工作，但有一个微妙的局限。在整个序列的计算中，**同一个隐状态向量 $\\mathbf{h}$** 会被迫扮演三个不同的角色："
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:85
+#, python-brace-format
+msgid "当它是当前时刻的查询出发点时（$\\mathbf{h}_t$），它需要表达\"**我在找什么？**\"（Query）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:86
+#, python-brace-format
+msgid "当它是被查询的历史记录时（$\\mathbf{h}_i$），它需要表达\"**我有什么特征可以被匹配？**\"（Key）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:87
+#, python-brace-format
+msgid "当它被选中并参与聚合时（$\\mathbf{h}_i$），它还需要表达\"**我能提供什么具体信息？**\"（Value）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:89
+#, python-brace-format
+msgid ""
+"在步骤三的公式 $\\mathbf{c}_t = \\sum_{i=1}^{t-1} \\text{softmax}(\\mathbf{h}_t "
+"\\cdot \\mathbf{h}_i) \\cdot \\mathbf{h}_i$ 中，这种冲突直接体现在了 "
+"**$\\mathbf{h}_i$ 出现了两次**：一次在点积中充当 Key，一次在加权求和中充当 "
+"Value。同一个向量必须同时回答\"我是什么\"和\"我能提供什么\"——这两个目标可能完全不同。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:92
+#, python-brace-format
+msgid ""
+"**一个具体的例子**：假设 $\\mathbf{h}_2$ "
+"是名词\"猫\"的表示。当未来的动词\"跑\"（$\\mathbf{h}_5$）来查询它时："
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:93
+#, python-brace-format
+msgid ""
+"作为 **Key**：$\\mathbf{h}_2$ 需要暴露\"我是名词、生物、可以做主语\"的索引特征，以便和 $\\mathbf{h}_5$"
+" 的查询向量匹配"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:94
+#, python-brace-format
+msgid "作为 **Value**：$\\mathbf{h}_2$ 需要提供\"猫\"的完整语义信息，以便聚合到上下文中"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:96
+#, python-brace-format
+msgid ""
+"如果 $\\mathbf{h}_2$ "
+"必须用同一套数值同时满足\"做索引标签\"和\"做内容载体\"两个目标，表达力会严重受限——它无法针对不同职能做专门的优化。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:99
+#, python-brace-format
+msgid ""
+"解决方案很自然：**给每个向量三个可学习的投影**，让它能根据\"当前扮演什么角色\"来调整自己的表达 "
+"{cite}`vaswani2017attention`："
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:101
+#, python-brace-format
+msgid "**Query $\\mathbf{q}_t = \\mathbf{W}_q \\mathbf{h}_t$**（查询）：从当前时刻出发的检索需求"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:102
+#, python-brace-format
+msgid "**Key $\\mathbf{k}_i = \\mathbf{W}_k \\mathbf{h}_i$**（键）：暴露自己供别人检索的特征"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:103
+#, python-brace-format
+msgid "**Value $\\mathbf{v}_i = \\mathbf{W}_v \\mathbf{h}_i$**（值）：实际被聚合的内容"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:105
+msgid "对比步骤三的原始公式和推广后的公式："
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:107
+#, python-brace-format
+msgid "**原始**（$\\mathbf{h}_i$ 身兼 Key/Value 两职）："
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:109
+#, python-brace-format
+msgid ""
+"\n"
+"\\mathbf{c}_t = \\sum_{i=1}^{t-1} \\text{softmax}(\\mathbf{h}_t \\cdot "
+"\\mathbf{h}_i) \\cdot \\mathbf{h}_i\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:113
+msgid "**推广后**（Q/K/V 三个角色分离）："
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:115
+#, python-brace-format
+msgid ""
+"\n"
+"\\mathbf{c}_t = \\sum_{i=1}^{t-1} \\text{softmax}\\!\\left((\\mathbf{W}_q"
+" \\mathbf{h}_t) \\cdot (\\mathbf{W}_k \\mathbf{h}_i)\\right) \\cdot "
+"(\\mathbf{W}_v \\mathbf{h}_i) = \\sum_{i=1}^{t-1} "
+"\\text{softmax}\\!\\left(\\mathbf{q}_t \\cdot \\mathbf{k}_i\\right) "
+"\\cdot \\mathbf{v}_i\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:119
+#, python-brace-format
+msgid ""
+"可以看到：如果 $\\mathbf{W}_q = \\mathbf{W}_k = \\mathbf{W}_v = "
+"\\mathbf{I}$（单位矩阵），两式完全等价——步骤三的简单版本是步骤四的一个**特例**。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:121
+#, python-brace-format
+msgid "除以 $\\sqrt{d_k}$，即："
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:123
+msgid ""
+"\n"
+"\\text{Attention}(\\mathbf{q}_t, \\mathbf{K}, \\mathbf{V}) = "
+"\\sum_{i=1}^{t-1} \\text{softmax}\\!\\left(\\frac{\\mathbf{q}_t \\cdot "
+"\\mathbf{k}_i}{\\sqrt{d_k}}\\right) \\cdot \\mathbf{v}_i\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:127
+#, python-brace-format
+msgid "为什么除以 $\\sqrt{d_k}$?"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:130
+#, python-brace-format
+msgid ""
+"当 Key 的维度 $d_k$ 很大时，点积 $\\mathbf{q} \\cdot \\mathbf{k}$ 的方差约为 "
+"$d_k$。大点积值会让 Softmax 进入饱和区——大部分 $\\alpha$ 趋近于 0 或 1，梯度几乎为 0。除以 "
+"$\\sqrt{d_k}$ 将方差缩放到 1，保持 Softmax 输出平滑、梯度健康。这被称为**缩放点积注意力（Scaled Dot-"
+"Product Attention）**。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:133
+msgid "类比：图书馆检索"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:136
+msgid "**Query**：你要找的问题（\"关于深度学习的书\"）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:137
+msgid "**Key**：每本书的索引标签（书名、关键词）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:138
+msgid "**Value**：书的内容"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:139
+msgid "**过程**：用 Query 匹配 Key 得到每本书的相关性分数 → Softmax 归一化 → 基于权重从各书的 Value 中聚合信息"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:141
+msgid "你最终得到的是所有相关书的\"加权摘要\"，而非一本书的全部内容。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:144
+msgid "对比：RNN串行 vs 注意力并行"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:147
+msgid "RNN的串行依赖 vs 注意力的全局连接"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:203
+msgid "RNN vs 因果注意力"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:206
+msgid "对比维度"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:207
+msgid "RNN"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:208
+msgid "因果注意力"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:209
+msgid "信息路径长度"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:210
+msgid "O(n)：n步才能从位置1传到位置n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:211
+msgid "O(1)：任何位置直接访问所有前序位置"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:212
+msgid "梯度路径"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:213
+msgid "穿过n个Jacobian，指数衰减"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:214
+msgid "梯度主要通过Softmax传播，与距离无关"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:216
+#, python-brace-format
+msgid "必须串行：$\\mathbf{h}_t$ 依赖 $\\mathbf{h}_{t-1}$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:217
+msgid "训练时所有位置可并行计算（用mask屏蔽未来）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:218
+msgid "归纳偏置"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:219
+msgid "强：相邻时刻更相关"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:220
+msgid "弱：所有前序位置等距（需要位置编码补偿）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:223
+msgid "代码实践：因果注意力的实现"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:225
+#, python-brace-format
+msgid ""
+"import torch\n"
+"import torch.nn.functional as F\n"
+"\n"
+"def causal_self_attention(x):\n"
+"    \"\"\"\n"
+"    输入: x, shape (batch, seq_len, d_model)\n"
+"    输出: context, shape (batch, seq_len, d_model)\n"
+"\n"
+"    理论对应 {ref}`from-rnn-to-attention` 中的因果注意力公式\n"
+"    \"\"\"\n"
+"    B, T, D = x.shape\n"
+"\n"
+"    # 步骤1: 线性投影得到 Q, K, V\n"
+"    # 三者形状均为 (batch, seq_len, d_model)\n"
+"    W_q = torch.randn(D, D) * 0.02  # 实际应用中应为可学习参数\n"
+"    W_k = torch.randn(D, D) * 0.02\n"
+"    W_v = torch.randn(D, D) * 0.02\n"
+"\n"
+"    Q = x @ W_q  # (B, T, D)\n"
+"    K = x @ W_k  # (B, T, D)\n"
+"    V = x @ W_v  # (B, T, D)\n"
+"\n"
+"    # 步骤2: 计算注意力分数矩阵\n"
+"    # Q @ K^T 的结果形状为 (B, T, T)\n"
+"    # scores[b, t, i] 表示第t个位置的查询与第i个键的相似度\n"
+"    d_k = D\n"
+"    scores = (Q @ K.transpose(-2, -1)) / (d_k ** 0.5)\n"
+"\n"
+"    # 步骤3: 因果mask——禁止关注未来\n"
+"    # mask是一个上三角为 -inf、下三角为 0 的矩阵\n"
+"    mask = torch.triu(torch.ones(T, T), diagonal=1).bool()\n"
+"    scores = scores.masked_fill(mask, float('-inf'))\n"
+"\n"
+"    # 步骤4: Softmax归一化（在最后一个维度上，即所有Key上）\n"
+"    # -inf 位置的 exp(-inf) = 0，实现\"禁止关注未来\"\n"
+"    attn_weights = F.softmax(scores, dim=-1)  # (B, T, T)\n"
+"\n"
+"    # 步骤5: 加权聚合Value\n"
+"    # attn_weights[b, t, :] 对 V[b, :, :] 的所有行加权求和\n"
+"    context = attn_weights @ V  # (B, T, D)\n"
+"    return context\n"
+"\n"
+"# 测试\n"
+"x = torch.randn(2, 5, 64)  # batch=2, seq_len=5, d_model=64\n"
+"output = causal_self_attention(x)\n"
+"# output[0, 2, :] 只聚合了 x[0, 0:3, :] 的信息（位置0,1,2）\n"
+"# output[0, 2, :] 看不到 x[0, 3:5, :]（位置3,4是\"未来\"）\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:276
+#, python-brace-format
+msgid ""
+"**因果mask的直觉**：在Softmax前将未来位置的分数设为 $-\\infty$，因为 $\\exp(-\\infty) = "
+"0$，这些位置获得0权重。这与 {ref}`inductive-bias` 中时序因果性的要求一致——$t$ 时刻的预测只能基于 $< t$ "
+"的信息。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:279
+msgid "本节小结"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:282
+msgid "RNN 的串行传话模式导致长程信息丢失，根本原因是信息必须一步步穿过循环连接"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:283
+msgid "注意力的核心思想：**让每一步直接加权聚合所有前序信息**，跳过中间步骤"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:284
+msgid "因果注意力 = 相似度计算（点积/缩放点积）→ Softmax归一化 → 加权求和"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:285
+msgid "引入 Q/K/V 三个角色将\"查询\"和\"被查询\"的职能分离，增强表达力"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:286
+msgid "注意力训练时可并行（用mask屏蔽未来），这是相对于RNN的巨大优势"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:289
+#, python-brace-format
+msgid ""
+"从\"为什么需要注意力\"到\"注意力如何工作\"，我们已经完成了核心的思想建设。下一节 {doc}`transformer` "
+"中，我们将看到这一思想如何被推向极致——完全抛弃循环，构建一个纯粹的注意力架构。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/from-rnn-to-attention.md:295
+msgid "参考文献"
+msgstr ""
+

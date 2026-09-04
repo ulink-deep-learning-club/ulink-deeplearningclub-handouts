@@ -1,0 +1,1036 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, UCS Deep Learning Club and its contributors, licensed
+# under CC BY-SA 4.0
+# This file is distributed under the same license as the Deep Learning Club
+# Handouts package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Deep Learning Club Handouts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 16:17+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../../source/sequence-modeling/lstm.md:3
+msgid "LSTM：给记忆装上\"门\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:5
+#, python-brace-format
+msgid ""
+"{doc}`rnn-basics` 揭示了 RNN 的根本矛盾：$\\mathbf{h}_t$ "
+"必须同时承担两件互相冲突的事——**记住历史**和**输出当前结果**。一个向量，两种使命，顾此失彼。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:7
+msgid "就像一个人既要做会议记录，又要即兴发言——记录要求忠实、不遗漏，发言要求提炼、有取舍。用同一个大脑状态同时做这两件事，结果往往是两个都做不好。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:9
+msgid "**关键问题**：能不能把\"记忆存储\"和\"对外输出\"分开，各司其职？"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:11
+msgid "历史背景"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:13
+#, python-brace-format
+msgid ""
+"1991年，Sepp Hochreiter 在其导师 Jürgen Schmidhuber 的指导下，首次在毕业论文中分析了 RNN "
+"梯度消失的数学根源——这正是我们在 {ref}`rnn-problems` 中讨论的 $\\tanh$ 导数连乘问题。基于这一分析，他们在 "
+"1997 年正式提出了 **Long Short-Term Memory (LSTM)** {cite}`hochreiter1997long`。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:15
+msgid ""
+"LSTM 的核心洞察至今仍是序列建模的基石：**用门控机制管理信息流动**。此后 20 年，LSTM "
+"主导了语音识别、机器翻译、手写识别等几乎所有序列任务，直到 Transformer 出现。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:18
+msgid ""
+"**历史趣闻**：LSTM 的论文最初被 NeurIPS 拒稿，审稿人认为\"这个想法太复杂，而且 RNN "
+"的问题可以通过更好的初始化解决\"。如今它是 20 世纪被引用最多的深度学习论文之一。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:21
+#, python-brace-format
+msgid "LSTM {cite}`hochreiter1997long` 的回答是：**能。用两个状态，三个门。**"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:25
+msgid "核心洞察：从\"一个状态\"到\"两个状态\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:27
+#, python-brace-format
+msgid ""
+"RNN 只有一个隐状态 $\\mathbf{h}_t$，它既是\"当前的理解\"（输出用），又是\"历史的摘要\"（传给下一步）。信息在每一步都被"
+" $\\tanh$ 压缩，长此以往，细节尽失。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:29
+msgid "LSTM 把这两个职责拆开："
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:32
+msgid "RNN vs LSTM：从单状态到双状态"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:31
+#: ../../../source/sequence-modeling/lstm.md:331
+msgid "RNN"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:31
+#: ../../../source/sequence-modeling/lstm.md:332
+msgid "LSTM"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:31
+msgid "状态数量"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:31
+#, python-brace-format
+msgid "1 个（$\\mathbf{h}_t$）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:31
+#, python-brace-format
+msgid "2 个（$\\mathbf{c}_t$ 和 $\\mathbf{h}_t$）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:31
+#, python-brace-format
+msgid "$\\mathbf{c}_t$（细胞状态）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:31
+msgid "无"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:31
+msgid "**长期记忆**：信息的\"传送带\"，缓慢变化"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:31
+#, python-brace-format
+msgid "$\\mathbf{h}_t$（隐状态）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:31
+msgid "身兼二职"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:31
+msgid "**对外输出**：当前时刻的\"公开发言\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:98
+#, python-brace-format
+msgid ""
+"**细胞状态 $\\mathbf{c}_t$ 是 LSTM "
+"的灵魂**。它像一条贯穿时间的\"信息传送带\"——信息在上面流动时，只有少数地方会被门控修改。这与 {ref}`res-net` "
+"中残差连接的思想如出一辙：大部分信号原封不动地通过，只在必要处做修改。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:103
+msgid "四个角色：LSTM的门控系统"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:105
+#, python-brace-format
+msgid "有了分离的\"长期记忆\"（$\\mathbf{c}_t$），自然需要一个机制来管理它——什么时候写入、什么时候擦除、什么时候读出。这个机制就是三个**门（gate）**，外加一个**候选记忆**的提议。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:107
+msgid "每个门的核心公式都长这样："
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:109
+#, python-brace-format
+msgid ""
+"\n"
+"\\text{gate}(\\mathbf{h}_{t-1}, \\mathbf{x}_t) = \\sigma(\\mathbf{W} "
+"\\cdot [\\mathbf{h}_{t-1}, \\mathbf{x}_t] + \\mathbf{b})\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:113
+msgid ""
+"$\\sigma$（Sigmoid）把输出压到 $(0, 1)$，天然适合做\"门\"——0 表示\"完全关闭\"，1 "
+"表示\"完全打开\"，中间值表示\"部分开放\"。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:115
+msgid "下面我们逐个认识这四个角色。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:119
+msgid "角色一：遗忘门——\"档案管理员\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+msgid "遗忘门的职责"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:124
+#, python-brace-format
+msgid "**一句话**：面对旧记忆 $\\mathbf{c}_{t-1}$，决定**哪些内容该丢掉**。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:127
+#, python-brace-format
+msgid ""
+"\n"
+"\\mathbf{f}_t = \\sigma(\\mathbf{W}_f \\cdot [\\mathbf{h}_{t-1}, "
+"\\mathbf{x}_t] + \\mathbf{b}_f)\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:131
+msgid "**逐步拆解遗忘门**："
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+#: ../../../source/sequence-modeling/lstm.md:151
+#: ../../../source/sequence-modeling/lstm.md:209
+msgid "符号"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+#: ../../../source/sequence-modeling/lstm.md:151
+#: ../../../source/sequence-modeling/lstm.md:209
+#: ../../../source/sequence-modeling/lstm.md:253
+msgid "含义"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+#: ../../../source/sequence-modeling/lstm.md:151
+#: ../../../source/sequence-modeling/lstm.md:209
+msgid "维度"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+#: ../../../source/sequence-modeling/lstm.md:151
+#: ../../../source/sequence-modeling/lstm.md:209
+msgid "直觉理解"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+#, python-brace-format
+msgid "$[\\mathbf{h}_{t-1}, \\mathbf{x}_t]$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+msgid "拼接上一时刻的输出和当前输入"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+#, python-brace-format
+msgid "$\\mathbb{R}^{d+m}$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+msgid "把\"历史上下文\"和\"新读到的词\"摆在一起"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+#, python-brace-format
+msgid "$\\mathbf{W}_f$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+msgid "遗忘门的权重矩阵"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+#: ../../../source/sequence-modeling/lstm.md:151
+#: ../../../source/sequence-modeling/lstm.md:209
+#, python-brace-format
+msgid "$\\mathbb{R}^{d \\times (d+m)}$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+msgid "学到\"什么样的上下文暗示该遗忘\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+#, python-brace-format
+msgid "$\\mathbf{b}_f$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+msgid "遗忘门的偏置"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+#: ../../../source/sequence-modeling/lstm.md:151
+#: ../../../source/sequence-modeling/lstm.md:209
+#, python-brace-format
+msgid "$\\mathbb{R}^d$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+msgid "通常初始化为 1（偏向\"先别忘\"，训练中再调整）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+#: ../../../source/sequence-modeling/lstm.md:151
+#: ../../../source/sequence-modeling/lstm.md:209
+msgid "$\\sigma$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+#: ../../../source/sequence-modeling/lstm.md:151
+#: ../../../source/sequence-modeling/lstm.md:209
+msgid "Sigmoid 函数"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+#: ../../../source/sequence-modeling/lstm.md:151
+#: ../../../source/sequence-modeling/lstm.md:209
+msgid "输出 $(0, 1)^d$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+msgid "将线性组合映射为\"保留比例\"：0 = 全忘，1 = 全留"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+#, python-brace-format
+msgid "$\\mathbf{f}_t$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+msgid "遗忘门输出"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+#: ../../../source/sequence-modeling/lstm.md:151
+#: ../../../source/sequence-modeling/lstm.md:209
+msgid "$(0, 1)^d$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:121
+#, python-brace-format
+msgid ""
+"每个维度一个保留指令——$\\mathbf{c}_{t-1}$ 的第 $i$ 维保留 $\\mathbf{f}_t^{(i)} \\times "
+"100\\%$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:142
+msgid ""
+"**为什么偏置初始化为 1 而不是 0？** 在训练初期，网络还不知道该忘什么。如果遗忘门默认输出 "
+"0（全忘），梯度高速公路上全是\"关闭\"的闸门——信息流直接断裂，无法学习长程依赖。初始化为 1 "
+"意味着\"默认全保留，需要时才忘掉\"——先保证信息能流动，再逐步学会选择性遗忘。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:145
+#, python-brace-format
+msgid ""
+"**直觉**：你正在读一篇文章。读到新的段落时，你需要判断——前面提到的某个细节现在还重要吗？\"遗忘门\"就是用当前上下文（$\\mathbf{h}_{t-1}$"
+" 和 $\\mathbf{x}_t$）来判断旧记忆 $\\mathbf{c}_{t-1}$ "
+"中每个维度的去留。比如读到\"然而\"这个词时（$\\mathbf{x}_t$），你知道前面的论述可能需要被\"遗忘\"一部分，为新的转折腾出空间。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:149
+msgid "角色二：输入门 + 候选记忆——\"采购员\"和\"新提案\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "输入门的职责"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:154
+msgid "**一句话**：面对当前时刻的新信息，决定**哪些内容值得写入长期记忆**。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:157
+msgid "输入门的特殊之处在于它由两个组件配合完成——**输入门**本身（决定\"在哪里写\"）和**候选记忆**（提供\"写什么内容\"）："
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:159
+#, python-brace-format
+msgid ""
+"\n"
+"\\mathbf{i}_t = \\sigma(\\mathbf{W}_i \\cdot [\\mathbf{h}_{t-1}, "
+"\\mathbf{x}_t] + \\mathbf{b}_i)\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:163
+msgid ""
+"\n"
+"\\tilde{\\mathbf{c}}_t = \\tanh(\\mathbf{W}_c \\cdot [\\mathbf{h}_{t-1}, "
+"\\mathbf{x}_t] + \\mathbf{b}_c)\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:167
+msgid "**逐步拆解输入门**："
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+#, python-brace-format
+msgid "$\\mathbf{W}_i$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "输入门的权重矩阵"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "学到\"什么样的上下文值得记录\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+#, python-brace-format
+msgid "$\\mathbf{b}_i$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "输入门的偏置"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "控制默认的\"记录意愿\"（通常初始化为 0）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "每个维度输出一个\"写入许可\"：0 = 不写，1 = 全写"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+#, python-brace-format
+msgid "$\\mathbf{i}_t$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "输入门输出"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "**权限**——对候选记忆的每个维度，允许多大比例写入"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:176
+msgid "**逐步拆解候选记忆**："
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+#, python-brace-format
+msgid "$\\mathbf{W}_c$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "候选记忆的权重矩阵"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "学到\"如何从上下文提炼新记忆内容\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+#, python-brace-format
+msgid "$\\mathbf{b}_c$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "候选记忆的偏置"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "偏置项"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "$\\tanh$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "双曲正切函数"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "输出 $(-1, 1)^d$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "将候选内容压缩到有界范围，防止数值发散"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "$\\tilde{\\mathbf{c}}_t$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "候选记忆"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "$(-1, 1)^d$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:151
+msgid "**内容**——基于当前上下文提出的新信息草稿"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:185
+msgid "**为什么需要两个组件配合？**"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:188
+msgid ""
+"$\\tilde{\\mathbf{c}}_t$ 像一个\"提案人\"，提出一份新内容的草稿（用 $\\tanh$ 压缩到 $(-1, "
+"1)$，类似于 LSTM 内部的\"标准信息格式\"）。$\\mathbf{i}_t$ "
+"像一位\"审批官\"，决定这份提案的哪些部分可以进入正式记录。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:190
+msgid "为什么\"产生内容\"和\"决定是否采纳\"要分开？"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:191
+msgid "你可以提出很多想法（$\\tilde{\\mathbf{c}}_t$ 的各个维度都可能非零）——这是**信息生成**"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:192
+#, python-brace-format
+msgid "但只采纳与当前上下文相关的部分（$\\mathbf{i}_t$ 选择性放行）——这是**信息筛选**"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:193
+msgid "分离这两个职责，让网络学会\"大胆提案，谨慎采纳\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:196
+msgid "**两个激活函数的分工**："
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:187
+#: ../../../source/sequence-modeling/lstm.md:330
+msgid "对比维度"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:187
+#, python-brace-format
+msgid "Sigmoid（$\\mathbf{i}_t$）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:187
+msgid "$\\tanh$（$\\tilde{\\mathbf{c}}_t$）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:187
+msgid "输出范围"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:187
+msgid "$(0, 1)$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:187
+msgid "$(-1, 1)$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:187
+msgid "角色"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:187
+msgid "**门控**——决定\"写多少\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:187
+msgid "**内容**——决定\"写什么\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:187
+msgid "语义"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:187
+msgid "天然适合做比例/概率"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:187
+msgid "天然适合做有正有负的特征值"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:187
+msgid "类比"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:187
+msgid "水龙头的阀门（0=关，1=开）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:187
+msgid "水管里的水（水本身的内容）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:207
+msgid "角色三：输出门——\"发言人\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:209
+msgid "输出门的职责"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:212
+#, python-brace-format
+msgid "**一句话**：从长期记忆 $\\mathbf{c}_t$ 中提取**当前需要对外输出的内容**。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:215
+#, python-brace-format
+msgid ""
+"\n"
+"\\mathbf{o}_t = \\sigma(\\mathbf{W}_o \\cdot [\\mathbf{h}_{t-1}, "
+"\\mathbf{x}_t] + \\mathbf{b}_o)\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:219
+#, python-brace-format
+msgid ""
+"\n"
+"\\mathbf{h}_t = \\mathbf{o}_t \\odot \\tanh(\\mathbf{c}_t)\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:223
+msgid "**逐步拆解输出门**："
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:209
+#, python-brace-format
+msgid "$\\mathbf{W}_o$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:209
+msgid "输出门的权重矩阵"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:209
+msgid "学到\"当前上下文需要输出记忆中的哪些部分\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:209
+#, python-brace-format
+msgid "$\\mathbf{b}_o$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:209
+msgid "输出门的偏置"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:209
+msgid "控制默认的\"输出意愿\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:209
+msgid "每个维度输出一个\"暴露许可\"：0 = 隐藏，1 = 公开"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:209
+#, python-brace-format
+msgid "$\\mathbf{o}_t$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:209
+msgid "输出门输出"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:209
+#, python-brace-format
+msgid "决定了 $\\mathbf{c}_t$ 中哪些维度应出现在 $\\mathbf{h}_t$ 中"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:232
+#, python-brace-format
+msgid "**$\\mathbf{h}_t$ 的生成——两步走**："
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:234
+#, python-brace-format
+msgid "**第一步**：$\\tanh(\\mathbf{c}_t)$——将细胞状态压缩到 $(-1, 1)$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:236
+msgid "这一步有两个作用："
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:238
+#, python-brace-format
+msgid "防止输出值过大（$\\mathbf{c}_t$ 中的值理论上可以无限增长，因为遗忘门允许 $f_t=1$ 的累积）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:239
+msgid "将记忆归一化到标准范围，方便后续层处理"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:241
+#, python-brace-format
+msgid "**第二步**：$\\mathbf{o}_t \\odot \\tanh(\\mathbf{c}_t)$——选择性暴露"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:243
+#, python-brace-format
+msgid ""
+"$\\mathbf{o}_t$ 像一个\"发言人\"，它基于当前需要（$\\mathbf{h}_{t-1}$ 和 "
+"$\\mathbf{x}_t$）决定：记忆中的哪些部分应该体现在当前输出中。比如，当预测下一个词是动词时，输出门可能重点暴露记忆中关于\"动作\"的维度，而压抑关于\"形容词\"的维度。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:246
+#, python-brace-format
+msgid ""
+"**直觉**：你拥有完整的长期记忆 "
+"$\\mathbf{c}_t$（整本书的内容），但当别人问你\"刚才讲了什么\"时，你只会说出与当前问题相关的部分。这个\"根据当前需要筛选发言内容\"的过程，就是"
+" $\\mathbf{o}_t$ 在做的事。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:249
+msgid "完整更新公式"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:251
+msgid "把四个角色组合在一起，LSTM 的一步更新为："
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:253
+msgid "LSTM 完整公式"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:256
+#, python-brace-format
+msgid "**门控计算**（所有门共享相同的输入 $[\\mathbf{h}_{t-1}, \\mathbf{x}_t]$）："
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:258
+msgid ""
+"\n"
+"\\begin{aligned}\n"
+"\\mathbf{f}_t &= \\sigma(\\mathbf{W}_f \\cdot [\\mathbf{h}_{t-1}, "
+"\\mathbf{x}_t] + \\mathbf{b}_f) \\quad &\\text{遗忘门} \\\\\n"
+"\\mathbf{i}_t &= \\sigma(\\mathbf{W}_i \\cdot [\\mathbf{h}_{t-1}, "
+"\\mathbf{x}_t] + \\mathbf{b}_i) \\quad &\\text{输入门} \\\\\n"
+"\\tilde{\\mathbf{c}}_t &= \\tanh(\\mathbf{W}_c \\cdot [\\mathbf{h}_{t-1},"
+" \\mathbf{x}_t] + \\mathbf{b}_c) \\quad &\\text{候选记忆} \\\\\n"
+"\\mathbf{o}_t &= \\sigma(\\mathbf{W}_o \\cdot [\\mathbf{h}_{t-1}, "
+"\\mathbf{x}_t] + \\mathbf{b}_o) \\quad &\\text{输出门}\n"
+"\\end{aligned}\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:267
+msgid "**状态更新**："
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:269
+msgid ""
+"\n"
+"\\begin{aligned}\n"
+"\\mathbf{c}_t &= \\mathbf{f}_t \\odot \\mathbf{c}_{t-1} + \\mathbf{i}_t "
+"\\odot \\tilde{\\mathbf{c}}_t \\quad &\\text{记忆更新} \\\\\n"
+"\\mathbf{h}_t &= \\mathbf{o}_t \\odot \\tanh(\\mathbf{c}_t) \\quad "
+"&\\text{对外输出}\n"
+"\\end{aligned}\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:276
+msgid "其中 $\\odot$ 表示逐元素乘法（Hadamard 积）。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:279
+msgid ""
+"**记忆更新公式详解**：$\\mathbf{c}_t = \\mathbf{f}_t \\odot \\mathbf{c}_{t-1} + "
+"\\mathbf{i}_t \\odot \\tilde{\\mathbf{c}}_t$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:253
+msgid "项"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:253
+msgid "直觉"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:253
+#, python-brace-format
+msgid "$\\mathbf{f}_t \\odot \\mathbf{c}_{t-1}$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:253
+msgid "遗忘门 × 旧记忆"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:253
+msgid "**保留部分**——旧记忆中通过遗忘门筛选后留下的"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:253
+msgid "$\\mathbf{i}_t \\odot \\tilde{\\mathbf{c}}_t$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:253
+msgid "输入门 × 候选新信息"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:253
+msgid "**新增部分**——候选信息中通过输入门批准写入的"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:253
+msgid "$+$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:253
+msgid "逐元素加法"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:253
+msgid "新旧混编——记忆的更新是\"删掉一些旧的，添加一些新的\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:287
+msgid "读作：**新记忆 = 旧记忆中保留下的 + 新信息中被批准写入的**。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:295
+#, python-brace-format
+msgid ""
+"LSTM 内部的门控结构。信息沿顶部的水平线（细胞状态 $\\mathbf{c}_t$）流动——$\\times$ 表示门控的逐元素乘法，$+$ "
+"表示新旧信息的合并。图片来自 Chris Olah 的博客 \"[Understanding LSTM "
+"Networks](https://colah.github.io/posts/2015-08-Understanding-"
+"LSTMs/)\"——深度学习领域最经典的可视化之一。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:299
+#, python-brace-format
+msgid ""
+"**四类参数的规模**：设隐状态维度为 $d$，输入维度为 $m$。每个门都是一个 $\\mathbb{R}^{d+m} \\to "
+"\\mathbb{R}^d$ 的线性映射，参数量为 $d \\times (d+m) + d$。四个门总计 $4d(d+m+1)$ "
+"个参数。对于一个 $d=256$、$m=128$ 的 LSTM，约为 $4 \\times 256 \\times 385 \\approx "
+"394,240$ 个参数——是同等 RNN 的 4 倍，但换来了可控的长期记忆。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:304
+msgid "为什么LSTM能缓解梯度消失：梯度高速公路"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:306
+msgid ""
+"回顾 {ref}`gradient-vanishing` 中的分析：梯度消失的根源是 Jacobian 连乘。RNN "
+"中，$\\frac{\\partial \\mathbf{h}_t}{\\partial \\mathbf{h}_{t-1}}$ 包含 "
+"$\\tanh$ 的导数，它始终 $\\leq 1$，连乘后指数衰减。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:308
+#, python-brace-format
+msgid "LSTM 的关键差异在于**细胞状态 $\\mathbf{c}_t$ 的梯度路径**："
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:310
+msgid ""
+"对 $\\mathbf{c}_t = \\mathbf{f}_t \\odot \\mathbf{c}_{t-1} + \\mathbf{i}_t"
+" \\odot \\tilde{\\mathbf{c}}_t$ 求导："
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:312
+msgid ""
+"\n"
+"\\frac{\\partial \\mathbf{c}_t}{\\partial \\mathbf{c}_{t-1}} = "
+"\\mathbf{f}_t \\quad \\text{（对角矩阵，每个维度独立）}\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:316
+#, python-brace-format
+msgid ""
+"**核心洞察**：$\\mathbf{c}_{t-1}$ 对 $\\mathbf{c}_t$ 的梯度就是遗忘门 $\\mathbf{f}_t$ "
+"本身——**没有 $\\tanh$，没有复杂的非线性**。如果 $\\mathbf{f}_t \\approx "
+"1$（网络选择\"保留\"），梯度几乎无损地穿过这一时间步。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:318
+msgid "类比：传送带 vs 搅拌机"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:321
+msgid "**RNN**：信息每步都经过 $\\tanh$ 的\"搅拌\"——100 步后，原始内容面目全非，梯度也一样"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:322
+#, python-brace-format
+msgid ""
+"**LSTM**：信息在一条**传送带**（$\\mathbf{c}_t$）上流动。遗忘门 $\\mathbf{f}_t$ "
+"只在传送带上打开小的\"丢弃口\"——大部分东西原封不动地通过。梯度也沿这条传送带几乎无损地回传"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:324
+#, python-brace-format
+msgid ""
+"这与 {ref}`res-net` 中 $\\mathbf{x} + F(\\mathbf{x})$ "
+"的设计哲学完全一致：**让梯度有一条不经过非线性的捷径**。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:327
+msgid "RNN vs LSTM 梯度传播对比"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:333
+msgid "梯度路径"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:334
+msgid ""
+"$\\frac{\\partial \\mathbf{h}_t}{\\partial \\mathbf{h}_{t-1}}$ 包含 "
+"$\\tanh'$，始终 $\\leq 1$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:335
+msgid ""
+"$\\frac{\\partial \\mathbf{c}_t}{\\partial \\mathbf{c}_{t-1}} = "
+"\\mathbf{f}_t$，可接近 1"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:336
+msgid "100步后梯度"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:337
+#, python-brace-format
+msgid "$\\approx 0.5^{100} \\approx 10^{-31}$（消失）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:338
+#, python-brace-format
+msgid "若 $\\mathbf{f}_t \\approx 1$，梯度几乎不变"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:339
+msgid "能否学到千步依赖"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:340
+msgid "几乎不可能"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:341
+msgid "理论上可以（实践中困难但可行）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:344
+msgid "LSTM 仍有局限"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:346
+msgid "LSTM 解决了梯度消失，但没有解决所有问题："
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:348
+#, python-brace-format
+msgid ""
+"**仍是串行处理**：$\\mathbf{h}_t$ 必须等 $\\mathbf{h}_{t-1}$ 算完。序列长度 1000 意味着 1000 "
+"次串行计算，无法并行训练"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:349
+#, python-brace-format
+msgid ""
+"**固定尺寸的瓶颈**：所有历史信息必须压缩进一个固定维度的 "
+"$\\mathbf{c}_t$。序列越长，压缩越有损——就像把一本书总结成一段话，总有信息丢失"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:350
+#, python-brace-format
+msgid ""
+"**门控也会饱和**：当 $\\mathbf{f}_t$ 在训练中饱和为 0（网络学会了\"这段必须忘掉\"），梯度仍然会切断——只是比 RNN "
+"更可控"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:353
+msgid ""
+"LSTM 的贡献不是\"解决了所有问题\"，而是**把问题的维度降低了**：从\"梯度指数衰减到 "
+"0\"变成\"网络可以通过学习门控来调控梯度流动\"。这为深度学习处理序列打开了大门——此后 20 年里，LSTM 是 NLP "
+"领域的主力架构，直到 Transformer 出现。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:356
+msgid "代码实践：LSTM 的梯度保持能力"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:358
+#, python-brace-format
+msgid ""
+"import torch\n"
+"import torch.nn as nn\n"
+"\n"
+"# RNN: 参数量 = W_h(64×64) + W_x(64×32) + b(64) + W_y(64×32) = 8,256\n"
+"rnn = nn.RNN(input_size=32, hidden_size=64, num_layers=1)\n"
+"\n"
+"# LSTM: 四个门，每个门 = W(64×96) + b(64) = 6,208\n"
+"#       四个门总计 = 24,832（约RNN的3倍）\n"
+"#       外加输出投影权重不计入（PyTorch默认不自动回归输出）\n"
+"lstm = nn.LSTM(input_size=32, hidden_size=64, num_layers=1)\n"
+"\n"
+"# 长序列测试——100步，梯度必须穿越100次门控操作\n"
+"x = torch.randn(100, 1, 32)  # (seq_len=100, batch=1, features=32)\n"
+"\n"
+"# RNN前向——隐状态 h_t 每一步经过 {ref}`lstm-gradient-highway` 中描述的 tanh 压缩\n"
+"rnn_out, _ = rnn(x)          # rnn_out: (100, 1, 64)\n"
+"rnn_out[-1].sum().backward()  # 只对最后一步求梯度\n"
+"# 查看输入权重的梯度范数——由于梯度消失（{ref}`gradient-vanishing`），接近0\n"
+"print(f\"RNN   W_ih grad norm: {rnn.weight_ih_l0.grad.norm():.10f}\")\n"
+"\n"
+"# LSTM前向——输出 (output, (h_n, c_n))\n"
+"#   output: (100, 1, 64) ——每一步的隐状态（对外输出）\n"
+"#   h_n:    (  1, 1, 64) ——最后一步的隐状态\n"
+"#   c_n:    (  1, 1, 64) ——最后一步的细胞状态（长期记忆）\n"
+"lstm_out, (h_n, c_n) = lstm(x)\n"
+"lstm_out[-1].sum().backward()\n"
+"# LSTM的输入权重梯度显著更大——遗忘门 f_t 为梯度保留了通路（{ref}`lstm-gradient-highway`）\n"
+"print(f\"LSTM  W_ih grad norm: {lstm.weight_ih_l0.grad.norm():.10f}\")\n"
+"# 典型输出：LSTM的梯度范数比RNN大2-3个数量级\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:390
+msgid "本节小结"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:393
+#, python-brace-format
+msgid "LSTM 的核心洞察：**把\"记忆存储\"（$\\mathbf{c}_t$）和\"对外输出\"（$\\mathbf{h}_t$）分离**"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:394
+msgid "三个门各司其职：遗忘门（擦除）、输入门（写入）、输出门（读取）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:395
+#, python-brace-format
+msgid "细胞状态 $\\mathbf{c}_t$ 的梯度路径几乎不经过非线性——这是缓解梯度消失的关键"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:396
+msgid "LSTM 缓解了梯度消失，但**串行处理和固定状态尺寸**的根本限制仍在——这是下一跳的起点"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:399
+#, python-brace-format
+msgid ""
+"掌握了 LSTM 如何用门控机制\"管理记忆\"后，我们面临一个更深层的问题：即使有了门控，信息还是要一步步传递——$\\mathbf{h}_1$"
+" 到 $\\mathbf{h}_{100}$ 必须经过 99 步。下一节 {doc}`from-rnn-to-attention` "
+"中，我们将看到一种彻底颠覆的思路：**为什么不让第 100 步直接看到第 1 步？**"
+msgstr ""
+
+#: ../../../source/sequence-modeling/lstm.md:405
+msgid "参考文献"
+msgstr ""
+

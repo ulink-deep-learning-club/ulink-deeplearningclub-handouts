@@ -1,0 +1,920 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, UCS Deep Learning Club and its contributors, licensed
+# under CC BY-SA 4.0
+# This file is distributed under the same license as the Deep Learning Club
+# Handouts package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Deep Learning Club Handouts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 16:17+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../../source/pytorch-practice/train-workflow.md:2
+#: ../../../source/pytorch-practice/train-workflow.md:297
+msgid "完整训练流程"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:4
+#, python-brace-format
+msgid "{doc}`./optimiser`中我们掌握了如何更新参数。现在的问题是：**如何把所有组件整合成一个完整的训练系统？**"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:6
+#, python-brace-format
+msgid ""
+"在 {doc}`../cnn-expedition/practice-peak/neural-training-"
+"basics`中，我们学习了训练的核心概念——Epoch、Batch、过拟合与欠拟合、正则化技巧等。但这些知识零散，需要串联成可运行的代码。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:8
+msgid "**本节就是答案**：我们将构建一个完整的 MNIST 训练系统，涵盖数据加载、模型训练、验证评估、模型保存等全部环节。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:10
+msgid "训练流程概览"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:23
+#, python-brace-format
+msgid ""
+"**核心流程**（对应 {doc}`../cnn-expedition/practice-peak/neural-training-"
+"basics`）："
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:25
+msgid "**数据准备**：加载数据，划分训练/验证集，创建 DataLoader"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:26
+msgid "**模型定义**：搭建网络架构"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:27
+msgid "**训练循环**：前向传播 → 计算损失 → 反向传播 → 更新参数"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:28
+msgid "**验证评估**：评估模型性能，检测过拟合"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:29
+msgid "**模型保存**：保存最佳模型"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:31
+msgid "数据准备"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:33
+msgid "数据集与 DataLoader"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:35
+#, python-brace-format
+msgid ""
+"{doc}`../cnn-expedition/practice-peak/neural-training-basics`中提到：**Batch "
+"Size** 是每次参数更新使用的样本数。PyTorch 用 `DataLoader` 实现这个机制。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:37
+#, python-brace-format
+msgid ""
+"import torchvision\n"
+"import torchvision.transforms as transforms\n"
+"from torch.utils.data import DataLoader\n"
+"\n"
+"# 数据预处理\n"
+"# transforms.Compose 将多个预处理步骤串联\n"
+"# MNIST 数据原始范围 [0, 255]，需要归一化到 [0, 1]\n"
+"transform = transforms.Compose([\n"
+"    transforms.ToTensor(),           # PIL Image → Tensor，自动除以 255\n"
+"    transforms.Normalize((0.1307,), (0.3081,))  # 标准化：(x - mean) / std\n"
+"])\n"
+"\n"
+"# 加载 MNIST 数据集\n"
+"# train=True 表示训练集，train=False 表示测试集\n"
+"train_dataset = torchvision.datasets.MNIST(\n"
+"    root='./data',      # 数据存储路径\n"
+"    train=True,         # 训练集\n"
+"    download=True,      # 自动下载\n"
+"    transform=transform # 应用预处理\n"
+")\n"
+"\n"
+"test_dataset = torchvision.datasets.MNIST(\n"
+"    root='./data',\n"
+"    train=False,        # 测试集\n"
+"    download=True,\n"
+"    transform=transform\n"
+")\n"
+"\n"
+"# 创建 DataLoader\n"
+"# batch_size：每批样本数（对应 neural-training-basics 中的 Batch Size）\n"
+"# shuffle=True：每 epoch 打乱数据顺序，防止模型记住顺序\n"
+"# num_workers：多进程加载数据，加速训练\n"
+"train_loader = DataLoader(\n"
+"    train_dataset, \n"
+"    batch_size=64,      # MNIST 有 60,000 样本，每 epoch 约 938 个 batch\n"
+"    shuffle=True,       # 打乱顺序\n"
+"    num_workers=2       # 2 个子进程加载数据\n"
+")\n"
+"\n"
+"test_loader = DataLoader(\n"
+"    test_dataset,\n"
+"    batch_size=64,\n"
+"    shuffle=False,      # 测试集不需要打乱\n"
+"    num_workers=2\n"
+")\n"
+"\n"
+"print(f\"训练集大小: {len(train_dataset)}\")  # 60,000\n"
+"print(f\"测试集大小: {len(test_dataset)}\")   # 10,000\n"
+"print(f\"每 epoch 迭代次数: {len(train_loader)}\")  # 938\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:89
+msgid "数据增强（可选）"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:91
+#, python-brace-format
+msgid ""
+"{doc}`../cnn-expedition/practice-peak/neural-training-"
+"basics`中的**数据增强**可以增加训练样本多样性："
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:93
+msgid ""
+"# 训练时增强，测试时不增强\n"
+"train_transform = transforms.Compose([\n"
+"    transforms.RandomRotation(10),      # 随机旋转 ±10 度\n"
+"    transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),  # 随机平移\n"
+"    transforms.ToTensor(),\n"
+"    transforms.Normalize((0.1307,), (0.3081,))\n"
+"])\n"
+"\n"
+"test_transform = transforms.Compose([\n"
+"    transforms.ToTensor(),\n"
+"    transforms.Normalize((0.1307,), (0.3081,))\n"
+"])\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+#: ../../../source/pytorch-practice/train-workflow.md:108
+msgid "模型定义"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:110
+msgid "CNN 架构实现"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:112
+#, python-brace-format
+msgid "对应 {doc}`../cnn-expedition/practice-peak/cnn-basics`中的卷积网络设计："
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:114
+msgid ""
+"import torch.nn as nn\n"
+"import torch.nn.functional as F\n"
+"\n"
+"class MNISTNet(nn.Module):\n"
+"    \"\"\"\n"
+"    MNIST 分类网络\n"
+"    输入: [batch, 1, 28, 28]\n"
+"    输出: [batch, 10] (10 个数字类别的 logits)\n"
+"    \"\"\"\n"
+"    def __init__(self):\n"
+"        super(MNISTNet, self).__init__()\n"
+"        \n"
+"        # C1: 卷积层，1→32 通道，3×3 卷积核，输出 28×28\n"
+"        # 参数量: 32×1×3×3 + 32 = 320\n"
+"        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)\n"
+"        \n"
+"        # C2: 卷积层，32→64 通道，3×3 卷积核，输出 28×28\n"
+"        # 参数量: 64×32×3×3 + 64 = 18,496\n"
+"        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)\n"
+"        \n"
+"        # 池化层: 2×2，输出 14×14 → 7×7\n"
+"        self.pool = nn.MaxPool2d(2)\n"
+"        \n"
+"        # 全连接层1: 64×7×7=3136 → 128\n"
+"        # 参数量: 3136×128 + 128 = 401,536\n"
+"        self.fc1 = nn.Linear(64 * 7 * 7, 128)\n"
+"        \n"
+"        # 全连接层2: 128 → 10（类别数）\n"
+"        # 参数量: 128×10 + 10 = 1,290\n"
+"        self.fc2 = nn.Linear(128, 10)\n"
+"        \n"
+"        # Dropout: 防止过拟合（见 neural-training-basics）\n"
+"        self.dropout = nn.Dropout(0.25)  # 25% 的 dropout\n"
+"        \n"
+"    def forward(self, x):\n"
+"        # 卷积块1: [batch, 1, 28, 28] → [batch, 32, 28, 28] → [batch, 32, "
+"14, 14]\n"
+"        x = self.conv1(x)\n"
+"        x = F.relu(x)           # 激活函数\n"
+"        x = self.pool(x)        # 降采样\n"
+"        \n"
+"        # 卷积块2: [batch, 32, 14, 14] → [batch, 64, 14, 14] → [batch, 64, "
+"7, 7]\n"
+"        x = self.conv2(x)\n"
+"        x = F.relu(x)\n"
+"        x = self.pool(x)\n"
+"        \n"
+"        # 展平: [batch, 64, 7, 7] → [batch, 3136]\n"
+"        x = x.view(x.size(0), -1)\n"
+"        \n"
+"        # 全连接 + Dropout\n"
+"        x = self.dropout(x)\n"
+"        x = self.fc1(x)\n"
+"        x = F.relu(x)\n"
+"        \n"
+"        x = self.dropout(x)\n"
+"        x = self.fc2(x)  # 输出 logits（未归一化）\n"
+"        \n"
+"        return x\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:174
+msgid "**总参数量**：320 + 18,496 + 401,536 + 1,290 = **421,642**"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:176
+msgid "训练函数"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:178
+msgid "单 epoch 训练"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:180
+#, python-brace-format
+msgid "对应 {doc}`../cnn-expedition/practice-peak/neural-training-basics`中的训练循环："
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:182
+#, python-brace-format
+msgid ""
+"def train_epoch(model, device, train_loader, optimizer, criterion, "
+"epoch):\n"
+"    \"\"\"\n"
+"    训练一个 epoch\n"
+"    \n"
+"    Args:\n"
+"        model: 神经网络模型\n"
+"        device: 计算设备（CPU/GPU）\n"
+"        train_loader: 训练数据加载器\n"
+"        optimizer: 优化器\n"
+"        criterion: 损失函数\n"
+"        epoch: 当前 epoch 数\n"
+"    \n"
+"    Returns:\n"
+"        avg_loss: 平均损失\n"
+"        accuracy: 准确率\n"
+"    \"\"\"\n"
+"    model.train()  # 设置为训练模式（启用 Dropout、BatchNorm 等）\n"
+"    \n"
+"    train_loss = 0.0\n"
+"    correct = 0\n"
+"    total = 0\n"
+"    \n"
+"    for batch_idx, (data, target) in enumerate(train_loader):\n"
+"        # 1. 数据转移到设备\n"
+"        data, target = data.to(device), target.to(device)\n"
+"        \n"
+"        # 2. 清零梯度（关键！见 auto-grad）\n"
+"        optimizer.zero_grad()\n"
+"        \n"
+"        # 3. 前向传播\n"
+"        output = model(data)  # [batch, 10]\n"
+"        \n"
+"        # 4. 计算损失\n"
+"        # CrossEntropyLoss 内部已经包含 Softmax\n"
+"        loss = criterion(output, target)\n"
+"        \n"
+"        # 5. 反向传播\n"
+"        loss.backward()\n"
+"        \n"
+"        # 6. 更新参数\n"
+"        optimizer.step()\n"
+"        \n"
+"        # 7. 统计信息\n"
+"        train_loss += loss.item()\n"
+"        _, predicted = output.max(1)  # 取最大值的索引作为预测类别\n"
+"        total += target.size(0)\n"
+"        correct += predicted.eq(target).sum().item()\n"
+"        \n"
+"        # 8. 进度显示\n"
+"        if batch_idx % 100 == 0:\n"
+"            print(f'Epoch: {epoch} [{batch_idx * "
+"len(data)}/{len(train_loader.dataset)} '\n"
+"                  f'({100. * batch_idx / len(train_loader):.0f}%)]\\t'\n"
+"                  f'Loss: {loss.item():.6f}')\n"
+"    \n"
+"    # 计算平均指标\n"
+"    avg_loss = train_loss / len(train_loader)\n"
+"    accuracy = 100. * correct / total\n"
+"    \n"
+"    return avg_loss, accuracy\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:244
+msgid "**训练模式的重要性**："
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:246
+msgid "`model.train()`：启用 Dropout（随机丢弃神经元）、BatchNorm 使用 batch 统计量"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:247
+msgid "`model.eval()`：关闭 Dropout，BatchNorm 使用全局统计量"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:249
+msgid "验证函数"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:251
+msgid "评估模型性能"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:253
+msgid ""
+"def validate(model, device, val_loader, criterion):\n"
+"    \"\"\"\n"
+"    验证模型性能\n"
+"    \n"
+"    Args:\n"
+"        model: 神经网络模型\n"
+"        device: 计算设备\n"
+"        val_loader: 验证数据加载器\n"
+"        criterion: 损失函数\n"
+"    \n"
+"    Returns:\n"
+"        avg_loss: 平均验证损失\n"
+"        accuracy: 验证准确率\n"
+"    \"\"\"\n"
+"    model.eval()  # 设置为评估模式\n"
+"    \n"
+"    val_loss = 0.0\n"
+"    correct = 0\n"
+"    total = 0\n"
+"    \n"
+"    # 禁用梯度计算（节省内存，加速推理）\n"
+"    with torch.no_grad():\n"
+"        for data, target in val_loader:\n"
+"            data, target = data.to(device), target.to(device)\n"
+"            \n"
+"            # 前向传播\n"
+"            output = model(data)\n"
+"            loss = criterion(output, target)\n"
+"            \n"
+"            # 统计\n"
+"            val_loss += loss.item()\n"
+"            _, predicted = output.max(1)\n"
+"            total += target.size(0)\n"
+"            correct += predicted.eq(target).sum().item()\n"
+"    \n"
+"    avg_loss = val_loss / len(val_loader)\n"
+"    accuracy = 100. * correct / total\n"
+"    \n"
+"    return avg_loss, accuracy\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:295
+msgid "主训练循环"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:299
+#, python-brace-format
+msgid ""
+"import torch\n"
+"import torch.optim as optim\n"
+"import matplotlib.pyplot as plt\n"
+"\n"
+"def main():\n"
+"    # ========== 1. 设备设置 ==========\n"
+"    device = torch.device(\"cuda\" if torch.cuda.is_available() else "
+"\"cpu\")\n"
+"    print(f\"使用设备: {device}\")\n"
+"    \n"
+"    # ========== 2. 数据准备 ==========\n"
+"    # ...（前面的数据加载代码）...\n"
+"    \n"
+"    # ========== 3. 模型、损失、优化器 ==========\n"
+"    model = MNISTNet().to(device)\n"
+"    \n"
+"    # 损失函数：交叉熵（见 neural-training-basics）\n"
+"    criterion = nn.CrossEntropyLoss()\n"
+"    \n"
+"    # 优化器：Adam（常用选择）\n"
+"    # weight_decay 对应 neural-training-basics 中的 L2 正则化\n"
+"    optimizer = optim.Adam(\n"
+"        model.parameters(), \n"
+"        lr=0.001,\n"
+"        weight_decay=1e-4  # L2 正则化系数 λ\n"
+"    )\n"
+"    \n"
+"    # 学习率调度器：每 5 个 epoch 学习率乘以 0.1\n"
+"    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, "
+"gamma=0.1)\n"
+"    \n"
+"    # ========== 4. 训练历史记录 ==========\n"
+"    # 用于检测过拟合（见 neural-training-basics）\n"
+"    history = {\n"
+"        'train_loss': [], 'train_acc': [],\n"
+"        'val_loss': [], 'val_acc': []\n"
+"    }\n"
+"    \n"
+"    best_acc = 0.0\n"
+"    \n"
+"    # ========== 5. 训练循环 ==========\n"
+"    num_epochs = 10\n"
+"    \n"
+"    for epoch in range(1, num_epochs + 1):\n"
+"        print(f\"\\n{'='*50}\")\n"
+"        print(f\"Epoch {epoch}/{num_epochs}\")\n"
+"        print(f\"{'='*50}\")\n"
+"        \n"
+"        # 训练\n"
+"        train_loss, train_acc = train_epoch(\n"
+"            model, device, train_loader, optimizer, criterion, epoch\n"
+"        )\n"
+"        \n"
+"        # 验证\n"
+"        val_loss, val_acc = validate(model, device, test_loader, "
+"criterion)\n"
+"        \n"
+"        # 更新学习率\n"
+"        scheduler.step()\n"
+"        current_lr = optimizer.param_groups[0]['lr']\n"
+"        \n"
+"        # 记录历史\n"
+"        history['train_loss'].append(train_loss)\n"
+"        history['train_acc'].append(train_acc)\n"
+"        history['val_loss'].append(val_loss)\n"
+"        history['val_acc'].append(val_acc)\n"
+"        \n"
+"        # 打印结果\n"
+"        print(f'\\n训练集 - Loss: {train_loss:.4f}, Acc: {train_acc:.2f}%')\n"
+"        print(f'验证集 - Loss: {val_loss:.4f}, Acc: {val_acc:.2f}%')\n"
+"        print(f'学习率: {current_lr:.6f}')\n"
+"        \n"
+"        # 保存最佳模型\n"
+"        if val_acc > best_acc:\n"
+"            best_acc = val_acc\n"
+"            torch.save({\n"
+"                'epoch': epoch,\n"
+"                'model_state_dict': model.state_dict(),\n"
+"                'optimizer_state_dict': optimizer.state_dict(),\n"
+"                'best_acc': best_acc,\n"
+"            }, 'best_model.pth')\n"
+"            print(f'保存最佳模型，准确率: {best_acc:.2f}%')\n"
+"    \n"
+"    return history\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:383
+msgid "可视化训练过程"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:385
+msgid "绘制损失和准确率曲线"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:387
+#, python-brace-format
+msgid "对应 {doc}`../cnn-expedition/practice-peak/neural-training-basics`中的过拟合检测："
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:389
+msgid ""
+"def plot_history(history):\n"
+"    \"\"\"\n"
+"    可视化训练历史\n"
+"    用于检测过拟合：训练损失↓但验证损失↑时，说明过拟合\n"
+"    \"\"\"\n"
+"    fig, axes = plt.subplots(1, 2, figsize=(12, 4))\n"
+"    \n"
+"    # 损失曲线\n"
+"    axes[0].plot(history['train_loss'], label='Train Loss')\n"
+"    axes[0].plot(history['val_loss'], label='Val Loss')\n"
+"    axes[0].set_xlabel('Epoch')\n"
+"    axes[0].set_ylabel('Loss')\n"
+"    axes[0].set_title('Loss Curve')\n"
+"    axes[0].legend()\n"
+"    axes[0].grid(True)\n"
+"    \n"
+"    # 准确率曲线\n"
+"    axes[1].plot(history['train_acc'], label='Train Acc')\n"
+"    axes[1].plot(history['val_acc'], label='Val Acc')\n"
+"    axes[1].set_xlabel('Epoch')\n"
+"    axes[1].set_ylabel('Accuracy (%)')\n"
+"    axes[1].set_title('Accuracy Curve')\n"
+"    axes[1].legend()\n"
+"    axes[1].grid(True)\n"
+"    \n"
+"    plt.tight_layout()\n"
+"    plt.savefig('training_history.png')\n"
+"    plt.show()\n"
+"\n"
+"# 使用\n"
+"# history = main()\n"
+"# plot_history(history)\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:424
+msgid "**曲线解读**："
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:426
+msgid "**理想情况**：两条曲线同步下降/上升，差距小"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:427
+msgid "**过拟合迹象**：训练准确率持续上升，验证准确率停滞或下降"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:428
+msgid "**欠拟合迹象**：两条曲线都停滞在较低水平"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:430
+msgid "模型加载与推理"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:432
+msgid "加载保存的模型"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:434
+#, python-brace-format
+msgid ""
+"def load_and_predict(model_path, image):\n"
+"    \"\"\"\n"
+"    加载模型并进行预测\n"
+"    \n"
+"    Args:\n"
+"        model_path: 模型文件路径\n"
+"        image: 输入图像 tensor，形状 [1, 1, 28, 28]\n"
+"    \n"
+"    Returns:\n"
+"        prediction: 预测的类别（0-9）\n"
+"        probability: 预测概率\n"
+"    \"\"\"\n"
+"    device = torch.device(\"cuda\" if torch.cuda.is_available() else "
+"\"cpu\")\n"
+"    \n"
+"    # 创建模型\n"
+"    model = MNISTNet().to(device)\n"
+"    \n"
+"    # 加载权重\n"
+"    checkpoint = torch.load(model_path)\n"
+"    model.load_state_dict(checkpoint['model_state_dict'])\n"
+"    \n"
+"    # 推理\n"
+"    model.eval()\n"
+"    with torch.no_grad():\n"
+"        image = image.to(device)\n"
+"        output = model(image)\n"
+"        \n"
+"        # Softmax 获取概率\n"
+"        probabilities = F.softmax(output, dim=1)\n"
+"        \n"
+"        # 预测结果\n"
+"        prediction = output.argmax(dim=1).item()\n"
+"        confidence = probabilities.max().item()\n"
+"    \n"
+"    return prediction, confidence\n"
+"\n"
+"# 使用示例\n"
+"# image = test_dataset[0][0].unsqueeze(0)  # 取第一张测试图片，加 batch 维度\n"
+"# pred, conf = load_and_predict('best_model.pth', image)\n"
+"# print(f\"预测结果: {pred}, 置信度: {conf:.2%}\")\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:477
+msgid "总结"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:479
+msgid "训练流程回顾"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "步骤"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "关键代码"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "对应理论"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "数据加载"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`DataLoader`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+#, python-brace-format
+msgid "{doc}`../cnn-expedition/practice-peak/neural-training-basics` 中的 Batch"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`nn.Module`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+#, python-brace-format
+msgid "{doc}`../cnn-expedition/practice-peak/cnn-basics`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "损失函数"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`CrossEntropyLoss`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+#, python-brace-format
+msgid "{doc}`../math-fundamentals/loss-functions`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "优化器"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`optim.Adam`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+#, python-brace-format
+msgid "{doc}`../math-fundamentals/gradient-descent`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "反向传播"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`loss.backward()`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+#, python-brace-format
+msgid "{doc}`../math-fundamentals/back-propagation`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "正则化"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`weight_decay`, `Dropout`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+#, python-brace-format
+msgid "{doc}`../cnn-expedition/practice-peak/neural-training-basics`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "验证评估"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`model.eval()`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "检测过拟合"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "学习率调度"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`lr_scheduler`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "训练后期微调"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:492
+msgid "完整训练脚本模板"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:494
+msgid ""
+"# main.py - 可运行的完整训练脚本\n"
+"import torch\n"
+"import torch.nn as nn\n"
+"import torch.optim as optim\n"
+"from torchvision import datasets, transforms\n"
+"\n"
+"def main():\n"
+"    # 配置\n"
+"    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')"
+"\n"
+"    batch_size = 64\n"
+"    epochs = 10\n"
+"    lr = 0.001\n"
+"    \n"
+"    # 数据\n"
+"    transform = transforms.Compose([\n"
+"        transforms.ToTensor(),\n"
+"        transforms.Normalize((0.1307,), (0.3081,))\n"
+"    ])\n"
+"    train_loader = torch.utils.data.DataLoader(\n"
+"        datasets.MNIST('./data', train=True, download=True, "
+"transform=transform),\n"
+"        batch_size=batch_size, shuffle=True\n"
+"    )\n"
+"    test_loader = torch.utils.data.DataLoader(\n"
+"        datasets.MNIST('./data', train=False, transform=transform),\n"
+"        batch_size=batch_size\n"
+"    )\n"
+"    \n"
+"    # 模型\n"
+"    model = MNISTNet().to(device)\n"
+"    criterion = nn.CrossEntropyLoss()\n"
+"    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)\n"
+"    \n"
+"    # 训练\n"
+"    for epoch in range(1, epochs + 1):\n"
+"        train_epoch(model, device, train_loader, optimizer, criterion, "
+"epoch)\n"
+"        validate(model, device, test_loader, criterion)\n"
+"    \n"
+"    # 保存\n"
+"    torch.save(model.state_dict(), 'mnist_model.pth')\n"
+"\n"
+"if __name__ == '__main__':\n"
+"    main()\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:539
+msgid "从手写到工程框架"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:541
+msgid ""
+"上面这 200 行代码包含了训练 MNIST 分类器的全部要素。但在真实项目中，每次从头写训练循环、手动管理 "
+"checkpoint、手工对比实验是不现实的。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:543
+msgid "**社团的 `mnist-helloworld` 框架**把这些重复劳动封装成了可复用模块。你刚学到的每个手写环节，在框架中都有对应的工程化模块："
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "手动实现（你刚写的）"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "框架模块"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "功能"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`DataLoader` + transform"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`src/datasets/mnist.py`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "数据集封装，自动下载与预处理"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`class MNISTNet(nn.Module)`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`src/models/`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`BaseModel` 抽象，统一接口"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`for epoch` 训练循环"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`src/training/trainer.py`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`Trainer` 类，封装完整训练逻辑"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "手动保存 checkpoint"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`src/training/checkpoint.py`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`CheckpointManager`，支持断点续训"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "手动记录实验日志"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`src/training/experiment.py`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`ExperimentManager`，YOLO 风格 `runs/expN/`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "手写 `@dataclass Config`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "`src/config/config.py`"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:12
+msgid "YAML + CLI 双配置模式"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:554
+msgid ""
+"# 一行命令跑通默认训练（MNIST + MyNet）\n"
+"python train.py\n"
+"\n"
+"# 更换模型和数据集\n"
+"python train.py --model lenet --dataset mnist --training.epochs 30\n"
+"\n"
+"# 使用配置文件\n"
+"python train.py --config my_experiment.yaml\n"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:565
+msgid ""
+"框架采用 YOLO 风格自动管理实验目录，每次运行创建 `runs/exp1/`、`runs/exp2/` ... "
+"自动保存配置、checkpoint 和训练曲线，不再担心覆盖实验结果。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:567
+msgid "**手写是为了理解原理，框架是为了提升效率**——先理解，再用工具，这是正确的学习路径。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:569
+#, python-brace-format
+msgid ""
+"完整的框架使用指南见{doc}`using-framework`，包括{ref}`framework-models`、{ref"
+"}`framework-datasets`、{ref}`framework-experiments`、{ref}`framework-"
+"config`等全部功能详解。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:571
+msgid "下一步"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:573
+#, python-brace-format
+msgid ""
+"掌握了完整训练流程后，下一节 {doc}`./debug-and-visualise` 我们将学习如何调试训练过程中的常见问题，以及如何使用 "
+"TensorBoard 等工具可视化训练过程，让\"黑盒\"训练变得透明可控。"
+msgstr ""
+
+#: ../../../source/pytorch-practice/train-workflow.md:575
+msgid "**从\"能训练\"到\"会调试\"，让我们成为真正的深度学习工程师！**"
+msgstr ""
+

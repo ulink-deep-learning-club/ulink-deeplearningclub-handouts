@@ -1,0 +1,467 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, UCS Deep Learning Club and its contributors, licensed
+# under CC BY-SA 4.0
+# This file is distributed under the same license as the Deep Learning Club
+# Handouts package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Deep Learning Club Handouts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 16:17+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:2
+msgid "PyTorch实现"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:4
+msgid "把消融方案变成可运行的代码——不同模型变体，同一套训练逻辑。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:6
+#, python-brace-format
+msgid ""
+"本章提供完整的消融实验代码。代码基于 {doc}`../../pytorch-practice/neural-network-module` 和 "
+"{doc}`../../pytorch-practice/train-workflow` 中的知识。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:8
+msgid "两种实现方式"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:11
+msgid "本章提供两种层次的实现："
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:13
+msgid ""
+"**模型定义**（`code/base-model.py`、`code/batch-normal.py`、`code/dropout.py`） —"
+" 展示每个消融变体的架构差异，是理解\"改了哪里\"的关键"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:16
+msgid "**训练运行**（使用社团的 `mnist-helloworld` 框架） — 训练循环、实验管理、结果对比由框架自动完成，专注实验设计本身"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:19
+msgid "建议先阅读模型定义理解架构差异，再用框架运行实验。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:22
+msgid "基线模型实现"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:24
+msgid "基线CNN模型代码（含 Dropout）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:24
+msgid ""
+"import torch\n"
+"import torch.nn as nn\n"
+"import torch.nn.functional as F\n"
+"\n"
+"class BaselineCNN(nn.Module):\n"
+"    \"\"\"\n"
+"    基线CNN模型 - 用于消融研究的基准\n"
+"    简化为2层卷积，适合CIFAR-10快速实验\n"
+"    \"\"\"\n"
+"    def __init__(self, num_classes=10):\n"
+"        super(BaselineCNN, self).__init__()\n"
+"\n"
+"        self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)\n"
+"        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)\n"
+"        self.pool = nn.MaxPool2d(2, 2)\n"
+"        self.fc1 = nn.Linear(64 * 8 * 8, 512)\n"
+"        self.fc2 = nn.Linear(512, num_classes)\n"
+"        self.dropout = nn.Dropout(0.5)\n"
+"\n"
+"    def forward(self, x):\n"
+"        x = self.pool(F.relu(self.conv1(x)))\n"
+"        x = self.pool(F.relu(self.conv2(x)))\n"
+"        x = x.view(-1, 64 * 8 * 8)\n"
+"        x = self.dropout(F.relu(self.fc1(x)))\n"
+"        x = self.fc2(x)\n"
+"        return x\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:30
+msgid "参数量计算"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:41
+msgid "全连接层占 85% 以上参数，卷积层仅占 1.6%。这就是为什么可以冻结卷积层做迁移学习——特征提取器本身很轻量。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:44
+msgid "批归一化实现"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:46
+msgid "带 BatchNorm 的 CNN 代码"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:46
+msgid ""
+"import torch\n"
+"import torch.nn as nn\n"
+"import torch.nn.functional as F\n"
+"\n"
+"class CNNWithBN(nn.Module):\n"
+"    \"\"\"\n"
+"    带批归一化(Batch Normalization)的CNN\n"
+"    批归一化放在卷积后、激活前是标准做法\n"
+"    注意：除增加BN外，其余结构与基线完全一致（含Dropout），确保单一变量\n"
+"    \"\"\"\n"
+"    def __init__(self):\n"
+"        super(CNNWithBN, self).__init__()\n"
+"\n"
+"        self.conv1 = nn.Conv2d(3, 32, 3, padding=1)\n"
+"        self.bn1 = nn.BatchNorm2d(32)\n"
+"        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)\n"
+"        self.bn2 = nn.BatchNorm2d(64)\n"
+"        self.pool = nn.MaxPool2d(2, 2)\n"
+"        self.fc1 = nn.Linear(64 * 8 * 8, 512)\n"
+"        self.fc2 = nn.Linear(512, 10)\n"
+"        self.dropout = nn.Dropout(0.5)\n"
+"\n"
+"    def forward(self, x):\n"
+"        x = self.pool(F.relu(self.bn1(self.conv1(x))))\n"
+"        x = self.pool(F.relu(self.bn2(self.conv2(x))))\n"
+"        x = x.view(-1, 64 * 8 * 8)\n"
+"        x = self.dropout(F.relu(self.fc1(x)))\n"
+"        x = self.fc2(x)\n"
+"        return x\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:52
+msgid "消融实验对比：BatchNorm"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:55
+#, python-brace-format
+msgid "**预期结果**（参见 {ref}`cnn-ablation-experiment`）："
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:56
+msgid "有 BN 的模型收敛更快（约 50% 的训练时间）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:57
+msgid "有 BN 的模型允许使用更大学习率"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:58
+msgid "准确率可能略有提升或持平"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:60
+msgid "**实验方法**："
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:61
+msgid "训练基线模型和无 BN 模型各 20 个 epoch"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:62
+msgid "记录每轮的训练/测试准确率"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:63
+msgid "绘制对比曲线，观察 BN 对收敛速度的影响"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:66
+msgid "Dropout实现"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:68
+msgid "带 Dropout 的 CNN 代码"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:68
+msgid ""
+"import torch\n"
+"import torch.nn as nn\n"
+"import torch.nn.functional as F\n"
+"\n"
+"class CNNWithDropout(nn.Module):\n"
+"    \"\"\"\n"
+"    带Dropout正则化的CNN\n"
+"    Dropout只在全连接层使用，卷积层通常不需要\n"
+"    \"\"\"\n"
+"    def __init__(self, dropout_rate=0.5):\n"
+"        super(CNNWithDropout, self).__init__()\n"
+"        self.conv1 = nn.Conv2d(3, 32, 3, padding=1)\n"
+"        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)\n"
+"        self.pool = nn.MaxPool2d(2, 2)\n"
+"        self.fc1 = nn.Linear(64 * 8 * 8, 512)\n"
+"        self.fc2 = nn.Linear(512, 10)\n"
+"        self.dropout = nn.Dropout(dropout_rate)\n"
+"\n"
+"    def forward(self, x):\n"
+"        x = self.pool(F.relu(self.conv1(x)))\n"
+"        x = self.pool(F.relu(self.conv2(x)))\n"
+"        x = x.view(-1, 64 * 8 * 8)\n"
+"        x = self.dropout(F.relu(self.fc1(x)))\n"
+"        x = self.fc2(x)\n"
+"        return x\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "消融实验对比：Dropout"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:82
+msgid "**关键观察**："
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:83
+msgid "无 Dropout：训练准确率高但测试低 = 过拟合"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:84
+msgid "有 Dropout：训练准确率降低但测试不变 = 更好的泛化"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:86
+msgid "**建议实验**："
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:87
+msgid "训练 `dropout_rate=0.0` 的模型"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:88
+msgid "训练 `dropout_rate=0.5` 的模型"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:89
+msgid "对比两者的训练/测试准确率差距"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:90
+msgid "体会\"正则化\"的实际意义"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:93
+msgid "使用框架运行消融实验"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:95
+#, python-brace-format
+msgid ""
+"模型定义好之后，训练由社团的 `mnist-helloworld` 框架处理。详见{doc}`../../pytorch-practice"
+"/using-framework`中的{ref}`framework-add-model`。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:97
+msgid "注册模型"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:99
+msgid "将消融实验的模型注册到框架的 `ModelRegistry`："
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:101
+msgid ""
+"from code.base_model import BaselineCNN\n"
+"from code.batch_normal import CNNWithBN\n"
+"from code.dropout import CNNWithDropout\n"
+"\n"
+"ModelRegistry.register(\"baseline_cnn\", BaselineCNN)\n"
+"ModelRegistry.register(\"cnn_with_bn\", CNNWithBN)\n"
+"ModelRegistry.register(\"cnn_with_dropout\", CNNWithDropout)\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:111
+msgid "实验配置"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:113
+msgid "每个消融变体对应一个 YAML 配置文件（见 `code/configs/`）："
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:115
+msgid ""
+"# configs/baseline.yaml\n"
+"model:\n"
+"  name: baseline_cnn\n"
+"dataset:\n"
+"  name: cifar10\n"
+"training:\n"
+"  epochs: 20\n"
+"  batch_size: 64\n"
+"optimization:\n"
+"  optimizer: adam\n"
+"  learning_rate: 0.001\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:129
+msgid "运行实验"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:131
+msgid ""
+"# 基线模型\n"
+"python train.py --config code/configs/baseline.yaml\n"
+"\n"
+"# 消融：移除 Dropout\n"
+"python train.py --config code/configs/abl_no_dropout.yaml\n"
+"\n"
+"# 消融：添加 BatchNorm\n"
+"python train.py --config code/configs/abl_with_bn.yaml\n"
+"\n"
+"# 或直接在命令行覆盖参数\n"
+"python train.py --model baseline_cnn --dataset cifar10 --epochs 20 "
+"--learning-rate 0.001\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:145
+msgid "每次运行自动创建 `runs/exp1/`、`runs/exp2/`... 目录，保存完整配置、checkpoint 和训练曲线。"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:147
+msgid "对比实验结果"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:149
+msgid ""
+"# 训练完成后，直接比较两个实验的准确率\n"
+"cat runs/exp1/logs/training.log | grep \"Test Acc\"\n"
+"cat runs/exp2/logs/training.log | grep \"Test Acc\"\n"
+"\n"
+"# 或查看训练曲线\n"
+"open runs/exp1/training_curves.png\n"
+"open runs/exp2/training_curves.png\n"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:159
+msgid "对照：手写 vs 框架"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "环节"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "手写实现"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "框架实现"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "模型定义"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "继承 `nn.Module`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "继承 `nn.Module`（不变）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "训练循环"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "~90 行 `train_model()`"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "`Trainer` 类自动处理"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "实验管理"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "手动建目录、命文件名"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "`ExperimentManager`，YOLO 自动编号"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "超参数"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "硬编码在脚本中"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "YAML 配置 + CLI 覆盖"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "结果对比"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "手动记录准确率、画图"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:74
+msgid "自动保存训练曲线"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:169
+msgid "代码使用指南"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:171
+msgid "实验流程"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:174
+msgid "阅读 `base-model.py`、`batch-normal.py`、`dropout.py`，理解每个变体的架构差异"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:175
+#, python-brace-format
+msgid "阅读 {ref}`cnn-ablation-experiment` 中的实验设计"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:176
+msgid "将模型注册到框架，创建对应的 YAML 配置文件"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:177
+msgid "运行基线实验，记录结果"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:178
+msgid "逐一运行消融实验（每次只改一个组件）"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:179
+msgid "对比各实验的训练曲线和最终准确率"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:180
+msgid "分析组件重要性，撰写实验报告"
+msgstr ""
+
+#: ../../../source/cnn-expedition/ablation-study/implementation.md:185
+#, python-brace-format
+msgid "代码跑完了。现在看结果——{doc}`the-end`：哪件装备最值钱？"
+msgstr ""
+

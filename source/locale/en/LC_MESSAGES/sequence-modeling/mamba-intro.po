@@ -1,0 +1,957 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, UCS Deep Learning Club and its contributors, licensed
+# under CC BY-SA 4.0
+# This file is distributed under the same license as the Deep Learning Club
+# Handouts package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Deep Learning Club Handouts \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 16:17+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../../source/sequence-modeling/mamba-intro.md:2
+msgid "Mamba 简述：对RNN思想的回归"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:4
+#, python-brace-format
+msgid ""
+"{doc}`transformer` 告诉我们：Transformer 用 $O(n^2)$ 的代价换来了 $O(1)$ "
+"的信息路径。这个权衡在大模型时代开始变得沉重——当序列长度达到百万级别（长视频、DNA序列、整本教科书），$n^2$ 的增长速度让 "
+"Transformer 望而却步。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:6
+msgid "**关键问题**：有没有办法在保持长程依赖能力的同时，把复杂度降回 $O(n)$？"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:8
+#, python-brace-format
+msgid ""
+"Mamba {cite}`gu2023mamba` 给出的回答是：**有。而且答案就在 RNN 的 O(n) "
+"骨架里——只是需要给它装上\"选择性\"。**"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:10
+msgid "历史背景"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:12
+#, python-brace-format
+msgid ""
+"Transformer 的成功让注意力成为默认选择，但 O(n²) 的代价从未消失。研究者一直在寻找\"线性注意力\"——能够在 O(n) "
+"时间内实现类似效果的技术。2020年代，Albert Gu 等人提出了一系列**结构化状态空间模型（S4）** "
+"{cite}`gu2022efficiently`，展示了 SSM 在长序列建模上的潜力。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:14
+#, python-brace-format
+msgid ""
+"2023年，Albert Gu 和 Tri Dao 提出了 **Mamba** "
+"{cite}`gu2023mamba`，核心创新是**选择性机制**——让 SSM 的参数 $B_t, C_t, \\Delta_t$ "
+"成为输入的函数。结合硬件感知的并行实现，Mamba 在保持 O(n) 效率的同时，首次在语言建模上达到了与 Transformer 相当的水平。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:17
+msgid ""
+"**历史意义**：Mamba 代表了序列建模的一个新方向——不是推翻 Transformer，而是在效率维度上超越它。它证明了 RNN "
+"的骨架（O(n)、固定状态）只需\"选择性\"这剂药方，就能在现代硬件上重新焕发活力。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:20
+msgid "思想回归：RNN骨架从未消失"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:23
+msgid "RNN的数学骨架"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:25
+#, python-brace-format
+msgid "回顾 {doc}`rnn-basics` 中的 RNN 公式："
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:27
+#, python-brace-format
+msgid ""
+"\n"
+"\\mathbf{h}_t = \\tanh(\\mathbf{W}_h \\mathbf{h}_{t-1} + \\mathbf{W}_x "
+"\\mathbf{x}_t)\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:31
+msgid "这个公式有一个更一般的形式。考虑一个**连续的**微分方程——信号随时间平滑变化，而非一步步跳跃："
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:33
+#, python-brace-format
+msgid ""
+"\n"
+"\\mathbf{h}'(t) = \\mathbf{A} \\mathbf{h}(t) + \\mathbf{B} "
+"\\mathbf{x}(t), \\quad \\mathbf{y}(t) = \\mathbf{C} \\mathbf{h}(t)\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:37
+msgid "这就是 **状态空间模型（State Space Model, SSM）** 的连续形式。其中："
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:38
+#, python-brace-format
+msgid ""
+"$\\mathbf{h}(t) \\in \\mathbb{R}^d$：时刻 $t$ 的隐状态（$d$ 是状态维度，类比 RNN 的 "
+"`hidden_size`）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:39
+#, python-brace-format
+msgid "$\\mathbf{x}(t) \\in \\mathbb{R}^m$：时刻 $t$ 的输入（$m$ 是输入维度）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:40
+#, python-brace-format
+msgid "$\\mathbf{y}(t) \\in \\mathbb{R}^k$：时刻 $t$ 的输出"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:41
+#, python-brace-format
+msgid "$\\mathbf{A} \\in \\mathbb{R}^{d \\times d}$：状态转移矩阵——控制\"旧记忆如何随时间衰减\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:42
+#, python-brace-format
+msgid "$\\mathbf{B} \\in \\mathbb{R}^{d \\times m}$：输入投影矩阵——控制\"新信息如何进入记忆\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:43
+#, python-brace-format
+msgid "$\\mathbf{C} \\in \\mathbb{R}^{k \\times d}$：输出投影矩阵——控制\"记忆如何转化为输出\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:46
+#, python-brace-format
+msgid ""
+"**和 RNN 的关系**：如果去掉 $\\tanh$，RNN 的 $\\mathbf{h}_t = \\mathbf{W}_h "
+"\\mathbf{h}_{t-1} + \\mathbf{W}_x \\mathbf{x}_t$ 就是 SSM 的离散版本——其中 "
+"$\\mathbf{A} \\leftrightarrow \\mathbf{W}_h$，$\\mathbf{B} "
+"\\leftrightarrow \\mathbf{W}_x$。RNN 多了一个 $\\tanh$ 来防止数值发散，而 SSM 用结构化的 "
+"$\\mathbf{A}$ 矩阵来实现稳定。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:49
+msgid "**从连续到离散：离散化**"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:51
+msgid "连续形式的 SSM 不能直接用于深度学习（我们需要处理的是离散的词序列，而非连续信号）。需要将其**离散化**——把微分方程转换为递推公式。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:53
+msgid "引入一个**步长 $\\Delta$（step size）**，表示连续时间中两次采样之间的间隔。离散化后："
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:55
+msgid ""
+"\n"
+"\\mathbf{A}_d = e^{\\Delta \\mathbf{A}} \\approx \\mathbf{I} + \\Delta "
+"\\mathbf{A}, \\quad \\mathbf{B}_d = (\\Delta \\mathbf{A})^{-1}(e^{\\Delta"
+" \\mathbf{A}} - \\mathbf{I}) \\cdot \\Delta \\mathbf{B} \\approx \\Delta "
+"\\mathbf{B}\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:60
+#, python-brace-format
+msgid ""
+"**不需要记住这些矩阵指数！** 关键是理解离散化的直觉：步长 $\\Delta$ 越小，两次采样之间信号变化越小，$\\mathbf{A}_d "
+"\\approx \\mathbf{I}$（几乎不衰减），$\\mathbf{B}_d \\approx \\Delta "
+"\\mathbf{B}$（新信息按步长比例进入）。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:63
+msgid "用近似后的离散参数，SSM 的递推公式变为："
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:65
+#, python-brace-format
+msgid ""
+"\n"
+"\\mathbf{h}_t = \\mathbf{A}_d \\mathbf{h}_{t-1} + \\mathbf{B}_d "
+"\\mathbf{x}_t, \\quad \\mathbf{y}_t = \\mathbf{C} \\mathbf{h}_t\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:69
+#, python-brace-format
+msgid ""
+"这就是 SSM 的**离散形式**——和 RNN 的骨架几乎一模一样，只是 $\\mathbf{A}_d, \\mathbf{B}_d$ 由 "
+"$\\Delta$ 和连续参数 $\\mathbf{A}, \\mathbf{B}$ 计算而来。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:72
+#, python-brace-format
+msgid ""
+"**它和 RNN 有什么区别？** RNN 中 $\\mathbf{W}_h$ 是直接学习的任意矩阵，训练时可能不稳定。SSM 中的 "
+"$\\mathbf{A}$ 被约束为特殊结构（如对角矩阵），且通过 $\\Delta$ "
+"缩放后，数值上更可控——这为后面\"选择性让这一切按输入动态变化\"埋下了伏笔。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:75
+#, python-brace-format
+msgid ""
+"过去十年，SSM 之所以没有取代 Transformer，是因为一个致命缺陷：**$\\mathbf{A}, \\mathbf{B}, "
+"\\mathbf{C}, \\Delta$ "
+"对所有输入都是一样的**——无论当前词是\"但是\"（暗示转折）还是\"的\"（结构助词），网络用同一套规则更新状态。这在需要**内容感知的推理"
+"**（Content-Based Reasoning）时捉襟见肘。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:78
+msgid "Mamba的洞察：让参数依赖输入"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:80
+#, python-brace-format
+msgid ""
+"Mamba 的核心创新是**选择性SSM（Selective SSM）**：让 $\\mathbf{B}$、$\\mathbf{C}$ 和步长 "
+"$\\Delta$ 不再是固定的全局参数，而是**每个时间步根据当前输入 $\\mathbf{x}_t$ 动态计算**："
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:82
+#, python-brace-format
+msgid ""
+"\n"
+"\\mathbf{B}_t = \\text{Linear}_B(\\mathbf{x}_t), \\quad \\mathbf{C}_t = "
+"\\text{Linear}_C(\\mathbf{x}_t), \\quad \\Delta_t = "
+"\\text{softplus}(\\text{Linear}_\\Delta(\\mathbf{x}_t))\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:86
+msgid "其中："
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:87
+msgid ""
+"$\\text{Linear}_B, \\text{Linear}_C, \\text{Linear}_\\Delta$ "
+"都是简单的**线性映射**——矩阵乘法加偏置（$Wx + b$），各有自己独立的可学习权重。$\\text{Linear}_B$ 和 "
+"$\\text{Linear}_C$ 将 $d_{\\text{model}}$ 维输入投影到 $d_{\\text{state}}$ "
+"维（$d_{\\text{state}}$ 是隐状态维度），$\\text{Linear}_\\Delta$ 投影为一个标量。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:88
+#, python-brace-format
+msgid ""
+"$\\text{softplus}(z) = \\log(1 + e^z)$ 是一个平滑版的 ReLU（对照 {ref}`activation-"
+"functions`）：当 $z$ 很大时接近 $z$，当 $z$ 很小时接近 0。用于确保步长 $\\Delta_t > "
+"0$——状态更新不能\"倒退\"。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:90
+#, python-brace-format
+msgid "将这些输入依赖的参数代入 {ref}`state-space-model` 中的离散化递推，得到选择性的完整更新公式："
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:92
+msgid ""
+"\n"
+"\\begin{aligned}\n"
+"\\mathbf{A}_{d,t} &= e^{\\Delta_t \\mathbf{A}} \\approx \\mathbf{I} + "
+"\\Delta_t \\mathbf{A} \\\\[4pt]\n"
+"\\mathbf{B}_{d,t} &\\approx \\Delta_t \\mathbf{B}_t \\\\[4pt]\n"
+"\\mathbf{h}_t &= \\mathbf{A}_{d,t} \\mathbf{h}_{t-1} + \\mathbf{B}_{d,t} "
+"\\mathbf{x}_t \\\\[4pt]\n"
+"\\mathbf{y}_t &= \\mathbf{C}_t \\mathbf{h}_t\n"
+"\\end{aligned}\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:102
+#, python-brace-format
+msgid ""
+"**和传统 SSM 的区别一目了然**：传统 SSM 中 $\\Delta, \\mathbf{B}, \\mathbf{C}$ "
+"是固定的训练参数，对所有时间步都一样。选择性 SSM 中 $\\Delta_t, \\mathbf{B}_t, \\mathbf{C}_t$ "
+"每一步都不同——由 $\\mathbf{x}_t$ 决定。**选择性 = 参数随时间步变化，变化规则由输入内容驱动。**"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:105
+#, python-brace-format
+msgid ""
+"在实际实现中（以及我们的代码中），做进一步的简化：假设 $\\mathbf{A}$ "
+"是对角矩阵（每个状态维度独立衰减），略去矩阵指数，直接用标量形式："
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:107
+#, python-brace-format
+msgid ""
+"\n"
+"\\mathbf{h}_t = \\mathbf{A} \\odot \\mathbf{h}_{t-1} + \\Delta_t \\cdot "
+"(\\mathbf{B}_t \\odot \\mathbf{x}_t), \\quad \\mathbf{y}_t = "
+"\\mathbf{C}_t^\\top \\mathbf{h}_t\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:111
+msgid ""
+"其中 $\\odot$ 是逐元素乘法（{ref}`lstm-forget-gate` 中 $\\mathbf{f}_t \\odot "
+"\\mathbf{c}_{t-1}$ 的同款操作）。$\\mathbf{A} \\in "
+"\\mathbb{R}^{d_{\\text{state}}}$ 是衰减率向量（每个维度独立衰减），$\\mathbf{B}_t, "
+"\\mathbf{C}_t \\in \\mathbb{R}^{d_{\\text{state}}}$ 是选择性输入/输出门。注意这里 "
+"$\\mathbf{B}_t, \\mathbf{C}_t$ 是向量（而非矩阵）——这是对角 SSM 的简化，在教学中足够传达核心思想。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:113
+#, python-brace-format
+msgid ""
+"这个简化版本把公式变得极其清晰：**状态更新就是衰减率 $\\mathbf{A}$ × 旧记忆 + 步长 $\\Delta_t$ × 选择性写入的"
+" $\\mathbf{B}_t \\odot \\mathbf{x}_t$**。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:115
+msgid "为什么\"选择性\"是关键？"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:117
+msgid "传统 SSM 失败的原因可以用一个例子说明。考虑处理这句话："
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:119
+msgid "\"今天天气很好，**所以**我决定去公园散步。\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:121
+#, python-brace-format
+msgid ""
+"当网络读到\"所以\"时，它需要知道\"所以\"是一个因果连接词，暗示前面的\"天气很好\"是后面\"散步\"的原因。但传统 SSM "
+"对所有词都使用**同一套** $\\mathbf{A}, \\mathbf{B}, "
+"\\mathbf{C}$——它无法区分\"所以\"（需要触发因果推理）和\"的\"（结构助词，可以忽略）。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:123
+msgid "选择性机制让网络能够**根据当前输入的内容，动态调整状态更新的策略**。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:125
+msgid "逐步拆解三个选择性参数"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:127
+msgid "**参数一：$\\Delta_t$（步长）——\"当前输入有多重要？\"**"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:101
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "符号"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:101
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "含义"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:101
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "维度"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:101
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "直觉理解"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:101
+#, python-brace-format
+msgid "$\\text{Linear}_\\Delta$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:101
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "一个可学习的线性映射"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:101
+#, python-brace-format
+msgid "$\\mathbb{R}^{d} \\to \\mathbb{R}$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:101
+msgid "学到\"什么样的输入是重要的、需要大步伐更新\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:101
+#, python-brace-format
+msgid "$\\text{softplus}$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:101
+msgid "$\\log(1 + e^x)$，输出始终为正"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:101
+msgid "标量"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:101
+msgid "确保步长为正，且平滑"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:134
+msgid "$\\Delta_t$ 控制的是**状态更新的\"步幅\"**。回顾状态更新公式："
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:136
+#, python-brace-format
+msgid ""
+"\n"
+"\\mathbf{h}_t = \\mathbf{A} \\mathbf{h}_{t-1} + \\Delta_t \\cdot "
+"(\\mathbf{B}_t \\mathbf{x}_t)\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:140
+msgid "$\\Delta_t$ 大 → 网络认为当前输入很重要，大步更新状态（类似于 LSTM 中输入门大开）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:141
+msgid "$\\Delta_t$ 小 → 网络认为当前输入不重要，几乎不更新状态（类似于 LSTM 中输入门紧闭，遗忘门全开）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:144
+msgid ""
+"**直觉**：读\"的\"时，$\\Delta_t$ 可能很小——\"保持当前状态，这个字不重要\"。读\"所以\"时，$\\Delta_t$ "
+"可能很大——\"注意！这里有关键转折，需要更新理解\"。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:146
+msgid "这种机制让 Mamba 自动学会了**对关键信息\"聚焦\"、对冗余信息\"忽略\"**，而无需显式设计门控逻辑。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:149
+#, python-brace-format
+msgid "**参数二：$\\mathbf{B}_t$（输入投影）——\"新信息的哪些维度值得记？\"**"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+#, python-brace-format
+msgid "$\\text{Linear}_B$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "$\\mathbb{R}^{d} \\to \\mathbb{R}^{d_{\\text{state}}}$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "学到\"如何从当前输入中提取值得记录的信息\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+#, python-brace-format
+msgid "$\\mathbf{B}_t$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "输入依赖的投影向量"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "$\\mathbb{R}^{d_{\\text{state}}}$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+#, python-brace-format
+msgid "决定输入 $\\mathbf{x}_t$ 的哪些方向应该进入隐状态"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:156
+#, python-brace-format
+msgid ""
+"在传统 SSM 中，$\\mathbf{B}$ 是一个固定矩阵——所有输入用同一种方式投影。选择性 SSM 中，$\\mathbf{B}_t$ "
+"随输入变化——\"所以\"和\"的\"产生不同的 "
+"$\\mathbf{B}_t$，\"所以\"的投影可能强调\"转折/因果\"相关维度，而\"的\"的投影可能接近零向量（\"没什么值得记录的\"）。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:158
+#, python-brace-format
+msgid "**参数三：$\\mathbf{C}_t$（输出投影）——\"记忆中的哪些部分现在该说出来？\"**"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+#, python-brace-format
+msgid "$\\text{Linear}_C$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "学到\"基于当前输入，哪些记忆应该被输出\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+#, python-brace-format
+msgid "$\\mathbf{C}_t$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "输入依赖的输出投影"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+#, python-brace-format
+msgid "决定隐状态 $\\mathbf{h}_t$ 的哪些维度暴露给输出 $\\mathbf{y}_t$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:165
+#, python-brace-format
+msgid ""
+"回忆输出公式：$\\mathbf{y}_t = \\mathbf{C}_t \\mathbf{h}_t$。$\\mathbf{C}_t$ "
+"根据当前输入决定输出什么——类似于 LSTM 的输出门。当读到一个问号时，$\\mathbf{C}_t$ "
+"可能重点暴露关于\"疑问\"的维度；当读取动词时，$\\mathbf{C}_t$ 可能暴露关于\"动作\"的维度。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:167
+msgid "三个参数的协同：一个具体例子"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:169
+msgid "以\"我昨天买的苹果很好吃\"为例，追踪 Mamba 如何处理："
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "当前词"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "$\\Delta_t$（步长）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+#, python-brace-format
+msgid "$\\mathbf{B}_t$（写入什么）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+#, python-brace-format
+msgid "$\\mathbf{C}_t$（输出什么）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "状态发生了什么"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "\"我\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "中"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "记录\"主语=我\"的方向"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "输出\"我\"的语义"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "状态初始化"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "\"昨天\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "小"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "几乎为零"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "时间状语，状态几乎不变"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "\"买\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "大"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "重点记录\"动作=购买\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "输出与\"买\"相关的语义"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "状态捕捉关键动词"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "\"的\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "极小"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "接近零"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "虚词，状态保持不变"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "\"苹果\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "记录\"宾语=苹果\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "输出\"苹果\"的语义"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "状态补充宾语信息"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "\"很\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "记录\"程度修饰\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "输出程度信息"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "状态微调"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "\"好吃\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "记录\"评价=正面\""
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "重点输出评价信息"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:143
+msgid "状态完成语义构建"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:182
+#, python-brace-format
+msgid ""
+"这个表展示了选择性的精髓：**每个词的 $\\Delta_t, \\mathbf{B}_t, \\mathbf{C}_t$ "
+"都不同**。虚词（\"的\"）获得极小 $\\Delta$，几乎不影响状态；内容词（\"买\"、\"苹果\"、\"好吃\"）获得大 "
+"$\\Delta$，深刻影响状态。网络通过大量训练学会了\"什么词值得关注\"——这是一个完全端到端学出来的能力。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:185
+msgid "直觉：选择性 = 动态门控"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:188
+msgid "把 SSM 想象成一个\"信息滤网\"："
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:189
+msgid "**普通SSM**：滤网的孔径是固定的——不管流过来的是沙子还是石块，都用同样的网眼过滤。该记住的记不住，该忘的忘不掉。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:190
+msgid "**选择性SSM（Mamba）**：滤网根据当前流入的内容**动态调整**孔径。遇到重要信息（如段首的主题词），网眼缩小，精细保留；遇到不重要信息（如虚词），网眼放大，快速丢弃。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:192
+#, python-brace-format
+msgid ""
+"这种\"基于输入内容决定保留或丢弃什么\"的思想，本质上与 {doc}`lstm` 的门控机制 "
+"{cite}`hochreiter1997long` "
+"一脉相承——遗忘门根据当前上下文决定丢弃旧记忆中的哪些内容，选择性SSM则是让整个状态更新规则都依赖输入。区别在于：LSTM "
+"的门控是在固定规则框架内的微调（门控值变了，但 $W_f, W_i, W_o, W_c$ 本身是固定的），而选择性 SSM 让 $B$ 和 $C$"
+" 本身就是输入的函数——**门控的程度更深、更彻底**。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:195
+msgid "Mamba vs RNN vs Transformer：三者的位置"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:197
+msgid "序列建模三阶段"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:200
+msgid "对比维度"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:201
+msgid "RNN / LSTM"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:202
+msgid "Transformer"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:203
+msgid "Mamba / 选择性SSM"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:204
+msgid "灵感来源"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:205
+msgid "大脑的时序处理"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:206
+msgid "全局信息检索"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:207
+msgid "**回归RNN骨架 + Transformer的\"选择性\"精神**"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:208
+msgid "时间复杂度"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:209
+msgid "O(n) 串行"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:210
+msgid "O(n²) 并行"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:211
+msgid "O(n) 可并行训练"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:212
+msgid "长程依赖"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:213
+msgid "弱（梯度消失）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:214
+msgid "强（O(1)信息路径）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:215
+msgid "强（选择性保留关键信息）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:216
+msgid "信息传递"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:217
+#, python-brace-format
+msgid "$h_t \\to h_{t+1}$ 链式"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:218
+msgid "所有位置全连接"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:219
+#, python-brace-format
+msgid "$h_t \\to h_{t+1}$ 链式 + 选择机制"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:220
+msgid "推理速度"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:221
+msgid "快（固定大小状态）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:222
+msgid "慢（需要整个K/V缓存）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:223
+#, python-brace-format
+msgid "**快**（固定大小状态，5× Transformer 吞吐量 {cite}`gu2023mamba`）"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:236
+msgid ""
+"**Mamba 的历史意义**：35年后，我们回到了 RNN 的起点——一个通过固定大小隐状态（$O(1)$ "
+"内存）处理序列的架构——但这一次，隐状态的更新规则不再是固定的，而是根据输入动态调整。选择性机制解决了 RNN 的长程依赖问题，而线性骨架保留了 "
+"$O(n)$ 的效率。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:238
+msgid "这就像一个思想走了很远的路，最后在更高的层次上回到了原点——**螺旋上升，而非简单重复**。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:241
+msgid "代码实践：选择性SSM的核心逻辑"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:243
+#, python-brace-format
+msgid ""
+"import torch\n"
+"import torch.nn as nn\n"
+"import torch.nn.functional as F\n"
+"\n"
+"class SimplifiedSelectiveSSM(nn.Module):\n"
+"    \"\"\"\n"
+"    简化的选择性SSM——展示Mamba的核心思想\n"
+"\n"
+"    理论对应 {ref}`selective-ssm` 中\"让参数依赖输入\"的关键洞察\n"
+"    不是完整Mamba实现，而是教学用的核心逻辑提取\n"
+"\n"
+"    d_model: 输入特征维度（如256）\n"
+"    d_state: 隐状态维度（如16）——相比d_model较小，体现了\"压缩\"的设计哲学\n"
+"    \"\"\"\n"
+"    def __init__(self, d_model=256, d_state=16):\n"
+"        super().__init__()\n"
+"        self.d_model = d_model\n"
+"        self.d_state = d_state\n"
+"\n"
+"        # 状态转移矩阵A——这是SSM中唯一个不依赖输入的参数\n"
+"        # A控制\"旧记忆如何随时间衰减\"，通常初始化为接近1的值（缓慢衰减）\n"
+"        # 形状：(d_state,) — 对角形式，每个维度独立衰减\n"
+"        self.A = nn.Parameter(torch.ones(d_state))\n"
+"\n"
+"        # x_proj: 从输入x生成三个选择性参数 B_t, C_t, Delta_t\n"
+"        # 输出维度 = d_state (B_t) + d_state (C_t) + 1 (Delta_t)\n"
+"        # 这是选择性的核心——所有参数都是x的函数（{ref}`selective-ssm`）\n"
+"        self.x_proj = nn.Linear(d_model, d_state * 2 + 1)\n"
+"\n"
+"    def forward(self, x):\n"
+"        \"\"\"\n"
+"        x: (batch, seq_len, d_model)\n"
+"        返回: (batch, seq_len, 1)\n"
+"\n"
+"        核心公式（{ref}`state-space-model`）：\n"
+"            h_t = A * h_{t-1} + B_t * x_t\n"
+"            y_t = C_t * h_t\n"
+"        其中 B_t, C_t 是输入依赖的（选择性），A是固定的\n"
+"        \"\"\"\n"
+"        B, T, D = x.shape\n"
+"\n"
+"        # 步骤1: 从输入计算三个选择性参数\n"
+"        proj = self.x_proj(x)  # (B, T, 2*d_state + 1)\n"
+"\n"
+"        # B_t: 输入投影——\"当前输入的哪些方向值得写入状态\"（{ref}`selective-ssm` 参数二）\n"
+"        # 形状: (B, T, d_state) ——每个时间步、每个batch有独立的B_t\n"
+"        B_t = proj[..., :self.d_state]\n"
+"\n"
+"        # C_t: 输出投影——\"状态的哪些维度应该被读出\"（{ref}`selective-ssm` 参数三）\n"
+"        # 形状: (B, T, d_state) ——每个时间步独立决定输出\n"
+"        C_t = proj[..., self.d_state:2*self.d_state]\n"
+"\n"
+"        # Delta_t: 步长——\"当前输入有多重要\"（{ref}`selective-ssm` 参数一）\n"
+"        # softplus 确保步长为正（log(1+e^x) > 0）\n"
+"        # 大Delta → 大步更新状态（关键信息）；小Delta → 几乎不更新（冗余信息）\n"
+"        Delta = F.softplus(proj[..., -1:])  # (B, T, 1)\n"
+"\n"
+"        # 步骤2: 选择性扫描（概念上串行，实际Mamba用硬件感知并行算法）\n"
+"        h = torch.zeros(B, self.d_state)  # h_0: 初始状态\n"
+"        outputs = []\n"
+"\n"
+"        for t in range(T):\n"
+"            # 选择性地将当前输入映射到状态空间\n"
+"            # B_t[t] 决定了当前输入在状态空间的\"写入方向\"\n"
+"            # x[..., :d_state] 取d_state维的输入子空间（简化起见）\n"
+"            input_contribution = B_t[:, t, :] * x[:, t, :self.d_state]\n"
+"\n"
+"            # 状态更新: h_t = A * h_{t-1} + Delta * (B_t * x_t)\n"
+"            #   A * h_{t-1}: 旧记忆按A的衰减率保留\n"
+"            #   Delta * input: 新信息按当前步长写入\n"
+"            # 当Delta→0时，h_t ≈ A * h_{t-1}（状态几乎不变——\"忽略当前输入\"）\n"
+"            h = self.A * h + Delta[:, t, :] * input_contribution\n"
+"\n"
+"            # 输出: y_t = C_t * h_t（C_t决定暴露哪些维度）\n"
+"            y = (C_t[:, t, :] * h).sum(dim=-1, keepdim=True)\n"
+"            outputs.append(y)\n"
+"\n"
+"        return torch.stack(outputs, dim=1)  # (B, T, 1)\n"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:324
+msgid "本节小结"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:327
+#, python-brace-format
+msgid "状态空间模型（SSM）与 RNN 共享相同的数学骨架：$h_t = A h_{t-1} + B x_t$"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:328
+msgid "传统 SSM 的 $A, B, C$ 是固定的——无法根据输入内容调整记忆策略"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:329
+#, python-brace-format
+msgid "Mamba 的关键创新：让 $B, C, \\Delta$ 依赖输入 $\\mathbf{x}_t$ ——**选择性**机制"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:330
+msgid "这个选择性让 SSM 拥有了\"基于内容决定记住什么、忘记什么\"的能力"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:331
+msgid "结果：$O(n)$ 复杂度 + 与 Transformer 相当的长程依赖能力——对 RNN 思想的螺旋式回归"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:334
+msgid "为什么不继续深入？"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:337
+msgid ""
+"Mamba 的完整实现涉及更深层的数学工具：**矩阵指数** $e^{\\Delta \\mathbf{A}}$ "
+"的精确计算需要线性代数谱分解，**结构化状态空间**的初始化依赖控制理论中的 HIPPO 矩阵，**硬件感知并行算法**涉及 GPU 内存层次和 "
+"kernel fusion 的底层优化。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:339
+#, python-brace-format
+msgid ""
+"这些工具已经远超本教程的目标——面向高中生的入门介绍。本章的目标是让你理解序列建模的**思想演化路径**和 Mamba 的**核心直觉**（选择性"
+" = 让参数依赖输入），而非掌握其完整推导。如果你对细节感兴趣，可以阅读原论文 {cite}`gu2023mamba` 及其引用的 S4 系列工作"
+" {cite}`gu2022efficiently`。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:342
+#, python-brace-format
+msgid ""
+"Mamba 的思想——用固定大小的隐状态高效处理长序列，同时通过选择性机制解决长程依赖——代表了序列建模的一个新方向。下一节 {doc}`the-"
+"end` 中，我们将系统对比这三种架构，并展望未来。"
+msgstr ""
+
+#: ../../../source/sequence-modeling/mamba-intro.md:348
+msgid "参考文献"
+msgstr ""
+
