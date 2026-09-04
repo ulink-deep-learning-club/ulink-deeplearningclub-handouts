@@ -65,6 +65,10 @@ python3 "$ROOT_DIR/scripts/assemble_i18n_site.py" \
   --english-output "$EN_BUILD/html" \
   --site "$SITE_DIR" \
   --manifest "$MANIFEST"
+python3 "$ROOT_DIR/scripts/check-language-menu.py" \
+  --source "$SOURCE_DIR" \
+  --site "$SITE_DIR" \
+  --manifest "$MANIFEST"
 
 if [[ "$HTML_ONLY" == "0" ]]; then
   "$SPHINX_BUILD" -W --keep-going -D language=zh_CN -b latex "$SOURCE_DIR" "$ZH_BUILD/latex"
