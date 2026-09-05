@@ -13,7 +13,7 @@
 <meta property="og:image:alt" content="沿着最陡方向下山: 想象你在山上迷路了，想要下到山谷： 当前位置 ：参数当前值\theta_t, 最陡下降方向 ：负梯度方向（你脚下最陡的下坡方向）, 步长 ：学习率\eta （你每一步迈多大）, 目标 ：到达山谷最低点（损失 L 最小）. 神经网络训练转化为优化问题后，我们需要找到损失函数的 最小值点 。梯度下降（Gradient Descent）就是解决这个问题的迭代算法。 核心思想 ：..." />
 <meta name="description" content="沿着最陡方向下山: 想象你在山上迷路了，想要下到山谷： 当前位置 ：参数当前值\theta_t, 最陡下降方向 ：负梯度方向（你脚下最陡的下坡方向）, 步长 ：学习率\eta （你每一步迈多大）, 目标 ：到达山谷最低点（损失 L 最小）. 神经网络训练转化为优化问题后，我们需要找到损失函数的 最小值点 。梯度下降（Gradient Descent）就是解决这个问题的迭代算法。 核心思想 ：..." />
 <meta name="twitter:card" content="summary_large_image" />
-<title>梯度下降与优化算法 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="总结与展望" href="the-end.html"><link rel="prev" title="反向传播算法" href="back-propagation.html"><script data-cfasync="false">(function(){
+<title>梯度下降与优化算法 - Deep Learning Club 学习教程</title><link rel="canonical" href="https://ulink-deep-learning-club.github.io/ulink-deeplearningclub-handouts/math-fundamentals/gradient-descent.html"><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="总结与展望" href="the-end.html"><link rel="prev" title="反向传播算法" href="back-propagation.html"><script data-cfasync="false">(function(){
     const m = localStorage.getItem("breeze-mode") || "auto";
     const d = document.documentElement.dataset;
     d.mode = m;
@@ -21,7 +21,7 @@
       ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
       : m;
   })();
-  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=c830a622" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=ffc68e8e" /><link rel="stylesheet" type="text/css" href="../_static/i18n.css?v=3d153456" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
 <body>
   
   
@@ -46,7 +46,7 @@
 </label><a class="bz-header-brand" href="../index.html">
   
   
-  <span>Deep Learning Club Handouts</span>
+  <span>Deep Learning Club 学习教程</span>
 </a>
   </div>
   <div class="bz-header-end"><label
@@ -88,7 +88,20 @@
     <span>搜索</span>
     <kbd>Ctrl+K</kbd>
   </a>
-</div><div class="bz-theme-switcher">
+</div>
+
+<details class="i18n-language-menu">
+  <summary>Language</summary>
+  <ul aria-label="Language">
+    <li>
+      <span lang="zh-CN" aria-current="page">中文</span>
+    </li>
+    <li>
+      <a href="../en/math-fundamentals/gradient-descent.html" lang="en">English</a>
+    </li>
+  </ul>
+</details>
+<div class="bz-theme-switcher">
   <button aria-label="Switch theme" data-tooltip="Switch theme">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
       <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
@@ -294,7 +307,7 @@
 \theta_{t+1} = \theta_t - \eta \cdot \nabla_\theta J(\theta)
 \]</div>
 <p>其中 <span class="math notranslate nohighlight">\(\eta\)</span> 是<strong>学习率</strong>（步长），<span class="math notranslate nohighlight">\(\nabla_\theta J(\theta)\)</span> 是损失函数对参数的梯度。</p>
-<div class="figure" id="id121" style="text-align: center"><p><img  src="../_images/tikz-1fcb6e31998d6ac9bb181d5315ffa43589084ee7.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id121" style="text-align: center"><p><img src="../_images/tikz-1fcb6e31998d6ac9bb181d5315ffa43589084ee7.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">梯度下降：从初始点逐步逼近最小值</span></p>
 </div><section id="id3">
 <h3>学习率的重要性<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
@@ -323,7 +336,7 @@
 </tbody>
 </table>
 </div>
-<div class="figure" id="id122" style="text-align: center"><p><img  src="../_images/tikz-6d8d98f01221194e32bd78fa9e9ce2022e7bf6b5.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id122" style="text-align: center"><p><img src="../_images/tikz-6d8d98f01221194e32bd78fa9e9ce2022e7bf6b5.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">学习率过大导致震荡</span></p>
 </div></section>
 </section>
@@ -385,7 +398,7 @@
 <li><p><strong>全局最优</strong>：最深的山谷（最优解）</p></li>
 <li><p><strong>鞍点</strong>：马鞍形状的点（高维空间中非常常见）</p></li>
 </ul>
-<div class="figure" id="id123" style="text-align: center"><p><img  src="../_images/tikz-3132097730a3f1ceea03f8f371df6dc9546db3ce.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id123" style="text-align: center"><p><img src="../_images/tikz-3132097730a3f1ceea03f8f371df6dc9546db3ce.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Loss Landscape：局部最优 vs 全局最优</span></p>
 </div><p><strong>关键观察</strong>：</p>
 <ul class="simple">
@@ -395,7 +408,7 @@
 </ul>
 <p><strong>鞍点的详细展示</strong>：</p>
 <p>鞍点像一个马鞍——沿一个方向是极小值，沿另一个方向是极大值：</p>
-<div class="figure" id="id124" style="text-align: center"><p><img  src="../_images/tikz-f471d78432b2b2b3a89d15137b679e701956fe2b.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id124" style="text-align: center"><p><img src="../_images/tikz-f471d78432b2b2b3a89d15137b679e701956fe2b.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">鞍点：马鞍形状</span></p>
 </div><p><strong>深度学习的特殊情况</strong>：</p>
 <ul class="simple">
@@ -802,12 +815,12 @@ v_t &amp;= \beta_2 v_{t-1} + (1-\beta_2) g_t^2 \\
 <h3>核心问题<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
 <p>训练初期，参数远离最优，需要<strong>大学习率</strong>快速接近目标。
 训练后期，参数接近最优，需要<strong>小学习率</strong>精细调整，避免在最优点附近震荡。</p>
-<div class="figure" id="id126" style="text-align: center"><p><img  src="../_images/tikz-917c71b5dd181b58ccdf1c66024dd5599a9a8936.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id126" style="text-align: center"><p><img src="../_images/tikz-917c71b5dd181b58ccdf1c66024dd5599a9a8936.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">固定学习率 vs 学习率调度</span></p>
 </div></section>
 <section id="id10">
 <h3>常见学习率调度策略<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
-<div class="figure" id="id127" style="text-align: center"><p><img  src="../_images/tikz-29d8fbf95122945632fa8a291052b78d67c7bc71.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id127" style="text-align: center"><p><img src="../_images/tikz-29d8fbf95122945632fa8a291052b78d67c7bc71.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">学习率调度策略对比</span></p>
 </div><section id="step-decay">
 <h4>1. 步长衰减（Step Decay）<a class="headerlink" href="#step-decay" title="Link to this heading">#</a></h4>
@@ -857,7 +870,7 @@ v_t &amp;= \beta_2 v_{t-1} + (1-\beta_2) g_t^2 \\
 <h3>4. 预热（Warmup）<a class="headerlink" href="#warmup" title="Link to this heading">#</a></h3>
 <p><strong>问题</strong>：训练初期参数随机初始化，梯度可能很大且不稳定，大学习率会导致震荡。</p>
 <p><strong>策略</strong>：从很小的学习率开始，线性增加到目标学习率。</p>
-<div class="figure" id="id128" style="text-align: center"><p><img  src="../_images/tikz-7eea247496776676952d82efa46cf0cf22fad6d9.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id128" style="text-align: center"><p><img src="../_images/tikz-7eea247496776676952d82efa46cf0cf22fad6d9.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Warmup + Cosine Annealing</span></p>
 </div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 组合使用：Warmup + Cosine Annealing</span>
 <span class="n">scheduler1</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">LinearLR</span><span class="p">(</span>

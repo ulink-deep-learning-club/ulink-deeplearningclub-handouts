@@ -13,7 +13,7 @@
 <meta property="og:image:alt" content="激活函数的本质：划分特征空间: 从线性回归到逻辑回归: 你可能熟悉 线性回归 ： y = wx + b ，它用一条直线拟合数据，输出连续值。但很多时候我们需要做 分类 ——不是预测数值，而是判断&quot;这是A类还是B类&quot;。 问题 ：如果用线性回归做二分类会怎样？ 假设我们想区分&quot;垃圾邮件&quot;和&quot;正常邮件&quot;。如果用线性回归输出 y = wx ..." />
 <meta name="description" content="激活函数的本质：划分特征空间: 从线性回归到逻辑回归: 你可能熟悉 线性回归 ： y = wx + b ，它用一条直线拟合数据，输出连续值。但很多时候我们需要做 分类 ——不是预测数值，而是判断&quot;这是A类还是B类&quot;。 问题 ：如果用线性回归做二分类会怎样？ 假设我们想区分&quot;垃圾邮件&quot;和&quot;正常邮件&quot;。如果用线性回归输出 y = wx ..." />
 <meta name="twitter:card" content="summary_large_image" />
-<title>激活函数 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="损失函数" href="loss-functions.html"><link rel="prev" title="学习任务的形式" href="task-formulations.html"><script data-cfasync="false">(function(){
+<title>激活函数 - Deep Learning Club 学习教程</title><link rel="canonical" href="https://ulink-deep-learning-club.github.io/ulink-deeplearningclub-handouts/math-fundamentals/activation-functions.html"><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="损失函数" href="loss-functions.html"><link rel="prev" title="学习任务的形式" href="task-formulations.html"><script data-cfasync="false">(function(){
     const m = localStorage.getItem("breeze-mode") || "auto";
     const d = document.documentElement.dataset;
     d.mode = m;
@@ -21,7 +21,7 @@
       ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
       : m;
   })();
-  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=c830a622" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=ffc68e8e" /><link rel="stylesheet" type="text/css" href="../_static/i18n.css?v=3d153456" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
 <body>
   
   
@@ -46,7 +46,7 @@
 </label><a class="bz-header-brand" href="../index.html">
   
   
-  <span>Deep Learning Club Handouts</span>
+  <span>Deep Learning Club 学习教程</span>
 </a>
   </div>
   <div class="bz-header-end"><label
@@ -88,7 +88,20 @@
     <span>搜索</span>
     <kbd>Ctrl+K</kbd>
   </a>
-</div><div class="bz-theme-switcher">
+</div>
+
+<details class="i18n-language-menu">
+  <summary>Language</summary>
+  <ul aria-label="Language">
+    <li>
+      <span lang="zh-CN" aria-current="page">中文</span>
+    </li>
+    <li>
+      <a href="../en/math-fundamentals/activation-functions.html" lang="en">English</a>
+    </li>
+  </ul>
+</details>
+<div class="bz-theme-switcher">
   <button aria-label="Switch theme" data-tooltip="Switch theme">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
       <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
@@ -451,7 +464,7 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <li><p><strong>梯度消失</strong>：<span class="math notranslate nohighlight">\(|x|\)</span>较大时梯度接近0，这会导致<a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">反向传播算法</span></a>时梯度衰减</p></li>
 <li><p><strong>非零中心</strong>：输出始终为正</p></li>
 </ul>
-<div class="figure" id="id119" style="text-align: center"><p><img  src="../_images/tikz-edd0f92cd625512bf02e7fffafc9d34929517109.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id119" style="text-align: center"><p><img src="../_images/tikz-edd0f92cd625512bf02e7fffafc9d34929517109.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Sigmoid 函数</span></p>
 </div></section>
 <hr class="docutils" />
@@ -467,7 +480,7 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <li><p>更强梯度信号（最大梯度是 Sigmoid 的4倍）</p></li>
 </ul>
 <p><strong>局限</strong>：仍然存在梯度消失问题</p>
-<div class="figure" id="id120" style="text-align: center"><p><img  src="../_images/tikz-1658b8c837140dcc26171e59642e4bcb2ffe10a3.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id120" style="text-align: center"><p><img src="../_images/tikz-1658b8c837140dcc26171e59642e4bcb2ffe10a3.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Tanh函数</span></p>
 </div></section>
 <hr class="docutils" />
@@ -484,7 +497,7 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <li><p><strong>稀疏激活</strong>：约 50% 神经元输出为 0</p></li>
 </ul>
 <p><strong>问题</strong>：<strong>“死亡神经元”</strong>——若输入始终为负，梯度永远为 0，神经元永久失活</p>
-<div class="figure" id="id121" style="text-align: center"><p><img  src="../_images/tikz-0c40b387d3934f504c6b57d11908b31e0af05bd2.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id121" style="text-align: center"><p><img src="../_images/tikz-0c40b387d3934f504c6b57d11908b31e0af05bd2.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">ReLU 函数</span></p>
 </div></section>
 <hr class="docutils" />
@@ -504,7 +517,7 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <li><p><strong>PReLU</strong>：<span class="math notranslate nohighlight">\(\alpha\)</span> 作为可学习参数</p></li>
 <li><p><strong>ELU</strong>：负区间使用指数函数，更平滑</p></li>
 </ul>
-<div class="figure" id="id122" style="text-align: center"><p><img  src="../_images/tikz-ab7aba33e1318d8f084dc4a0d1e4acb89b7a0562.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id122" style="text-align: center"><p><img src="../_images/tikz-ab7aba33e1318d8f084dc4a0d1e4acb89b7a0562.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Leaky ReLU函数</span></p>
 </div></section>
 <hr class="docutils" />
@@ -525,7 +538,7 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <p>当 <span class="math notranslate nohighlight">\(\beta \to \infty\)</span> 时，<span class="math notranslate nohighlight">\(\sigma(\beta x) \to \text{step}(x)\)</span>，Swish 趋近于 ReLU：</p>
 <div class="math notranslate nohighlight">
 \[\begin{split} \lim_{\beta \to \infty} \frac{x}{1 + e^{-\beta x}} = \begin{cases} x &amp; \text{if } x &gt; 0 \\ 0 &amp; \text{otherwise} \end{cases} \end{split}\]</div>
-<div class="figure" id="id123" style="text-align: center"><p><img  src="../_images/tikz-c6683a00a81d024028fda3ad88d31c08274713f1.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id123" style="text-align: center"><p><img src="../_images/tikz-c6683a00a81d024028fda3ad88d31c08274713f1.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Swish 函数</span></p>
 </div></section>
 <hr class="docutils" />
@@ -544,7 +557,7 @@ n_3 &amp;= r(y - 2) \quad \text{[对y敏感的神经元]}
 <ul class="simple">
 <li><p>梯度形式简洁：<span class="math notranslate nohighlight">\(\frac{\partial L}{\partial x_i} = \text{softmax}(x_i) - y_i\)</span></p></li>
 </ul>
-<div class="figure" id="id124" style="text-align: center"><p><img  src="../_images/tikz-488a73b31177d9e08e9d2da70aa3dd8b3027d817.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id124" style="text-align: center"><p><img src="../_images/tikz-488a73b31177d9e08e9d2da70aa3dd8b3027d817.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Softmax 变换示意</span></p>
 </div></section>
 <hr class="docutils" />

@@ -13,7 +13,7 @@
 <meta property="og:image:alt" content="第一件装备：望远镜。看裂缝还是看山脊？多尺度、空洞卷积、FPN。 感受野 告诉我们：卷积层越深，感受野越大。但 Inception：多尺度工具 揭示了一个根本问题—— 每一层只有一个固定大小的感受野 。 这就是操控感受野要解决的核心矛盾： 不同的目标需要不同大小的感受野，但传统 CNN 只有一个 。 什么时候需要改造感受野: 先确认你是不是真的遇到了感受野问题：,,, 症状, 可能原因, 是..." />
 <meta name="description" content="第一件装备：望远镜。看裂缝还是看山脊？多尺度、空洞卷积、FPN。 感受野 告诉我们：卷积层越深，感受野越大。但 Inception：多尺度工具 揭示了一个根本问题—— 每一层只有一个固定大小的感受野 。 这就是操控感受野要解决的核心矛盾： 不同的目标需要不同大小的感受野，但传统 CNN 只有一个 。 什么时候需要改造感受野: 先确认你是不是真的遇到了感受野问题：,,, 症状, 可能原因, 是..." />
 <meta name="twitter:card" content="summary_large_image" />
-<title>操控感受野：网络应该看多大 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../../genindex.html"><link rel="search" title="搜索" href="../../search.html"><link rel="next" title="操控深度与连接：信息如何在网络中流动" href="part3-depth-connection.html"><link rel="prev" title="诊断入门：信息论听诊器" href="part1-intro.html"><script data-cfasync="false">(function(){
+<title>操控感受野：网络应该看多大 - Deep Learning Club 学习教程</title><link rel="canonical" href="https://ulink-deep-learning-club.github.io/ulink-deeplearningclub-handouts/cnn-expedition/model-architecture-design/part2-receptive-field.html"><link rel="index" title="索引" href="../../genindex.html"><link rel="search" title="搜索" href="../../search.html"><link rel="next" title="操控深度与连接：信息如何在网络中流动" href="part3-depth-connection.html"><link rel="prev" title="诊断入门：信息论听诊器" href="part1-intro.html"><script data-cfasync="false">(function(){
     const m = localStorage.getItem("breeze-mode") || "auto";
     const d = document.documentElement.dataset;
     d.mode = m;
@@ -21,7 +21,7 @@
       ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
       : m;
   })();
-  </script><link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../../_static/style-fixes.css?v=c830a622" /><link rel="stylesheet" type="text/css" href="../../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+  </script><link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../../_static/style-fixes.css?v=ffc68e8e" /><link rel="stylesheet" type="text/css" href="../../_static/i18n.css?v=3d153456" /><link rel="stylesheet" type="text/css" href="../../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
 <body>
   
   
@@ -46,7 +46,7 @@
 </label><a class="bz-header-brand" href="../../index.html">
   
   
-  <span>Deep Learning Club Handouts</span>
+  <span>Deep Learning Club 学习教程</span>
 </a>
   </div>
   <div class="bz-header-end"><label
@@ -88,7 +88,8 @@
     <span>搜索</span>
     <kbd>Ctrl+K</kbd>
   </a>
-</div><div class="bz-theme-switcher">
+</div>
+<div class="bz-theme-switcher">
   <button aria-label="Switch theme" data-tooltip="Switch theme">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
       <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
@@ -325,7 +326,7 @@
 <h2>策略一：多尺度并行<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
 <p>这是 <a class="reference internal" href="../image-net-era/inception.html"><span class="doc">Inception：多尺度工具</span></a> 的核心思想，但我们从<strong>设计心法</strong>而非架构本身来理解它。</p>
 <p><strong>本质</strong>：不说&quot;用多大&quot;，而说&quot;都试试&quot;。同时运行多个感受野的卷积，让网络自己选。</p>
-<div class="figure" id="id120" style="text-align: center"><p><img  src="../../_images/tikz-1b09f3bdc7a2c60223eae4c62c68275530772979.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id120" style="text-align: center"><p><img src="../../_images/tikz-1b09f3bdc7a2c60223eae4c62c68275530772979.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">Inception 的多尺度并行</span></p>
 </div><p><strong>适用场景</strong>：你有多个大小悬殊的目标类别（比如自然图像分类）。</p>
 <p><strong>代价与缓解</strong>：参数和计算量增加（多个分支同时跑）。<a class="reference internal" href="../image-net-era/inception.html"><span class="doc">Inception：多尺度工具</span></a> 中的关键创新是用 <strong>1×1 卷积先降维</strong>——在昂贵的 3×3 和 5×5 卷积之前，先用 1×1 把通道数降下来：</p>
@@ -372,7 +373,7 @@
 <p><strong>心法</strong>：空洞卷积是&quot;用稀疏换取广度&quot;。你牺牲了每个卷积核的采样密度，换来不花钱的大感受野。</p>
 <p><strong>代价：网格效应（Gridding Effect）</strong></p>
 <p>稀疏采样不是免费的午餐。当空洞率过大时，卷积核只采样输入的&quot;离散点&quot;，会丢失局部连续性信息，产生棋盘格状的伪影：</p>
-<div class="figure" id="id121" style="text-align: center"><p><img  src="../../_images/tikz-3c81e06a55c6742bf244c9da62f99add8a00e3a7.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id121" style="text-align: center"><p><img src="../../_images/tikz-3c81e06a55c6742bf244c9da62f99add8a00e3a7.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">空洞卷积的网格效应对比</span></p>
 </div><p><strong>缓解策略</strong>：</p>
 <ul class="simple">
@@ -382,7 +383,7 @@
 <p><strong>适用场景</strong>：需要大感受野但参数量、计算量受限（分割任务、轻量模型）。</p>
 <p><strong>典型应用——ASPP（Atrous Spatial Pyramid Pooling）</strong></p>
 <p>DeepLab 系列的核心模块，同时并行 4 个不同空洞率的卷积（空洞率=6, 12, 18, 24）+ 1 个全局平均池化：</p>
-<div class="figure" id="id122" style="text-align: center"><p><img  src="../../_images/tikz-5a223f1a8dd7f07c58423e97de3d7cdb28590234.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id122" style="text-align: center"><p><img src="../../_images/tikz-5a223f1a8dd7f07c58423e97de3d7cdb28590234.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">ASPP 结构：多空洞率并行</span></p>
 </div><p>ASPP 与 Inception 的区别：</p>
 <ul class="simple">
@@ -401,7 +402,7 @@
 <section id="id5">
 <h3>FPN 的结构：自上而下 + 横向连接<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
 <p>FPN 并不是简单的&quot;把不同层的特征拼起来&quot;，它有一个精妙的结构设计：</p>
-<div class="figure" id="id123" style="text-align: center"><p><img  src="../../_images/tikz-ab0e8d7fa176cfbdb840c8d7672a91b913b34793.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id123" style="text-align: center"><p><img src="../../_images/tikz-ab0e8d7fa176cfbdb840c8d7672a91b913b34793.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">FPN 结构：自上而下路径与横向连接</span></p>
 </div><p><strong>为什么需要这种结构？</strong></p>
 <p>单纯使用深层特征的问题：分辨率太低，小物体可能已经&quot;消失&quot;了。单纯使用浅层特征的问题：感受野太小，看不清全局上下文。</p>
@@ -413,7 +414,7 @@
 </ol>
 <p><strong>融合机制的具体操作</strong></p>
 <p>横向连接和自上而下路径相遇时，不是简单相加，而是有一个精心设计的流程：</p>
-<div class="figure" id="id124" style="text-align: center"><p><img  src="../../_images/tikz-bbdab256f5331819c70984568a21b000630402cb.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id124" style="text-align: center"><p><img src="../../_images/tikz-bbdab256f5331819c70984568a21b000630402cb.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">FPN融合机制流程</span></p>
 </div><p><strong>关键设计选择</strong>：</p>
 <div class="table colwidths-auto docutils container">

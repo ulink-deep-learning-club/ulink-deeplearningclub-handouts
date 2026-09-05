@@ -13,7 +13,7 @@
 <meta property="og:image:alt" content="ONNX：模型的中立语言 中我们把PyTorch模型导出成了ONNX格式，有了一个标准化的模型文件。但在真正部署之前，还有一个关键问题要解决： 这个模型够&quot;轻&quot;吗？ 一个典型的ResNet-50模型，用FP32存储需要约100MB的磁盘空间，推理一次需要约4 billion次浮点运算。如果要在手机上跑，100MB的下载包太大；如果要在服务器上同时处理100个请求，显存可能..." />
 <meta name="description" content="ONNX：模型的中立语言 中我们把PyTorch模型导出成了ONNX格式，有了一个标准化的模型文件。但在真正部署之前，还有一个关键问题要解决： 这个模型够&quot;轻&quot;吗？ 一个典型的ResNet-50模型，用FP32存储需要约100MB的磁盘空间，推理一次需要约4 billion次浮点运算。如果要在手机上跑，100MB的下载包太大；如果要在服务器上同时处理100个请求，显存可能..." />
 <meta name="twitter:card" content="summary_large_image" />
-<title>模型优化：量化与剪枝 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="服务架构：从单机到分布式" href="serving-architecture.html"><link rel="prev" title="ONNX：模型的中立语言" href="onnx-export.html"><script data-cfasync="false">(function(){
+<title>模型优化：量化与剪枝 - Deep Learning Club 学习教程</title><link rel="canonical" href="https://ulink-deep-learning-club.github.io/ulink-deeplearningclub-handouts/model-serving/model-optimization.html"><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="服务架构：从单机到分布式" href="serving-architecture.html"><link rel="prev" title="ONNX：模型的中立语言" href="onnx-export.html"><script data-cfasync="false">(function(){
     const m = localStorage.getItem("breeze-mode") || "auto";
     const d = document.documentElement.dataset;
     d.mode = m;
@@ -21,7 +21,7 @@
       ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
       : m;
   })();
-  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=c830a622" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=ffc68e8e" /><link rel="stylesheet" type="text/css" href="../_static/i18n.css?v=3d153456" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
 <body>
   
   
@@ -46,7 +46,7 @@
 </label><a class="bz-header-brand" href="../index.html">
   
   
-  <span>Deep Learning Club Handouts</span>
+  <span>Deep Learning Club 学习教程</span>
 </a>
   </div>
   <div class="bz-header-end"><label
@@ -88,7 +88,8 @@
     <span>搜索</span>
     <kbd>Ctrl+K</kbd>
   </a>
-</div><div class="bz-theme-switcher">
+</div>
+<div class="bz-theme-switcher">
   <button aria-label="Switch theme" data-tooltip="Switch theme">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
       <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
@@ -444,7 +445,7 @@
 <h4>SGD 的噪声掩盖了低位的精度<a class="headerlink" href="#sgd" title="Link to this heading">#</a></h4>
 <p>神经网络训练的核心是随机梯度下降（SGD，<a class="reference internal" href="../math-fundamentals/gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>）。SGD 的每一步更新本身就是<strong>有噪声的</strong>——梯度是从一个小批量（Mini-batch）估算出来的，不是全量数据的精确梯度。这个噪声的量级通常在 <span class="math notranslate nohighlight">\(10^{-3}\)</span> 到 <span class="math notranslate nohighlight">\(10^{-4}\)</span> 左右。</p>
 <p><strong>关键洞察</strong>：FP32 尾数的最后几位编码的变化量级大约是 <span class="math notranslate nohighlight">\(10^{-7}\)</span>——这个精度比 SGD 的噪声还要小 3-4 个数量级。换句话说，即使你保留了这几位，下一个 SGD 步骤也会把它覆盖掉。<strong>这几位本质上在存&quot;噪声&quot;，不是&quot;信息&quot;。</strong></p>
-<div class="figure" id="id145" style="text-align: center"><p><img  src="../_images/tikz-d3db32432e92ffc360461827b6efcfdc0438ff3c.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id145" style="text-align: center"><p><img src="../_images/tikz-d3db32432e92ffc360461827b6efcfdc0438ff3c.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">FP32 的 32 位布局：信号与噪声</span></p>
 </div><p><strong>信息流动直觉</strong>：把 FP32 的 23 位尾数想象成一根 23 厘米的尺子来量一个物体。SGD 告诉我们&quot;这个物体的大小每次会抖动 ±1 厘米&quot;——那最后 5 厘米的刻度根本用不上，因为每次量的结果在厘米级就变了。</p>
 </section>
@@ -617,7 +618,7 @@ Y_{\text{float}} &amp;= W_{\text{float}} \cdot X_{\text{float}} \\
 <li><p>每个元素本身只需 4 位（E2M1：1 位符号 + 2 位指数 + 1 位尾数）</p></li>
 <li><p>最终每个元素的有效位数为 <span class="math notranslate nohighlight">\(4 + \frac{8}{32} = 4.25\)</span> 位</p></li>
 </ul>
-<div class="figure" id="id147" style="text-align: center"><p><img  src="../_images/tikz-67f3405c05a4fc77a9adc44bc45dc91cb59b9f4a.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id147" style="text-align: center"><p><img src="../_images/tikz-67f3405c05a4fc77a9adc44bc45dc91cb59b9f4a.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">MXFP4 块结构：32 元素共享一个缩放因子</span></p>
 </div><p><strong>操作直觉</strong>：想象 32 个学生考试，老师不单独给每个人打分，而是先宣布&quot;这次全班平均分 85&quot;（共享 scale），然后每个人的成绩只记录&quot;比平均高还是低&quot;和偏离的等级（E2M1）。信息压缩了，但排名和相对关系保留了。</p>
 <p>MXFP4 的重要性在于：NVIDIA Blackwell（B200/GB200）架构在 2024 年首次提供了<strong>原生 MXFP4 硬件支持</strong>，推理吞吐量可达 FP16 的 4 倍。这意味着 4 位推理不再是实验性技术，而是可以大规模部署的生产方案。</p>
@@ -1056,7 +1057,7 @@ Y_{\text{float}} &amp;= W_{\text{float}} \cdot X_{\text{float}} \\
 <ul class="simple">
 <li><p>当前层的输出通道数减少 1</p></li>
 <li><p>下一层对应位置的输入通道也需要同步删除</p></li>
-<li><p>残差连接（<span class="xref std std-ref">residual-connections</span>）的各分支维度必须保持一致，需要额外处理</p></li>
+<li><p>残差连接（<a class="reference internal" href="../cnn-expedition/image-net-era/res-net.html"><span class="doc">ResNet：高原反应补给站</span></a>）的各分支维度必须保持一致，需要额外处理</p></li>
 </ul>
 <p>这就是为什么结构化剪枝比非结构化剪枝复杂——它涉及到网络结构层面的连锁修改。</p>
 </section>
@@ -1416,6 +1417,10 @@ Y_{\text{float}} &amp;= W_{\text{float}} \cdot X_{\text{float}} \\
         <p style="font-weight: bold; margin-bottom: 10px;">贡献者与修订历史</p>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
     
+            <div title="ThomasB (1 commits)" style="text-align: center;"><a href="https://github.com/ThomasB">
+                <img src="../_static/avatars/82168554d208a2ab2574fc15ed9f1bd9.jpg" alt="ThomasB" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        
             <div title="Heyan Zhu (Anson2251) (1 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
                 <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
             </a></div>
@@ -1424,6 +1429,11 @@ Y_{\text{float}} &amp;= W_{\text{float}} \cdot X_{\text{float}} \\
             <summary style="cursor: pointer; font-size: 0.9em;">查看详细修订记录</summary>
             <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
     
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">67f9245</code>
+                2026-09-04 - <strong>ThomasB</strong>: The foundation for English version
+            </li>
+        
             <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
                 <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">2af6985</code>
                 2026-06-14 - <strong>Heyan Zhu</strong>: feat(model-serving): add quantization and pruning chapter, restructure for general-first narrative

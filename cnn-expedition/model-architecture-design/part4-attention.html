@@ -13,7 +13,7 @@
 <meta property="og:image:alt" content="第三件装备：聚焦。盯裂缝，忽略光滑岩面。通道注意力、空间注意力、长程依赖。 下篇：真正的未登峰 详细介绍了 SE-Net 和 CBAM 的具体实现。现在我们从 设计心法 的角度来理解——注意力不是一种&quot;技巧&quot;，而是神经网络中 信息路由 的通用机制。 重新理解注意力：从&quot;模块&quot;到&quot;路由&quot;: 卷积：发现装备 告诉我们卷积有 归纳偏置 —..." />
 <meta name="description" content="第三件装备：聚焦。盯裂缝，忽略光滑岩面。通道注意力、空间注意力、长程依赖。 下篇：真正的未登峰 详细介绍了 SE-Net 和 CBAM 的具体实现。现在我们从 设计心法 的角度来理解——注意力不是一种&quot;技巧&quot;，而是神经网络中 信息路由 的通用机制。 重新理解注意力：从&quot;模块&quot;到&quot;路由&quot;: 卷积：发现装备 告诉我们卷积有 归纳偏置 —..." />
 <meta name="twitter:card" content="summary_large_image" />
-<title>操控注意力与长程依赖：信息该走哪条路 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../../genindex.html"><link rel="search" title="搜索" href="../../search.html"><link rel="next" title="操控效率：效果、速度与硬件的三角权衡" href="part5-efficiency.html"><link rel="prev" title="操控深度与连接：信息如何在网络中流动" href="part3-depth-connection.html"><script data-cfasync="false">(function(){
+<title>操控注意力与长程依赖：信息该走哪条路 - Deep Learning Club 学习教程</title><link rel="canonical" href="https://ulink-deep-learning-club.github.io/ulink-deeplearningclub-handouts/cnn-expedition/model-architecture-design/part4-attention.html"><link rel="index" title="索引" href="../../genindex.html"><link rel="search" title="搜索" href="../../search.html"><link rel="next" title="操控效率：效果、速度与硬件的三角权衡" href="part5-efficiency.html"><link rel="prev" title="操控深度与连接：信息如何在网络中流动" href="part3-depth-connection.html"><script data-cfasync="false">(function(){
     const m = localStorage.getItem("breeze-mode") || "auto";
     const d = document.documentElement.dataset;
     d.mode = m;
@@ -21,7 +21,7 @@
       ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
       : m;
   })();
-  </script><link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../../_static/style-fixes.css?v=c830a622" /><link rel="stylesheet" type="text/css" href="../../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+  </script><link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../../_static/style-fixes.css?v=ffc68e8e" /><link rel="stylesheet" type="text/css" href="../../_static/i18n.css?v=3d153456" /><link rel="stylesheet" type="text/css" href="../../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
 <body>
   
   
@@ -46,7 +46,7 @@
 </label><a class="bz-header-brand" href="../../index.html">
   
   
-  <span>Deep Learning Club Handouts</span>
+  <span>Deep Learning Club 学习教程</span>
 </a>
   </div>
   <div class="bz-header-end"><label
@@ -88,7 +88,8 @@
     <span>搜索</span>
     <kbd>Ctrl+K</kbd>
   </a>
-</div><div class="bz-theme-switcher">
+</div>
+<div class="bz-theme-switcher">
   <button aria-label="Switch theme" data-tooltip="Switch theme">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
       <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
@@ -289,7 +290,7 @@
 <p><a class="reference internal" href="../practice-peak/cnn-basics.html"><span class="doc">卷积：发现装备</span></a> 告诉我们卷积有 <a class="reference internal" href="../practice-peak/introduction.html#inductive-bias"><span class="std std-ref">归纳偏置</span></a>——平移等变性、局部感受野。这些归纳偏置让 CNN 很高效，但也带来了一个代价：<strong>所有输入位置被同等对待</strong>。</p>
 <p>池化后，所有特征不管来自背景还是关键目标，都一视同仁地进入下一层。这就像高速公路所有车道的通行权一样——效率高，但不合理。</p>
 <p>注意力的作用是：<strong>在信息通路上设置红绿灯，动态控制每个通道、每个位置的通行权</strong>。</p>
-<div class="figure" style="text-align: center"><p><img  src="../../_images/tikz-85957243630bb594ae3a8d435acf2b71f794378d.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" style="text-align: center"><p><img src="../../_images/tikz-85957243630bb594ae3a8d435acf2b71f794378d.svg" alt="Figure made with TikZ" /></p>
 </div></section>
 <section id="id3">
 <h2>三种注意力，三种路由策略<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
@@ -380,7 +381,7 @@
 <p><strong>问题</strong>：图像中两个相距较远的区域需要关联——比如篮球运动员的手和篮筐。卷积能看到吗？</p>
 <p>答案：<strong>理论上能，但代价很大</strong>。</p>
 <p>CNN 的感受野随深度线性增长。要让两个相距 100 像素的区域产生关联，需要堆很多层。而在层层传递中，远距离的关联信息很容易丢失。</p>
-<div class="figure" style="text-align: center"><p><img  src="../../_images/tikz-2cd07a79e211f3efb85ac5a95735ab846533e920.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" style="text-align: center"><p><img src="../../_images/tikz-2cd07a79e211f3efb85ac5a95735ab846533e920.svg" alt="Figure made with TikZ" /></p>
 </div><p><strong>Self-Attention 的方案</strong>：不管位置多远，直接计算关联。这彻底绕过了卷积的层层传递。</p>
 <section id="id9">
 <h4>架构层面的权衡<a class="headerlink" href="#id9" title="Link to this heading">#</a></h4>

@@ -13,7 +13,7 @@
 <meta property="og:image:alt" content="第二件装备：补给线。高海拔还能呼吸吗？跳跃连接、密集连接、特征融合。 ResNet：高原反应补给站 揭露了一个惊人的事实：堆更多的层不一定更好，反而可能更差。根源在于 梯度消失（Vanishing Gradient） ——梯度在反向传播中逐层衰减，浅层收不到训练信号。 但 ResNet 只展示了跳跃连接这一种解法。本节从更根本的角度审视： 信息如何在网络中流动？有哪些方式保证信息不丢失？ 信..." />
 <meta name="description" content="第二件装备：补给线。高海拔还能呼吸吗？跳跃连接、密集连接、特征融合。 ResNet：高原反应补给站 揭露了一个惊人的事实：堆更多的层不一定更好，反而可能更差。根源在于 梯度消失（Vanishing Gradient） ——梯度在反向传播中逐层衰减，浅层收不到训练信号。 但 ResNet 只展示了跳跃连接这一种解法。本节从更根本的角度审视： 信息如何在网络中流动？有哪些方式保证信息不丢失？ 信..." />
 <meta name="twitter:card" content="summary_large_image" />
-<title>操控深度与连接：信息如何在网络中流动 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../../genindex.html"><link rel="search" title="搜索" href="../../search.html"><link rel="next" title="操控注意力与长程依赖：信息该走哪条路" href="part4-attention.html"><link rel="prev" title="操控感受野：网络应该看多大" href="part2-receptive-field.html"><script data-cfasync="false">(function(){
+<title>操控深度与连接：信息如何在网络中流动 - Deep Learning Club 学习教程</title><link rel="canonical" href="https://ulink-deep-learning-club.github.io/ulink-deeplearningclub-handouts/cnn-expedition/model-architecture-design/part3-depth-connection.html"><link rel="index" title="索引" href="../../genindex.html"><link rel="search" title="搜索" href="../../search.html"><link rel="next" title="操控注意力与长程依赖：信息该走哪条路" href="part4-attention.html"><link rel="prev" title="操控感受野：网络应该看多大" href="part2-receptive-field.html"><script data-cfasync="false">(function(){
     const m = localStorage.getItem("breeze-mode") || "auto";
     const d = document.documentElement.dataset;
     d.mode = m;
@@ -21,7 +21,7 @@
       ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
       : m;
   })();
-  </script><link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../../_static/style-fixes.css?v=c830a622" /><link rel="stylesheet" type="text/css" href="../../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+  </script><link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../../_static/style-fixes.css?v=ffc68e8e" /><link rel="stylesheet" type="text/css" href="../../_static/i18n.css?v=3d153456" /><link rel="stylesheet" type="text/css" href="../../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
 <body>
   
   
@@ -46,7 +46,7 @@
 </label><a class="bz-header-brand" href="../../index.html">
   
   
-  <span>Deep Learning Club Handouts</span>
+  <span>Deep Learning Club 学习教程</span>
 </a>
   </div>
   <div class="bz-header-end"><label
@@ -88,7 +88,8 @@
     <span>搜索</span>
     <kbd>Ctrl+K</kbd>
   </a>
-</div><div class="bz-theme-switcher">
+</div>
+<div class="bz-theme-switcher">
   <button aria-label="Switch theme" data-tooltip="Switch theme">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
       <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
@@ -287,7 +288,7 @@
 <p>但 ResNet 只展示了跳跃连接这一种解法。本节从更根本的角度审视：<strong>信息如何在网络中流动？有哪些方式保证信息不丢失？</strong></p>
 <section id="id2">
 <h2>信息流动的三种通路<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<div class="figure" style="text-align: center"><p><img  src="../../_images/tikz-174ab4dca6c3437388e453094c8dcb4b23b5eeac.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" style="text-align: center"><p><img src="../../_images/tikz-174ab4dca6c3437388e453094c8dcb4b23b5eeac.svg" alt="Figure made with TikZ" /></p>
 </div><section id="id3">
 <h3>串行链——梯度消失<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
 <p>普通网络只有一个路径：Layer 1 → Layer 2 → … → Layer n。信息在串行中丢失，梯度在乘法中归零。这就是<a class="reference internal" href="part1-intro.html#arch-intro"><span class="std std-ref">诊断入门：信息论听诊器</span></a>中讨论的<strong>信息传不过去</strong>。</p>
@@ -353,7 +354,7 @@
 <h2>特征融合：不止是连接，而是对话<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
 <p>跳跃连接解决的是一根弦上的信息传递。但更深层的问题是：<strong>不同深度的特征如何互相配合？</strong></p>
 <p><a class="reference internal" href="part2-receptive-field.html#arch-receptive-field"><span class="std std-ref">操控感受野：网络应该看多大</span></a> 中介绍了 FPN——从感受野角度看，它让不同深度的层各自负责不同大小的目标。但从信息流动角度看，FPN 做了一件更重要的事：<strong>在深层语义和浅层细节之间建立对话</strong>。</p>
-<div class="figure" style="text-align: center"><p><img  src="../../_images/tikz-b1ab44c28cf4c2f1d20febea573d8088f6be7d17.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" style="text-align: center"><p><img src="../../_images/tikz-b1ab44c28cf4c2f1d20febea573d8088f6be7d17.svg" alt="Figure made with TikZ" /></p>
 </div><p><strong>设计心法</strong>：特征融合不是&quot;把两个向量拼起来&quot;，而是<strong>在不同抽象层次的特征之间建立双向信息流动</strong>——就像讨论问题时，从细节（浅层）和全局（深层）两个角度来回碰撞。</p>
 </section>
 <section id="id7">

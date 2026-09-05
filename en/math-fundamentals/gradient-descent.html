@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Gradient Descent and Optimization Algorithms" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="math-fundamentals/gradient-descent.html" />
+<meta property="og:site_name" content="Deep Learning Club Handouts" />
+<meta property="og:description" content="Descending a Mountain Along the Steepest Direction: Imagine you are lost on a mountain and want to descend to the valley: Current position: current parameter value\theta_t, Steepest descent directi..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_math-fundamentals_gradient-descent_91895d8b.png" />
+<meta property="og:image:alt" content="Descending a Mountain Along the Steepest Direction: Imagine you are lost on a mountain and want to descend to the valley: Current position: current parameter value\theta_t, Steepest descent directi..." />
+<meta name="description" content="Descending a Mountain Along the Steepest Direction: Imagine you are lost on a mountain and want to descend to the valley: Current position: current parameter value\theta_t, Steepest descent directi..." />
+<meta name="twitter:card" content="summary_large_image" />
+<title>Gradient Descent and Optimization Algorithms - Deep Learning Club Handouts</title><link rel="canonical" href="https://ulink-deep-learning-club.github.io/ulink-deeplearningclub-handouts/en/math-fundamentals/gradient-descent.html"><link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Summary and Outlook" href="the-end.html"><link rel="prev" title="Backpropagation Algorithm" href="back-propagation.html"><script data-cfasync="false">(function(){
+    const m = localStorage.getItem("breeze-mode") || "auto";
+    const d = document.documentElement.dataset;
+    d.mode = m;
+    d.theme = m === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : m;
+  })();
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=ffc68e8e" /><link rel="stylesheet" type="text/css" href="../_static/i18n.css?v=3d153456" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+<body>
+  
+  
+  <div class="bz-skip-to-content"><a href="#bz-main-content">Skip to main content</a></div><header class="bz-header-main">
+  <div class="bz-header-start"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><a class="bz-header-brand" href="../index.html">
+  
+  
+  <span>Deep Learning Club Handouts</span>
+</a>
+  </div>
+  <div class="bz-header-end"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><div id="docsearch" class="bz-search-button">
+  <a
+    href="../search.html#q"
+    aria-label="Search the docs"
+    data-tooltip="Search the docs"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 -1 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
+    <span>Search</span>
+    <kbd>Ctrl+K</kbd>
+  </a>
+</div>
+
+<details class="i18n-language-menu">
+  <summary>Language</summary>
+  <ul aria-label="Language">
+    <li>
+      <span lang="en" aria-current="page">English</span>
+    </li>
+    <li>
+      <a href="../../math-fundamentals/gradient-descent.html" lang="zh-CN">中文</a>
+    </li>
+  </ul>
+</details>
+<div class="bz-theme-switcher">
+  <button aria-label="Switch theme" data-tooltip="Switch theme">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
+      <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-dark" fill="currentColor">
+      <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+    </svg>
+  </button>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.766 11.695C4.703 11.437 3.25 9.904 3.25 7.92c0-.806.281-1.677.75-2.258-.203-.532-.172-1.662.062-2.129.626-.081 1.469.258 1.969.726.594-.194 1.219-.291 1.985-.291.765 0 1.39.097 1.953.274.484-.451 1.343-.79 1.969-.709.218.435.25 1.564.046 2.113.5.613.766 1.436.766 2.274 0 1.984-1.453 3.485-3.547 3.759.531.355.891 1.129.891 2.016v1.678c0 .484.39.758.859.564C13.781 14.824 16 11.905 16 8.291 16 3.726 12.406 0 7.984 0 3.562 0 0 3.726 0 8.291c0 3.581 2.203 6.55 5.172 7.663A.595.595 0 0 0 6 15.389v-1.291c-.219.097-.5.162-.75.162-1.031 0-1.641-.581-2.078-1.662-.172-.435-.36-.693-.719-.742-.187-.016-.25-.097-.25-.193 0-.194.313-.339.625-.339.453 0 .844.29 1.25.887.313.468.641.678 1.031.678.391 0 .641-.146 1-.516.266-.275.469-.517.657-.678Z"></path></svg>
+    
+    </a>
+  </div>
+  </div>
+</header><hr class="bz-header-hr">
+  <div class="bz-content"><aside class="bz-sidebar-primary" data-drawer="bz-sidebar-primary">
+  
+  
+    <nav class="bz-sidebar-nav" aria-label="Section Navigation"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../preface.html">Preface: About Deep Learning</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Core Mathematical Foundations of Deep Learning</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="computational-graph.html">Computational graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="task-formulations.html">Learning Task Formulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activation-functions.html">Activation Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-functions.html">Loss Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="back-propagation.html">Backpropagation Algorithm</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Gradient Descent and Optimization Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">Summary and Outlook</a></li>
+</ul></details></li>
+<li class="toctree-l1 i18n-unavailable"><a aria-label="CNN Expedition: Thirty Years of Architectures. English translation unavailable; open the Chinese edition" class="reference internal" href="../../cnn-expedition/index.html" hreflang="zh-CN" title="English translation unavailable; open the Chinese edition">CNN Expedition: Thirty Years of Architectures<span aria-hidden="true" class="i18n-unavailable-badge">Chinese only</span></a>
+</li>
+<li class="toctree-l1 i18n-unavailable"><a aria-label="PyTorch Practice: Turning Theory into Code. English translation unavailable; open the Chinese edition" class="reference internal" href="../../pytorch-practice/index.html" hreflang="zh-CN" title="English translation unavailable; open the Chinese edition">PyTorch Practice: Turning Theory into Code<span aria-hidden="true" class="i18n-unavailable-badge">Chinese only</span></a>
+</li>
+<li class="toctree-l1 i18n-unavailable"><a aria-label="Model Deployment and Serving. English translation unavailable; open the Chinese edition" class="reference internal" href="../../model-serving/index.html" hreflang="zh-CN" title="English translation unavailable; open the Chinese edition">Model Deployment and Serving<span aria-hidden="true" class="i18n-unavailable-badge">Chinese only</span></a>
+</li>
+<li class="toctree-l1 i18n-unavailable"><a aria-label="Transfer Learning and Fine-Tuning. English translation unavailable; open the Chinese edition" class="reference internal" href="../../transfer-learning/index.html" hreflang="zh-CN" title="English translation unavailable; open the Chinese edition">Transfer Learning and Fine-Tuning<span aria-hidden="true" class="i18n-unavailable-badge">Chinese only</span></a>
+</li>
+<li class="toctree-l1 i18n-unavailable"><a aria-label="U-Net Image Segmentation. English translation unavailable; open the Chinese edition" class="reference internal" href="../../unet-image-segmentation/index.html" hreflang="zh-CN" title="English translation unavailable; open the Chinese edition">U-Net Image Segmentation<span aria-hidden="true" class="i18n-unavailable-badge">Chinese only</span></a>
+</li>
+<li class="toctree-l1 i18n-unavailable"><a aria-label="Sequence Modeling: RNN to Transformer to Mamba. English translation unavailable; open the Chinese edition" class="reference internal" href="../../sequence-modeling/index.html" hreflang="zh-CN" title="English translation unavailable; open the Chinese edition">Sequence Modeling: RNN to Transformer to Mamba<span aria-hidden="true" class="i18n-unavailable-badge">Chinese only</span></a>
+</li>
+<li class="toctree-l1 i18n-unavailable"><a aria-label="Appendix. English translation unavailable; open the Chinese edition" class="reference internal" href="../../appendix/index.html" hreflang="zh-CN" title="English translation unavailable; open the Chinese edition">Appendix<span aria-hidden="true" class="i18n-unavailable-badge">Chinese only</span></a>
+</li>
+<li class="toctree-l1 i18n-unavailable"><a aria-label="Postscript. English translation unavailable; open the Chinese edition" class="reference internal" href="../../postscript.html" hreflang="zh-CN" title="English translation unavailable; open the Chinese edition">Postscript<span aria-hidden="true" class="i18n-unavailable-badge">Chinese only</span></a></li>
+</ul>
+</nav>
+  
+
+</aside><main id="bz-main-content"><header class="bz-article-header">
+  
+  
+    <nav class="bz-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li class="bz-breadcrumbs-home">
+      <a href="../index.html" aria-label="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8.543 2.232a.75.75 0 0 0-1.085 0l-5.25 5.5A.75.75 0 0 0 2.75 9H4v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V9h1.25a.75.75 0 0 0 .543-1.268l-5.25-5.5Z" />
+        </svg>
+      </a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="index.html">Core Mathematical Foundations of Deep Learning</a>
+    </li><li class="bz-breadcrumbs-current">
+      <span>Gradient Descent and Optimization Algorithms</span>
+    </li>
+  </ol>
+</nav>
+  
+<label
+  class="bz-sidebar-secondary-toggle"
+  for="bz-sidebar-secondary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle table of contents"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75H20.25 M11.25 12H20.25 M7.75 17.25H20.25"
+    />
+  </svg>
+</label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="gradient-descent">
+<span id="id1"></span><h1>Gradient Descent and Optimization Algorithms<a class="headerlink" href="#gradient-descent" title="Link to this heading">#</a></h1>
+<section id="id2">
+<h2>Descending a Mountain Along the Steepest Direction<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>Imagine you are lost on a mountain and want to descend to the valley:</p>
+<ul class="simple">
+<li><p><strong>Current position</strong>: current parameter value <span class="math notranslate nohighlight">\(\theta_t\)</span></p></li>
+<li><p><strong>Steepest descent direction</strong>: negative gradient direction (the steepest downhill direction under your feet)</p></li>
+<li><p><strong>Step size</strong>: learning rate <span class="math notranslate nohighlight">\(\eta\)</span> (how large a step you take)</p></li>
+<li><p><strong>Goal</strong>: reach the bottom of the valley (minimum loss <span class="math notranslate nohighlight">\(L\)</span>)</p></li>
+</ul>
+<p>Once neural network training is formulated as an optimization problem, we need to find the <strong>minimum point</strong> of the loss function. Gradient descent is the iterative algorithm used to solve this problem.</p>
+<p><strong>Core idea</strong>: At the current position, take a small step along the <strong>direction of gradient descent</strong> (the direction in which loss decreases fastest).</p>
+<div class="math notranslate nohighlight">
+\[
+\theta_{t+1} = \theta_t - \eta \cdot \nabla_\theta J(\theta)
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\eta\)</span> is the <strong>learning rate</strong> (step size), and <span class="math notranslate nohighlight">\(\nabla_\theta J(\theta)\)</span> is the gradient of the loss function with respect to the parameters.</p>
+<div class="figure" id="id121" style="text-align: center"><p><img src="../_images/tikz-1fcb6e31998d6ac9bb181d5315ffa43589084ee7.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Gradient Descent: Gradually Approaching the Minimum from the Initial Point</span></p>
+</div><section id="id3">
+<h3>Importance of the Learning Rate<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<p>The choice of learning rate is critical:</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Learning Rate</p></th>
+<th class="head"><p>Effect</p></th>
+<th class="head"><p>Analogy</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Too small</p></td>
+<td><p>Extremely slow convergence</p></td>
+<td><p>Baby steps</p></td>
+</tr>
+<tr class="row-odd"><td><p>Appropriate</p></td>
+<td><p>Fast convergence</p></td>
+<td><p>Normal walking</p></td>
+</tr>
+<tr class="row-even"><td><p>Too large</p></td>
+<td><p>Oscillation / divergence</p></td>
+<td><p>Giant leap, may overshoot the valley</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="figure" id="id122" style="text-align: center"><p><img src="../_images/tikz-6d8d98f01221194e32bd78fa9e9ce2022e7bf6b5.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Learning Rate Too Large Causing Oscillation</span></p>
+</div></section>
+</section>
+<hr class="docutils" />
+<section id="id4">
+<h2>Variants of Gradient Descent<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p>In <a class="reference internal" href="#gradient-descent"><span class="std std-ref">Gradient Descent and Optimization Algorithms</span></a>, we update parameters based on the gradients computed by <a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">Backpropagation Algorithm</span></a>. Depending on how much data is used to compute the gradient, there are three variants:</p>
+<section id="batch-gd">
+<h3>Batch Gradient Descent (Batch GD)<a class="headerlink" href="#batch-gd" title="Link to this heading">#</a></h3>
+<p>Computes gradients using <strong>all data</strong>:</p>
+<div class="math notranslate nohighlight">
+\[
+\theta_{t+1} = \theta_t - \eta \cdot \frac{1}{N} \sum_{i=1}^N \nabla_\theta J(\theta; x_i, y_i)
+\]</div>
+<p><strong>Characteristics</strong>:</p>
+<ul class="simple">
+<li><p>Accurate gradient estimation, stable convergence</p></li>
+<li><p>High computational cost per iteration, unsuitable for large datasets</p></li>
+</ul>
+</section>
+<section id="sgd">
+<h3>Stochastic Gradient Descent (SGD)<a class="headerlink" href="#sgd" title="Link to this heading">#</a></h3>
+<p>Computes gradients using <strong>a single sample</strong> at each step:</p>
+<div class="math notranslate nohighlight">
+\[
+\theta_{t+1} = \theta_t - \eta \cdot \nabla_\theta J(\theta; x_i, y_i)
+\]</div>
+<p><strong>Characteristics</strong>:</p>
+<ul class="simple">
+<li><p>Fast computation, suitable for online learning</p></li>
+<li><p>Noisy gradients, unstable convergence</p></li>
+<li><p><strong>Noise may help escape local optima</strong></p></li>
+</ul>
+</section>
+<section id="mini-batch-gd">
+<h3>Mini-batch Gradient Descent (Mini-batch GD)<a class="headerlink" href="#mini-batch-gd" title="Link to this heading">#</a></h3>
+<p>Computes gradients using <strong>a mini-batch of samples</strong> (typically 32–256):</p>
+<div class="math notranslate nohighlight">
+\[
+\theta_{t+1} = \theta_t - \eta \cdot \frac{1}{m} \sum_{i=1}^m \nabla_\theta J(\theta; x_i, y_i)
+\]</div>
+<p><strong>Characteristics</strong>:</p>
+<ul class="simple">
+<li><p><strong>Balances computational efficiency and stability</strong></p></li>
+<li><p>Can leverage GPU parallel computing</p></li>
+<li><p><strong>Most commonly used in deep learning</strong></p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id5">
+<h2>Advanced Optimization Algorithms<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<section id="loss-landscape-loss-functions">
+<h3>Loss Landscape: Optimization Terrain Shaped by <a class="reference internal" href="loss-functions.html#loss-functions"><span class="std std-ref">Loss Functions</span></a><a class="headerlink" href="#loss-landscape-loss-functions" title="Link to this heading">#</a></h3>
+<p>The <strong>Loss Landscape</strong> describes the shape of <a class="reference internal" href="loss-functions.html#loss-functions"><span class="std std-ref">Loss Functions</span></a> in parameter space. Imagine a high-dimensional mountainous terrain: valleys represent regions of low loss, while peaks represent regions of high loss.</p>
+<p>In deep learning, this landscape is usually <strong>non-convex</strong>, containing:</p>
+<ul class="simple">
+<li><p><strong>Local optima</strong>: local valleys (shallow pits)</p></li>
+<li><p><strong>Global optimum</strong>: the deepest valley (the optimal solution)</p></li>
+<li><p><strong>Saddle points</strong>: saddle-shaped points (very common in high-dimensional spaces)</p></li>
+</ul>
+<div class="figure" id="id123" style="text-align: center"><p><img src="../_images/tikz-3132097730a3f1ceea03f8f371df6dc9546db3ce.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Loss Landscape: Local Optima vs. Global Optimum</span></p>
+</div><p><strong>Key Observations</strong>:</p>
+<ul class="simple">
+<li><p>The global optimum is <strong>significantly deeper</strong> than the local optimum (the red point is far below the orange point)</p></li>
+<li><p>The two optima are separated by a <strong>saddle point</strong> (purple)</p></li>
+<li><p>Optimization algorithms need to “cross over” saddle points to move from a local optimum to the global optimum</p></li>
+</ul>
+<p><strong>Detailed View of Saddle Points</strong>:</p>
+<p>A saddle point resembles a horse saddle—it is a minimum along one direction and a maximum along another:</p>
+<div class="figure" id="id124" style="text-align: center"><p><img src="../_images/tikz-f471d78432b2b2b3a89d15137b679e701956fe2b.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Saddle Point: Saddle Shape</span></p>
+</div><p><strong>Special Circumstances in Deep Learning</strong>:</p>
+<ul class="simple">
+<li><p>In high-dimensional spaces, <strong>saddle points are much more common than local optima</strong></p></li>
+<li><p>Noise in stochastic gradient descent helps escape local optima and saddle points</p></li>
+<li><p>Modern networks usually find good enough solutions even if they are not globally optimal</p></li>
+</ul>
+</section>
+<section id="id6">
+<h3>Momentum: Accumulating Velocity to Overcome Obstacles<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p><strong>Intuition</strong>: Imagine rolling a snowball down a hill; it accumulates momentum, rolls faster and faster, and can roll over small potholes. In a loss landscape, momentum helps us push through saddle points and flat regions.</p>
+<p><strong>Principle</strong>: Introduce a velocity variable to accumulate historical gradients:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+v_{t+1} &amp;= \gamma v_t + \nabla_\theta J(\theta_t) \\
+\theta_{t+1} &amp;= \theta_t - \eta \cdot v_{t+1}
+\end{aligned}
+\end{split}\]</div>
+<p><strong>Understanding Momentum Step by Step</strong>:</p>
+<p><strong>Step 1: Understand the velocity variable <span class="math notranslate nohighlight">\(v_t\)</span></strong></p>
+<p>In standard SGD, we update parameters directly using the gradient: $<span class="math notranslate nohighlight">\(\theta_{t+1} = \theta_t - \eta \cdot \nabla_\theta J(\theta_t)\)</span>$</p>
+<p>This is equivalent to <strong>completely re-deciding the direction</strong> at every step, without remembering the path taken previously.</p>
+<p>Momentum introduces a velocity variable <span class="math notranslate nohighlight">\(v_t\)</span>, effectively adding a “memory” to the optimization process—remembering previously accumulated movement trends.</p>
+<p><strong>Step 2: Interpret the velocity update formula</strong></p>
+<div class="math notranslate nohighlight">
+\[v_{t+1} = \gamma v_t + \nabla_\theta J(\theta_t)\]</div>
+<p>This formula means: <strong>New velocity = Retained old velocity + Current gradient</strong></p>
+<p><strong>Formula Details</strong>:</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Symbol</p></th>
+<th class="head"><p>Meaning</p></th>
+<th class="head"><p>Dimension</p></th>
+<th class="head"><p>Intuitive Understanding</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(v_{t+1}\)</span></p></td>
+<td><p>Velocity at step <span class="math notranslate nohighlight">\(t+1\)</span></p></td>
+<td><p>Same as parameters</p></td>
+<td><p>“Step vector” to be taken in the next step</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\gamma\)</span></p></td>
+<td><p>Momentum coefficient</p></td>
+<td><p>Scalar (0–1)</p></td>
+<td><p>Magnitude of inertia, typically 0.9 (retaining 90% of old velocity)</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(v_t\)</span></p></td>
+<td><p>Velocity at step <span class="math notranslate nohighlight">\(t\)</span></p></td>
+<td><p>Same as parameters</p></td>
+<td><p>Previously accumulated movement trend</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\nabla_\theta J(\theta_t)\)</span></p></td>
+<td><p>Current gradient</p></td>
+<td><p>Same as parameters</p></td>
+<td><p>Steepest descent direction at the current position</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Core Insights</strong>:</p>
+<ul class="simple">
+<li><p><strong><span class="math notranslate nohighlight">\(\gamma = 0\)</span></strong> (no momentum): <span class="math notranslate nohighlight">\(v_{t+1} = \nabla_\theta J\)</span>, degenerates to basic SGD</p></li>
+<li><p><strong><span class="math notranslate nohighlight">\(\gamma = 0.9\)</span></strong> (with momentum): New velocity = 90% old velocity + 10% new gradient</p></li>
+</ul>
+<p><strong>Step 3: Interpret the parameter update formula</strong></p>
+<div class="math notranslate nohighlight">
+\[\theta_{t+1} = \theta_t - \eta \cdot v_{t+1}\]</div>
+<p>Difference from SGD:</p>
+<ul class="simple">
+<li><p><strong>SGD</strong>: <span class="math notranslate nohighlight">\(\theta_{t+1} = \theta_t - \eta \cdot \nabla_\theta J\)</span> (uses only current gradient)</p></li>
+<li><p><strong>Momentum</strong>: <span class="math notranslate nohighlight">\(\theta_{t+1} = \theta_t - \eta \cdot v_{t+1}\)</span> (uses accumulated velocity)</p></li>
+</ul>
+<p><strong>Why does this reduce oscillation?</strong></p>
+<p>Imagine walking in a ravine:</p>
+<ul class="simple">
+<li><p><strong>SGD</strong>: Looking only at your feet each step, taking a step left, finding the right side lower, taking a step right, oscillating back and forth across the ravine walls</p></li>
+<li><p><strong>Momentum</strong>: With inertia, walking left accumulates leftward velocity. Even if the right side is slightly lower, inertia carries you forward leftward until the left side becomes significantly higher than the right, at which point it gradually turns</p></li>
+</ul>
+<p><strong>Expanding the Formula to See the Essence</strong>:</p>
+<p>If we expand the recursive definition of <span class="math notranslate nohighlight">\(v_t\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+v_t &amp;= \gamma v_{t-1} + g_t \\
+    &amp;= \gamma (\gamma v_{t-2} + g_{t-1}) + g_t \\
+    &amp;= \gamma^2 v_{t-2} + \gamma g_{t-1} + g_t \\
+    &amp;= \ldots \\
+    &amp;= \sum_{i=0}^{t} \gamma^{t-i} g_i
+\end{aligned}
+\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(g_i = \nabla_\theta J(\theta_i)\)</span> is the gradient at step <span class="math notranslate nohighlight">\(i\)</span>.</p>
+<p><strong>Key Finding</strong>: Current velocity is a <strong>weighted average of historical gradients</strong>, where earlier gradients have smaller weights (exponentially decaying by <span class="math notranslate nohighlight">\(\gamma^k\)</span>).</p>
+<p><strong>Analogy</strong>:</p>
+<ul class="simple">
+<li><p>Standard SGD: Re-decides direction at every step, making it easy to oscillate back and forth across ravine walls</p></li>
+<li><p>Momentum: Like a ball rolling down a hill, possessing inertia; accelerates in consistent directions and decelerates when directions reverse, naturally reducing oscillation</p></li>
+</ul>
+<p><strong>Effects</strong>:</p>
+<ul class="simple">
+<li><p>Accelerates convergence (especially when gradient directions are consistent)</p></li>
+<li><p>Reduces oscillation (momentum cancels out when gradient directions change)</p></li>
+<li><p>Helps escape local optima</p></li>
+</ul>
+</section>
+<section id="adam">
+<h3>Adam (Adaptive Moment Estimation)<a class="headerlink" href="#adam" title="Link to this heading">#</a></h3>
+<p>Adam <span id="id7">[<a class="reference internal" href="../unet-image-segmentation/practice.html#id63" title="Diederik P Kingma and Jimmy Ba. Adam: a method for stochastic optimization. In International Conference on Learning Representations. 2015.">KB15</a>]</span> is currently one of the most widely used optimization algorithms, combining the advantages of Momentum and RMSprop.</p>
+<p><strong>Intuition</strong>: Adjust the learning rate individually for each parameter. Parameters updated frequently receive smaller learning rates, while sparsely updated parameters receive larger learning rates.</p>
+<p><strong>Principle</strong>: Combine first-moment estimation (momentum) and second-moment estimation (adaptive learning rate):</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+m_t &amp;= \beta_1 m_{t-1} + (1-\beta_1) g_t \\
+v_t &amp;= \beta_2 v_{t-1} + (1-\beta_2) g_t^2 \\
+\hat{m}_t &amp;= \frac{m_t}{1-\beta_1^t}, \quad \hat{v}_t = \frac{v_t}{1-\beta_2^t} \\
+\theta_{t+1} &amp;= \theta_t - \eta \cdot \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}
+\end{aligned}
+\end{split}\]</div>
+<p><strong>Understanding Adam Step by Step</strong>:</p>
+<p><strong>Step 1: First-moment estimation (momentum part)</strong></p>
+<div class="math notranslate nohighlight">
+\[m_t = \beta_1 m_{t-1} + (1-\beta_1) g_t\]</div>
+<p>Similar to momentum, this computes the exponential moving average of gradients:</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Symbol</p></th>
+<th class="head"><p>Meaning</p></th>
+<th class="head"><p>Dimension</p></th>
+<th class="head"><p>Intuitive Understanding</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(m_t\)</span></p></td>
+<td><p>First moment (mean) at step <span class="math notranslate nohighlight">\(t\)</span></p></td>
+<td><p>Same as parameters</p></td>
+<td><p>“Average trend” of gradients, smoothed gradient direction</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\beta_1\)</span></p></td>
+<td><p>First-moment decay rate</p></td>
+<td><p>Scalar (0–1)</p></td>
+<td><p>Typically 0.9, retaining 90% of historical information</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(m_{t-1}\)</span></p></td>
+<td><p>First moment from the previous step</p></td>
+<td><p>Same as parameters</p></td>
+<td><p>Previously accumulated gradient trend</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(g_t\)</span></p></td>
+<td><p>Current gradient</p></td>
+<td><p>Same as parameters</p></td>
+<td><p>Currently computed gradient value</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\((1-\beta_1)\)</span></p></td>
+<td><p>Weight of the new gradient</p></td>
+<td><p>Scalar</p></td>
+<td><p>New gradient accounts for 10% weight</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Difference from Momentum</strong>:</p>
+<ul class="simple">
+<li><p><strong>Momentum</strong>: <span class="math notranslate nohighlight">\(v_{t+1} = \gamma v_t + \nabla_\theta J\)</span> (weight of new gradient is 1)</p></li>
+<li><p><strong>Adam</strong>: <span class="math notranslate nohighlight">\(m_t = \beta_1 m_{t-1} + (1-\beta_1) g_t\)</span> (weight of new gradient is <span class="math notranslate nohighlight">\(1-\beta_1\)</span>)</p></li>
+</ul>
+<p>Adam’s form brings <span class="math notranslate nohighlight">\(m_t\)</span> closer to the true <strong>gradient mean</strong> (expected value).</p>
+<p><strong>Expanding to See the Essence</strong>:</p>
+<div class="math notranslate nohighlight">
+\[m_t = (1-\beta_1) \sum_{i=1}^{t} \beta_1^{t-i} g_i\]</div>
+<p>This is an <strong>exponentially weighted moving average</strong> of historical gradients, where more recent gradients receive larger weights.</p>
+<p><strong>Step 2: Second-moment estimation (adaptive learning rate part)</strong></p>
+<div class="math notranslate nohighlight">
+\[v_t = \beta_2 v_{t-1} + (1-\beta_2) g_t^2\]</div>
+<p>Note that <span class="math notranslate nohighlight">\(g_t^2\)</span> here is an <strong>element-wise square</strong>:</p>
+<div class="math notranslate nohighlight">
+\[g_t^2 = (g_t^{(1)})^2, (g_t^{(2)})^2, \ldots, (g_t^{(d)})^2\]</div>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Symbol</p></th>
+<th class="head"><p>Meaning</p></th>
+<th class="head"><p>Dimension</p></th>
+<th class="head"><p>Intuitive Understanding</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(v_t\)</span></p></td>
+<td><p>Second moment (uncentered variance) at step <span class="math notranslate nohighlight">\(t\)</span></p></td>
+<td><p>Same as parameters</p></td>
+<td><p>Historical average of gradient “magnitude of variation”</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\beta_2\)</span></p></td>
+<td><p>Second-moment decay rate</p></td>
+<td><p>Scalar (0–1)</p></td>
+<td><p>Typically 0.999, larger than <span class="math notranslate nohighlight">\(\beta_1\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(g_t^2\)</span></p></td>
+<td><p>Element-wise square of gradient</p></td>
+<td><p>Same as parameters</p></td>
+<td><p>Magnitude information of gradients</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Core Insight</strong>: <span class="math notranslate nohighlight">\(v_t\)</span> tracks the “activity level” of each parameter’s gradient:</p>
+<ul class="simple">
+<li><p>Gradients consistently large → <span class="math notranslate nohighlight">\(v_t\)</span> is large</p></li>
+<li><p>Gradients consistently small → <span class="math notranslate nohighlight">\(v_t\)</span> is small</p></li>
+</ul>
+<p><strong>Why use squares?</strong></p>
+<p>Squaring eliminates signs (positive or negative) and retains only magnitude information. We want to know “how large” the gradients are, rather than “which direction” they point.</p>
+<p><strong>Step 3: Bias Correction</strong></p>
+<div class="math notranslate nohighlight">
+\[
+\hat{m}_t = \frac{m_t}{1-\beta_1^t}, \quad \hat{v}_t = \frac{v_t}{1-\beta_2^t}
+\]</div>
+<p><strong>Why is correction needed?</strong></p>
+<p><strong>Problem</strong>: Initially <span class="math notranslate nohighlight">\(m_0 = 0, v_0 = 0\)</span></p>
+<p><strong>Bias in early steps</strong>:</p>
+<ul class="simple">
+<li><p>Step 1: <span class="math notranslate nohighlight">\(m_1 = (1-\beta_1) g_1\)</span>, which is about <span class="math notranslate nohighlight">\((1-\beta_1)\)</span> times smaller than the true mean</p></li>
+<li><p>Step 2: <span class="math notranslate nohighlight">\(m_2 = \beta_1(1-\beta_1)g_1 + (1-\beta_1)g_2\)</span>, still biased</p></li>
+</ul>
+<p><strong>Correction Principle</strong>:</p>
+<ul class="simple">
+<li><p>If <span class="math notranslate nohighlight">\(m_t\)</span> estimates <span class="math notranslate nohighlight">\(E[g]\)</span>, then <span class="math notranslate nohighlight">\(E[m_t] = (1-\beta_1^t) E[g]\)</span></p></li>
+<li><p>Dividing by <span class="math notranslate nohighlight">\((1-\beta_1^t)\)</span> yields an unbiased estimate</p></li>
+</ul>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Symbol</p></th>
+<th class="head"><p>Meaning</p></th>
+<th class="head"><p>Calculation Method</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\hat{m}_t\)</span></p></td>
+<td><p>Bias-corrected first moment</p></td>
+<td><p><span class="math notranslate nohighlight">\(m_t / (1-\beta_1^t)\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\hat{v}_t\)</span></p></td>
+<td><p>Bias-corrected second moment</p></td>
+<td><p><span class="math notranslate nohighlight">\(v_t / (1-\beta_2^t)\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(t\)</span></p></td>
+<td><p>Current timestep</p></td>
+<td><p>Number of training iterations</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Correction Effect</strong>:</p>
+<ul class="simple">
+<li><p>When <span class="math notranslate nohighlight">\(t\)</span> is small (early stage): <span class="math notranslate nohighlight">\(1-\beta_1^t\)</span> is small, the divisor is small, and the amplification effect is significant</p></li>
+<li><p>When <span class="math notranslate nohighlight">\(t\)</span> is large (late stage): <span class="math notranslate nohighlight">\(\beta_1^t \approx 0\)</span>, <span class="math notranslate nohighlight">\(1-\beta_1^t \approx 1\)</span>, almost no correction is needed</p></li>
+</ul>
+<p><strong>Example</strong> (<span class="math notranslate nohighlight">\(\beta_1 = 0.9\)</span>):</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(t=1\)</span>: Correction factor <span class="math notranslate nohighlight">\(1/(1-0.9) = 10\)</span>, amplified 10-fold</p></li>
+<li><p><span class="math notranslate nohighlight">\(t=10\)</span>: Correction factor <span class="math notranslate nohighlight">\(1/(1-0.9^{10}) \approx 1.5\)</span>, amplified 1.5-fold</p></li>
+<li><p><span class="math notranslate nohighlight">\(t=100\)</span>: Correction factor <span class="math notranslate nohighlight">\(\approx 1.0\)</span>, virtually no correction</p></li>
+</ul>
+<p><strong>Step 4: Parameter update (the essence of adaptive learning rates)</strong></p>
+<div class="math notranslate nohighlight">
+\[\theta_{t+1} = \theta_t - \eta \cdot \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}\]</div>
+<p><strong>Element-wise interpretation</strong>:</p>
+<p>For the <span class="math notranslate nohighlight">\(i\)</span>-th parameter <span class="math notranslate nohighlight">\(\theta^{(i)}\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\theta_{t+1}^{(i)} = \theta_t^{(i)} - \eta \cdot \frac{\hat{m}_t^{(i)}}{\sqrt{\hat{v}_t^{(i)}} + \epsilon}\]</div>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Symbol</p></th>
+<th class="head"><p>Meaning</p></th>
+<th class="head"><p>Role</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\hat{m}_t^{(i)}\)</span></p></td>
+<td><p>Smoothed gradient for the <span class="math notranslate nohighlight">\(i\)</span>-th parameter</p></td>
+<td><p>Determines <strong>update direction</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\sqrt{\hat{v}_t^{(i)}}\)</span></p></td>
+<td><p>Gradient RMS for the <span class="math notranslate nohighlight">\(i\)</span>-th parameter</p></td>
+<td><p>Determines <strong>step size scaling</strong></p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\epsilon\)</span></p></td>
+<td><p>Numerical stability constant</p></td>
+<td><p>Prevents division by zero, typically <span class="math notranslate nohighlight">\(10^{-8}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\eta\)</span></p></td>
+<td><p>Global learning rate</p></td>
+<td><p>Overall step size control</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Core Insight - Adaptive Learning Rate Mechanism</strong>:</p>
+<p>Suppose there are two parameters:</p>
+<p><strong>Parameter A</strong> (large gradient fluctuations):</p>
+<ul class="simple">
+<li><p>Historical gradients: [10, -8, 12, -10, 9] (wild swings)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\hat{m}_t \approx 2.6\)</span> (average gradient)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\hat{v}_t \approx 100\)</span> (average squared gradient)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\sqrt{\hat{v}_t} \approx 10\)</span></p></li>
+<li><p>Update step size: <span class="math notranslate nohighlight">\(\eta \cdot 2.6 / 10 = 0.26\eta\)</span> (step size is scaled down)</p></li>
+</ul>
+<p><strong>Parameter B</strong> (small gradient fluctuations):</p>
+<ul class="simple">
+<li><p>Historical gradients: [0.01, -0.02, 0.015, -0.01, 0.012] (minor fluctuations)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\hat{m}_t \approx 0.009\)</span> (average gradient)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\hat{v}_t \approx 0.0002\)</span> (average squared gradient)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\sqrt{\hat{v}_t} \approx 0.014\)</span></p></li>
+<li><p>Update step size: <span class="math notranslate nohighlight">\(\eta \cdot 0.009 / 0.014 = 0.64\eta\)</span> (relatively larger step size)</p></li>
+</ul>
+<p><strong>Result</strong>:</p>
+<ul class="simple">
+<li><p>Parameters with large gradient fluctuations → step size automatically becomes smaller (cautious updates)</p></li>
+<li><p>Parameters with small gradient fluctuations → step size remains relatively larger (bold updates)</p></li>
+</ul>
+<p><strong>Why use <span class="math notranslate nohighlight">\(\sqrt{\hat{v}_t}\)</span> instead of <span class="math notranslate nohighlight">\(\hat{v}_t\)</span>?</strong></p>
+<ul class="simple">
+<li><p>The dimension of squared gradient <span class="math notranslate nohighlight">\(g_t^2\)</span> is the square of the original gradient</p></li>
+<li><p>Dividing by <span class="math notranslate nohighlight">\(\sqrt{\hat{v}_t}\)</span> (RMS, root mean square) cancels the dimension, making the update step size match the dimension of the original gradient</p></li>
+<li><p>Analogy: Standard deviation <span class="math notranslate nohighlight">\(\sigma = \sqrt{\text{variance}}\)</span>, which shares the same dimension as the original data</p></li>
+</ul>
+<p><strong>Hyperparameter Summary</strong>:</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Recommended Value</p></th>
+<th class="head"><p>Role</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\beta_1\)</span></p></td>
+<td><p>0.9</p></td>
+<td><p>First-moment decay rate, controls momentum strength</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\beta_2\)</span></p></td>
+<td><p>0.999</p></td>
+<td><p>Second-moment decay rate, controls adaptive sensitivity</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\epsilon\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(10^{-8}\)</span></p></td>
+<td><p>Numerical stability</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\eta\)</span></p></td>
+<td><p>0.001 (default)</p></td>
+<td><p>Global learning rate</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Characteristics</strong>:</p>
+<ul class="simple">
+<li><p>Combines momentum and adaptive learning rate</p></li>
+<li><p>Insensitive to hyperparameters, <strong>default first choice</strong></p></li>
+<li><p>Suitable for most deep learning tasks</p></li>
+</ul>
+<div class="table colwidths-given docutils container" id="id125">
+<table class="docutils align-default" id="id125">
+<caption><span class="caption-text">Recommendations for Selecting Optimization Algorithms</span><a class="headerlink" href="#id125" title="Link to this table">#</a></caption>
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 35.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Algorithm</strong></p></th>
+<th class="head"><p><strong>Applicable Scenarios</strong></p></th>
+<th class="head"><p><strong>Characteristics</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>SGD + Momentum</p></td>
+<td><p>Image classification, large models</p></td>
+<td><p>Good generalization performance, requires tuning learning rate</p></td>
+</tr>
+<tr class="row-odd"><td><p>Adam</p></td>
+<td><p>Default first choice, NLP, recommendation systems</p></td>
+<td><p>Adaptive, fast convergence, easy to use</p></td>
+</tr>
+<tr class="row-even"><td><p>AdamW</p></td>
+<td><p>Transformers, large models</p></td>
+<td><p>Improved weight decay, better performance</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr class="docutils" />
+</section>
+</section>
+<section id="learning-rate-scheduling">
+<span id="id8"></span><h2>Learning Rate Scheduling: Why Adjust the Learning Rate?<a class="headerlink" href="#learning-rate-scheduling" title="Link to this heading">#</a></h2>
+<section id="id9">
+<h3>Core Problem<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<p>Early in training, parameters are far from optimal, requiring a <strong>large learning rate</strong> to rapidly approach the goal. Later in training, parameters are close to optimal, requiring a <strong>small learning rate</strong> for fine adjustment to avoid oscillating around the minimum.</p>
+<div class="figure" id="id126" style="text-align: center"><p><img src="../_images/tikz-917c71b5dd181b58ccdf1c66024dd5599a9a8936.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Fixed Learning Rate vs. Learning Rate Scheduling</span></p>
+</div></section>
+<section id="id10">
+<h3>Common Learning Rate Scheduling Strategies<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<div class="figure" id="id127" style="text-align: center"><p><img src="../_images/tikz-29d8fbf95122945632fa8a291052b78d67c7bc71.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Comparison of Learning Rate Scheduling Strategies</span></p>
+</div><section id="step-decay">
+<h4>1. 步长衰减（Step Decay）<a class="headerlink" href="#step-decay" title="Link to this heading">#</a></h4>
+<p><strong>Strategy</strong>: Multiply the learning rate by a decay factor (e.g., 0.1) every N epochs</p>
+<p><strong>Applicable Scenarios</strong>:</p>
+<ul class="simple">
+<li><p>Traditional image classification tasks (standard for ImageNet training)</p></li>
+<li><p>Manually reducing learning rate when validation loss stops decreasing</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">::</span>
+</pre></div>
+</div>
+<p><strong>Characteristics</strong>: Stepwise reduction, simple and effective, but requires preset decay timing.</p>
+</section>
+<section id="exponential-decay">
+<h4>2. 指数衰减（Exponential Decay）<a class="headerlink" href="#exponential-decay" title="Link to this heading">#</a></h4>
+<p><strong>Strategy</strong>: Exponentially decay learning rate every epoch</p>
+<div class="math notranslate nohighlight">
+\[\eta_t = \eta_0 \cdot \gamma^t\]</div>
+<p><strong>Applicable Scenarios</strong>:</p>
+<ul class="simple">
+<li><p>Smooth, continuous decay is required</p></li>
+<li><p>When training for a large number of epochs</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">::</span>
+</pre></div>
+</div>
+</section>
+<section id="cosine-annealing">
+<h4>3. 余弦退火（Cosine Annealing）<a class="headerlink" href="#cosine-annealing" title="Link to this heading">#</a></h4>
+<p><strong>Strategy</strong>: Learning rate decays along a cosine curve from initial value to near 0</p>
+<div class="math notranslate nohighlight">
+\[\eta_t = \eta_{min} + \frac{1}{2}(\eta_{max} - \eta_{min})(1 + \cos(\frac{t}{T_{max}}\pi))\]</div>
+<p><strong>Applicable Scenarios</strong>:</p>
+<ul class="simple">
+<li><p>Modern Transformer models (BERT, GPT, etc.)</p></li>
+<li><p>Works even better when combined with Warmup</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">scheduler</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">CosineAnnealingLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">T_max</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="warmup">
+<h3>4. 预热（Warmup）<a class="headerlink" href="#warmup" title="Link to this heading">#</a></h3>
+<p><strong>Problem</strong>: At the beginning of training, parameters are randomly initialized; gradients can be large and unstable, so a large learning rate can cause oscillation.</p>
+<p><strong>Strategy</strong>: Start with a very small learning rate and linearly increase it to the target learning rate.</p>
+<div class="figure" id="id128" style="text-align: center"><p><img src="../_images/tikz-7eea247496776676952d82efa46cf0cf22fad6d9.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Warmup + Cosine Annealing</span></p>
+</div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">::</span>
+</pre></div>
+</div>
+</section>
+<section id="id11">
+<h3>Selection Recommendations<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Strategy</p></th>
+<th class="head"><p>Recommended Scenarios</p></th>
+<th class="head"><p>Pros</p></th>
+<th class="head"><p>Cons</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Step Decay</p></td>
+<td><p>Image classification, CNNs</p></td>
+<td><p>Simple and effective</p></td>
+<td><p>Requires preset decay timing</p></td>
+</tr>
+<tr class="row-odd"><td><p>Exponential</p></td>
+<td><p>Long-cycle training</p></td>
+<td><p>Smooth and continuous</p></td>
+<td><p>Decays too quickly</p></td>
+</tr>
+<tr class="row-even"><td><p>Cosine</p></td>
+<td><p>Transformers, NLP</p></td>
+<td><p>Usually best performance</p></td>
+<td><p>Relatively complex</p></td>
+</tr>
+<tr class="row-odd"><td><p>Warmup + Cosine</p></td>
+<td><p>Large model training</p></td>
+<td><p>Stable + great performance</p></td>
+<td><p>Requires tuning two parameters</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="pytorch">
+<h2>PyTorch Practice<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h2>
+<ul>
+<li><p><strong>Basic Training Loop</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">::</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Learning Rate Scheduling</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">::</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="id12">
+<h2>Training Tricks<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
+<ol class="arabic">
+<li><p><strong>Gradient Clipping</strong></p>
+<p>Prevents gradient exploding:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">clip_grad_norm_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">max_norm</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Batch Normalization (BatchNorm)</strong></p>
+<p>Stabilizes training, accelerates convergence:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">bn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm1d</span><span class="p">(</span><span class="n">num_features</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Early Stopping</strong></p>
+<p>Stops training when validation loss stops decreasing, preventing overfitting.</p>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="id13">
+<h2>Summary<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<p>Gradient descent is the cornerstone of deep learning training:</p>
+<ol class="arabic simple">
+<li><p><strong>Basic Principle</strong>: Iteratively update parameters along the negative gradient direction computed by <a class="reference internal" href="back-propagation.html#back-propagation"><span class="std std-ref">Backpropagation Algorithm</span></a></p></li>
+<li><p><strong>Learning Rate</strong>: The most critical hyperparameter; too large causes oscillation, while too small leads to slow convergence</p></li>
+<li><p><strong>Mini-batch</strong>: Balances efficiency and stability, standard in deep learning</p></li>
+<li><p><strong>Adam</strong>: Default first-choice optimizer, adaptive and easy to use</p></li>
+<li><p><strong>Learning Rate Scheduling</strong>: Adjusting the learning rate during training improves performance</p></li>
+</ol>
+<p>Having understood <a class="reference internal" href="loss-functions.html#loss-functions"><span class="std std-ref">Loss Functions</span></a> and optimization algorithms, you now master the full deep learning training pipeline. Next, we will review this chapter in <a class="reference internal" href="the-end.html"><span class="doc">Summary and Outlook</span></a> before moving on to practical chapters.</p>
+<hr class="docutils" />
+<h2 class="rubric">References</h2>
+<div class="docutils container" id="id14">
+<div role="list" class="citation-list">
+<div class="citation" id="id58" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>KB15<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id7">1</a>,<a role="doc-backlink" href="#id1">2</a>,<a role="doc-backlink" href="#id1">3</a>)</span>
+<p>Diederik P Kingma and Jimmy Ba. Adam: a method for stochastic optimization. In <em>International Conference on Learning Representations</em>. 2015.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">Contributors and Revision History</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (8 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">View detailed revision history</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">e2bc880</code>
+                2026-06-13 - <strong>Heyan Zhu</strong>: fix: missing bib keys in pdf output
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">d7c9da7</code>
+                2026-05-12 - <strong>Heyan Zhu</strong>: docs: update sphinx only filter from not pdf to not latex
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">a954ca5</code>
+                2026-05-11 - <strong>Heyan Zhu</strong>: docs: revise and restructure documentation, fix formatting, and move env setup and sphinx guide to a separate appendix section
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f159d56</code>
+                2026-05-08 - <strong>Heyan Zhu</strong>: fix: address complaints from the linter
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b20ef3e</code>
+                2026-04-28 - <strong>Heyan Zhu</strong>: docs: update pytorch practice section with detailed explanations and code examples
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">59126f4</code>
+                2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and add citations
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">ae2053f</code>
+                2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): add task-formulations and update related content
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">756a793</code>
+                2026-04-25 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and improve explanations
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+</article><footer class="bz-article-footer">
+  
+  
+    <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="back-propagation.html" rel="prev">
+    <span>Previous</span><span class="bz-related-pages-title">Backpropagation Algorithm</span></a><a class="bz-related-pages-next" href="the-end.html" rel="next">
+    <span>Next</span>
+    <span class="bz-related-pages-title">Summary and Outlook</span>
+  </a></nav>
+  
+
+</footer><aside class="bz-sidebar-secondary" data-drawer="bz-sidebar-secondary">
+  
+  
+    
+  
+  
+  
+  
+
+
+
+<div class="bz-repo-stats">
+  <a
+    data-provider="github"
+    data-user="ulink-deep-learning-club"
+    data-repo="ulink-deeplearningclub-handouts"
+    href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    aria-label="ulink-deep-learning-club/ulink-deeplearningclub-handouts repository"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    <span
+      style="--bz-repo-stats-name-length: 56"
+      title="ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    >
+      ulink-deep-learning-club/ulink-deeplearningclub-handouts
+    </span>
+    <div class="bz-repo-stats-row">
+      <span class="bz-repo-stats-item" aria-label="Repository stars">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path></svg>
+        <span data-stat="stars">-</span>
+      </span>
+      <span class="bz-repo-stats-item" aria-label="Repository forks">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
+        <span data-stat="forks">-</span>
+      </span>
+    </div>
+  </a>
+</div>
+
+  
+    <div class="bz-edit-this-page">
+  <a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/source/math-fundamentals/gradient-descent.md" rel="edit">
+    Edit this page
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"></path></svg>
+  </a>
+</div>
+  
+    <nav class="bz-sidebar-toc" aria-label="Table of contents">
+  <p>On this page</p><ul>
+<li><a class="reference internal" href="#id2">Descending a Mountain Along the Steepest Direction</a><ul>
+<li><a class="reference internal" href="#id3">Importance of the Learning Rate</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id4">Variants of Gradient Descent</a><ul>
+<li><a class="reference internal" href="#batch-gd">Batch Gradient Descent (Batch GD)</a></li>
+<li><a class="reference internal" href="#sgd">Stochastic Gradient Descent (SGD)</a></li>
+<li><a class="reference internal" href="#mini-batch-gd">Mini-batch Gradient Descent (Mini-batch GD)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id5">Advanced Optimization Algorithms</a><ul>
+<li><a class="reference internal" href="#loss-landscape-loss-functions">Loss Landscape:​ Optimization Terrain Shaped by <span class="xref std std-ref">loss-functions</span></a></li>
+<li><a class="reference internal" href="#id6">Momentum:​ Accumulating Velocity to Overcome Obstacles</a></li>
+<li><a class="reference internal" href="#adam">Adam (Adaptive Moment Estimation)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#learning-rate-scheduling">Learning Rate Scheduling:​ Why Adjust the Learning Rate?</a><ul>
+<li><a class="reference internal" href="#id9">Core Problem</a></li>
+<li><a class="reference internal" href="#id10">Common Learning Rate Scheduling Strategies</a><ul>
+<li><a class="reference internal" href="#step-decay">1​. 步长衰减（Step Decay）</a></li>
+<li><a class="reference internal" href="#exponential-decay">2​. 指数衰减（Exponential Decay）</a></li>
+<li><a class="reference internal" href="#cosine-annealing">3​. 余弦退火（Cosine Annealing）</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#warmup">4​. 预热（Warmup）</a></li>
+<li><a class="reference internal" href="#id11">Selection Recommendations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pytorch">PyTorch Practice</a></li>
+<li><a class="reference internal" href="#id12">Training Tricks</a></li>
+<li><a class="reference internal" href="#id13">Summary</a></li>
+</ul></nav>
+  
+
+</aside></main>
+  </div>
+<footer class="bz-footer">
+  <div class="bz-footer-copyright"><p class="bz-copyright">© Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0</p><p>
+    
+    
+    
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a href="https://github.com/aksiome/breeze">Breeze theme</a>.
+    
+  </p>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    
+    </a>
+  </div>
+</footer><a href="#" class="bz-back-to-top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+    </svg>
+    <span>Back to top</span>
+  </a>
+  <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
+  <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
+  <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../_static/documentation_options.js?v=d45e8c67"></script><script src="../_static/doctools.js?v=9bcbadda"></script><script src="../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../_static/design-tabs.js?v=f930bc37"></script><script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script></body>
+</html>

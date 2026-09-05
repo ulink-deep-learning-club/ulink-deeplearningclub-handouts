@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Backpropagation Algorithm" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="math-fundamentals/back-propagation.html" />
+<meta property="og:site_name" content="Deep Learning Club Handouts" />
+<meta property="og:description" content="The Essence of Backpropagation: Credit Assignment: When training a neural network, we adjust parameters based on the final loss. The core question is: the loss is caused by many parameters jointly—..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_math-fundamentals_back-propagation_27e49ec4.png" />
+<meta property="og:image:alt" content="The Essence of Backpropagation: Credit Assignment: When training a neural network, we adjust parameters based on the final loss. The core question is: the loss is caused by many parameters jointly—..." />
+<meta name="description" content="The Essence of Backpropagation: Credit Assignment: When training a neural network, we adjust parameters based on the final loss. The core question is: the loss is caused by many parameters jointly—..." />
+<meta name="twitter:card" content="summary_large_image" />
+<title>Backpropagation Algorithm - Deep Learning Club Handouts</title><link rel="canonical" href="https://ulink-deep-learning-club.github.io/ulink-deeplearningclub-handouts/en/math-fundamentals/back-propagation.html"><link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Gradient Descent and Optimization Algorithms" href="gradient-descent.html"><link rel="prev" title="Loss Functions" href="loss-functions.html"><script data-cfasync="false">(function(){
+    const m = localStorage.getItem("breeze-mode") || "auto";
+    const d = document.documentElement.dataset;
+    d.mode = m;
+    d.theme = m === "auto"
+      ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : m;
+  })();
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=ffc68e8e" /><link rel="stylesheet" type="text/css" href="../_static/i18n.css?v=3d153456" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+<body>
+  
+  
+  <div class="bz-skip-to-content"><a href="#bz-main-content">Skip to main content</a></div><header class="bz-header-main">
+  <div class="bz-header-start"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><a class="bz-header-brand" href="../index.html">
+  
+  
+  <span>Deep Learning Club Handouts</span>
+</a>
+  </div>
+  <div class="bz-header-end"><label
+  class="bz-sidebar-primary-toggle"
+  for="bz-sidebar-primary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle site navigation"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h12.5"
+    />
+  </svg>
+</label><div id="docsearch" class="bz-search-button">
+  <a
+    href="../search.html#q"
+    aria-label="Search the docs"
+    data-tooltip="Search the docs"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 -1 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
+    <span>Search</span>
+    <kbd>Ctrl+K</kbd>
+  </a>
+</div>
+
+<details class="i18n-language-menu">
+  <summary>Language</summary>
+  <ul aria-label="Language">
+    <li>
+      <span lang="en" aria-current="page">English</span>
+    </li>
+    <li>
+      <a href="../../math-fundamentals/back-propagation.html" lang="zh-CN">中文</a>
+    </li>
+  </ul>
+</details>
+<div class="bz-theme-switcher">
+  <button aria-label="Switch theme" data-tooltip="Switch theme">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
+      <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-dark" fill="currentColor">
+      <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+    </svg>
+  </button>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.766 11.695C4.703 11.437 3.25 9.904 3.25 7.92c0-.806.281-1.677.75-2.258-.203-.532-.172-1.662.062-2.129.626-.081 1.469.258 1.969.726.594-.194 1.219-.291 1.985-.291.765 0 1.39.097 1.953.274.484-.451 1.343-.79 1.969-.709.218.435.25 1.564.046 2.113.5.613.766 1.436.766 2.274 0 1.984-1.453 3.485-3.547 3.759.531.355.891 1.129.891 2.016v1.678c0 .484.39.758.859.564C13.781 14.824 16 11.905 16 8.291 16 3.726 12.406 0 7.984 0 3.562 0 0 3.726 0 8.291c0 3.581 2.203 6.55 5.172 7.663A.595.595 0 0 0 6 15.389v-1.291c-.219.097-.5.162-.75.162-1.031 0-1.641-.581-2.078-1.662-.172-.435-.36-.693-.719-.742-.187-.016-.25-.097-.25-.193 0-.194.313-.339.625-.339.453 0 .844.29 1.25.887.313.468.641.678 1.031.678.391 0 .641-.146 1-.516.266-.275.469-.517.657-.678Z"></path></svg>
+    
+    </a>
+  </div>
+  </div>
+</header><hr class="bz-header-hr">
+  <div class="bz-content"><aside class="bz-sidebar-primary" data-drawer="bz-sidebar-primary">
+  
+  
+    <nav class="bz-sidebar-nav" aria-label="Section Navigation"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../preface.html">Preface: About Deep Learning</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Core Mathematical Foundations of Deep Learning</a>
+<details open=""><summary aria-label="Toggle submenu"></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="computational-graph.html">Computational graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="task-formulations.html">Learning Task Formulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activation-functions.html">Activation Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss-functions.html">Loss Functions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Backpropagation Algorithm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gradient-descent.html">Gradient Descent and Optimization Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the-end.html">Summary and Outlook</a></li>
+</ul></details></li>
+<li class="toctree-l1 i18n-unavailable"><a aria-label="CNN Expedition: Thirty Years of Architectures. English translation unavailable; open the Chinese edition" class="reference internal" href="../../cnn-expedition/index.html" hreflang="zh-CN" title="English translation unavailable; open the Chinese edition">CNN Expedition: Thirty Years of Architectures<span aria-hidden="true" class="i18n-unavailable-badge">Chinese only</span></a>
+</li>
+<li class="toctree-l1 i18n-unavailable"><a aria-label="PyTorch Practice: Turning Theory into Code. English translation unavailable; open the Chinese edition" class="reference internal" href="../../pytorch-practice/index.html" hreflang="zh-CN" title="English translation unavailable; open the Chinese edition">PyTorch Practice: Turning Theory into Code<span aria-hidden="true" class="i18n-unavailable-badge">Chinese only</span></a>
+</li>
+<li class="toctree-l1 i18n-unavailable"><a aria-label="Model Deployment and Serving. English translation unavailable; open the Chinese edition" class="reference internal" href="../../model-serving/index.html" hreflang="zh-CN" title="English translation unavailable; open the Chinese edition">Model Deployment and Serving<span aria-hidden="true" class="i18n-unavailable-badge">Chinese only</span></a>
+</li>
+<li class="toctree-l1 i18n-unavailable"><a aria-label="Transfer Learning and Fine-Tuning. English translation unavailable; open the Chinese edition" class="reference internal" href="../../transfer-learning/index.html" hreflang="zh-CN" title="English translation unavailable; open the Chinese edition">Transfer Learning and Fine-Tuning<span aria-hidden="true" class="i18n-unavailable-badge">Chinese only</span></a>
+</li>
+<li class="toctree-l1 i18n-unavailable"><a aria-label="U-Net Image Segmentation. English translation unavailable; open the Chinese edition" class="reference internal" href="../../unet-image-segmentation/index.html" hreflang="zh-CN" title="English translation unavailable; open the Chinese edition">U-Net Image Segmentation<span aria-hidden="true" class="i18n-unavailable-badge">Chinese only</span></a>
+</li>
+<li class="toctree-l1 i18n-unavailable"><a aria-label="Sequence Modeling: RNN to Transformer to Mamba. English translation unavailable; open the Chinese edition" class="reference internal" href="../../sequence-modeling/index.html" hreflang="zh-CN" title="English translation unavailable; open the Chinese edition">Sequence Modeling: RNN to Transformer to Mamba<span aria-hidden="true" class="i18n-unavailable-badge">Chinese only</span></a>
+</li>
+<li class="toctree-l1 i18n-unavailable"><a aria-label="Appendix. English translation unavailable; open the Chinese edition" class="reference internal" href="../../appendix/index.html" hreflang="zh-CN" title="English translation unavailable; open the Chinese edition">Appendix<span aria-hidden="true" class="i18n-unavailable-badge">Chinese only</span></a>
+</li>
+<li class="toctree-l1 i18n-unavailable"><a aria-label="Postscript. English translation unavailable; open the Chinese edition" class="reference internal" href="../../postscript.html" hreflang="zh-CN" title="English translation unavailable; open the Chinese edition">Postscript<span aria-hidden="true" class="i18n-unavailable-badge">Chinese only</span></a></li>
+</ul>
+</nav>
+  
+
+</aside><main id="bz-main-content"><header class="bz-article-header">
+  
+  
+    <nav class="bz-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li class="bz-breadcrumbs-home">
+      <a href="../index.html" aria-label="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8.543 2.232a.75.75 0 0 0-1.085 0l-5.25 5.5A.75.75 0 0 0 2.75 9H4v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V9h1.25a.75.75 0 0 0 .543-1.268l-5.25-5.5Z" />
+        </svg>
+      </a>
+    </li><li class="bz-breadcrumbs-parent">
+      <a href="index.html">Core Mathematical Foundations of Deep Learning</a>
+    </li><li class="bz-breadcrumbs-current">
+      <span>Backpropagation Algorithm</span>
+    </li>
+  </ol>
+</nav>
+  
+<label
+  class="bz-sidebar-secondary-toggle"
+  for="bz-sidebar-secondary"
+  role="button"
+  tabindex="0"
+  aria-label="Toggle table of contents"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3.75 6.75H20.25 M11.25 12H20.25 M7.75 17.25H20.25"
+    />
+  </svg>
+</label></header><article class="bz-article-main" role="main"><section class="tex2jax_ignore mathjax_ignore" id="back-propagation">
+<span id="id1"></span><h1>Backpropagation Algorithm<a class="headerlink" href="#back-propagation" title="Link to this heading">#</a></h1>
+<section id="id2">
+<h2>The Essence of Backpropagation: Credit Assignment<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<p>When training a neural network, we adjust parameters based on the final loss. The core question is: <strong>the loss is caused by many parameters jointly—how much “blame” should each parameter take?</strong></p>
+<p>Backpropagation <span id="id3">[<a class="reference internal" href="../sequence-modeling/rnn-basics.html#id81" title="David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. Nature, 323(6088):533–536, 1986.">RHW86</a>]</span> is an efficient algorithm designed to solve this “<strong>credit assignment problem</strong>”.</p>
+<div class="tip admonition">
+<p class="admonition-title">Analogy: Sharing Responsibility in a Team Project</p>
+<p>Imagine a team project that fails (resulting in a large loss), and we need to figure out each person’s responsibility:</p>
+<ul class="simple">
+<li><p><strong>Forward propagation</strong>: Project execution phase, where everyone completes their own task</p></li>
+<li><p><strong>Backpropagation</strong>: Working backward from the failed outcome to calculate everyone’s responsibility (gradient) for the failure</p></li>
+<li><p><strong>Chain rule</strong>: If Person A’s work affects Person B, Person B’s responsibility is passed back to Person A according to their contribution</p></li>
+</ul>
+<div class="figure" id="id121" style="text-align: center"><p><img src="../_images/tikz-e629ff3b82e70d051e218c4953834d13ee87059d.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Backpropagation: Gradients flow back from output to input</span></p>
+</div></div>
+</section>
+<section id="id4">
+<h2>The Chain Rule: Mechanism of Gradient Flow<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<p>The core of <a class="reference internal" href="#back-propagation"><span class="std std-ref">Backpropagation Algorithm</span></a> is the <strong>chain rule</strong>, a fundamental rule in calculus for taking derivatives of composite functions. Imagine you slightly perturb the input <span class="math notranslate nohighlight">\(x\)</span>; this change propagates layer by layer and eventually affects the loss <span class="math notranslate nohighlight">\(L\)</span>. The chain rule tells us: <strong>the total effect is the product of the effects at each layer</strong>.</p>
+<p>Recall the concept of <strong>computational graphs</strong> discussed in <a class="reference internal" href="computational-graph.html"><span class="doc">Computational graph</span></a>: a neural network can be viewed as a graph composed of many simple operations (addition, multiplication, activation functions, etc.). Backpropagation propagates gradients along the edges of this graph from the output back to the input.</p>
+<p>For a composite function <span class="math notranslate nohighlight">\(z = f(g(x))\)</span>, if <span class="math notranslate nohighlight">\(x\)</span> changes by <span class="math notranslate nohighlight">\(\Delta x\)</span>:</p>
+<ul class="simple">
+<li><p>First, it affects <span class="math notranslate nohighlight">\(g\)</span>: <span class="math notranslate nohighlight">\(\Delta g \approx \frac{\partial g}{\partial x} \Delta x\)</span></p></li>
+<li><p>Then, it affects <span class="math notranslate nohighlight">\(z\)</span>: <span class="math notranslate nohighlight">\(\Delta z \approx \frac{\partial z}{\partial g} \Delta g\)</span></p></li>
+<li><p>Combining them: <span class="math notranslate nohighlight">\(\Delta z \approx \frac{\partial z}{\partial g} \cdot \frac{\partial g}{\partial x} \cdot \Delta x\)</span></p></li>
+</ul>
+<p>Therefore:</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial z}{\partial x} = \frac{\partial z}{\partial g} \cdot \frac{\partial g}{\partial x}\]</div>
+<p><strong>Intuition</strong>: Effects <strong>compound layer by layer</strong>—like dominoes, where the falling angle of the first tile (<span class="math notranslate nohighlight">\(\frac{\partial g}{\partial x}\)</span>) multiplied by that of the second tile (<span class="math notranslate nohighlight">\(\frac{\partial z}{\partial g}\)</span>) yields the total falling angle of the final tile.</p>
+<section id="jacobian">
+<h3>From Scalars to Vectors: The Jacobian Matrix<a class="headerlink" href="#jacobian" title="Link to this heading">#</a></h3>
+<p>The above chain rule applies to <strong>scalar functions</strong>. However, in neural networks, the inputs and outputs of each layer are <strong>vectors</strong> (values of hundreds or even thousands of neurons) rather than single numbers. Thus, we need a generalized derivative—the <strong>Jacobian matrix</strong>.</p>
+<div class="note admonition">
+<p class="admonition-title">From Scalar Derivative to Jacobian</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Concept</p></th>
+<th class="head"><p>Mathematical notation</p></th>
+<th class="head"><p>Input dimension</p></th>
+<th class="head"><p>Output dimension</p></th>
+<th class="head"><p>Matrix shape</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Scalar derivative</strong></p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{df}{dx}\)</span></p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1×1</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Gradient</strong></p></td>
+<td><p><span class="math notranslate nohighlight">\(\nabla f = [\frac{\partial f}{\partial x_1}, \frac{\partial f}{\partial x_2}, ...]\)</span></p></td>
+<td><p>N</p></td>
+<td><p>1</p></td>
+<td><p>1×N row vector</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Jacobian matrix</strong></p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{\partial \mathbf{h}}{\partial \mathbf{x}}\)</span></p></td>
+<td><p>N</p></td>
+<td><p>M</p></td>
+<td><p><strong>M×N matrix</strong></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Meaning of each element <span class="math notranslate nohighlight">\((i,j)\)</span>: “If the <span class="math notranslate nohighlight">\(j\)</span>-th input changes slightly, how much does the <span class="math notranslate nohighlight">\(i\)</span>-th output change?”</p>
+<p>Shape: <span class="math notranslate nohighlight">\((\text{output dimension}) \times (\text{input dimension})\)</span>.</p>
+</div>
+<section id="jacobian-matrix">
+<span id="id5"></span><h4>Definition: Jacobian Matrix<a class="headerlink" href="#jacobian-matrix" title="Link to this heading">#</a></h4>
+<p>For a vector-valued function <span class="math notranslate nohighlight">\(\mathbf{f}: \mathbb{R}^n \rightarrow \mathbb{R}^m\)</span>, its Jacobian matrix <span class="math notranslate nohighlight">\(\mathbf{J} \in \mathbb{R}^{m \times n}\)</span> is defined as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\mathbf{J} = \frac{\partial \mathbf{f}}{\partial \mathbf{x}} = \begin{bmatrix}
+\frac{\partial f_1}{\partial x_1} &amp; \frac{\partial f_1}{\partial x_2} &amp; \cdots &amp; \frac{\partial f_1}{\partial x_n} \\
+\frac{\partial f_2}{\partial x_1} &amp; \frac{\partial f_2}{\partial x_2} &amp; \cdots &amp; \frac{\partial f_2}{\partial x_n} \\
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+\frac{\partial f_m}{\partial x_1} &amp; \frac{\partial f_m}{\partial x_2} &amp; \cdots &amp; \frac{\partial f_m}{\partial x_n}
+\end{bmatrix}\end{split}\]</div>
+<p>The meaning of each element <span class="math notranslate nohighlight">\(J_{ij} = \frac{\partial f_i}{\partial x_j}\)</span> is: <strong>if the <span class="math notranslate nohighlight">\(j\)</span>-th input changes slightly, how much does the <span class="math notranslate nohighlight">\(i\)</span>-th output change</strong>.</p>
+<p><strong>Dimension Rule</strong>: The shape of the Jacobian is <span class="math notranslate nohighlight">\((\text{output dimension}) \times (\text{input dimension})\)</span>.</p>
+<p><strong>Example in Neural Networks</strong>:</p>
+<p>A fully connected layer <span class="math notranslate nohighlight">\(\mathbf{h} = W\mathbf{x} + \mathbf{b}\)</span>:</p>
+<ul class="simple">
+<li><p>Input <span class="math notranslate nohighlight">\(\mathbf{x} \in \mathbb{R}^{100}\)</span> (100-dimensional)</p></li>
+<li><p>Output <span class="math notranslate nohighlight">\(\mathbf{h} \in \mathbb{R}^{64}\)</span> (64-dimensional)</p></li>
+<li><p>Weights <span class="math notranslate nohighlight">\(W \in \mathbb{R}^{64 \times 100}\)</span></p></li>
+</ul>
+<p>Its Jacobian <span class="math notranslate nohighlight">\(\frac{\partial \mathbf{h}}{\partial \mathbf{x}} = W\)</span>, which happens to be a <span class="math notranslate nohighlight">\(64 \times 100\)</span> matrix.</p>
+</section>
+<section id="gradient-vanishing-math">
+<span id="id6"></span><h4>Jacobian Matrix Products in Deep Networks and Vanishing Gradients<a class="headerlink" href="#gradient-vanishing-math" title="Link to this heading">#</a></h4>
+<p>For deep networks, the gradient of the loss <span class="math notranslate nohighlight">\(L\)</span> with respect to the parameters at layer <span class="math notranslate nohighlight">\(l\)</span> equals the <strong>product of Jacobians across layers</strong>:</p>
+<div class="math notranslate nohighlight">
+\[::\]</div>
+<p><strong>Key Insight</strong>: The repeated product of Jacobian matrices is the mathematical root cause of vanishing and exploding gradients.</p>
+<p><strong>How to understand the impact of Jacobians on gradients?</strong></p>
+<p>Imagine the Jacobian matrix as an “amplifier”—it transforms the input gradient into the output gradient. We use <span class="math notranslate nohighlight">\(\gamma\)</span> to denote this <strong>amplification factor</strong><a class="footnote-reference brackets" href="#gamma-def" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>:</p>
+<ul class="simple">
+<li><p>If <span class="math notranslate nohighlight">\(\gamma &lt; 1\)</span>: The gradient is “scaled down”</p></li>
+<li><p>If <span class="math notranslate nohighlight">\(\gamma = 1\)</span>: The gradient magnitude remains unchanged</p></li>
+<li><p>If <span class="math notranslate nohighlight">\(\gamma &gt; 1\)</span>: The gradient is “scaled up”</p></li>
+</ul>
+<p>For simple scalars (a single number), <span class="math notranslate nohighlight">\(\gamma\)</span> is simply the absolute value of the derivative <span class="math notranslate nohighlight">\(\left|\dfrac{\partial h_{k+1}}{\partial h_k}\right|\)</span>.</p>
+<p>For vectors (layers comprising multiple numbers), this amplification factor can be understood through the <strong>determinant</strong>—the absolute value of the determinant tells us how much the volume of space is scaled after this linear transformation. Although a Jacobian is not necessarily a square matrix, the core intuition is the same: each layer scales the gradient.</p>
+<p>Assuming the amplification factor of each layer’s Jacobian is <span class="math notranslate nohighlight">\(\gamma\)</span>, after <span class="math notranslate nohighlight">\(n\)</span> layers of multiplication, the overall gradient amplification factor becomes <span class="math notranslate nohighlight">\(\gamma^n\)</span>:</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Number of layers <span class="math notranslate nohighlight">\(n\)</span></p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(\gamma = 0.9\)</span> (Vanishing)</p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(\gamma = 1.0\)</span> (Stable)</p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(\gamma = 1.1\)</span> (Exploding)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>10 layers</p></td>
+<td><p><span class="math notranslate nohighlight">\(0.9^{10} \approx 0.35\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(1.0\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(1.1^{10} \approx 2.6\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>50 layers</p></td>
+<td><p><span class="math notranslate nohighlight">\(0.9^{50} \approx 0.005\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(1.0\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(1.1^{50} \approx 117\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>100 layers</p></td>
+<td><p><span class="math notranslate nohighlight">\(0.9^{100} \approx 2.6 \times 10^{-5}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(1.0\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(1.1^{100} \approx 13,780\)</span></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Vanishing Gradient</strong> (<span class="math notranslate nohighlight">\(\gamma &lt; 1\)</span>):</p>
+<ul class="simple">
+<li><p>When <span class="math notranslate nohighlight">\(\gamma &lt; 1\)</span>, the gradient decays <strong>exponentially</strong></p></li>
+<li><p>After 50 layers, it decays to 0.5%, receiving almost no gradient signal</p></li>
+<li><p>Parameters in shallow layers cannot update, causing the network to degenerate into a “shallow network”</p></li>
+</ul>
+<p><strong>Exploding Gradient</strong> (<span class="math notranslate nohighlight">\(\gamma &gt; 1\)</span>):</p>
+<ul class="simple">
+<li><p>When <span class="math notranslate nohighlight">\(\gamma &gt; 1\)</span>, the gradient grows <strong>exponentially</strong></p></li>
+<li><p>Amplified by 13,780 times after 100 layers, causing numerical overflow</p></li>
+<li><p>Parameters update drastically, causing loss oscillation, divergence, or even becoming NaN</p></li>
+</ul>
+<p><strong>Typical <span class="math notranslate nohighlight">\(\gamma\)</span> values in practical neural networks</strong>:</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Activation Function / Technique</p></th>
+<th class="head"><p>Typical <span class="math notranslate nohighlight">\(\gamma\)</span> value</p></th>
+<th class="head"><p>Trainable depth</p></th>
+<th class="head"><p>Reason</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Sigmoid</p></td>
+<td><p><span class="math notranslate nohighlight">\(\leq 0.25\)</span></p></td>
+<td><p>&lt; 10 layers</p></td>
+<td><p>Maximum gradient is only 0.25 even at 0</p></td>
+</tr>
+<tr class="row-odd"><td><p>Tanh</p></td>
+<td><p><span class="math notranslate nohighlight">\(\leq 1.0\)</span></p></td>
+<td><p>&lt; 15 layers</p></td>
+<td><p>Slightly better than Sigmoid, but still saturates</p></td>
+</tr>
+<tr class="row-even"><td><p>ReLU</p></td>
+<td><p><span class="math notranslate nohighlight">\(\approx 0.5\)</span></p></td>
+<td><p>20-30 layers</p></td>
+<td><p>Gradient is 0 in the negative region and 1 in the positive region (see <a class="reference internal" href="activation-functions.html"><span class="doc">Activation Functions</span></a>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>BatchNorm</p></td>
+<td><p><span class="math notranslate nohighlight">\(\approx 1.0\)</span></p></td>
+<td><p>50+ layers</p></td>
+<td><p>Normalizes gradient distribution and stabilizes numerical values</p></td>
+</tr>
+<tr class="row-even"><td><p>Skip connections</p></td>
+<td><p><span class="math notranslate nohighlight">\(\approx 1.0\)</span></p></td>
+<td><p>100+ layers</p></td>
+<td><p>Provides a gradient shortcut, reducing the length of matrix products (see <a class="reference internal" href="../../cnn-expedition/image-net-era/res-net.html">ResNet (Chinese)</a>)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Key Conclusion</strong>:</p>
+<ul class="simple">
+<li><p>Deep networks can be trained stably only when <span class="math notranslate nohighlight">\(\gamma \approx 1\)</span></p></li>
+<li><p>From Sigmoid → ReLU → BatchNorm → ResNet, each breakthrough brings <span class="math notranslate nohighlight">\(\gamma\)</span> closer to 1</p></li>
+</ul>
+<p>This provides the mathematical rationale for why deep networks are hard to train and how residual connections and skip connections mitigate this issue.</p>
+<div class="tip admonition">
+<p class="admonition-title">Connection to Subsequent Sections</p>
+<p>The “Frequently Asked Questions” section below explains vanishing and exploding gradients from an intuitive perspective, including:</p>
+<ul class="simple">
+<li><p>Specific scenarios (when they occur)</p></li>
+<li><p>Consequences (impact on training)</p></li>
+<li><p>Solutions (how to address them)</p></li>
+</ul>
+<p>The two parts complement each other: this section focuses on <strong>mathematical principles</strong> (products of Jacobians), while the later section focuses on <strong>practical guidance</strong>.</p>
+</div>
+</section>
+</section>
+<section id="id8">
+<h3>Example: A Simple Computational Graph<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<p>Consider <span class="math notranslate nohighlight">\(f(x, y) = (x + y) \times y\)</span>, given <span class="math notranslate nohighlight">\(x=2, y=3\)</span>:</p>
+<p><strong>Forward propagation</strong>:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(a = x + y = 2 + 3 = 5\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(f = a \times y = 5 \times 3 = 15\)</span></p></li>
+</ul>
+<p><strong>Backpropagation</strong> (assuming gradient of loss with respect to <span class="math notranslate nohighlight">\(f\)</span> is 1):</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\frac{\partial f}{\partial f} = 1\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\frac{\partial f}{\partial a} = y = 3\)</span> (multiplication rule)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\frac{\partial f}{\partial y} = a = 5\)</span> (multiplication rule)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\frac{\partial f}{\partial x} = \frac{\partial f}{\partial a} \cdot \frac{\partial a}{\partial x} = 3 \times 1 = 3\)</span> (chain rule)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\frac{\partial f}{\partial y}\)</span> has two paths: <span class="math notranslate nohighlight">\(= 5 + 3 = 8\)</span></p></li>
+</ul>
+</section>
+</section>
+<section id="pytorch">
+<h2>Automatic Differentiation in PyTorch<a class="headerlink" href="#pytorch" title="Link to this heading">#</a></h2>
+<p>PyTorch automatically performs backpropagation via <code class="docutils literal notranslate"><span class="pre">autograd</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">::</span>
+</pre></div>
+</div>
+<p><strong>Key Mechanisms</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">requires_grad=True</span></code>: Tells PyTorch to track the <a class="reference internal" href="computational-graph.html#computational-graph"><span class="std std-ref">Computational graph</span></a> for this tensor</p></li>
+<li><p>PyTorch automatically constructs a <strong>dynamic computational graph</strong> (see <a class="reference internal" href="computational-graph.html#computational-graph"><span class="std std-ref">Computational graph</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.backward()</span></code>: Automatically performs <a class="reference internal" href="#back-propagation"><span class="std std-ref">Backpropagation Algorithm</span></a> to compute gradients for all leaf nodes</p></li>
+</ul>
+</section>
+<section id="id9">
+<h2>Backpropagation in Neural Networks<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
+<p>In multi-layer neural networks, backpropagation propagates backward layer by layer from the output layer:</p>
+<div class="figure" id="id122" style="text-align: center"><p><img src="../_images/tikz-436ef15b38321ea9c44f128e88aff81af64c8d10.svg" alt="Figure made with TikZ" /></p>
+<p><span class="caption-text">Neural Network Backpropagation Schematic</span></p>
+</div><p><strong>Process</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>Forward propagation</strong>: Data flows from input layer → hidden layer → output layer to compute predictions and loss</p></li>
+<li><p><strong>Backpropagation</strong>: Gradients flow back from output layer ← hidden layer ← input layer to compute gradients for each parameter</p></li>
+<li><p><strong>Parameter update</strong>: Weights are updated using gradient descent</p></li>
+</ol>
+</section>
+<section id="id10">
+<h2>Gradients of Common Operations<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
+<p>The implementation of <a class="reference internal" href="#back-propagation"><span class="std std-ref">Backpropagation Algorithm</span></a> relies on defining gradient rules for each basic operation. Below are the gradients for operations commonly used in neural networks:</p>
+<div class="table colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Operation</p></th>
+<th class="head"><p>Forward</p></th>
+<th class="head"><p>Backward Gradient</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Addition <span class="math notranslate nohighlight">\(z = x + y\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(z = x + y\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{\partial L}{\partial x} = \frac{\partial L}{\partial z}\)</span>, <span class="math notranslate nohighlight">\(\frac{\partial L}{\partial y} = \frac{\partial L}{\partial z}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>Multiplication <span class="math notranslate nohighlight">\(z = x \times y\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(z = x \times y\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{\partial L}{\partial x} = \frac{\partial L}{\partial z} \cdot y\)</span>, <span class="math notranslate nohighlight">\(\frac{\partial L}{\partial y} = \frac{\partial L}{\partial z} \cdot x\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>ReLU <span class="math notranslate nohighlight">\(z = \max(0, x)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(z = \max(0, x)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{\partial L}{\partial x} = \frac{\partial L}{\partial z}\)</span> (if <span class="math notranslate nohighlight">\(x&gt;0\)</span>), else 0</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sigmoid <span class="math notranslate nohighlight">\(z = \sigma(x)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(z = \sigma(x)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{\partial L}{\partial x} = \frac{\partial L}{\partial z} \cdot z(1-z)\)</span></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>For gradient definitions of more activation functions, see <a class="reference internal" href="activation-functions.html"><span class="doc">Activation Functions</span></a>.</p>
+</section>
+<section id="id11">
+<h2>Advantages of Backpropagation<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
+<section id="computational-efficiency">
+<h3>1. Computational Efficiency<a class="headerlink" href="#computational-efficiency" title="Link to this heading">#</a></h3>
+<p>The time complexity of <a class="reference internal" href="#back-propagation"><span class="std std-ref">Backpropagation Algorithm</span></a> is <span class="math notranslate nohighlight">\(O(n)\)</span>, where <span class="math notranslate nohighlight">\(n\)</span> is the number of edges in the <a class="reference internal" href="computational-graph.html#computational-graph"><span class="std std-ref">Computational graph</span></a>. In contrast, numerical differentiation requires <span class="math notranslate nohighlight">\(O(n \times p)\)</span>, where <span class="math notranslate nohighlight">\(p\)</span> is the number of parameters.</p>
+<p><strong>Key</strong>: By reusing intermediate computation results, redundant differentiation is avoided.</p>
+</section>
+<section id="modular-design">
+<h3>2. Modular Design<a class="headerlink" href="#modular-design" title="Link to this heading">#</a></h3>
+<p>Each operation only needs to define:</p>
+<ul class="simple">
+<li><p>Forward: How to compute the output</p></li>
+<li><p>Backward: How to compute the gradient</p></li>
+</ul>
+<p>This makes adding new operations straightforward.</p>
+</section>
+</section>
+<section id="id12">
+<h2>Frequently Asked Questions<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
+<section id="vanishing-gradient">
+<span id="gradient-vanishing"></span><h3>Vanishing Gradient<a class="headerlink" href="#vanishing-gradient" title="Link to this heading">#</a></h3>
+<p>Imagine a 100-layer neural network. During training, you notice that parameters near the output layer update normally, but parameters near the input layer barely move—as if the first dozens of layers are “frozen.” This is the <strong>vanishing gradient</strong> problem.</p>
+<p>Why does it happen? Recall the chain rule: gradients are the <strong>product of effects at each layer</strong>. If the gradient at each layer is less than 1 (for example, Sigmoid’s gradient in the saturation region is only 0.01), after multiplying across 100 layers:</p>
+<div class="math notranslate nohighlight">
+\[::\]</div>
+<p>This number is so small that computers treat it as 0! A typical scenario occurs when using Sigmoid/Tanh activation functions: large or small input values push the function into the “saturation region,” making the gradient close to 0; the deeper the network, the more severe the issue becomes.</p>
+<p><strong>Consequences</strong>: Earlier layers fail to learn anything, causing the model to degenerate into a “shallow network” where only the last few layers are learning. For image data, earlier layers are supposed to learn low-level features like edges and textures, but fail to acquire them.</p>
+<p><strong>Solutions</strong>:</p>
+<ul class="simple">
+<li><p><strong>ReLU activation function</strong>: The gradient in the positive region is constantly 1 and does not decay (see <a class="reference internal" href="activation-functions.html"><span class="doc">Activation Functions</span></a>)</p></li>
+<li><p><strong>Batch Normalization (BatchNorm)</strong>: Controls the value range at each layer, preventing inputs from entering saturation regions</p></li>
+<li><p><strong>Residual connections (ResNet)</strong>: Provides a “shortcut” for gradients to reach earlier layers directly (see mathematical derivation in <a class="reference internal" href="../../cnn-expedition/image-net-era/res-net.html">ResNet (Chinese)</a>)</p></li>
+<li><p><strong>Skip connections (U-Net)</strong>: Preserves gradient paths in encoder-decoder architectures (see <a class="reference internal" href="../../unet-image-segmentation/u-net.html">U-Net (Chinese)</a>)</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="exploding-gradient">
+<h3>Exploding Gradient<a class="headerlink" href="#exploding-gradient" title="Link to this heading">#</a></h3>
+<p>During training, if the loss suddenly becomes NaN (Not a Number) or parameters grow extremely large (e.g., jumping from 0.1 to 1,000,000), the model spins completely out of control. This is an <strong>exploding gradient</strong>.</p>
+<p>Why does it happen? Contrary to vanishing gradients, if the gradient at each layer is greater than 1 (for example, if weight initialization is too large and gradients are 2), after multiplying across 100 layers:</p>
+<div class="math notranslate nohighlight">
+\[::\]</div>
+<p>This is an astronomical number! Parameters are updated drastically, completely diverging from the optimal solution. It commonly occurs due to improper weight initialization, or in recurrent neural networks (RNNs, see <a class="reference internal" href="../../sequence-modeling/rnn-basics.html">RNN Basics (Chinese)</a> for details) handling long sequences.</p>
+<p><strong>Consequences</strong>: Parameter updates are too large, skipping over optimal regions, causing loss oscillation, divergence, or numerical overflow (NaN) that leads to complete training failure.</p>
+<p><strong>Solutions</strong>:</p>
+<ul class="simple">
+<li><p><strong>Gradient Clipping</strong>: Sets an upper threshold on gradients, truncating them if exceeded</p></li>
+<li><p><strong>Weight Regularization (L2 Regularization)</strong>: Penalizes excessively large weights</p></li>
+<li><p><strong>Better Initialization</strong>: Such as Xavier initialization or He initialization to control initial gradient scale</p></li>
+<li><p><strong>Smaller Learning Rate</strong>: Makes parameter updates gentler</p></li>
+</ul>
+</section>
+</section>
+<section id="id13">
+<h2>Summary<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<p>Backpropagation is a core algorithm in deep learning:</p>
+<ol class="arabic simple">
+<li><p><strong>Credit Assignment</strong>: “Apportions” the final loss to each parameter</p></li>
+<li><p><strong>Chain Rule</strong>: Gradients flow backward layer by layer from the output layer (based on the structure of the <a class="reference internal" href="computational-graph.html"><span class="doc">Computational graph</span></a>)</p></li>
+<li><p><strong>Efficient Computation</strong>: Reuses intermediate results, with time complexity linear in network size</p></li>
+</ol>
+<p>Gradients computed by backpropagation are used to update model parameters. The next section, <a class="reference internal" href="gradient-descent.html"><span class="doc">Gradient Descent and Optimization Algorithms</span></a>, will detail how to use these gradients for parameter optimization.</p>
+<p>For the application of backpropagation in practical neural network training, see <a class="reference internal" href="../../cnn-expedition/practice-peak/neural-training-basics.html">Neural Training Basics (Chinese)</a>.</p>
+<hr class="docutils" />
+<h2 class="rubric">References</h2>
+<div class="docutils container" id="id14">
+<div role="list" class="citation-list">
+<div class="citation" id="id80" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>RHW86<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id3">1</a>,<a role="doc-backlink" href="#id1">2</a>,<a role="doc-backlink" href="#id1">3</a>)</span>
+<p>David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. <em>Nature</em>, 323(6088):533–536, 1986.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+<hr class="footnotes docutils" />
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="gamma-def" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">1</a><span class="fn-bracket">]</span></span>
+<p>This is a simplified version; in practice, it refers to the <strong>maximum singular value</strong>. For vectors (multi-layer gradients), the local amplification factor is given by the maximum singular value of the Jacobian matrix <span class="math notranslate nohighlight">\(\frac{\partial h_{k+1}}{\partial h_k}\)</span>, which determines the maximum factor by which the gradient magnitude is amplified or scaled down after passing through this layer.</p>
+</aside>
+</aside>
+
+    <div class="git-contributors" style="margin-top: 4em; padding-top: 1em; border-top: 1px solid #888;">
+        <p style="font-weight: bold; margin-bottom: 10px;">Contributors and Revision History</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+    
+            <div title="Heyan Zhu (Anson2251) (13 commits)" style="text-align: center;"><a href="https://github.com/Anson2251">
+                <img src="../_static/avatars/189766ca0a50109c749c9afa15e1485a.jpg" alt="Heyan Zhu (Anson2251)" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        
+            <div title="ThomasB (1 commits)" style="text-align: center;"><a href="https://github.com/ThomasB">
+                <img src="../_static/avatars/82168554d208a2ab2574fc15ed9f1bd9.jpg" alt="ThomasB" width="40" height="40" style="border-radius: 50%; object-fit: cover; box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.3), 0px 1px 8px -1px rgba(0, 0, 0, 0.2);">
+            </a></div>
+        </div>
+        <details>
+            <summary style="cursor: pointer; font-size: 0.9em;">View detailed revision history</summary>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px; font-size: 0.85em;">
+    
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">bcbd766</code>
+                2026-09-04 - <strong>ThomasB</strong>: UI Bug fixes
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">dc35df2</code>
+                2026-06-14 - <strong>Heyan Zhu</strong>: refactor: unify into two-chapter mountain-climbing narrative
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">e2bc880</code>
+                2026-06-13 - <strong>Heyan Zhu</strong>: fix: missing bib keys in pdf output
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">d7c9da7</code>
+                2026-05-12 - <strong>Heyan Zhu</strong>: docs: update sphinx only filter from not pdf to not latex
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">a954ca5</code>
+                2026-05-11 - <strong>Heyan Zhu</strong>: docs: revise and restructure documentation, fix formatting, and move env setup and sphinx guide to a separate appendix section
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">8eb3275</code>
+                2026-05-09 - <strong>Heyan Zhu</strong>: feat(sequence-modeling): add new chapter on sequence modeling from RNN to Mamba
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">f159d56</code>
+                2026-05-08 - <strong>Heyan Zhu</strong>: fix: address complaints from the linter
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">15d1b15</code>
+                2026-05-03 - <strong>Heyan Zhu</strong>: docs(model-architecture-design): add new chapter on CNN architecture design methodology
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">b5e265a</code>
+                2026-04-28 - <strong>Heyan Zhu</strong>: docs(unet): restructure documentation and update content
+            </li>
+        
+            <li style="margin-bottom: 4px; border-bottom: 1px dashed #888; padding-bottom: 4px;">
+                <code style="background: rgba(128, 128, 128, 0.3); padding: 2px 4px; border-radius: 3px;">59126f4</code>
+                2026-04-26 - <strong>Heyan Zhu</strong>: docs(math-fundamentals): update content structure and add citations
+            </li>
+        
+            </ul>
+        </details>
+    </div>
+    
+</article><footer class="bz-article-footer">
+  
+  
+    <nav class="bz-related-pages" aria-label="Related pages navigation"><a class="bz-related-pages-previous" href="loss-functions.html" rel="prev">
+    <span>Previous</span><span class="bz-related-pages-title">Loss Functions</span></a><a class="bz-related-pages-next" href="gradient-descent.html" rel="next">
+    <span>Next</span>
+    <span class="bz-related-pages-title">Gradient Descent and Optimization Algorithms</span>
+  </a></nav>
+  
+
+</footer><aside class="bz-sidebar-secondary" data-drawer="bz-sidebar-secondary">
+  
+  
+    
+  
+  
+  
+  
+
+
+
+<div class="bz-repo-stats">
+  <a
+    data-provider="github"
+    data-user="ulink-deep-learning-club"
+    data-repo="ulink-deeplearningclub-handouts"
+    href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    aria-label="ulink-deep-learning-club/ulink-deeplearningclub-handouts repository"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    <span
+      style="--bz-repo-stats-name-length: 56"
+      title="ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+    >
+      ulink-deep-learning-club/ulink-deeplearningclub-handouts
+    </span>
+    <div class="bz-repo-stats-row">
+      <span class="bz-repo-stats-item" aria-label="Repository stars">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path></svg>
+        <span data-stat="stars">-</span>
+      </span>
+      <span class="bz-repo-stats-item" aria-label="Repository forks">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
+        <span data-stat="forks">-</span>
+      </span>
+    </div>
+  </a>
+</div>
+
+  
+    <div class="bz-edit-this-page">
+  <a href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts/edit/main/source/math-fundamentals/back-propagation.md" rel="edit">
+    Edit this page
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"></path></svg>
+  </a>
+</div>
+  
+    <nav class="bz-sidebar-toc" aria-label="Table of contents">
+  <p>On this page</p><ul>
+<li><a class="reference internal" href="#id2">The Essence of Backpropagation:​ Credit Assignment</a></li>
+<li><a class="reference internal" href="#id4">The Chain Rule:​ Mechanism of Gradient Flow</a><ul>
+<li><a class="reference internal" href="#jacobian">From Scalars to Vectors:​ The Jacobian Matrix</a><ul>
+<li><a class="reference internal" href="#jacobian-matrix">Definition:​ Jacobian Matrix</a></li>
+<li><a class="reference internal" href="#gradient-vanishing-math">Jacobian Matrix Products in Deep Networks and Vanishing Gradients</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id8">Example:​ A Simple Computational Graph</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pytorch">Automatic Differentiation in PyTorch</a></li>
+<li><a class="reference internal" href="#id9">Backpropagation in Neural Networks</a></li>
+<li><a class="reference internal" href="#id10">Gradients of Common Operations</a></li>
+<li><a class="reference internal" href="#id11">Advantages of Backpropagation</a><ul>
+<li><a class="reference internal" href="#computational-efficiency">1​. Computational Efficiency</a></li>
+<li><a class="reference internal" href="#modular-design">2​. Modular Design</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id12">Frequently Asked Questions</a><ul>
+<li><a class="reference internal" href="#vanishing-gradient">Vanishing Gradient</a></li>
+<li><a class="reference internal" href="#exploding-gradient">Exploding Gradient</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id13">Summary</a></li>
+</ul></nav>
+  
+
+</aside></main>
+  </div>
+<footer class="bz-footer">
+  <div class="bz-footer-copyright"><p class="bz-copyright">© Copyright 2025, UCS Deep Learning Club and its contributors, licensed under CC BY-SA 4.0</p><p>
+    
+    
+    
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a href="https://github.com/aksiome/breeze">Breeze theme</a>.
+    
+  </p>
+</div><div class="bz-external-links">
+  <a
+      href="https://github.com/ulink-deep-learning-club/ulink-deeplearningclub-handouts"
+      aria-label="GitHub"
+      data-tooltip="GitHub"
+      target="_blank"
+    >
+    
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10.303 16.652c-2.837-.344-4.835-2.385-4.835-5.028 0-1.074.387-2.235 1.031-3.008-.279-.709-.236-2.214.086-2.837.86-.107 2.02.344 2.708.967.816-.258 1.676-.386 2.728-.386 1.053 0 1.913.128 2.686.365.666-.602 1.848-1.053 2.708-.946.3.581.344 2.085.064 2.815.688.817 1.053 1.913 1.053 3.03 0 2.643-1.998 4.641-4.877 5.006.73.473 1.224 1.504 1.224 2.686v2.235c0 .644.537 1.01 1.182.752 3.889-1.483 6.94-5.372 6.94-10.185 0-6.081-4.942-11.044-11.022-11.044-6.081 0-10.98 4.963-10.98 11.044a10.84 10.84 0 0 0 7.112 10.206c.58.215 1.139-.172 1.139-.752v-1.719a2.768 2.768 0 0 1-1.032.215c-1.418 0-2.256-.773-2.857-2.213-.237-.58-.495-.924-.989-.988-.258-.022-.344-.129-.344-.258 0-.258.43-.451.86-.451.623 0 1.16.386 1.719 1.181.43.623.881.903 1.418.903.537 0 .881-.194 1.375-.688.365-.365.645-.687.903-.902Z"></path></svg>
+    
+    </a>
+  </div>
+</footer><a href="#" class="bz-back-to-top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+    </svg>
+    <span>Back to top</span>
+  </a>
+  <label class="bz-overlay bz-overlay-primary" for="bz-sidebar-primary"></label>
+  <label class="bz-overlay bz-overlay-secondary" for="bz-sidebar-secondary"></label>
+  <input type="checkbox" name="bz-sidebar-primary" id="bz-sidebar-primary" aria-label="Toggle section navigation">
+  <input type="checkbox" name="bz-sidebar-secondary" id="bz-sidebar-secondary" aria-label="Toggle table of contents"><script src="../_static/documentation_options.js?v=d45e8c67"></script><script src="../_static/doctools.js?v=9bcbadda"></script><script src="../_static/sphinx_highlight.js?v=dc90522c"></script><script src="../_static/design-tabs.js?v=f930bc37"></script><script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]]}, "loader": {"load": ["input/tex", "output/svg"]}, "options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script></body>
+</html>

@@ -13,7 +13,7 @@
 <meta property="og:image:alt" content="学习任务的形式 中我们讨论了分类、回归、自回归三类任务的数学形式。不同任务需要不同的方式量化&quot;预测好坏&quot;——这就是损失函数的作用。 损失函数的本质：定义优化目标: 损失函数衡量模型预测与真实值之间的差异，将训练转化为 优化问题 。不同的任务类型对应不同的损失函数，塑造了不同的 损失曲面几何 ，影响 梯度下降与优化算法 优化的难易程度。 损失函数定义误差曲面,, 核心作用 ..." />
 <meta name="description" content="学习任务的形式 中我们讨论了分类、回归、自回归三类任务的数学形式。不同任务需要不同的方式量化&quot;预测好坏&quot;——这就是损失函数的作用。 损失函数的本质：定义优化目标: 损失函数衡量模型预测与真实值之间的差异，将训练转化为 优化问题 。不同的任务类型对应不同的损失函数，塑造了不同的 损失曲面几何 ，影响 梯度下降与优化算法 优化的难易程度。 损失函数定义误差曲面,, 核心作用 ..." />
 <meta name="twitter:card" content="summary_large_image" />
-<title>损失函数 - Deep Learning Club Handouts</title><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="反向传播算法" href="back-propagation.html"><link rel="prev" title="激活函数" href="activation-functions.html"><script data-cfasync="false">(function(){
+<title>损失函数 - Deep Learning Club 学习教程</title><link rel="canonical" href="https://ulink-deep-learning-club.github.io/ulink-deeplearningclub-handouts/math-fundamentals/loss-functions.html"><link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="反向传播算法" href="back-propagation.html"><link rel="prev" title="激活函数" href="activation-functions.html"><script data-cfasync="false">(function(){
     const m = localStorage.getItem("breeze-mode") || "auto";
     const d = document.documentElement.dataset;
     d.mode = m;
@@ -21,7 +21,7 @@
       ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
       : m;
   })();
-  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=c830a622" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" /><link rel="stylesheet" type="text/css" href="../_static/style-fixes.css?v=ffc68e8e" /><link rel="stylesheet" type="text/css" href="../_static/i18n.css?v=3d153456" /><link rel="stylesheet" type="text/css" href="../_static/styles/breeze.css?v=7c62c100" /><script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script defer="defer" src="../_static/scripts/breeze.js?v=dac9f8c6"></script></head>
 <body>
   
   
@@ -46,7 +46,7 @@
 </label><a class="bz-header-brand" href="../index.html">
   
   
-  <span>Deep Learning Club Handouts</span>
+  <span>Deep Learning Club 学习教程</span>
 </a>
   </div>
   <div class="bz-header-end"><label
@@ -88,7 +88,20 @@
     <span>搜索</span>
     <kbd>Ctrl+K</kbd>
   </a>
-</div><div class="bz-theme-switcher">
+</div>
+
+<details class="i18n-language-menu">
+  <summary>Language</summary>
+  <ul aria-label="Language">
+    <li>
+      <span lang="zh-CN" aria-current="page">中文</span>
+    </li>
+    <li>
+      <a href="../en/math-fundamentals/loss-functions.html" lang="en">English</a>
+    </li>
+  </ul>
+</details>
+<div class="bz-theme-switcher">
   <button aria-label="Switch theme" data-tooltip="Switch theme">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="only-light" fill="currentColor">
       <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
@@ -282,7 +295,7 @@
 <section id="id2">
 <h2>损失函数的本质：定义优化目标<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
 <p>损失函数衡量模型预测与真实值之间的差异，将训练转化为<strong>优化问题</strong>。不同的任务类型对应不同的损失函数，塑造了不同的<strong>损失曲面几何</strong>，影响<a class="reference internal" href="gradient-descent.html#gradient-descent"><span class="std std-ref">梯度下降与优化算法</span></a>优化的难易程度。</p>
-<div class="figure" id="id125" style="text-align: center"><p><img  src="../_images/tikz-1fcb6e31998d6ac9bb181d5315ffa43589084ee7.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id125" style="text-align: center"><p><img src="../_images/tikz-1fcb6e31998d6ac9bb181d5315ffa43589084ee7.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">损失函数定义误差曲面</span></p>
 </div><p><strong>核心作用</strong>：</p>
 <ul class="simple">
@@ -312,7 +325,7 @@
 <li><p>处处可导，便于梯度计算</p></li>
 <li><p>对<strong>异常值敏感</strong></p></li>
 </ul>
-<div class="figure" id="id126" style="text-align: center"><p><img  src="../_images/tikz-5634583b0fe1fa96f8a4a00fd778674ba57a03f0.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id126" style="text-align: center"><p><img src="../_images/tikz-5634583b0fe1fa96f8a4a00fd778674ba57a03f0.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">MSE损失函数形状</span></p>
 </div></section>
 </section>
@@ -366,7 +379,7 @@
 <p>想象你要传递一条消息：“这是一张猫的图片”。如果只有10个可能的类别，最直接的编码方式是给每个类别分配一个编号（0-9）。但这种方式有问题：<strong>如果模型预测&quot;狗&quot;的概率是80%而&quot;猫&quot;是20%，我们丢失了预测信心信息</strong>。</p>
 <p>更好的方式是使用<strong>概率分布</strong>作为编码。模型输出 <span class="math notranslate nohighlight">\([0.1, 0.7, 0.05, ...]\)</span> 表示对每个类别的信心。</p>
 <p><strong>One-Hot编码</strong>：将类别标签转换为向量，对应类别的位置为1，其余为0。</p>
-<div class="figure" id="id127" style="text-align: center"><p><img  src="../_images/tikz-0d32726a35b9a83f789fce8d44b40520d4a23370.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id127" style="text-align: center"><p><img src="../_images/tikz-0d32726a35b9a83f789fce8d44b40520d4a23370.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">One-Hot编码示例</span></p>
 </div><p><strong>为什么叫&quot;One-Hot&quot;？</strong></p>
 <ul class="simple">
@@ -388,7 +401,7 @@
 <li><p>对<strong>错误预测惩罚很大</strong>（预测接近0时损失→∞）</p></li>
 <li><p>与softmax配合，梯度形式简洁</p></li>
 </ul>
-<div class="figure" id="id128" style="text-align: center"><p><img  src="../_images/tikz-072ab880e3f6abdb3f0f587d38b94dd51f130f32.svg" alt="Figure made with TikZ" /></p>
+<div class="figure" id="id128" style="text-align: center"><p><img src="../_images/tikz-072ab880e3f6abdb3f0f587d38b94dd51f130f32.svg" alt="Figure made with TikZ" /></p>
 <p><span class="caption-text">交叉熵损失：惩罚错误预测</span></p>
 </div><p><strong>为什么不用MSE做分类？</strong></p>
 <ul class="simple">
